@@ -2,60 +2,60 @@ file	line	endline	name	signature	status	entry	note
 base/broadcast.jl	37	37	BroadcastStyle	BroadcastStyle(::Type{Union{}})	todo		trivial: restates a body or a constructor result
 base/broadcast.jl	38	38	BroadcastStyle	BroadcastStyle(::Type{Union{}}, slurp...)	modelled	broadcast-bottom-type-diagnostic	typed MethodError model retains every slurped argument; release behavior differs
 base/broadcast.jl	49	49	BroadcastStyle	BroadcastStyle(::Type{<:Tuple})	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	87	87	ArrayStyle{A}	ArrayStyle{A}(::Val) where A	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	98	98	DefaultArrayStyle	DefaultArrayStyle(::Val{N}) where N	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	87	87	ArrayStyle{A}	ArrayStyle{A}(::Val) where A	modelled	broadcast-array-style-val-parameter;broadcast-style-adapters-no-added-type-checks	Full selected-method runtime model; existing CoreOps preserves arbitrary constructor returns, effects, exceptions and divergence; complete-domain independent contracts registered todo with no theorem.
+base/broadcast.jl	98	98	DefaultArrayStyle	DefaultArrayStyle(::Val{N}) where N	modelled	broadcast-style-adapters-no-added-type-checks	Full selected-method runtime model; existing CoreOps preserves arbitrary constructor returns, effects, exceptions and divergence; complete-domain independent contracts registered todo with no theorem.
 base/broadcast.jl	99	99	DefaultArrayStyle{M}	DefaultArrayStyle{M}(::Val{N}) where {N,M}	modelled	broadcast-style-dimension-join	typed old-rank replacement model
-base/broadcast.jl	102	102	BroadcastStyle	BroadcastStyle(::Type{<:AbstractArray{T,N}}) where {T,N}	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	103	103	BroadcastStyle	BroadcastStyle(::Type{T}) where {T}	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	102	102	BroadcastStyle	BroadcastStyle(::Type{<:AbstractArray{T,N}}) where {T,N}	modelled	broadcast-array-trait-ignores-element-family;broadcast-style-adapters-no-added-type-checks	Full selected-method runtime model; existing CoreOps preserves arbitrary constructor returns, effects, exceptions and divergence; complete-domain independent contracts registered todo with no theorem.
+base/broadcast.jl	103	103	BroadcastStyle	BroadcastStyle(::Type{T}) where {T}	modelled	broadcast-default-style-runtime-observations;broadcast-default-style-no-extra-type-checks	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.DefaultStyle.fallback; reviewed against Julia f755f49.
 base/broadcast.jl	111	111	ArrayConflict	ArrayConflict(::Val)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	128	128	BroadcastStyle	BroadcastStyle(::S, ::S) where S<:BroadcastStyle	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	128	128	BroadcastStyle	BroadcastStyle(::S, ::S) where S<:BroadcastStyle	modelled	broadcast-style-constructor-operands	Full selected-method runtime model; existing CoreOps preserves arbitrary constructor returns, effects, exceptions and divergence; complete-domain independent contracts registered todo with no theorem.
 base/broadcast.jl	130	130	BroadcastStyle	BroadcastStyle(::BroadcastStyle, ::BroadcastStyle)	todo		trivial: restates a body or a constructor result
 base/broadcast.jl	132	132	BroadcastStyle	BroadcastStyle(::Unknown, ::Unknown)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	133	133	BroadcastStyle	BroadcastStyle(::S, ::Unknown) where S<:BroadcastStyle	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	133	133	BroadcastStyle	BroadcastStyle(::S, ::Unknown) where S<:BroadcastStyle	modelled	broadcast-style-constructor-operands	Full selected-method runtime model; existing CoreOps preserves arbitrary constructor returns, effects, exceptions and divergence; complete-domain independent contracts registered todo with no theorem.
 base/broadcast.jl	135	135	BroadcastStyle	BroadcastStyle(a::AbstractArrayStyle{0}, b::Style{Tuple})	todo		trivial: restates a body or a constructor result
 base/broadcast.jl	136	136	BroadcastStyle	BroadcastStyle(a::AbstractArrayStyle, ::Style{Tuple})	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	137	137	BroadcastStyle	BroadcastStyle(::A, ::A) where A<:ArrayStyle	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	137	137	BroadcastStyle	BroadcastStyle(::A, ::A) where A<:ArrayStyle	modelled	broadcast-style-constructor-operands;broadcast-style-adapters-no-added-type-checks	Full selected-method runtime model; existing CoreOps preserves arbitrary constructor returns, effects, exceptions and divergence; complete-domain independent contracts registered todo with no theorem.
 base/broadcast.jl	138	138	BroadcastStyle	BroadcastStyle(::ArrayStyle, ::ArrayStyle)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	139	139	BroadcastStyle	BroadcastStyle(::A, ::A) where A<:AbstractArrayStyle	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	139	139	BroadcastStyle	BroadcastStyle(::A, ::A) where A<:AbstractArrayStyle	modelled	broadcast-style-constructor-operands	Full selected-method runtime model; existing CoreOps preserves arbitrary constructor returns, effects, exceptions and divergence; complete-domain independent contracts registered todo with no theorem.
 base/broadcast.jl	140	145	BroadcastStyle	BroadcastStyle(a::A, b::B) where {A<:AbstractArrayStyle{M},B<:AbstractArrayStyle{N}} where {M,N}	modelled	broadcast-style-dimension-join	typed family comparison, branch, maximum-rank, and reconstruction model
 base/broadcast.jl	147	147	BroadcastStyle	BroadcastStyle(a::AbstractArrayStyle{Any}, ::DefaultArrayStyle)	todo		trivial: restates a body or a constructor result
 base/broadcast.jl	148	148	BroadcastStyle	BroadcastStyle(a::AbstractArrayStyle{N}, ::DefaultArrayStyle{N}) where N	todo		trivial: restates a body or a constructor result
 base/broadcast.jl	149	150	BroadcastStyle	BroadcastStyle(a::AbstractArrayStyle{M}, ::DefaultArrayStyle{N}) where {M,N}	modelled	broadcast-style-dimension-associative	typed maximum-rank reconstruction model
 base/broadcast.jl	175	175	Broadcasted	Broadcasted(style::Union{Nothing,BroadcastStyle}, f::Tuple, args::Tuple)	todo		Nothing to promise: tuple-function ambiguity plumbing; see the Proofs block.
-base/broadcast.jl	176	179	Broadcasted	Broadcasted(style::Union{Nothing,BroadcastStyle}, f::F, args::Tuple, axes=nothing) where {F}	todo		Nothing to promise: lazy-wrapper field storage; see the Proofs block.
-base/broadcast.jl	181	183	Broadcasted	Broadcasted(f::F, args::Tuple, axes=nothing) where {F}	todo		Nothing to promise: forwards style discovery to the real explicit-style constructor.
+base/broadcast.jl	176	179	Broadcasted	Broadcasted(style::Union{Nothing,BroadcastStyle}, f::F, args::Tuple, axes=nothing) where {F}	modelled	broadcast-instantiate-varying-axes	Nothing to promise: lazy-wrapper field storage; see the Proofs block.
+base/broadcast.jl	181	183	Broadcasted	Broadcasted(f::F, args::Tuple, axes=nothing) where {F}	modelled	broadcast-inferred-constructor-lazy-transport;broadcast-inferred-constructor-style-failures;broadcast-inferred-constructor-style-divergence	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.Constructors.inferred; reviewed against Julia f755f49.
 base/broadcast.jl	185	187	Broadcasted{Style}	Broadcasted{Style}(f::F, args, axes=nothing) where {Style, F}	todo		Nothing to promise: generic style constructor and lazy-wrapper storage.
 base/broadcast.jl	189	191	Broadcasted{Style,Axes,F,Args}	Broadcasted{Style,Axes,F,Args}(f, args, axes) where {Style,Axes,F,Args}	todo		Nothing to promise: runtime field-conversion forwarding and wrapper storage.
-base/broadcast.jl	196	196	broadcasted	broadcasted(::AndAnd, a, b)	todo		Nothing to promise: forwards scalar Boolean conjunction to broadcasted.
+base/broadcast.jl	196	196	broadcasted	broadcasted(::AndAnd, a, b)	modelled	broadcast-andand-callable-effects	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.ShortCircuit.broadcastAnd; reviewed against Julia f755f49.
 base/broadcast.jl	199	204	broadcasted	broadcasted(::AndAnd, a, bc::Broadcasted)	modelled	broadcast-nested-boolean-short-circuit	typed all-input lazy-broadcast model
-base/broadcast.jl	207	207	broadcasted	broadcasted(::OrOr, a, b)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	207	207	broadcasted	broadcasted(::OrOr, a, b)	modelled	broadcast-oror-callable-effects	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.ShortCircuit.broadcastOr; reviewed against Julia f755f49.
 base/broadcast.jl	208	213	broadcasted	broadcasted(::OrOr, a, bc::Broadcasted)	modelled	broadcast-nested-boolean-short-circuit	typed all-input lazy-broadcast model
-base/broadcast.jl	215	216	Base.convert	Base.convert(::Type{Broadcasted{NewStyle}}, bc::Broadcasted{<:Any,Axes,F,Args}) where {NewStyle,Axes,F,Args}	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	215	216	Base.convert	Base.convert(::Type{Broadcasted{NewStyle}}, bc::Broadcasted{<:Any,Axes,F,Args}) where {NewStyle,Axes,F,Args}	modelled	broadcast-style-conversion-trace-assertion;broadcast-style-conversion-failure-prefix;broadcast-style-conversion-divergence	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.StyleConversion.convert; reviewed against Julia f755f49.
 base/broadcast.jl	218	226	Base.show	Base.show(io::IO, bc::Broadcasted{Style}) where {Style}	modelled	broadcast-wrapper-display	typed all-input lazy-broadcast model
-base/broadcast.jl	229	229	Base.similar	Base.similar(bc::Broadcasted, ::Type{T}) where {T}	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	229	229	Base.similar	Base.similar(bc::Broadcasted, ::Type{T}) where {T}	modelled	broadcast-similar-axes-allocation-effects	Source-mirrored model JuliaLean.base.broadcast.Lazy.m229; reviewed against Julia f755f49.
 base/broadcast.jl	230	231	Base.similar	Base.similar(::Broadcasted{DefaultArrayStyle{N}}, ::Type{ElType}, dims) where {N,ElType}	modelled	broadcast-allocated-rank-axes	typed all-input lazy-broadcast model
-base/broadcast.jl	232	233	Base.similar	Base.similar(::Broadcasted{DefaultArrayStyle{N}}, ::Type{Bool}, dims) where N	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	232	233	Base.similar	Base.similar(::Broadcasted{DefaultArrayStyle{N}}, ::Type{Bool}, dims) where N	modelled	broadcast-boolean-default-allocation	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.Forward.similarBooleanDefault; reviewed against Julia f755f49.
 base/broadcast.jl	235	236	Base.similar	Base.similar(::Broadcasted{ArrayConflict}, ::Type{ElType}, dims) where ElType	modelled	broadcast-allocated-rank-axes	typed all-input lazy-broadcast model
-base/broadcast.jl	237	238	Base.similar	Base.similar(::Broadcasted{ArrayConflict}, ::Type{Bool}, dims)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	240	240	Base.axes	Base.axes(bc::Broadcasted)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	241	241	_axes	_axes(::Broadcasted, axes::Tuple)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	242	242	_axes	_axes(bc::Broadcasted, ::Nothing)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	243	243	_axes	_axes(bc::Broadcasted{<:AbstractArrayStyle{0}}, ::Nothing)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	237	238	Base.similar	Base.similar(::Broadcasted{ArrayConflict}, ::Type{Bool}, dims)	modelled	broadcast-boolean-conflict-allocation	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.Forward.similarBooleanConflict; reviewed against Julia f755f49.
+base/broadcast.jl	240	240	Base.axes	Base.axes(bc::Broadcasted)	modelled	broadcast-axes-property-dispatch	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.Forward.axes; reviewed against Julia f755f49.
+base/broadcast.jl	241	241	_axes	_axes(::Broadcasted, axes::Tuple)	modelled	broadcast-axes-beyond-rank	trivial: restates a body or a constructor result
+base/broadcast.jl	242	242	_axes	_axes(bc::Broadcasted, ::Nothing)	modelled	broadcast-unset-axes-splat	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.Forward.axesNothing; reviewed against Julia f755f49.
+base/broadcast.jl	243	243	_axes	_axes(bc::Broadcasted{<:AbstractArrayStyle{0}}, ::Nothing)	modelled	broadcast-axes-beyond-rank	trivial: restates a body or a constructor result
 base/broadcast.jl	245	246	Base.axes	Base.axes(bc::Broadcasted{<:Any, <:NTuple{N}}, d::Integer) where N	modelled	broadcast-axes-beyond-rank	typed all-input lazy-broadcast model
-base/broadcast.jl	248	248	BroadcastStyle	BroadcastStyle(::Type{<:Broadcasted{Style}}) where {Style}	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	248	248	BroadcastStyle	BroadcastStyle(::Type{<:Broadcasted{Style}}) where {Style}	modelled	broadcast-wrapper-style-parameters	Full selected-method runtime model; existing CoreOps preserves arbitrary constructor returns, effects, exceptions and divergence; complete-domain independent contracts registered todo with no theorem.
 base/broadcast.jl	249	250	BroadcastStyle	BroadcastStyle(::Type{<:Broadcasted{S}}) where {S<:Union{Nothing,Unknown}}	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	252	252	argtype	argtype(::Type{BC}) where {BC<:Broadcasted}	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	253	253	argtype	argtype(bc::Broadcasted)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	255	255	Base.eachindex	Base.eachindex(bc::Broadcasted)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	256	256	Base.eachindex	Base.eachindex(s::IndexStyle, bc::Broadcasted)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	257	257	_eachindex	_eachindex(::IndexCartesian, t::Tuple)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	258	258	_eachindex	_eachindex(s::IndexLinear, t::Tuple)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	252	252	argtype	argtype(::Type{BC}) where {BC<:Broadcasted}	modelled	broadcast-inferred-rank-least	trivial: restates a body or a constructor result
+base/broadcast.jl	253	253	argtype	argtype(bc::Broadcasted)	modelled	broadcast-argtype-declared-type;broadcast-metadata-current-fields-independent	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.Forward.argtype; reviewed against Julia f755f49.
+base/broadcast.jl	255	255	Base.eachindex	Base.eachindex(bc::Broadcasted)	modelled	broadcast-eachindex-trait-order	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.Forward.eachindex; reviewed against Julia f755f49.
+base/broadcast.jl	256	256	Base.eachindex	Base.eachindex(s::IndexStyle, bc::Broadcasted)	modelled	broadcast-eachindex-axes-order	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.Forward.eachindexByStyle; reviewed against Julia f755f49.
+base/broadcast.jl	257	257	_eachindex	_eachindex(::IndexCartesian, t::Tuple)	modelled	broadcast-cartesian-index-tuple	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.Forward.eachindexCartesian; reviewed against Julia f755f49.
+base/broadcast.jl	258	258	_eachindex	_eachindex(s::IndexLinear, t::Tuple)	modelled	broadcast-linear-index-construction	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.Forward.eachindexLinear; reviewed against Julia f755f49.
 base/broadcast.jl	259	259	_eachindex	_eachindex(::IndexLinear, t::Tuple{Any})	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	261	261	Base.IndexStyle	Base.IndexStyle(bc::Broadcasted)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	261	261	Base.IndexStyle	Base.IndexStyle(bc::Broadcasted)	modelled	broadcast-index-style-declared-type;broadcast-metadata-current-fields-independent	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.Forward.indexStyle; reviewed against Julia f755f49.
 base/broadcast.jl	262	262	Base.IndexStyle	Base.IndexStyle(::Type{<:Broadcasted{<:Any,<:Tuple{Any}}})	todo		trivial: restates a body or a constructor result
 base/broadcast.jl	263	263	Base.IndexStyle	Base.IndexStyle(::Type{<:Broadcasted{<:Any}})	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	265	265	Base.LinearIndices	Base.LinearIndices(bc::Broadcasted{<:Any,<:Tuple{Any}})	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	267	267	Base.ndims	Base.ndims(bc::Broadcasted)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	265	265	Base.LinearIndices	Base.LinearIndices(bc::Broadcasted{<:Any,<:Tuple{Any}})	modelled	broadcast-linear-indices-final-assertion	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.Forward.linearIndices; reviewed against Julia f755f49.
+base/broadcast.jl	267	267	Base.ndims	Base.ndims(bc::Broadcasted)	modelled	broadcast-ndims-custom-result;broadcast-metadata-current-fields-independent	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.Forward.ndims; reviewed against Julia f755f49.
 base/broadcast.jl	268	268	Base.ndims	Base.ndims(::Type{<:Broadcasted{<:Any,<:NTuple{N,Any}}}) where {N}	todo		trivial: restates a body or a constructor result
 base/broadcast.jl	269	269	Base.ndims	Base.ndims(BC::Type{<:Broadcasted{<:Any,Nothing}})	modelled	broadcast-inferred-rank-least	typed all-input lazy-broadcast model
 base/broadcast.jl	270	272	Base.ndims	Base.ndims(BC::Type{<:Broadcasted{<:AbstractArrayStyle{N},Nothing}}) where {N}	modelled	broadcast-unfixed-style-rank-least	typed all-input lazy-broadcast model
@@ -63,10 +63,10 @@ base/broadcast.jl	273	273	_maxndims	_maxndims(::Type{Tuple{}})	modelled	broadcas
 base/broadcast.jl	274	274	_maxndims	_maxndims(::Type{Tuple{T}}) where {T}	modelled	broadcast-inferred-rank-least	typed all-input lazy-broadcast model
 base/broadcast.jl	275	279	_maxndims	_maxndims(Args::Type{<:Tuple{T,Vararg}}) where {T}	modelled	broadcast-inferred-rank-least	typed all-input lazy-broadcast model
 base/broadcast.jl	281	281	Base.size	Base.size(bc::Broadcasted)	modelled	broadcast-size-stored-rank	typed all-input lazy-broadcast model
-base/broadcast.jl	282	282	Base.length	Base.length(bc::Broadcasted)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	284	287	Base.iterate	Base.iterate(bc::Broadcasted)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	288	293	Base.iterate	Base.iterate(bc::Broadcasted, s)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	295	295	Base.IteratorSize	Base.IteratorSize(::Type{T}) where {T<:Broadcasted}	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	282	282	Base.length	Base.length(bc::Broadcasted)	modelled	broadcast-length-shape-product	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.Forward.length; reviewed against Julia f755f49.
+base/broadcast.jl	284	287	Base.iterate	Base.iterate(bc::Broadcasted)	modelled	broadcast-initial-iterator-state	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.Forward.iterateStart; reviewed against Julia f755f49.
+base/broadcast.jl	288	293	Base.iterate	Base.iterate(bc::Broadcasted, s)	modelled	broadcast-iterate-state-effects	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.Iteration.iterateStep; reviewed against Julia f755f49.
+base/broadcast.jl	295	295	Base.IteratorSize	Base.IteratorSize(::Type{T}) where {T<:Broadcasted}	modelled	broadcast-iterator-size-runtime-contract	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.IteratorSize.iteratorSize; reviewed against Julia f755f49.
 base/broadcast.jl	296	296	Base.IteratorEltype	Base.IteratorEltype(::Type{<:Broadcasted})	todo		trivial: restates a body or a constructor result
 base/broadcast.jl	299	299	instantiate	instantiate(x)	todo		trivial: restates a body or a constructor result
 base/broadcast.jl	310	318	instantiate	instantiate(bc::Broadcasted)	modelled	broadcast-instantiate-varying-axes	typed all-input lazy-broadcast model
@@ -93,24 +93,24 @@ base/broadcast.jl	407	407	prepare_args	prepare_args(makeargs::Tuple, @nospeciali
 base/broadcast.jl	408	408	prepare_args	prepare_args(makeargs::Tuple{Any}, @nospecialize(x::Tuple))	modelled	broadcast-prepared-argument-arity	typed recursive flattening and selector model
 base/broadcast.jl	409	409	prepare_args	prepare_args(::Tuple{}, ::Tuple)	modelled	broadcast-prepared-argument-arity	typed recursive flattening and selector model
 base/broadcast.jl	429	429	combine_styles	combine_styles	excluded		no-behaviour: generic function declaration with no method body
-base/broadcast.jl	431	431	combine_styles	combine_styles()	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	432	432	combine_styles	combine_styles(c)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	431	431	combine_styles	combine_styles()	modelled	broadcast-nested-boolean-short-circuit	trivial: restates a body or a constructor result
+base/broadcast.jl	432	432	combine_styles	combine_styles(c)	modelled	broadcast-combine-styles-unary-runtime	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.CombineStyles.combineOne; reviewed against Julia f755f49.
 base/broadcast.jl	433	436	combine_styles	combine_styles(bc::Broadcasted)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	437	437	combine_styles	combine_styles(c1, c2)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	438	438	combine_styles	combine_styles(c1, c2, cs...)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	437	437	combine_styles	combine_styles(c1, c2)	modelled	broadcast-combine-styles-binary-runtime	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.CombineStyles.combineTwo; reviewed against Julia f755f49.
+base/broadcast.jl	438	438	combine_styles	combine_styles(c1, c2, cs...)	modelled	broadcast-combine-styles-variadic-recursion	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.CombineStyles.combineMany; reviewed against Julia f755f49.
 base/broadcast.jl	456	456	result_style	result_style	excluded		no-behaviour: generic function declaration with no method body
-base/broadcast.jl	458	458	result_style	result_style(s::BroadcastStyle)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	458	458	result_style	result_style(s::BroadcastStyle)	modelled	broadcast-nested-boolean-short-circuit	trivial: restates a body or a constructor result
 base/broadcast.jl	459	461	result_style	result_style(s1::S, s2::S) where S<:BroadcastStyle	modelled	broadcast-style-identity-agreement	typed equivalence branch and ErrorException model
-base/broadcast.jl	463	463	result_style	result_style(s1, s2)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	463	463	result_style	result_style(s1, s2)	modelled	broadcast-result-style-directional-effects	Source-mirrored model JuliaLean.base.broadcast.Style.m463; reviewed against Julia f755f49.
 base/broadcast.jl	467	467	result_join	result_join(::Any, ::Any, ::Unknown, ::Unknown)	todo		trivial: restates a body or a constructor result
 base/broadcast.jl	468	468	result_join	result_join(::Any, ::Any, ::Unknown, s::BroadcastStyle)	todo		trivial: restates a body or a constructor result
 base/broadcast.jl	469	469	result_join	result_join(::Any, ::Any, s::BroadcastStyle, ::Unknown)	todo		trivial: restates a body or a constructor result
 base/broadcast.jl	474	475	result_join	result_join(::AbstractArrayStyle, ::AbstractArrayStyle, ::Unknown, ::Unknown)	todo		trivial: restates a body or a constructor result
 base/broadcast.jl	477	477	result_join	result_join(::Any, ::Any, s1::S, s2::S) where S<:BroadcastStyle	modelled	broadcast-style-identity-agreement	polymorphic four-argument homogeneous result-style delegation
-base/broadcast.jl	479	485	result_join	result_join(::S, ::T, ::U, ::V) where {S,T,U,V}	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	502	502	combine_axes	combine_axes(A, B...)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	503	503	combine_axes	combine_axes(A, B)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	504	504	combine_axes	combine_axes(A)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	479	485	result_join	result_join(::S, ::T, ::U, ::V) where {S,T,U,V}	modelled	broadcast-conflicting-style-diagnostic-effects;broadcast-conflicting-style-type-only-diagnostic	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.ResultJoin.conflicting; reviewed against Julia f755f49.
+base/broadcast.jl	502	502	combine_axes	combine_axes(A, B...)	modelled	broadcast-combine-axes-variadic-recursion	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.CombineAxes.combineMany;JuliaLean.base.broadcast.Models2Group5.CombineAxes.combineSuffix; reviewed against Julia f755f49.
+base/broadcast.jl	503	503	combine_axes	combine_axes(A, B)	modelled	broadcast-combine-axes-binary-order;broadcast-combine-axes-variadic-recursion	Source-mirrored model JuliaLean.base.broadcast.Shape.m503;JuliaLean.base.broadcast.Models2Group5.CombineAxes.combineTwo; reviewed against Julia f755f49.
+base/broadcast.jl	504	504	combine_axes	combine_axes(A)	modelled	broadcast-combine-axes-unary-runtime;broadcast-combine-axes-variadic-recursion	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.CombineAxes.combineOne; reviewed against Julia f755f49.
 base/broadcast.jl	519	519	broadcast_shape	broadcast_shape	excluded		no-behaviour: generic function declaration with no method body
 base/broadcast.jl	521	521	broadcast_shape	broadcast_shape(shape::Tuple)	todo		trivial: restates a body or a constructor result
 base/broadcast.jl	522	522	broadcast_shape	broadcast_shape(shape::Tuple, shape1::Tuple, shapes::Tuple...)	modelled	broadcast-typed-integer-shape-rank	typed heterogeneous shape and axis model
@@ -126,11 +126,11 @@ base/broadcast.jl	536	536	_bcsm	_bcsm(a, b)	modelled	broadcast-validation-aligne
 base/broadcast.jl	537	537	_bcsm	_bcsm(a, b::Number)	modelled	broadcast-numeric-compatibility	typed heterogeneous shape and axis model
 base/broadcast.jl	538	538	_bcsm	_bcsm(a::Number, b::Number)	modelled	broadcast-numeric-compatibility	typed heterogeneous shape and axis model
 base/broadcast.jl	542	542	axistype	axistype(a::T, b::T) where T	modelled	broadcast-axis-combination	typed heterogeneous shape and axis model
-base/broadcast.jl	543	543	axistype	axistype(a::OneTo, b::OneTo)	todo		Nothing to promise: forwards the selected axis to the external OneTo{Int} constructor.
-base/broadcast.jl	544	544	axistype	axistype(a, b)	todo		Nothing to promise: forwards the selected axis to the external UnitRange{Int} constructor.
+base/broadcast.jl	543	543	axistype	axistype(a::OneTo, b::OneTo)	modelled	broadcast-axis-oneto-conversion;broadcast-axis-second-argument-independent	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.AxisTypes.oneTo; reviewed against Julia f755f49.
+base/broadcast.jl	544	544	axistype	axistype(a, b)	modelled	broadcast-axis-unitrange-conversion;broadcast-axis-second-argument-independent	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.AxisTypes.unitRange; reviewed against Julia f755f49.
 base/broadcast.jl	548	548	check_broadcast_shape	check_broadcast_shape(shp)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	549	549	check_broadcast_shape	check_broadcast_shape(shp, ::Tuple{})	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	550	550	check_broadcast_shape	check_broadcast_shape(::Tuple{}, ::Tuple{})	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	549	549	check_broadcast_shape	check_broadcast_shape(shp, ::Tuple{})	modelled	broadcast-instantiate-varying-axes	trivial: restates a body or a constructor result
+base/broadcast.jl	550	550	check_broadcast_shape	check_broadcast_shape(::Tuple{}, ::Tuple{})	modelled	broadcast-instantiate-varying-axes	trivial: restates a body or a constructor result
 base/broadcast.jl	551	556	check_broadcast_shape	check_broadcast_shape(::Tuple{}, Ashp::Tuple)	modelled	broadcast-validation-varying-axes	typed heterogeneous shape and axis model
 base/broadcast.jl	557	560	check_broadcast_shape	check_broadcast_shape(shp, Ashp::Tuple)	modelled	broadcast-validation-aligned-axes	typed heterogeneous shape and axis model
 base/broadcast.jl	561	561	check_broadcast_axes	check_broadcast_axes(shp, A)	modelled	broadcast-validation-varying-axes	typed heterogeneous shape and axis model
@@ -141,189 +141,189 @@ base/broadcast.jl	587	587	_newindex	_newindex(ax::Tuple, I::Tuple)	modelled	broa
 base/broadcast.jl	588	588	_newindex	_newindex(ax::Tuple{}, I::Tuple)	modelled	broadcast-axis-coordinate-projection	typed polymorphic broadcast indexing model
 base/broadcast.jl	589	589	_newindex	_newindex(ax::Tuple, I::Tuple{})	modelled	broadcast-axis-coordinate-projection	typed polymorphic broadcast indexing model
 base/broadcast.jl	590	590	_newindex	_newindex(ax::Tuple{}, I::Tuple{})	modelled	broadcast-axis-coordinate-projection	typed polymorphic broadcast indexing model
-base/broadcast.jl	593	593	newindex	newindex(I::CartesianIndex, keep, Idefault)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	594	594	newindex	newindex(I::CartesianIndex{1}, keep, Idefault)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	595	595	newindex	newindex(i::Integer, keep::Tuple, idefault)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	596	596	newindex	newindex(i::Integer, keep::Tuple{Bool}, idefault)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	597	597	newindex	newindex(i::Integer, keep::Tuple{}, idefault)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	598	599	_newindex	_newindex(I, keep, Idefault)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	600	600	_newindex	_newindex(I, keep::Tuple{}, Idefault)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	601	601	_newindex	_newindex(I::Tuple{}, keep, Idefault)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	602	602	_newindex	_newindex(I::Tuple{}, keep::Tuple{}, Idefault)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	606	606	newindexer	newindexer(A)	todo		Nothing to promise: forwards the external axes query to the real shapeindexer.
+base/broadcast.jl	593	593	newindex	newindex(I::CartesianIndex, keep, Idefault)	modelled	broadcast-newindex-cartesian-runtime	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.NewIndex.cartesian; reviewed against Julia f755f49.
+base/broadcast.jl	594	594	newindex	newindex(I::CartesianIndex{1}, keep, Idefault)	modelled	broadcast-newindex-cartesian-one-runtime	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.NewIndex.cartesianOne; reviewed against Julia f755f49.
+base/broadcast.jl	595	595	newindex	newindex(i::Integer, keep::Tuple, idefault)	modelled	broadcast-newindex-integer-eager-runtime	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.NewIndex.integerMany; reviewed against Julia f755f49.
+base/broadcast.jl	596	596	newindex	newindex(i::Integer, keep::Tuple{Bool}, idefault)	modelled	broadcast-newindex-integer-one-eager-runtime	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.NewIndex.integerOne; reviewed against Julia f755f49.
+base/broadcast.jl	597	597	newindex	newindex(i::Integer, keep::Tuple{}, idefault)	modelled	broadcast-numeric-index-packing	trivial: restates a body or a constructor result
+base/broadcast.jl	598	599	_newindex	_newindex(I, keep, Idefault)	modelled	broadcast-remap-eager-recursion-effects	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.Remap.remap;JuliaLean.base.broadcast.Models2Group5.Remap.selected; reviewed against Julia f755f49.
+base/broadcast.jl	600	600	_newindex	_newindex(I, keep::Tuple{}, Idefault)	modelled	broadcast-unexpanded-coordinates	trivial: restates a body or a constructor result
+base/broadcast.jl	601	601	_newindex	_newindex(I::Tuple{}, keep, Idefault)	modelled	broadcast-unexpanded-coordinates	trivial: restates a body or a constructor result
+base/broadcast.jl	602	602	_newindex	_newindex(I::Tuple{}, keep::Tuple{}, Idefault)	modelled	broadcast-unexpanded-coordinates	trivial: restates a body or a constructor result
+base/broadcast.jl	606	606	newindexer	newindexer(A)	modelled	broadcast-newindexer-runtime	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.IndexForward.newIndexer; reviewed against Julia f755f49.
 base/broadcast.jl	607	607	shapeindexer	shapeindexer(ax)	modelled	broadcast-indexer-coordinates	typed polymorphic broadcast indexing model
 base/broadcast.jl	608	608	_newindexer	_newindexer(indsA::Tuple{})	modelled	broadcast-indexer-coordinates	typed polymorphic broadcast indexing model
 base/broadcast.jl	609	613	_newindexer	_newindexer(indsA::Tuple)	modelled	broadcast-indexer-coordinates	typed polymorphic broadcast indexing model
-base/broadcast.jl	615	618	Base.getindex	Base.getindex(bc::Broadcasted, Is::Vararg{Union{Integer,CartesianIndex},N}) where {N}	todo		Nothing to promise: forwards externally flattened coordinates and the index-style query to the selected indexing method.
-base/broadcast.jl	619	622	_getindex	_getindex(::IndexStyle, bc, I)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	623	626	_getindex	_getindex(s::IndexCartesian, bc, I::Integer)	todo		Nothing to promise: forwards external CartesianIndices conversion into the selected indexing method.
-base/broadcast.jl	627	630	_getindex	_getindex(s::IndexLinear, bc, I::CartesianIndex)	todo		Nothing to promise: forwards external LinearIndices conversion into the selected indexing method.
-base/broadcast.jl	631	631	to_index	to_index(::Tuple{})	todo		Nothing to promise: zero-coordinate CartesianIndex constructor.
-base/broadcast.jl	632	632	to_index	to_index(Is::Tuple{Any})	todo		Nothing to promise: forwards the sole tuple field unchanged.
-base/broadcast.jl	633	633	to_index	to_index(Is::Tuple)	todo		Nothing to promise: forwards tuple coordinates to the CartesianIndex constructor.
-base/broadcast.jl	635	638	Base.checkbounds	Base.checkbounds(bc::Broadcasted, I::CartesianIndex)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	640	643	Base.checkbounds	Base.checkbounds(bc::Broadcasted, I::Integer)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	651	651	_broadcast_getindex	_broadcast_getindex(A::Union{Ref,AbstractArray{<:Any,0},Number}, I)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	615	618	Base.getindex	Base.getindex(bc::Broadcasted, Is::Vararg{Union{Integer,CartesianIndex},N}) where {N}	modelled	broadcast-index-public-order-context	Source-mirrored model JuliaLean.base.broadcast.Index.m615;JuliaLean.base.broadcast.Models2Group5.IndexAccess.getindexBroadcasted; reviewed against Julia f755f49.
+base/broadcast.jl	619	622	_getindex	_getindex(::IndexStyle, bc, I)	modelled	broadcast-index-generic-bounds-context	Source-mirrored model JuliaLean.base.broadcast.Index.m619;JuliaLean.base.broadcast.Models2Group5.IndexAccess.getindexGeneric; reviewed against Julia f755f49.
+base/broadcast.jl	623	626	_getindex	_getindex(s::IndexCartesian, bc, I::Integer)	modelled	broadcast-index-cartesian-recursive-provenance	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.IndexAccess.getindexCartesianInteger;JuliaLean.base.broadcast.Models2Group5.IndexAccess.runMethod; reviewed against Julia f755f49.
+base/broadcast.jl	627	630	_getindex	_getindex(s::IndexLinear, bc, I::CartesianIndex)	modelled	broadcast-index-linear-recursive-provenance	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.IndexAccess.getindexLinearCartesian;JuliaLean.base.broadcast.Models2Group5.IndexAccess.runMethod; reviewed against Julia f755f49.
+base/broadcast.jl	631	631	to_index	to_index(::Tuple{})	modelled	broadcast-axis-coordinate-projection	Nothing to promise: zero-coordinate CartesianIndex constructor.
+base/broadcast.jl	632	632	to_index	to_index(Is::Tuple{Any})	modelled	broadcast-axis-coordinate-projection	Nothing to promise: forwards the sole tuple field unchanged.
+base/broadcast.jl	633	633	to_index	to_index(Is::Tuple)	modelled	broadcast-index-tuple-constructor-identity	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.IndexAccess.toIndexTuple; reviewed against Julia f755f49.
+base/broadcast.jl	635	638	Base.checkbounds	Base.checkbounds(bc::Broadcasted, I::CartesianIndex)	modelled	broadcast-checkbounds-cartesian-effects	Source-mirrored model JuliaLean.base.broadcast.Index.m635;JuliaLean.base.broadcast.Models2Group5.CheckedBounds.cartesian; reviewed against Julia f755f49.
+base/broadcast.jl	640	643	Base.checkbounds	Base.checkbounds(bc::Broadcasted, I::Integer)	modelled	broadcast-checkbounds-integer-effects	Source-mirrored model JuliaLean.base.broadcast.Index.m640;JuliaLean.base.broadcast.Models2Group5.CheckedBounds.integer; reviewed against Julia f755f49.
+base/broadcast.jl	651	651	_broadcast_getindex	_broadcast_getindex(A::Union{Ref,AbstractArray{<:Any,0},Number}, I)	modelled	broadcast-scalar-index-runtime;broadcast-scalar-index-independent	Source-mirrored model JuliaLean.base.broadcast.Index.m651;JuliaLean.base.broadcast.Models2Group5.IndexForward.scalar; reviewed against Julia f755f49.
 base/broadcast.jl	652	652	_broadcast_getindex	_broadcast_getindex(::Ref{Type{T}}, I) where {T}	todo		trivial: restates a body or a constructor result
 base/broadcast.jl	654	654	_broadcast_getindex	_broadcast_getindex(A::Tuple{Any}, I)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	655	655	_broadcast_getindex	_broadcast_getindex(A::Tuple, I)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	657	657	_broadcast_getindex	_broadcast_getindex(A, I)	todo		Nothing to promise: forwards broadcast index remapping into external array indexing.
-base/broadcast.jl	669	669	axes	axes(b::Extruded)	todo		Nothing to promise: forwards the external axes query to the stored underlying array.
-base/broadcast.jl	670	670	_broadcast_getindex	_broadcast_getindex(b::Extruded, i)	todo		Nothing to promise: forwards stored index-remapping metadata into external array indexing.
-base/broadcast.jl	671	671	extrude	extrude(x::AbstractArray)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	655	655	_broadcast_getindex	_broadcast_getindex(A::Tuple, I)	modelled	broadcast-tuple-index-runtime	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.IndexForward.tuple; reviewed against Julia f755f49.
+base/broadcast.jl	657	657	_broadcast_getindex	_broadcast_getindex(A, I)	modelled	broadcast-fallback-index-runtime	Source-mirrored model JuliaLean.base.broadcast.Index.m657;JuliaLean.base.broadcast.Models2Group5.IndexForward.fallback; reviewed against Julia f755f49.
+base/broadcast.jl	669	669	axes	axes(b::Extruded)	modelled	broadcast-extruded-axes-recursion	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.Extrusion.axes; reviewed against Julia f755f49.
+base/broadcast.jl	670	670	_broadcast_getindex	_broadcast_getindex(b::Extruded, i)	modelled	broadcast-extruded-getindex-order-context	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.Extrusion.broadcastGetindex; reviewed against Julia f755f49.
+base/broadcast.jl	671	671	extrude	extrude(x::AbstractArray)	modelled	broadcast-extrude-constructor-splat	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.Extrusion.extrude; reviewed against Julia f755f49.
 base/broadcast.jl	672	672	extrude	extrude(x)	todo		Nothing to promise: identity forwarding for non-array inputs.
-base/broadcast.jl	675	678	_broadcast_getindex	_broadcast_getindex(bc::Broadcasted{<:Any,<:Any,<:Any,<:Any}, I)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	685	688	_broadcast_getindex	_broadcast_getindex(bc::Broadcasted{<:Any,<:Any,<:Any,<:Tuple{Ref{Type{T}},Vararg{Any}}}, I) where {T}	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	689	693	_broadcast_getindex	_broadcast_getindex(bc::Broadcasted{<:Any,<:Any,<:Any,<:Tuple{Any,Ref{Type{T}},Vararg{Any}}}, I) where {T}	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	694	697	_broadcast_getindex	_broadcast_getindex(bc::Broadcasted{<:Any,<:Any,<:Any,<:Tuple{Ref{Type{T}},Ref{Type{S}},Vararg{Any}}}, I) where {T,S}	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	700	700	_getindex	_getindex(args::Tuple, I)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	701	701	_getindex	_getindex(args::Tuple{Any}, I)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	675	678	_broadcast_getindex	_broadcast_getindex(bc::Broadcasted{<:Any,<:Any,<:Any,<:Any}, I)	modelled	broadcast-eval-generic-order	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.BroadcastEvaluation.generic; reviewed against Julia f755f49.
+base/broadcast.jl	685	688	_broadcast_getindex	_broadcast_getindex(bc::Broadcasted{<:Any,<:Any,<:Any,<:Tuple{Ref{Type{T}},Vararg{Any}}}, I) where {T}	modelled	broadcast-eval-first-static-type	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.BroadcastEvaluation.firstType; reviewed against Julia f755f49.
+base/broadcast.jl	689	693	_broadcast_getindex	_broadcast_getindex(bc::Broadcasted{<:Any,<:Any,<:Any,<:Tuple{Any,Ref{Type{T}},Vararg{Any}}}, I) where {T}	modelled	broadcast-eval-second-static-type-recursion	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.BroadcastEvaluation.secondType; reviewed against Julia f755f49.
+base/broadcast.jl	694	697	_broadcast_getindex	_broadcast_getindex(bc::Broadcasted{<:Any,<:Any,<:Any,<:Tuple{Ref{Type{T}},Ref{Type{S}},Vararg{Any}}}, I) where {T,S}	modelled	broadcast-eval-two-static-types	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.BroadcastEvaluation.bothTypes; reviewed against Julia f755f49.
+base/broadcast.jl	700	700	_getindex	_getindex(args::Tuple, I)	modelled	broadcast-tuple-gather-recursion-effects	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.Gather.gather; reviewed against Julia f755f49.
+base/broadcast.jl	701	701	_getindex	_getindex(args::Tuple{Any}, I)	modelled	broadcast-singleton-gather-provenance	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.Gather.singleton; reviewed against Julia f755f49.
 base/broadcast.jl	702	702	_getindex	_getindex(args::Tuple{}, I)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	704	704	_broadcast_getindex_evalf	_broadcast_getindex_evalf(f::Tf, args::Vararg{Any,N}) where {Tf,N}	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	736	736	broadcastable	broadcastable(x::BroadcastScalars)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	737	737	broadcastable	broadcastable(::Type{T}) where {T}	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	738	738	broadcastable	broadcastable(x::Union{AbstractArray,Number,AbstractChar,Ref,Tuple,Broadcasted})	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	740	740	broadcastable	broadcastable(x)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	704	704	_broadcast_getindex_evalf	_broadcast_getindex_evalf(f::Tf, args::Vararg{Any,N}) where {Tf,N}	modelled	broadcast-evalf-default-call-effects	Source-mirrored model JuliaLean.base.broadcast.Index.m704; reviewed against Julia f755f49.
+base/broadcast.jl	736	736	broadcastable	broadcastable(x::BroadcastScalars)	modelled	broadcast-broadcastable-scalar-ref-effects	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.ScalarBroadcastable.scalar; reviewed against Julia f755f49.
+base/broadcast.jl	737	737	broadcastable	broadcastable(::Type{T}) where {T}	modelled	broadcast-broadcastable-type-ref-effects	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.ScalarBroadcastable.typeObject; reviewed against Julia f755f49.
+base/broadcast.jl	738	738	broadcastable	broadcastable(x::Union{AbstractArray,Number,AbstractChar,Ref,Tuple,Broadcasted})	modelled	broadcast-nested-boolean-short-circuit	trivial: restates a body or a constructor result
+base/broadcast.jl	740	740	broadcastable	broadcastable(x)	modelled	broadcast-broadcastable-collect-effects	Source-mirrored model JuliaLean.base.broadcast.Material.m740; reviewed against Julia f755f49.
 base/broadcast.jl	741	741	broadcastable	broadcastable(::Union{AbstractDict, NamedTuple})	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	744	744	_bc_eltype	_bc_eltype(bc::Broadcasted, i)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	747	747	_bc_eltype	_bc_eltype(x::Number, i)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	748	748	_bc_eltype	_bc_eltype(x::Tuple, i)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	751	751	_bc_eltype	_bc_eltype(x, i)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	753	753	_bc_eltypes	_bc_eltypes(args::Tuple, i)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	744	744	_bc_eltype	_bc_eltype(bc::Broadcasted, i)	modelled	broadcast-sample-broadcasted-provenance	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.EltypeSampling.sampleBroadcasted;JuliaLean.base.broadcast.Models2Group5.EltypeSampling.run; reviewed against Julia f755f49.
+base/broadcast.jl	747	747	_bc_eltype	_bc_eltype(x::Number, i)	modelled	broadcast-sample-number-outcome	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.EltypeSampling.sampleNumber; reviewed against Julia f755f49.
+base/broadcast.jl	748	748	_bc_eltype	_bc_eltype(x::Tuple, i)	modelled	broadcast-sample-tuple-outcome	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.EltypeSampling.sampleTuple; reviewed against Julia f755f49.
+base/broadcast.jl	751	751	_bc_eltype	_bc_eltype(x, i)	modelled	broadcast-sample-fallback-assertion	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.EltypeSampling.sampleFallback; reviewed against Julia f755f49.
+base/broadcast.jl	753	753	_bc_eltypes	_bc_eltypes(args::Tuple, i)	modelled	broadcast-sample-arguments-recursive-provenance	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.EltypeSampling.sampleArguments;JuliaLean.base.broadcast.Models2Group5.EltypeSampling.run; reviewed against Julia f755f49.
 base/broadcast.jl	754	754	_bc_eltypes	_bc_eltypes(::Tuple{}, i)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	756	761	result_eltype	result_eltype(bc::Broadcasted)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	765	765	_broadcast_getindex_eltype	_broadcast_getindex_eltype(bc::Broadcasted)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	766	766	_broadcast_getindex_eltype	_broadcast_getindex_eltype(A)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	756	761	result_eltype	result_eltype(bc::Broadcasted)	modelled	broadcast-result-eltype-bottom-gate	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.EltypeInference.resultEltype; reviewed against Julia f755f49.
+base/broadcast.jl	765	765	_broadcast_getindex_eltype	_broadcast_getindex_eltype(bc::Broadcasted)	modelled	broadcast-legacy-broadcasted-eltype-order	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.EltypeInference.broadcastedEltype; reviewed against Julia f755f49.
+base/broadcast.jl	766	766	_broadcast_getindex_eltype	_broadcast_getindex_eltype(A)	modelled	broadcast-legacy-eltype-outcome	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.EltypeInference.otherEltype; reviewed against Julia f755f49.
 base/broadcast.jl	768	768	eltypes	eltypes(::Tuple{})	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	769	769	eltypes	eltypes(t::Tuple{Any})	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	770	770	eltypes	eltypes(t::Tuple{Any,Any})	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	771	771	eltypes	eltypes(t::Tuple)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	774	778	combine_eltypes	combine_eltypes(f, args::Tuple)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	859	859	broadcast	broadcast(f::Tf, As::Vararg{Any,N}) where {Tf,N}	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	769	769	eltypes	eltypes(t::Tuple{Any})	modelled	broadcast-eltypes-singleton-order	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.EltypeInference.oneEltype; reviewed against Julia f755f49.
+base/broadcast.jl	770	770	eltypes	eltypes(t::Tuple{Any,Any})	modelled	broadcast-eltypes-pair-eager-order	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.EltypeInference.twoEltypes; reviewed against Julia f755f49.
+base/broadcast.jl	771	771	eltypes	eltypes(t::Tuple)	modelled	broadcast-eltypes-tail-recursive-provenance	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.EltypeInference.tupleEltypes;JuliaLean.base.broadcast.Models2Group5.EltypeInference.run; reviewed against Julia f755f49.
+base/broadcast.jl	774	778	combine_eltypes	combine_eltypes(f, args::Tuple)	modelled	broadcast-combine-eltypes-bottom-gate	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.EltypeInference.combineEltypes; reviewed against Julia f755f49.
+base/broadcast.jl	859	859	broadcast	broadcast(f::Tf, As::Vararg{Any,N}) where {Tf,N}	modelled	broadcast-runtime	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.MaterialForward.broadcast; reviewed against Julia f755f49.
 base/broadcast.jl	862	862	broadcast	broadcast(f, x::Number...)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	863	863	broadcast	broadcast(f, t::NTuple{N,Any}, ts::Vararg{NTuple{N,Any}}) where {N}	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	898	898	broadcast!	broadcast!(f::Tf, dest, As::Vararg{Any,N}) where {Tf,N}	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	908	912	broadcast_preserving_zero_d	broadcast_preserving_zero_d(f, As...)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	913	913	broadcast_preserving_zero_d	broadcast_preserving_zero_d(f)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	914	914	broadcast_preserving_zero_d	broadcast_preserving_zero_d(f, as::Number...)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	921	921	materialize	materialize(bc::Broadcasted)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	863	863	broadcast	broadcast(f, t::NTuple{N,Any}, ts::Vararg{NTuple{N,Any}}) where {N}	modelled	broadcast-tuple-broadcast-runtime	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.MaterialForward.tupleBroadcast; reviewed against Julia f755f49.
+base/broadcast.jl	898	898	broadcast!	broadcast!(f::Tf, dest, As::Vararg{Any,N}) where {Tf,N}	modelled	broadcast-bang-destination	Source-mirrored model JuliaLean.base.broadcast.Material.m898;JuliaLean.base.broadcast.Models2Group5.MaterialForward.broadcastBang; reviewed against Julia f755f49.
+base/broadcast.jl	908	912	broadcast_preserving_zero_d	broadcast_preserving_zero_d(f, As...)	modelled	broadcast-preserve-zero-d-effects	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.MaterialForward.preservingZero; reviewed against Julia f755f49.
+base/broadcast.jl	913	913	broadcast_preserving_zero_d	broadcast_preserving_zero_d(f)	modelled	broadcast-preserve-nullary-allocation	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.MaterialForward.preservingNullary; reviewed against Julia f755f49.
+base/broadcast.jl	914	914	broadcast_preserving_zero_d	broadcast_preserving_zero_d(f, as::Number...)	modelled	broadcast-preserve-number-allocation	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.MaterialForward.preservingNumbers; reviewed against Julia f755f49.
+base/broadcast.jl	921	921	materialize	materialize(bc::Broadcasted)	modelled	broadcast-materialize-order	Source-mirrored model JuliaLean.base.broadcast.Material.m921;JuliaLean.base.broadcast.Models2Group5.MaterialForward.materialize; reviewed against Julia f755f49.
 base/broadcast.jl	922	922	materialize	materialize(x)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	924	926	materialize!	materialize!(dest, x)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	928	930	materialize!	materialize!(dest, bc::Broadcasted{<:Any})	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	932	934	materialize!	materialize!(::BroadcastStyle, dest, bc::Broadcasted{<:Any})	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	936	936	materialize!	materialize!(dest::Union{BroadcastScalars,Number,AbstractChar}, bc::Broadcasted{<:Any})	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	937	939	_throw_unwritable_dest	_throw_unwritable_dest(@nospecialize dest)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	942	942	copy	copy(bc::Broadcasted{<:AbstractArrayStyle{0}})	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	924	926	materialize!	materialize!(dest, x)	modelled	broadcast-materialize-fallback-recursion	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.MaterialRecursion.fallbackBang; reviewed against Julia f755f49.
+base/broadcast.jl	928	930	materialize!	materialize!(dest, bc::Broadcasted{<:Any})	modelled	broadcast-materialize-broadcasted-style	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.MaterialRecursion.broadcastedBang; reviewed against Julia f755f49.
+base/broadcast.jl	932	934	materialize!	materialize!(::BroadcastStyle, dest, bc::Broadcasted{<:Any})	modelled	broadcast-materialize-styled-effects;broadcast-materialize-style-independent	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.MaterialForward.materializeStyled; reviewed against Julia f755f49.
+base/broadcast.jl	936	936	materialize!	materialize!(dest::Union{BroadcastScalars,Number,AbstractChar}, bc::Broadcasted{<:Any})	modelled	broadcast-scalar-destination-error	Scalar destinations raise ArgumentError through Material.m937 independently of lazy broadcast metadata; diagnostic text is outside the error representation.
+base/broadcast.jl	937	939	_throw_unwritable_dest	_throw_unwritable_dest(@nospecialize dest)	modelled	broadcast-scalar-destination-error	trivial: restates a body or a constructor result
+base/broadcast.jl	942	942	copy	copy(bc::Broadcasted{<:AbstractArrayStyle{0}})	modelled	broadcast-copy-zero-cartesian-index	Source-mirrored model JuliaLean.base.broadcast.Material.m942;JuliaLean.base.broadcast.Models2Group5.MaterialForward.copyZero; reviewed against Julia f755f49.
 base/broadcast.jl	943	944	copy	copy(bc::Broadcasted{<:Union{Nothing,Unknown}})	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	948	975	copy	copy(bc::Broadcasted)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	980	980	copyto!	copyto!(dest::AbstractArray, bc::Broadcasted)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	983	993	copyto!	copyto!(dest::AbstractArray, bc::Broadcasted{<:AbstractArrayStyle{0}})	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1001	1001	broadcast_unalias	broadcast_unalias(dest, src)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	948	975	copy	copy(bc::Broadcasted)	modelled	broadcast-copy-narrowing-runtime;broadcast-copy-anonymous-type-constructors	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.CopyNarrowing.copy; reviewed against Julia f755f49.
+base/broadcast.jl	980	980	copyto!	copyto!(dest::AbstractArray, bc::Broadcasted)	modelled	broadcast-copyto-conversion-recursion	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.CopyDispatch.generic; reviewed against Julia f755f49.
+base/broadcast.jl	983	993	copyto!	copyto!(dest::AbstractArray, bc::Broadcasted{<:AbstractArrayStyle{0}})	modelled	broadcast-copyto-scalar-short-circuit	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.CopyDispatch.scalar; reviewed against Julia f755f49.
+base/broadcast.jl	1001	1001	broadcast_unalias	broadcast_unalias(dest, src)	modelled	broadcast-unalias-runtime	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.Preprocessing.unalias; reviewed against Julia f755f49.
 base/broadcast.jl	1002	1002	broadcast_unalias	broadcast_unalias(::Nothing, src)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1007	1007	preprocess	preprocess(dest, bc::Broadcasted)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1008	1008	preprocess	preprocess(dest, x)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1010	1010	preprocess_args	preprocess_args(dest, args::Tuple)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1011	1011	preprocess_args	preprocess_args(dest, args::Tuple{Any})	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1007	1007	preprocess	preprocess(dest, bc::Broadcasted)	modelled	broadcast-preprocess-broadcasted-boundary;broadcast-preprocess-recursive-error-worlds	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.Preprocessing.broadcasted; reviewed against Julia f755f49.
+base/broadcast.jl	1008	1008	preprocess	preprocess(dest, x)	modelled	broadcast-preprocess-fallback-order;broadcast-preprocess-recursive-error-worlds	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.Preprocessing.fallback; reviewed against Julia f755f49.
+base/broadcast.jl	1010	1010	preprocess_args	preprocess_args(dest, args::Tuple)	modelled	broadcast-preprocess-args-splat-boundary;broadcast-preprocess-recursive-error-worlds	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.Preprocessing.arguments; reviewed against Julia f755f49.
+base/broadcast.jl	1011	1011	preprocess_args	preprocess_args(dest, args::Tuple{Any})	modelled	broadcast-preprocess-singleton-packaging;broadcast-preprocess-recursive-error-worlds	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.Preprocessing.singleton; reviewed against Julia f755f49.
 base/broadcast.jl	1012	1012	preprocess_args	preprocess_args(dest, args::Tuple{})	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1015	1031	copyto!	copyto!(dest::AbstractArray, bc::Broadcasted{Nothing})	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1035	1073	copyto!	copyto!(dest::BitArray, bc::Broadcasted{Nothing})	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1015	1031	copyto!	copyto!(dest::AbstractArray, bc::Broadcasted{Nothing})	modelled	broadcast-copyto-plain-runtime	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.PlainCopy.copy; reviewed against Julia f755f49.
+base/broadcast.jl	1035	1073	copyto!	copyto!(dest::BitArray, bc::Broadcasted{Nothing})	modelled	broadcast-copyto-bitarray-runtime;broadcast-bitcopy-native-simd	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.BitCopy.copy; reviewed against Julia f755f49.
 base/broadcast.jl	1083	1083	_chunkop	_chunkop(f, args)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1084	1084	_chunkop	_chunkop(::Union{typeof(&), typeof(*), typeof(min)}, args)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1085	1085	_chunkop	_chunkop(::Union{typeof(|), typeof(max)}, args)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1086	1086	_chunkop	_chunkop(::typeof(xor), args)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1087	1087	_chunkop	_chunkop(::typeof(nand), args)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1088	1088	_chunkop	_chunkop(::typeof(nor), args)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1089	1089	_chunkop	_chunkop(::Union{typeof(~), typeof(!)}, args)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1090	1090	_chunkop	_chunkop(::typeof(identity), args)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1091	1091	_chunkop	_chunkop(::typeof(==), ::Tuple{Any,Any})	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1092	1092	_chunkop	_chunkop(::typeof(!=), ::Tuple{Any,Any})	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1093	1093	_chunkop	_chunkop(::typeof(<), ::Tuple{Any,Any})	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1094	1094	_chunkop	_chunkop(::typeof(<=), ::Tuple{Any,Any})	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1095	1095	_chunkop	_chunkop(::typeof(>), ::Tuple{Any,Any})	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1096	1096	_chunkop	_chunkop(::typeof(>=), ::Tuple{Any,Any})	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1098	1098	ischunkedbroadcast	ischunkedbroadcast(R, bc::Broadcasted)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1084	1084	_chunkop	_chunkop(::Union{typeof(&), typeof(*), typeof(min)}, args)	modelled	broadcast-chunk-global-binary-lanes	Returns the global bitwise-and function identity. Concrete same-type JInt binary applications preserve scalar Boolean behavior at every UInt64 lane.
+base/broadcast.jl	1085	1085	_chunkop	_chunkop(::Union{typeof(|), typeof(max)}, args)	modelled	broadcast-chunk-global-binary-lanes	Returns the global bitwise-or function identity. Concrete same-type JInt binary applications preserve scalar Boolean behavior at every UInt64 lane.
+base/broadcast.jl	1086	1086	_chunkop	_chunkop(::typeof(xor), args)	modelled	broadcast-chunk-global-binary-lanes	Returns the global xor function identity. Concrete same-type JInt binary applications preserve scalar Boolean behavior at every UInt64 lane.
+base/broadcast.jl	1087	1087	_chunkop	_chunkop(::typeof(nand), args)	modelled	broadcast-chunk-global-binary-lanes	Returns the global nand function identity. Concrete same-type JInt binary applications preserve scalar Boolean behavior at every UInt64 lane.
+base/broadcast.jl	1088	1088	_chunkop	_chunkop(::typeof(nor), args)	modelled	broadcast-chunk-global-binary-lanes	Returns the global nor function identity. Concrete same-type JInt binary applications preserve scalar Boolean behavior at every UInt64 lane.
+base/broadcast.jl	1089	1089	_chunkop	_chunkop(::Union{typeof(~), typeof(!)}, args)	modelled	broadcast-chunk-global-unary-lanes	Returns the global complement function identity. Concrete same-type JInt unary applications flip every UInt64 lane.
+base/broadcast.jl	1090	1090	_chunkop	_chunkop(::typeof(identity), args)	modelled	broadcast-chunk-global-unary-lanes	Returns the global identity function object. Concrete same-type JInt unary applications preserve every UInt64 lane.
+base/broadcast.jl	1091	1091	_chunkop	_chunkop(::typeof(==), ::Tuple{Any,Any})	modelled	broadcast-chunk-equal-closure-runtime	Source-mirrored model JuliaLean.base.broadcast.Models1Group12.m1091; JuliaLean.base.broadcast.Models2Group5.ChunkClosures.invoke; reviewed against Julia f755f49.
+base/broadcast.jl	1092	1092	_chunkop	_chunkop(::typeof(!=), ::Tuple{Any,Any})	modelled	broadcast-chunk-global-binary-lanes	Returns the global xor function identity for every pair of source arguments. Concrete same-type JInt binary applications preserve scalar inequality at every UInt64 lane.
+base/broadcast.jl	1093	1093	_chunkop	_chunkop(::typeof(<), ::Tuple{Any,Any})	modelled	broadcast-chunk-less-closure-runtime	Source-mirrored model JuliaLean.base.broadcast.Models1Group12.m1093; JuliaLean.base.broadcast.Models2Group5.ChunkClosures.invoke; reviewed against Julia f755f49.
+base/broadcast.jl	1094	1094	_chunkop	_chunkop(::typeof(<=), ::Tuple{Any,Any})	modelled	broadcast-chunk-less-equal-closure-runtime	Source-mirrored model JuliaLean.base.broadcast.Models1Group12.m1094; JuliaLean.base.broadcast.Models2Group5.ChunkClosures.invoke; reviewed against Julia f755f49.
+base/broadcast.jl	1095	1095	_chunkop	_chunkop(::typeof(>), ::Tuple{Any,Any})	modelled	broadcast-chunk-greater-closure-runtime	Source-mirrored model JuliaLean.base.broadcast.Models1Group12.m1095; JuliaLean.base.broadcast.Models2Group5.ChunkClosures.invoke; reviewed against Julia f755f49.
+base/broadcast.jl	1096	1096	_chunkop	_chunkop(::typeof(>=), ::Tuple{Any,Any})	modelled	broadcast-chunk-greater-equal-closure-runtime	Source-mirrored model JuliaLean.base.broadcast.Models1Group12.m1096; JuliaLean.base.broadcast.Models2Group5.ChunkClosures.invoke; reviewed against Julia f755f49.
+base/broadcast.jl	1098	1098	ischunkedbroadcast	ischunkedbroadcast(R, bc::Broadcasted)	modelled	broadcast-ischunked-wrapper-effects	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.ChunkedCheck.wrapper; reviewed against Julia f755f49.
 base/broadcast.jl	1099	1099	ischunkedbroadcast	ischunkedbroadcast(R, bc::Broadcasted, ::Nothing)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1100	1100	ischunkedbroadcast	ischunkedbroadcast(R, bc::Broadcasted, f)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1100	1100	ischunkedbroadcast	ischunkedbroadcast(R, bc::Broadcasted, f)	modelled	broadcast-ischunked-function-effects	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.ChunkedCheck.withFunction; reviewed against Julia f755f49.
 base/broadcast.jl	1101	1101	ischunkedbroadcast	ischunkedbroadcast(R, args)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1102	1102	ischunkedbroadcast	ischunkedbroadcast(R, args::Tuple{<:BitArray,Vararg{Any}})	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1103	1103	ischunkedbroadcast	ischunkedbroadcast(R, args::Tuple{<:Bool,Vararg{Any}})	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1104	1104	ischunkedbroadcast	ischunkedbroadcast(R, args::Tuple{<:Broadcasted,Vararg{Any}})	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1102	1102	ischunkedbroadcast	ischunkedbroadcast(R, args::Tuple{<:BitArray,Vararg{Any}})	modelled	broadcast-ischunked-bit-head-effects	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.ChunkedCheck.bitHead; reviewed against Julia f755f49.
+base/broadcast.jl	1103	1103	ischunkedbroadcast	ischunkedbroadcast(R, args::Tuple{<:Bool,Vararg{Any}})	modelled	broadcast-ischunked-bool-head-effects	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.ChunkedCheck.boolHead; reviewed against Julia f755f49.
+base/broadcast.jl	1104	1104	ischunkedbroadcast	ischunkedbroadcast(R, args::Tuple{<:Broadcasted,Vararg{Any}})	modelled	broadcast-ischunked-wrapper-head-effects	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.ChunkedCheck.wrapperHead; reviewed against Julia f755f49.
 base/broadcast.jl	1105	1105	ischunkedbroadcast	ischunkedbroadcast(R, args::Tuple{})	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1108	1108	liftfuncs	liftfuncs(bc::Broadcasted{<:Any,<:Any,<:Any})	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1109	1109	liftfuncs	liftfuncs(bc::Broadcasted, ::Nothing)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1110	1110	liftfuncs	liftfuncs(bc::Broadcasted, f)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1108	1108	liftfuncs	liftfuncs(bc::Broadcasted{<:Any,<:Any,<:Any})	modelled	broadcast-lift-functions-dispatch-effects	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.LiftFunctions.wrapper; reviewed against Julia f755f49.
+base/broadcast.jl	1109	1109	liftfuncs	liftfuncs(bc::Broadcasted, ::Nothing)	modelled	broadcast-lift-functions-preserve-effects	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.LiftFunctions.preserve; reviewed against Julia f755f49.
+base/broadcast.jl	1110	1110	liftfuncs	liftfuncs(bc::Broadcasted, f)	modelled	broadcast-lift-functions-replace-effects	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.LiftFunctions.replace; reviewed against Julia f755f49.
 base/broadcast.jl	1111	1111	liftfuncs	liftfuncs(x)	todo		trivial: restates a body or a constructor result
 base/broadcast.jl	1113	1113	liftchunks	liftchunks(::Tuple{})	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1114	1114	liftchunks	liftchunks(args::Tuple{<:BitArray,Vararg{Any}})	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1116	1116	liftchunks	liftchunks(args::Tuple{<:Bool,Vararg{Any}})	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1114	1114	liftchunks	liftchunks(args::Tuple{<:BitArray,Vararg{Any}})	modelled	broadcast-liftchunks-bitarray	Preserves chunks-vector object references and argument order, expands Boolean tails to UInt64 words, and raises MethodError on unsupported tail dispatch; tuple lengths fit native Int64.
+base/broadcast.jl	1116	1116	liftchunks	liftchunks(args::Tuple{<:Bool,Vararg{Any}})	modelled	broadcast-liftchunks-boolean	Expands each Boolean to its value in all UInt64 lanes, preserves vector references and argument order, and raises MethodError on unsupported tail dispatch; tuple lengths fit native Int64.
 base/broadcast.jl	1117	1117	ithchunk	ithchunk(i)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1118	1118	ithchunk	ithchunk(i, c::Vector{UInt64}, args...)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1119	1119	ithchunk	ithchunk(i, b::UInt64, args...)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1120	1130	chunkedcopyto!	chunkedcopyto!(dest::BitArray, bc::Broadcasted)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1133	1134	throwdm	throwdm(axdest, axsrc)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1136	1143	restart_copyto_nonleaf!	restart_copyto_nonleaf!(newdest, dest, bc, val, I, iter, state, count)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1145	1163	copyto_nonleaf!	copyto_nonleaf!(dest, bc::Broadcasted, iter, state, count)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1167	1172	copy	copy(bc::Broadcasted{Style{Tuple}})	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1118	1118	ithchunk	ithchunk(i, c::Vector{UInt64}, args...)	modelled	broadcast-ithchunk-vector-runtime	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.IthChunk.vector; reviewed against Julia f755f49.
+base/broadcast.jl	1119	1119	ithchunk	ithchunk(i, b::UInt64, args...)	modelled	broadcast-ithchunk-scalar-runtime	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.IthChunk.scalar; reviewed against Julia f755f49.
+base/broadcast.jl	1120	1130	chunkedcopyto!	chunkedcopyto!(dest::BitArray, bc::Broadcasted)	modelled	broadcast-chunked-copy-runtime;broadcast-simd-expansion-effects	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.ChunkedCopy.copy; reviewed against Julia f755f49.
+base/broadcast.jl	1133	1134	throwdm	throwdm(axdest, axsrc)	modelled	broadcast-dimension-error-class	Throws DimensionMismatch for every destination/source axes pair. LazyString stores diagnostic arguments without printing them; message text is outside the represented observation.
+base/broadcast.jl	1136	1143	restart_copyto_nonleaf!	restart_copyto_nonleaf!(newdest, dest, bc, val, I, iter, state, count)	modelled	broadcast-nonleaf-restart-runtime	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.NonleafCopy.restart; reviewed against Julia f755f49.
+base/broadcast.jl	1145	1163	copyto_nonleaf!	copyto_nonleaf!(dest, bc::Broadcasted, iter, state, count)	modelled	broadcast-nonleaf-copy-runtime;broadcast-dynamic-type-operand-checks	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.NonleafCopy.copy; reviewed against Julia f755f49.
+base/broadcast.jl	1167	1172	copy	copy(bc::Broadcasted{Style{Tuple}})	modelled	broadcast-tuple-copy-runtime;broadcast-tuple-copy-generated-callable	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.TupleCopy.copy; reviewed against Julia f755f49.
 base/broadcast.jl	1176	1176	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(+), r::AbstractRange)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1178	1178	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(-), r::AbstractRange)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1178	1178	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(-), r::AbstractRange)	modelled	broadcast-range-1178-runtime	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.RangeRuntime.method1178; reviewed against Julia f755f49.
 base/broadcast.jl	1179	1179	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(-), r::OrdinalRange)	modelled	broadcastviews-range-negate-unsigned	typed effectful range model preserving fields and operation order
-base/broadcast.jl	1180	1180	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(-), r::StepRangeLen)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1181	1181	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(-), r::LinRange)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1184	1184	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(+), r::AbstractRange, x::Number)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1185	1185	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(+), x::Number, r::AbstractRange)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1186	1186	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(+), r::OrdinalRange, x::Integer)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1187	1187	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(+), x::Integer, r::OrdinalRange)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1180	1180	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(-), r::StepRangeLen)	modelled	broadcast-range-1180-runtime	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.RangeRuntime.method1180; reviewed against Julia f755f49.
+base/broadcast.jl	1181	1181	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(-), r::LinRange)	modelled	broadcast-range-1181-runtime	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.RangeRuntime.method1181; reviewed against Julia f755f49.
+base/broadcast.jl	1184	1184	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(+), r::AbstractRange, x::Number)	modelled	broadcast-range-1184-runtime	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.RangeRuntime.method1184; reviewed against Julia f755f49.
+base/broadcast.jl	1185	1185	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(+), x::Number, r::AbstractRange)	modelled	broadcast-range-1185-runtime	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.RangeRuntime.method1185; reviewed against Julia f755f49.
+base/broadcast.jl	1186	1186	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(+), r::OrdinalRange, x::Integer)	modelled	broadcast-range-1186-runtime	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.RangeRuntime.method1186; reviewed against Julia f755f49.
+base/broadcast.jl	1187	1187	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(+), x::Integer, r::OrdinalRange)	modelled	broadcast-range-1187-runtime	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.RangeRuntime.method1187; reviewed against Julia f755f49.
 base/broadcast.jl	1188	1188	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(+), r::AbstractUnitRange, x::Integer)	modelled	ranges-broadcast-add-length	typed effectful range model preserving fields and operation order
-base/broadcast.jl	1189	1189	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(+), x::Integer, r::AbstractUnitRange)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1190	1190	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(+), r::AbstractUnitRange, x::Real)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1191	1191	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(+), x::Real, r::AbstractUnitRange)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1192	1193	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(+), r::StepRangeLen{T}, x::Number) where T	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1194	1195	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(+), x::Number, r::StepRangeLen{T}) where T	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1189	1189	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(+), x::Integer, r::AbstractUnitRange)	modelled	broadcast-range-1189-runtime	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.RangeRuntime.method1189; reviewed against Julia f755f49.
+base/broadcast.jl	1190	1190	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(+), r::AbstractUnitRange, x::Real)	modelled	broadcast-range-1190-runtime	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.RangeRuntime.method1190; reviewed against Julia f755f49.
+base/broadcast.jl	1191	1191	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(+), x::Real, r::AbstractUnitRange)	modelled	broadcast-range-1191-runtime	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.RangeRuntime.method1191; reviewed against Julia f755f49.
+base/broadcast.jl	1192	1193	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(+), r::StepRangeLen{T}, x::Number) where T	modelled	broadcast-range-1192-runtime	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.RangeRuntime.method1192; reviewed against Julia f755f49.
+base/broadcast.jl	1194	1195	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(+), x::Number, r::StepRangeLen{T}) where T	modelled	broadcast-range-1194-runtime	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.RangeRuntime.method1194; reviewed against Julia f755f49.
 base/broadcast.jl	1196	1196	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(+), r::LinRange, x::Number)	modelled	broadcastcov-linrange-shift-elementwise	typed effectful range model preserving fields and operation order
-base/broadcast.jl	1197	1197	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(+), x::Number, r::LinRange)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1197	1197	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(+), x::Number, r::LinRange)	modelled	broadcast-range-1197-runtime	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.RangeRuntime.method1197; reviewed against Julia f755f49.
 base/broadcast.jl	1198	1198	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(+), r1::AbstractRange, r2::AbstractRange)	modelled	broadcastviews-range-singleton	typed effectful range model preserving fields and operation order
-base/broadcast.jl	1200	1200	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(-), r::AbstractRange, x::Number)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1201	1201	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(-), x::Number, r::AbstractRange)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1202	1202	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(-), r::OrdinalRange, x::Integer)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1203	1203	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(-), x::Integer, r::OrdinalRange)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1204	1204	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(-), r::AbstractUnitRange, x::Integer)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1205	1205	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(-), r::AbstractUnitRange, x::Real)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1206	1207	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(-), r::StepRangeLen{T}, x::Number) where T	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1208	1209	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(-), x::Number, r::StepRangeLen{T}) where T	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1200	1200	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(-), r::AbstractRange, x::Number)	modelled	broadcast-range-1200-runtime	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.RangeRuntime.method1200; reviewed against Julia f755f49.
+base/broadcast.jl	1201	1201	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(-), x::Number, r::AbstractRange)	modelled	broadcast-range-1201-runtime	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.RangeRuntime.method1201; reviewed against Julia f755f49.
+base/broadcast.jl	1202	1202	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(-), r::OrdinalRange, x::Integer)	modelled	broadcast-range-1202-runtime	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.RangeRuntime.method1202; reviewed against Julia f755f49.
+base/broadcast.jl	1203	1203	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(-), x::Integer, r::OrdinalRange)	modelled	broadcast-range-1203-runtime	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.RangeRuntime.method1203; reviewed against Julia f755f49.
+base/broadcast.jl	1204	1204	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(-), r::AbstractUnitRange, x::Integer)	modelled	broadcast-range-1204-runtime	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.RangeRuntime.method1204; reviewed against Julia f755f49.
+base/broadcast.jl	1205	1205	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(-), r::AbstractUnitRange, x::Real)	modelled	broadcast-range-1205-runtime	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.RangeRuntime.method1205; reviewed against Julia f755f49.
+base/broadcast.jl	1206	1207	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(-), r::StepRangeLen{T}, x::Number) where T	modelled	broadcast-range-1206-runtime	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.RangeRuntime.method1206; reviewed against Julia f755f49.
+base/broadcast.jl	1208	1209	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(-), x::Number, r::StepRangeLen{T}) where T	modelled	broadcast-range-1208-runtime	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.RangeRuntime.method1208; reviewed against Julia f755f49.
 base/broadcast.jl	1210	1210	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(-), r::LinRange, x::Number)	modelled	broadcastcov-linrange-shift-elementwise	typed effectful range model preserving fields and operation order
-base/broadcast.jl	1211	1211	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(-), x::Number, r::LinRange)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1212	1212	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(-), r1::AbstractRange, r2::AbstractRange)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1215	1215	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(*), x::Number, r::AbstractRange)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1211	1211	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(-), x::Number, r::LinRange)	modelled	broadcast-range-1211-runtime	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.RangeRuntime.method1211; reviewed against Julia f755f49.
+base/broadcast.jl	1212	1212	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(-), r1::AbstractRange, r2::AbstractRange)	modelled	broadcast-range-1212-runtime	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.RangeRuntime.method1212; reviewed against Julia f755f49.
+base/broadcast.jl	1215	1215	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(*), x::Number, r::AbstractRange)	modelled	broadcast-range-1215-runtime	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.RangeRuntime.method1215; reviewed against Julia f755f49.
 base/broadcast.jl	1216	1217	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(*), x::Number, r::StepRangeLen{T}) where {T}	modelled	floatranges-scalar-mul-broadcast	typed effectful range model preserving fields and operation order
-base/broadcast.jl	1218	1218	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(*), x::Number, r::LinRange)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1219	1220	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(*), x::AbstractFloat, r::OrdinalRange)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1218	1218	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(*), x::Number, r::LinRange)	modelled	broadcast-range-1218-runtime	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.RangeRuntime.method1218; reviewed against Julia f755f49.
+base/broadcast.jl	1219	1220	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(*), x::AbstractFloat, r::OrdinalRange)	modelled	broadcast-range-1219-runtime	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.RangeRuntime.method1219; reviewed against Julia f755f49.
 base/broadcast.jl	1222	1222	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(*), r::AbstractRange, x::Number)	modelled	ranges-broadcast-mul-elementwise	typed effectful range model preserving fields and operation order
-base/broadcast.jl	1223	1224	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(*), r::StepRangeLen{T}, x::Number) where {T}	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1225	1225	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(*), r::LinRange, x::Number)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1226	1227	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(*), r::OrdinalRange, x::AbstractFloat)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1230	1230	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(/), r::AbstractRange, x::Number)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1223	1224	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(*), r::StepRangeLen{T}, x::Number) where {T}	modelled	broadcast-range-1223-runtime	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.RangeRuntime.method1223; reviewed against Julia f755f49.
+base/broadcast.jl	1225	1225	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(*), r::LinRange, x::Number)	modelled	broadcast-range-1225-runtime	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.RangeRuntime.method1225; reviewed against Julia f755f49.
+base/broadcast.jl	1226	1227	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(*), r::OrdinalRange, x::AbstractFloat)	modelled	broadcast-range-1226-runtime	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.RangeRuntime.method1226; reviewed against Julia f755f49.
+base/broadcast.jl	1230	1230	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(/), r::AbstractRange, x::Number)	modelled	broadcast-range-1230-runtime	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.RangeRuntime.method1230; reviewed against Julia f755f49.
 base/broadcast.jl	1231	1232	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(/), r::StepRangeLen{T}, x::Number) where {T}	modelled	broadcastcov-steprangelen-div-elementwise	typed effectful range model preserving fields and operation order
-base/broadcast.jl	1233	1233	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(/), r::LinRange, x::Number)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1235	1235	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(\), x::Number, r::AbstractRange)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1236	1236	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(\), x::Number, r::StepRangeLen)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1237	1237	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(\), x::Number, r::LinRange)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1239	1239	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(big), r::UnitRange)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1240	1240	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(big), r::StepRange)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1241	1241	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(big), r::StepRangeLen)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1242	1242	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(big), r::LinRange)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1245	1246	broadcasted	broadcasted(::typeof(+), I::CartesianIndices{N}, j::CartesianIndex{N}) where N	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1247	1248	broadcasted	broadcasted(::typeof(+), j::CartesianIndex{N}, I::CartesianIndices{N}) where N	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1249	1250	broadcasted	broadcasted(::typeof(-), I::CartesianIndices{N}, j::CartesianIndex{N}) where N	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1251	1254	broadcasted	broadcasted(::typeof(-), j::CartesianIndex{N}, I::CartesianIndices{N}) where N	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1252	1252	diffrange	diffrange(offset, rng)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1233	1233	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(/), r::LinRange, x::Number)	modelled	broadcast-range-1233-runtime	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.RangeRuntime.method1233; reviewed against Julia f755f49.
+base/broadcast.jl	1235	1235	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(\), x::Number, r::AbstractRange)	modelled	broadcast-range-1235-runtime	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.RangeRuntime.method1235; reviewed against Julia f755f49.
+base/broadcast.jl	1236	1236	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(\), x::Number, r::StepRangeLen)	modelled	broadcast-range-1236-runtime	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.RangeRuntime.method1236; reviewed against Julia f755f49.
+base/broadcast.jl	1237	1237	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(\), x::Number, r::LinRange)	modelled	broadcast-range-1237-runtime	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.RangeRuntime.method1237; reviewed against Julia f755f49.
+base/broadcast.jl	1239	1239	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(big), r::UnitRange)	modelled	broadcast-range-1239-runtime	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.RangeRuntime.method1239; reviewed against Julia f755f49.
+base/broadcast.jl	1240	1240	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(big), r::StepRange)	modelled	broadcast-range-1240-runtime	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.RangeRuntime.method1240; reviewed against Julia f755f49.
+base/broadcast.jl	1241	1241	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(big), r::StepRangeLen)	modelled	broadcast-range-1241-runtime	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.RangeRuntime.method1241; reviewed against Julia f755f49.
+base/broadcast.jl	1242	1242	broadcasted	broadcasted(::DefaultArrayStyle{1}, ::typeof(big), r::LinRange)	modelled	broadcast-range-1242-runtime	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.RangeRuntime.method1242; reviewed against Julia f755f49.
+base/broadcast.jl	1245	1246	broadcasted	broadcasted(::typeof(+), I::CartesianIndices{N}, j::CartesianIndex{N}) where N	modelled	broadcast-cartesian-range-plus;broadcast-cartesian-generated-callables	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.CartesianRanges.plus; reviewed against Julia f755f49.
+base/broadcast.jl	1247	1248	broadcasted	broadcasted(::typeof(+), j::CartesianIndex{N}, I::CartesianIndices{N}) where N	modelled	broadcast-cartesian-range-plus-reversed	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.CartesianRanges.plusReversed; reviewed against Julia f755f49.
+base/broadcast.jl	1249	1250	broadcasted	broadcasted(::typeof(-), I::CartesianIndices{N}, j::CartesianIndex{N}) where N	modelled	broadcast-cartesian-range-minus;broadcast-cartesian-generated-callables	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.CartesianRanges.minus; reviewed against Julia f755f49.
+base/broadcast.jl	1251	1254	broadcasted	broadcasted(::typeof(-), j::CartesianIndex{N}, I::CartesianIndices{N}) where N	modelled	broadcast-cartesian-range-minus-reversed;broadcast-cartesian-generated-callables	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.CartesianRanges.minusReversed; reviewed against Julia f755f49.
+base/broadcast.jl	1252	1252	diffrange	diffrange(offset, rng)	modelled	broadcast-cartesian-diffrange-runtime;broadcast-cartesian-generated-callables	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.CartesianRanges.differenceBody; reviewed against Julia f755f49.
 base/broadcast.jl	1261	1261	BitMaskedBitArray{N,M}	BitMaskedBitArray{N,M}(parent, mask) where {N,M}	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1263	1266	BitMaskedBitArray	BitMaskedBitArray(parent::BitArray{N}, mask::BitArray{M}) where {N,M}	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1267	1267	dotview	dotview(B::BitArray, i::BitArray)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1268	1268	Base.show	Base.show(io::IO, B::BitMaskedBitArray)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1270	1270	materialize!	materialize!(B::BitMaskedBitArray, bc::Broadcasted{<:Any,<:Any,typeof(identity),Tuple{Bool}})	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1271	1271	materialize!	materialize!(B::BitMaskedBitArray, bc::Broadcasted{<:Any})	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1272	1285	Base.fill!	Base.fill!(B::BitMaskedBitArray, b::Bool)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1297	1297	dotview	dotview(args...)	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1263	1266	BitMaskedBitArray	BitMaskedBitArray(parent::BitArray{N}, mask::BitArray{M}) where {N,M}	modelled	broadcast-masked-constructor-context	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.MaskedForward.construct; reviewed against Julia f755f49.
+base/broadcast.jl	1267	1267	dotview	dotview(B::BitArray, i::BitArray)	modelled	broadcast-masked-dotview-context	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.MaskedForward.dotview; reviewed against Julia f755f49.
+base/broadcast.jl	1268	1268	Base.show	Base.show(io::IO, B::BitMaskedBitArray)	modelled	broadcast-masked-show-closure-order	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.MaskedForward.showMasked;JuliaLean.base.broadcast.Models2Group5.MaskedForward.invokeShowClosure; reviewed against Julia f755f49.
+base/broadcast.jl	1270	1270	materialize!	materialize!(B::BitMaskedBitArray, bc::Broadcasted{<:Any,<:Any,typeof(identity),Tuple{Bool}})	modelled	broadcast-masked-materialize-scalar-order	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.MaskedForward.materializeScalar; reviewed against Julia f755f49.
+base/broadcast.jl	1271	1271	materialize!	materialize!(B::BitMaskedBitArray, bc::Broadcasted{<:Any})	modelled	broadcast-masked-materialize-view-recursion	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.MaskedForward.materializeView; reviewed against Julia f755f49.
+base/broadcast.jl	1272	1285	Base.fill!	Base.fill!(B::BitMaskedBitArray, b::Bool)	modelled	broadcast-masked-fill-current-world-bits	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.MaskedFill.fill; reviewed against Julia f755f49.
+base/broadcast.jl	1297	1297	dotview	dotview(args...)	modelled	broadcast-dotview-forward-runtime	Source-mirrored model JuliaLean.base.broadcast.Syntax.m1297;JuliaLean.base.broadcast.Models2Group5.SyntaxBoundary.dotview; reviewed against Julia f755f49.
 base/broadcast.jl	1304	1304	dottable	dottable(x)	todo		trivial: restates a body or a constructor result
 base/broadcast.jl	1306	1306	dottable	dottable(x::Symbol)	todo		trivial: restates a body or a constructor result
 base/broadcast.jl	1307	1307	dottable	dottable(x::Expr)	todo		trivial: restates a body or a constructor result
@@ -331,12 +331,12 @@ base/broadcast.jl	1308	1308	undot	undot(x)	todo		trivial: restates a body or a c
 base/broadcast.jl	1309	1317	undot	undot(x::Expr)	todo		trivial: restates a body or a constructor result
 base/broadcast.jl	1318	1318	__dot__	__dot__(x)	todo		trivial: restates a body or a constructor result
 base/broadcast.jl	1319	1348	__dot__	__dot__(x::Expr)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1390	1392	__dot__	__dot__(x)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1394	1400	broadcasted_kwsyntax	broadcasted_kwsyntax(f, args...; kwargs...)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1401	1404	broadcasted	broadcasted(f::F, args...) where {F}	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1390	1392	__dot__	__dot__(x)	modelled	broadcast-dot-macro-runtime-provenance	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.KeywordBroadcast.dotMacro; reviewed against Julia f755f49.
+base/broadcast.jl	1394	1400	broadcasted_kwsyntax	broadcasted_kwsyntax(f, args...; kwargs...)	modelled	broadcast-keyword-broadcast-callable-identity	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.KeywordBroadcast.keywordSyntax;JuliaLean.base.broadcast.Models2Group5.KeywordBroadcast.invokeKeywordClosure;JuliaLean.base.broadcast.Models2Group5.KeywordBroadcast.keywordCallable; reviewed against Julia f755f49.
+base/broadcast.jl	1401	1404	broadcasted	broadcasted(f::F, args...) where {F}	modelled	broadcast-generic-broadcast-mapped-provenance	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.KeywordBroadcast.broadcastedGeneric; reviewed against Julia f755f49.
 base/broadcast.jl	1409	1413	broadcasted	broadcasted(f::F, arg1, args...) where {F}	modelled	broadcast-nested-boolean-short-circuit	typed recursive Julia syntax and broadcast wrapper model
 base/broadcast.jl	1414	1419	broadcasted	broadcasted(f::F, arg1, arg2, args...) where {F}	todo		trivial: restates a body or a constructor result
 base/broadcast.jl	1420	1420	broadcasted	broadcasted(style::BroadcastStyle, f::F, args...) where {F}	modelled	broadcast-nested-boolean-short-circuit	typed recursive Julia syntax and broadcast wrapper model
-base/broadcast.jl	1452	1452	(op::BroadcastFunction)	(op::BroadcastFunction)(x...; kwargs...)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1454	1459	Base.show	Base.show(io::IO, op::BroadcastFunction)	todo		trivial: restates a body or a constructor result
-base/broadcast.jl	1460	1460	Base.show	"Base.show(io::IO, ::MIME""text/plain"", op::BroadcastFunction)"	todo		trivial: restates a body or a constructor result
+base/broadcast.jl	1452	1452	(op::BroadcastFunction)	(op::BroadcastFunction)(x...; kwargs...)	modelled	broadcast-function-keyword-materialization	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.KeywordBroadcast.broadcastFunction; reviewed against Julia f755f49.
+base/broadcast.jl	1454	1459	Base.show	Base.show(io::IO, op::BroadcastFunction)	modelled	broadcast-function-display-recursion	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.KeywordBroadcast.showFunction; reviewed against Julia f755f49.
+base/broadcast.jl	1460	1460	Base.show	"Base.show(io::IO, ::MIME""text/plain"", op::BroadcastFunction)"	modelled	broadcast-function-plain-show	Source-mirrored model JuliaLean.base.broadcast.Models2Group5.KeywordBroadcast.showPlain; reviewed against Julia f755f49.

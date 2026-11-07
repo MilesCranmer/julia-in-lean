@@ -1,28 +1,34 @@
 id: multidimcov-hcat-vector-eltype
-title: "hcat of vectors with the same abstract eltype narrows it: hcat(Any[1], Any[2]) is a Matrix{Int}"
-priority: P2
-kind: wrong-result
+title: hcat's documented equivalence to cat omits value-dependent element type narrowing
+priority: P3
+kind: documentation
 area: MultidimCov
-files: [base/array.jl]
-functions: ["hcat(V::Vector{T}...) where T"]
+files:
+  - base/array.jl
+  - base/abstractarray.jl
+functions:
+  - hcat(V::Vector{T}...) where T
 summary: |
-  When every argument is a Vector{T} with the same T, hcat builds its result with
-  a comprehension, whose element type comes from the values rather than from T.
-  hcat(Any[1], Any[2]) is therefore a Matrix{Int64}, while cat(Any[1], Any[2];
-  dims=2) and vcat(Any[1], Any[2]) keep the element type Any. Storing a String
-  into the result then throws MethodError.
+  hcat(Any[1], Any[2]) returns Matrix{Int64}, while cat(Any[1], Any[2]; dims=2)
+  returns Matrix{Any}. Vectors sharing a union element type can also narrow to
+  Int64. The docstring calls hcat equivalent to cat with dims=2 without stating
+  this type difference, which affects later mutation of the result.
 likelihood: |
-  Plausible in code that collects heterogeneous data in Vector{Any} or
-  Vector{Union{...}} columns and concatenates them; the narrowed result breaks
-  later writes of other types.
+  Code that assembles Vector{Any} or union-typed columns can receive a matrix
+  that rejects later values accepted by its input columns. The reproducer's
+  attempt to store a String throws MethodError.
 maybe_intended: |
-  The comprehension only asserts each element ::T; narrowing may have been
-  accepted for speed. The hcat docstring says hcat(A...) is equivalent to
-  cat(A...; dims=2), which keeps T.
+  Narrowing is intentional historical behavior. In #33919, changing hcat so
+  it no longer narrowed abstract element types was called unintentional and
+  marked for reversal. PR #64568 explicitly preserves the comprehension for
+  abstract T for that reason. This report concerns the unqualified documentation
+  equivalence, rather than asserting that preserving T is the settled policy.
 reproducer: |
-  hcat(Any[1], Any[2])                  # Matrix{Int64}
-  cat(Any[1], Any[2]; dims=2)           # Matrix{Any}
-  hcat(Union{Int,Float64}[1, 2], Union{Int,Float64}[3, 4])   # Matrix{Int64}
+  a = hcat(Any[1], Any[2])
+  b = cat(Any[1], Any[2]; dims=2)
+  typeof(a), typeof(b)
+  typeof(hcat(Union{Int,Float64}[1, 2], Union{Int,Float64}[3, 4]))
+  a[1] = "x"
 output:
   release: |
     hcat(Any[1], Any[2]) isa Matrix{Int64}
@@ -38,24 +44,62 @@ output:
     hcat of two Vector{Union{Int,Float64}} isa Matrix{Int64}
     a[1] = "x": MethodError
     REPRODUCED multidimcov-hcat-vector-eltype
-reproduced: {release: true, nightly: true}
+reproduced:
+  release: true
+  nightly: true
 expected: |
-  A 1x2 Matrix{Any} (eltype T), as cat(A...; dims=2) and vcat return.
+  Qualify the hcat/cat equivalence by documenting value-dependent narrowing
+  for vectors with a shared abstract or union element type. Under literal type
+  equivalence, the first result would instead be Matrix{Any}; the historical
+  discussion shows that forcing this behavior would reverse an intentional
+  policy. The reproducer catches the final assignment exception.
 promised_by: |
-  hcat docstring (base/abstractarray.jl): "Concatenate arrays or numbers
-  horizontally. Equivalent to cat(A...; dims=2)".
+  base/abstractarray.jl:2005-2008 at f755f49a9e41380d7da126b3c1db9fe7f83dd027:
+  "    hcat(A...)
+
+  Concatenate arrays or numbers horizontally. Equivalent to [`cat`](@ref)`(A...; dims=2)`,
+  and to the syntax `[a b c]` or `[a;; b;; c]`."
+  This text does not qualify the equivalence by result element type.
 cause: |
-  base/array.jl:2347 returns [V[j][i]::T for i=1:length(V[1]), j=1:length(V)].
-  collect of a Generator (base/array.jl:833-852) allocates the destination with
-  typeof(first value) and widens only when a later value does not fit, so T is
-  never used as the element type.
+  base/array.jl:2335-2343 handles vectors sharing T with the untyped comprehension
+  [ V[j][i]::T for i=1:length(V[1]), j=1:length(V) ]. The ::T assertion checks
+  values but does not prescribe the destination element type. The comprehension
+  can narrow from the declared T to the types of the actual values. The general
+  cat path preserves Any for this example instead.
 possible_fix: |
-  Write T[V[j][i] for i=1:length(V[1]), j=1:length(V)] (a typed comprehension),
-  or allocate Matrix{T}(undef, height, length(V)) and copy.
+  Document this element-type exception in hcat and include a comparison with
+  cat(A...; dims=2). If the API policy is changed to require identical element
+  types, use a typed destination; that behavior change needs to account for
+  the intentional narrowing discussed in #33919.
 duplicates:
   issues:
-    - {number: 26004, state: open, relation: duplicate}
-  queries: ["hcat Vector{Any} eltype", "hcat Any element type narrow", "hcat vectors eltype comprehension", "hcat Any", "hcat abstract eltype", "issues: hcat (title scan)"]
+    - number: 26004
+      state: open
+      relation: duplicate
+    - number: 33919
+      state: closed
+      relation: related
+  prs:
+    - number: 64568
+      state: closed
+      relation: related
+    - number: 19387
+      state: merged
+      relation: related
+  queries:
+    - 'gh search issues --repo JuliaLang/julia hcat Any eltype'
+    - 'gh search issues --repo JuliaLang/julia hcat abstract type'
+    - 'gh search issues --repo JuliaLang/julia hcat comprehension'
+    - 'gh search prs --repo JuliaLang/julia hcat Any eltype'
+    - 'gh search prs --repo JuliaLang/julia hcat abstract type'
+    - 'gh search prs --repo JuliaLang/julia hcat comprehension'
+  notes: |
+    Issue #26004 is an existing duplicate: it gives the same union-typed
+    narrowing and contrasts vcat. Its link to PR #19387 concerns earlier
+    type-stabilizing concatenation work. PR #64568 explicitly preserves
+    abstract-T narrowing and points to #33919; the comments on #33919 include
+    a request to revert the change that stopped narrowing. No targeted
+    documentation fix is known.
 lean:
-  property: JuliaLean.MultidimCov.ArrayV2.P2340
-  theorem: JuliaLean.MultidimCov.ArrayV2.p2340_refuted
+  property: JuliaLean.Proofs.base.array.HcatEltypeSpec
+  theorem: JuliaLean.ChatGPT.Batch4.Group2.MultidimcovHcatVectorEltype_refuted

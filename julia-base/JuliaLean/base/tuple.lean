@@ -1,4 +1,5 @@
 import JuliaLean.Core
+import JuliaLean.base.ntuple
 
 /-!
 # Model of `base/tuple.jl`
@@ -30,6 +31,7 @@ def kind : TupleError → String
   | .julia .divideError => "DivideError"
   | .julia (.domainError _) => "DomainError"
   | .julia (.methodError _) => "MethodError"
+  | .julia .eofError => "EOFError"
   | .dimensionMismatch => "DimensionMismatch"
   | .typeError => "TypeError"
   | .fieldError => "FieldError"
@@ -76,9 +78,21 @@ def Index.value : Index → Int
 def convertIndex (i : Index) : R (JInt .i64) :=
   match i with
   | .integer .i64 value => .ok value
-  | .integer _ value => liftJ (JInt.convert .i64 value.val)
-  | .big value => liftJ (JInt.convert .i64 value)
+  | .integer _ value => liftJ (JInt.convert (IntTy.i64.name) .i64 value.val)
+  | .big value => liftJ (JInt.convert (IntTy.i64.name) .i64 value)
   | .bool value => .ok (JInt.lit .i64 (if value then 1 else 0))
+
+/-- Julia's `convert(Int, i)` for an `Integer` type `I`, run in the caller's effect monad `m`.
+An instance is the conversion method of `I`: `convertIndex` for the built-in `Index` family in
+`R`, or a user `Integer` type's own method, whose exceptions stay in `m`. -/
+class ConvertInt (I : Type) (m : Type → Type) where
+  convertInt : I → m (JInt .i64)
+
+@[default_instance]
+instance : ConvertInt Index R := ⟨convertIndex⟩
+
+@[simp] theorem convertInt_index (i : Index) :
+    ConvertInt.convertInt (m := R) i = convertIndex i := rfl
 
 def assertInt (i : Index) : R Int :=
   match i with
@@ -279,9 +293,10 @@ Julia source: base/tuple.jl:34-34 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 getindex(@nospecialize(t::Tuple), i::Integer) = getfield(t, convert(Int, i), @_boundscheck)
 ```
 -/
-def getindexInteger {α : Type} (t : List α) (i : Index) : R α := do
-  let j ← convertIndex i
-  getfield t j.val
+def getindexInteger {m : Type → Type} [Monad m] {α I : Type} [convert : ConvertInt I m]
+    (t : List α) (i : I) (liftR : {β : Type} → R β → m β := by exact fun r => r) : m α := do
+  let j ← convert.convertInt i
+  liftR (getfield t j.val)
 
 /--
 Julia source: base/tuple.jl:35-35 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -1598,9 +1613,11 @@ Julia source: base/tuple.jl:546-546 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 filter_rec(f, xs::Tuple) = afoldl((ys, x) -> f(x) ? (ys..., x) : ys, (), xs...)
 ```
 -/
-def filterRec {α : Type} (afoldl : (List α → α → List α) → List α → List α → List α)
-    (f : α → Bool) (xs : List α) : List α :=
-  afoldl (fun ys x => if f x then ys ++ [x] else ys) [] xs
+def filterRec {E : Type} {m : Type → Type} [Monad m]
+    (afoldl : (List E → E → m (List E)) → List E → List E → m (List E))
+    (predicate : E → m Bool) (xs : List E) : m (List E) :=
+  afoldl (fun kept x => do
+    if ← predicate x then pure (kept ++ [x]) else pure kept) [] xs
 
 /--
 Julia source: base/tuple.jl:549-549 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -1608,9 +1625,12 @@ Julia source: base/tuple.jl:549-549 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 filter(f, t::Tuple) = length(t) < 32 ? filter_rec(f, t) : Tuple(filter(f, collect(t)))
 ```
 -/
-def filterTuple {α : Type} (afoldl : (List α → α → List α) → List α → List α → List α)
-    (filterVector : (α → Bool) → List α → List α) (f : α → Bool) (t : List α) : List α :=
-  if t.length < 32 then filterRec afoldl f t else filterVector f t
+def filterTuple {E V : Type} {m : Type → Type} [Monad m]
+    (afoldl : (List E → E → m (List E)) → List E → List E → m (List E))
+    (collectTuple : List E → m V) (filterVector : (E → m Bool) → V → m V)
+    (tupleConstructor : V → m (List E)) (predicate : E → m Bool) (xs : List E) : m (List E) := do
+  if xs.length < 32 then filterRec afoldl predicate xs
+  else tupleConstructor (← filterVector predicate (← collectTuple xs))
 
 
 /--
@@ -2164,3 +2184,949 @@ def tupleFromIterator {α σ : Type} [ToString TupleType]
 
 
 end JuliaLean.base.tuple
+
+namespace JuliaLean.Multidim
+
+/-- `isless(t1::Tuple, t2::Tuple)`, `base/tuple.jl`: `isless(a, b) || (isequal(a, b) &&
+isless(tail(t1), tail(t2)))`. -/
+def tupleLess : List (JuliaLean.JInt .i64) → List (JuliaLean.JInt .i64) → Bool
+  | [], [] => false
+  | [], _ :: _ => true
+  | _ :: _, [] => false
+  | a :: as, b :: bs => decide (a.val < b.val) || (decide (a.val = b.val) && tupleLess as bs)
+
+end JuliaLean.Multidim
+
+namespace JuliaLean.Multidim
+
+/-- `fill_to_length(t, 0, Val(N))`: pads with zeros; a longer tuple is an
+`ArgumentError` ("input tuple of length ..., requested ..."). -/
+def fillToLength (t : List Int) (N : Nat) : R (List Int) :=
+  if t.length > N then .error .argumentError else .ok (t ++ List.replicate (N - t.length) 0)
+
+end JuliaLean.Multidim
+
+/-!
+Model of Julia tuples (`base/tuple.jl`, `base/ntuple.jl`, the tuple methods of
+`base/range.jl`, `base/operators.jl`, `base/array.jl`, `base/bitarray.jl`).
+
+A tuple is a `List α` of its elements. Methods whose body differs between short
+tuples and `Any32` tuples (32 or more elements) are modelled by both bodies and
+a dispatcher on the lengths. Loops over `1:n` are index recursions (`go i k`
+visits `i+1, ..., i+k` in Julia's one-based numbering).
+
+Exceptions: `Err.jl` wraps the shared `JlError`; `TypeError`, `FieldError` and
+`ErrorException` have their own constructors because `Core` has none. Element
+comparisons are abstract (`Ops`), with `none` for `missing`.
+-/
+
+namespace JuliaLean.Tuples
+
+
+
+/-- `getindex(t, i::Int)` (`base/tuple.jl:33`) and `getindex(t, i::Integer) =
+getfield(t, convert(Int, i))` (`base/tuple.jl:34`); `Bool <: Integer` takes the
+second method. -/
+def getindex {α : Type} (t : List α) : Idx → R α
+  | .int ty v =>
+    if ty = .i64 then getfield t v.val
+    else do let j ← liftJ (JInt.convert (IntTy.i64.name) .i64 v.val); getfield t j.val
+  | .bool b => do let j ← liftJ (JInt.convert (IntTy.i64.name) .i64 (if b then 1 else 0)); getfield t j.val
+
+/-- `setindex(x, v, i::Integer)`, `base/tuple.jl:55-64`: `1 <= i <= length(x)`
+(exact mixed-type comparison), then `_setindex` rebuilds the tuple with
+`ifelse(j == i, v, args[j])`. -/
+def setindex {α : Type} (t : List α) (v : α) (i : Idx) : R (List α) :=
+  if 1 ≤ i.val ∧ i.val ≤ t.length then
+    .ok ((List.range t.length).zipWith (fun (j : Nat) a => if ((j : Int) + 1) = i.val then v else a) t)
+  else bounds
+
+/-- `get(t, i::Integer, default)`, `base/tuple.jl:40`. -/
+def get {α : Type} (t : List α) (i : Idx) (d : α) : R α :=
+  if 1 ≤ i.val ∧ i.val ≤ t.length then getindex t i else .ok d
+
+/-- `isassigned(v::Tuple, i::Integer)`, `base/tuple.jl:681-684`. -/
+def isassigned {α : Type} (t : List α) (i : Idx) : R Bool :=
+  .ok (decide (1 ≤ i.val ∧ i.val ≤ t.length))
+
+/-- The `Vector` methods with a `Bool` scalar index: `to_index(i::Bool)` throws
+(`base/indices.jl:259`); `get`/`isassigned` reject `Bool` the same way. -/
+def vecBoolIndex {β : Type} : R β := argErr "invalid index: true of type Bool"
+
+/-! ## Front, tail, first, last -/
+
+/-- `_front`, `base/tuple.jl:348-353`. -/
+def frontRec {α : Type} : List α → R (List α)
+  | [] => argErr "Cannot call front on an empty tuple."
+  | [_] => .ok []
+  | v :: t => do let r ← frontRec t; pure (v :: r)
+
+/-- `index loop` helper: `(t[i+1], ..., t[i+k])` (one-based), or `BoundsError`. -/
+def readRange {α : Type} (t : List α) : Nat → Nat → R (List α)
+  | _, 0 => .ok []
+  | i, k + 1 => do
+    let a ← getfield t (i + 1)
+    let r ← readRange t (i + 1) k
+    pure (a :: r)
+
+/-- `front(t::Any32)`, `base/tuple.jl:380-384`: `ntuple(i -> getfield(t, i), n-1)`. -/
+def frontAny32 {α : Type} (t : List α) : R (List α) := readRange t 0 (t.length - 1)
+
+/-- `front(t)`: `base/tuple.jl:344-347`, `375-378` (exactly 32), `380-384` (longer). -/
+def front {α : Type} (t : List α) : R (List α) :=
+  if t.length > 32 then frontAny32 t else frontRec t
+
+/-- `tail(x) = argtail(x...)`, `tail(()) = ArgumentError`, `base/essentials.jl:523,541-542`. -/
+def tail {α : Type} : List α → R (List α)
+  | [] => argErr "Cannot call tail on an empty tuple."
+  | _ :: r => .ok r
+
+/-- `first(()) = ArgumentError`, `first(t) = t[1]`, `base/tuple.jl:270-271`. -/
+def first {α : Type} : List α → R α
+  | [] => argErr "tuple must be non-empty"
+  | t => getfield t 1
+
+/-- `last(a) = a[end]` (`base/abstractarray.jl`), `lastindex(t) = length(t)`, `base/tuple.jl:30`. -/
+def last {α : Type} (t : List α) : R α := getfield t t.length
+
+/-! ## ntuple, fill_to_length, reverse -/
+
+
+/-- `revargs`, `base/tuple.jl:668-671`. -/
+def revargs {α : Type} : List α → List α
+  | [] => []
+  | x :: r => revargs r ++ [x]
+
+
+/-! ## map -/
+
+/-- One-argument `map`, `base/tuple.jl:358-362`. -/
+def map1Rec {α β : Type} (f : α → β) : List α → List β
+  | [] => []
+  | [a] => [f a]
+  | [a, b] => [f a, f b]
+  | [a, b, c] => [f a, f b, f c]
+  | a :: r => f a :: map1Rec f r
+
+/-- `map(f, t::Any32)`, `base/tuple.jl:394-401`: `A[i] = f(t[i])` for `i = 1:n`. -/
+def map1Loop {α β : Type} (f : α → β) (t : List α) : Nat → Nat → List β
+  | _, 0 => []
+  | i, k + 1 => match t[i]? with
+    | some a => f a :: map1Loop f t (i + 1) k
+    | none => []
+
+def map1 {α β : Type} (f : α → β) (t : List α) : List β :=
+  if t.length ≥ 32 then map1Loop f t 0 t.length else map1Rec f t
+
+/-- Two-argument `map`, `base/tuple.jl:403-411`. -/
+def map2Rec {α β γ : Type} (f : α → β → γ) : List α → List β → List γ
+  | [], _ => []
+  | _, [] => []
+  | [a], [b] => [f a b]
+  | [a, a'], [b, b'] => [f a b, f a' b']
+  | a :: r, b :: s => f a b :: map2Rec f r s
+
+/-- `map(f, t::Any32, s::Any32)`, `base/tuple.jl:412-419`, `n = min(length(t), length(s))`. -/
+def map2Loop {α β γ : Type} (f : α → β → γ) (t : List α) (s : List β) : Nat → Nat → List γ
+  | _, 0 => []
+  | i, k + 1 => match t[i]?, s[i]? with
+    | some a, some b => f a b :: map2Loop f t s (i + 1) k
+    | _, _ => []
+
+def map2 {α β γ : Type} (f : α → β → γ) (t : List α) (s : List β) : List γ :=
+  if t.length ≥ 32 ∧ s.length ≥ 32 then map2Loop f t s 0 (min t.length s.length)
+  else map2Rec f t s
+
+/-- Three-argument `map`, `base/tuple.jl:421-431` (`anyempty`, `heads`, `tails`). -/
+def map3Rec {α β γ δ : Type} (f : α → β → γ → δ) : List α → List β → List γ → List δ
+  | a :: r, b :: s, c :: u => f a b c :: map3Rec f r s u
+  | _, _, _ => []
+
+/-- `map(f, t1::Any32, t2::Any32, ts::Any32...)`, `base/tuple.jl:432-439`. -/
+def map3Loop {α β γ δ : Type} (f : α → β → γ → δ) (t : List α) (s : List β) (u : List γ) :
+    Nat → Nat → List δ
+  | _, 0 => []
+  | i, k + 1 => match t[i]?, s[i]?, u[i]? with
+    | some a, some b, some c => f a b c :: map3Loop f t s u (i + 1) k
+    | _, _, _ => []
+
+def map3 {α β γ δ : Type} (f : α → β → γ → δ) (t : List α) (s : List β) (u : List γ) : List δ :=
+  if t.length ≥ 32 ∧ s.length ≥ 32 ∧ u.length ≥ 32 then
+    map3Loop f t s u 0 (min t.length (min s.length u.length))
+  else map3Rec f t s u
+
+/-! ## find, filter, in -/
+
+/-- `_findfirst_rec`, `base/tuple.jl:522-523`. -/
+def findfirstRec {α : Type} (f : α → Bool) (i : Nat) : List α → Option Nat
+  | [] => none
+  | a :: r => if f a then some i else findfirstRec f (i + 1) r
+
+/-- `_findfirst_loop`, `base/tuple.jl:524-529`. -/
+def findfirstLoop {α : Type} (f : α → Bool) (t : List α) : Nat → Nat → Option Nat
+  | _, 0 => none
+  | i, k + 1 => match t[i]? with
+    | some a => if f a then some (i + 1) else findfirstLoop f t (i + 1) k
+    | none => none
+
+/-- `findfirst(f::Function, t::Tuple)`, `base/tuple.jl:530`. -/
+def findfirst {α : Type} (f : α → Bool) (t : List α) : Option Nat :=
+  if t.length < 32 then findfirstRec f 1 t else findfirstLoop f t 0 t.length
+
+/-- `_findlast_loop`, `base/tuple.jl:537-542`: `for i in reverse(1:length(t))`
+(`i = k, k-1, ..., 1`). -/
+def findlastLoop {α : Type} (f : α → Bool) (t : List α) : Nat → Option Nat
+  | 0 => none
+  | k + 1 => match t[k]? with
+    | some a => if f a then some (k + 1) else findlastLoop f t k
+    | none => none
+
+/-- `findlast(f::Function, t::Tuple)`, `base/tuple.jl:532-536`: the short path
+reverses the tuple and calls `findfirst` on it. -/
+def findlast {α : Type} (f : α → Bool) (t : List α) : Option Nat :=
+  if t.length < 32 then
+    match findfirst f (revargs t) with
+    | none => none
+    | some r => some (t.length - r + 1)
+  else findlastLoop f t t.length
+
+/-- `filter_rec` (`afoldl`), `base/tuple.jl:546`. -/
+def filterRec {α : Type} (f : α → Bool) (t : List α) : List α :=
+  t.foldl (fun ys x => if f x then ys ++ [x] else ys) []
+
+/-- `filter(f, t::Tuple)`, `base/tuple.jl:549`: long tuples use `filter` on `collect(t)`. -/
+def filter {α : Type} (f : α → Bool) (t : List α) : List α :=
+  if t.length < 32 then filterRec f t else t.filter f
+
+/-- Three-valued `|`: `false | missing === missing`. -/
+def or3 : Option Bool → Option Bool → Option Bool
+  | some true, _ => some true
+  | _, some true => some true
+  | some false, some false => some false
+  | _, _ => none
+
+/-- `_in_tuple`, `base/operators.jl:1463-1471`; `eq` is three-valued `==`. -/
+def inTupleRec {α : Type} (eq : α → α → Option Bool) (x : α) : List α → Option Bool → Option Bool
+  | [], result => result
+  | a :: r, result =>
+    let v := eq a x
+    if v = some true then some true else inTupleRec eq x r (or3 result v)
+
+/-- `any(f, itr)` with three-valued logic (`base/reduce.jl`), used by
+`in(x, itr::Any32)` through `invoke(in, Tuple{Any,Any}, ...)`, `base/operators.jl:1474`. -/
+def anyGo {α : Type} (f : α → Option Bool) : List α → Bool → Option Bool
+  | [], anymissing => if anymissing then none else some false
+  | a :: r, anymissing => match f a with
+    | none => anyGo f r true
+    | some true => some true
+    | some false => anyGo f r anymissing
+
+/-- `in(x, itr::Tuple)`, `base/operators.jl:1459,1474`. -/
+def inTuple {α : Type} (eq : α → α → Option Bool) (x : α) (t : List α) : Option Bool :=
+  if t.length ≥ 32 then anyGo (fun y => eq y x) t false else inTupleRec eq x t (some false)
+
+/-- `findall(pred::Fix2{typeof(in)}, x::Tuple) = _findin(x, pred.x)`,
+`base/array.jl:2967`; `_findin(a, b) = _findin(a, Set(b))` and
+`ai in b && push!(ind, i)` (`base/array.jl:2903-2910`). Membership in a `Set`
+is `isequal` membership. -/
+def findallIn {α : Type} (isequal : α → α → Bool) (t : List α) (b : List α) : List Nat :=
+  ((List.range t.length).zip t).filterMap fun (i, a) =>
+    if b.any (isequal a) then some (i + 1) else none
+
+/-- `findall(x -> x in b, t)` for a `Vector` `b` with `Bool`-valued `==`:
+`in(x, itr) = any(==(x), itr)`, `base/operators.jl:1456`. -/
+def findallPred {α : Type} (eq : α → α → Bool) (t : List α) (b : List α) : List Nat :=
+  ((List.range t.length).zip t).filterMap fun (i, a) =>
+    if b.any (fun y => eq y a) then some (i + 1) else none
+
+/-! ## Integer unit ranges -/
+
+/-- `t[r]` for `r::UnitRange{Int}` with `first(r) = a` and `length(r) = len`
+(`last(r) = a + len - 1` lies in `Int`), `base/range.jl:451-466`. -/
+def getindexUnitRange {α : Type} (t : List α) (a : Int) (len : Nat) : R (List α) := do
+  let generic := (List.range len).mapM fun (k : Nat) => getfield t (a + k)
+  if len ≤ 10 then (List.range len).mapM fun (k : Nat) => getfield t (((k : Int) + 1) + a - 1)
+  else if a = 1 then
+    if a + len - 1 = t.length then pure t
+    else if a + len - 1 = t.length - 1 then front t
+    else if a + len - 1 = t.length - 2 then do let f ← front t; front f
+    else generic
+  else if a + len - 1 = t.length then
+    if a = 2 then tail t
+    else if a = 3 then do let r ← tail t; tail r
+    else generic
+  else generic
+
+/-- `UnitRange(a, b)` for `Int` endpoints as `(first, length)` (`last` is
+`a - 1` when `b < a`); assumes `b - a + 1` does not overflow. -/
+def unitRange (a b : JInt .i64) : Int × Nat :=
+  (a.val, if b.val ≥ a.val then (b.val - a.val + 1).toNat else 0)
+
+/-- `t[a:b]` for `Int` endpoints. -/
+def getindexColon {α : Type} (t : List α) (a b : JInt .i64) : R (List α) :=
+  getindexUnitRange t (unitRange a b).1 (unitRange a b).2
+
+/-- `t[b]` for a `UnitRange{Bool}` `b` (first value `lo`, length `len`): it
+dispatches to the `AbstractUnitRange` method of `base/range.jl:451-466`, where
+`i + first(r) - 1` computes with `first(r)` as an integer. -/
+def getindexBoolRange {α : Type} (t : List α) (lo : Bool) (len : Nat) : R (List α) :=
+  getindexUnitRange t (if lo then 1 else 0) len
+
+/-- The values of a `UnitRange{Bool}` with first value `lo` and length `len ≤ 2`. -/
+def boolRangeValues (lo : Bool) (len : Nat) : List Bool :=
+  (List.range len).map fun k => if lo then true else k == 1
+
+/-- Logical indexing `t[b::AbstractArray{Bool,1}]`, `base/tuple.jl:37`:
+`length(b) == length(t) ? getindex(t, findall(b)) : BoundsError`. -/
+def getindexLogical {α : Type} (t : List α) (b : List Bool) : R (List α) :=
+  if b.length = t.length then
+    ((List.range b.length).zip b).filterMap (fun (i, x) => if x then some (i + 1) else none)
+      |>.mapM fun i => getfield t i
+  else bounds
+
+/-! ## split_rest and rest -/
+
+/-- `_split_tuple(t, n, i) = (t[i:n], t[n+1:end])` and
+`split_rest(t::Tuple, n, i) = _split_tuple(t, length(t)-n, Int(i))`,
+`base/tuple.jl:265-267`. Both slices are `UnitRange{Int}` indexing. -/
+def splitRestTuple {α : Type} (t : List α) (n i : JInt .i64) : R (List α × List α) := do
+  let m : JInt .i64 := JInt.lit .i64 t.length - n
+  let x ← getindexColon t i m
+  let y ← getindexColon t (m + JInt.lit .i64 1) (JInt.lit .i64 t.length)
+  pure (x, y)
+
+/-- `_check_length_split_rest`, `base/tuple.jl:255-259`. -/
+def checkLengthSplitRest (len : Nat) (n : JInt .i64) : R Unit :=
+  if (len : Int) < n.val then argErr "The iterator only contains len elements, but at least n were requested."
+  else .ok ()
+
+/-- `split_rest(v::Vector, n, i)`: `rest(a, i) = a[i:end]` (`base/tuple.jl:212`),
+then `_split_rest(a::Vector, n)` (`base/bitarray.jl:1932-1937`): check the
+length, `last_n = a[end-n+1:end]`, `resize!(a, length(a) - n)`. Growing with
+`resize!` leaves the new elements uninitialised (`none`). -/
+def splitRestVector {α : Type} (v : List α) (n i : JInt .i64) : R (List (Option α) × List α) := do
+  let r ← if i.val ≤ v.length then (if 1 ≤ i.val then pure (v.drop (i.val - 1).toNat) else bounds)
+    else pure []
+  checkLengthSplitRest r.length n
+  let lastN := if n.val ≥ 0 then r.drop (r.length - n.val.toNat) else []
+  let frontPart := if n.val ≥ 0 then (r.take (r.length - n.val.toNat)).map some
+    else r.map some ++ List.replicate n.val.natAbs none
+  pure (frontPart, lastN)
+
+/-- `rest(t::Tuple, i)`, `base/tuple.jl:207-211`. -/
+def restTuple {α : Type} (t : List α) (i : JInt .i64) : R (List α) :=
+  ntupleInt (fun x => x) (JInt.lit .i64 t.length - i + JInt.lit .i64 1).val >>= fun ks =>
+    ks.mapM fun (x : Nat) => getfield t (JInt.lit .i64 x + i - JInt.lit .i64 1).val
+
+/-- `indexed_iterate(t::Tuple, i, state) = (getfield(t, i), i+1)`, `base/tuple.jl:161`. -/
+def indexedIterate {α : Type} (t : List α) (i : Nat) : R (α × Nat) := do
+  let a ← getfield t i
+  pure (a, i + 1)
+
+/-- Lowering of `a, b..., c = t`: `indexed_iterate`, then
+`split_rest(t, 1, state)`, then `indexed_iterate(last_n, 1)`. -/
+def destructureMid {α : Type} (t : List α) : R (α × List α × α) := do
+  let (a, s) ← indexedIterate t 1
+  let (b, l) ← splitRestTuple t (JInt.lit .i64 1) (JInt.lit .i64 s)
+  let (c, _) ← indexedIterate l 1
+  pure (a, b, c)
+
+/-! ## prod -/
+
+/-- `prod(x::Tuple{}) = 1` and `prod(x::Tuple{Int, Vararg{Int}}) = *(x...)`,
+`base/tuple.jl:688,693`. -/
+def prodTuple (t : List (JInt .i64)) : R (JInt .i64) :=
+  match t with
+  | [] => .ok (JInt.lit .i64 1)
+  | a :: r => .ok (r.foldl (· * ·) a)
+
+/-- `prod(f, t) = mapreduce(f, mul_prod, t)` for `Int` elements: an empty
+tuple has element type `Union{}` and `reduce_empty(mul_prod, Union{})` throws
+(`base/reduce.jl:389-390`). -/
+def prodGeneric (t : List (JInt .i64)) : R (JInt .i64) :=
+  match t with
+  | [] => argErr "reducing over an empty collection is not allowed; consider supplying `init` to the reducer"
+  | a :: r => .ok (r.foldl (· * ·) a)
+
+/-! ## Comparison and hashing -/
+
+/-- Element operations: `isequal`, `isless`, three-valued `==` and `<`
+(`none` is `missing`), and `hash(x, h)`. -/
+structure Ops (α : Type) where
+  isequal : α → α → Bool
+  isless : α → α → Bool
+  eq : α → α → Option Bool
+  lt : α → α → Option Bool
+  hash : α → Nat → Nat
+
+variable {α : Type}
+
+/-- `_isequal`, `base/tuple.jl:554-557`. -/
+def isequalRec (o : Ops α) : List α → List α → Bool
+  | [], [] => true
+  | a :: r, b :: s => o.isequal a b && isequalRec o r s
+  | _, _ => false
+
+/-- `_isequal(t1::Any32, t2::Any32)`, `base/tuple.jl:558-565`. -/
+def isequalLoop (o : Ops α) (t s : List α) : Nat → Nat → Bool
+  | _, 0 => true
+  | i, k + 1 => match t[i]?, s[i]? with
+    | some a, some b => if !o.isequal a b then false else isequalLoop o t s (i + 1) k
+    | _, _ => true
+
+/-- `isequal(t1::Tuple, t2::Tuple)`, `base/tuple.jl:553`. -/
+def isequal (o : Ops α) (t s : List α) : Bool :=
+  t.length == s.length &&
+    (if t.length ≥ 32 then isequalLoop o t s 0 t.length else isequalRec o t s)
+
+/-- `_eq_missing`, `base/tuple.jl:569,580-587`. -/
+def eqMissing (o : Ops α) : List α → List α → Option Bool
+  | a :: r, b :: s => if o.eq a b = some false then some false else eqMissing o r s
+  | _, _ => none
+
+/-- `_eq`, `base/tuple.jl:568-579`. -/
+def eqRec (o : Ops α) : List α → List α → Option Bool
+  | a :: r, b :: s => match o.eq a b with
+    | some false => some false
+    | none => eqMissing o r s
+    | some true => eqRec o r s
+  | _, _ => some true
+
+/-- `_eq(t1::Any32, t2::Any32)`, `base/tuple.jl:588-599`. -/
+def eqLoop (o : Ops α) (t s : List α) : Nat → Nat → Bool → Option Bool
+  | _, 0, anymissing => if anymissing then none else some true
+  | i, k + 1, anymissing => match t[i]?, s[i]? with
+    | some a, some b => match o.eq a b with
+      | none => eqLoop o t s (i + 1) k true
+      | some false => some false
+      | some true => eqLoop o t s (i + 1) k anymissing
+    | _, _ => if anymissing then none else some true
+
+/-- `==(t1::Tuple, t2::Tuple)`, `base/tuple.jl:567`. -/
+def eq (o : Ops α) (t s : List α) : Option Bool :=
+  if t.length = s.length then
+    (if t.length ≥ 32 then eqLoop o t s 0 t.length false else eqRec o t s)
+  else some false
+
+/-- `<` on tuples, `base/tuple.jl:612-624`. -/
+def ltRec (o : Ops α) : List α → List α → Option Bool
+  | [], [] => some false
+  | [], _ :: _ => some true
+  | _ :: _, [] => some false
+  | a :: r, b :: s => match o.eq a b with
+    | none => none
+    | some false => o.lt a b
+    | some true => ltRec o r s
+
+/-- `<(t1::Any32, t2::Any32)`, `base/tuple.jl:625-637`. -/
+def ltLoop (o : Ops α) (t s : List α) : Nat → Nat → Option Bool
+  | _, 0 => some (decide (t.length < s.length))
+  | i, k + 1 => match t[i]?, s[i]? with
+    | some a, some b => match o.eq a b with
+      | none => none
+      | some false => o.lt a b
+      | some true => ltLoop o t s (i + 1) k
+    | _, _ => some (decide (t.length < s.length))
+
+def lt (o : Ops α) (t s : List α) : Option Bool :=
+  if t.length ≥ 32 ∧ s.length ≥ 32 then ltLoop o t s 0 (min t.length s.length) else ltRec o t s
+
+/-- `isless` on tuples, `base/tuple.jl:639-651`. -/
+def islessRec (o : Ops α) : List α → List α → Bool
+  | [], [] => false
+  | [], _ :: _ => true
+  | _ :: _, [] => false
+  | a :: r, b :: s => o.isless a b || (o.isequal a b && islessRec o r s)
+
+/-- `isless(t1::Any32, t2::Any32)`, `base/tuple.jl:652-661`. -/
+def islessLoop (o : Ops α) (t s : List α) : Nat → Nat → Bool
+  | _, 0 => decide (t.length < s.length)
+  | i, k + 1 => match t[i]?, s[i]? with
+    | some a, some b => if !o.isequal a b then o.isless a b else islessLoop o t s (i + 1) k
+    | _, _ => decide (t.length < s.length)
+
+def isless (o : Ops α) (t s : List α) : Bool :=
+  if t.length ≥ 32 ∧ s.length ≥ 32 then islessLoop o t s 0 (min t.length s.length)
+  else islessRec o t s
+
+/-- `isless(a::Tuple{BitInteger,BitInteger}, b::Tuple{BitInteger,BitInteger})`,
+`base/operators.jl:248-249` (non-short-circuit `|` and `&`). -/
+def islessPair (o : Ops α) (a1 a2 b1 b2 : α) : Bool :=
+  o.isless a1 b1 || (o.isequal a1 b1 && o.isless a2 b2)
+
+/-- `cmp(x, y) = isless(x, y) ? -1 : ifelse(isless(y, x), 1, 0)`, `base/operators.jl`. -/
+def cmp (o : Ops α) (t s : List α) : Int :=
+  if isless o t s then -1 else if isless o s t then 1 else 0
+
+def tuplehashSeed : Nat := 0x77cfa1eef01bca90
+
+/-- `hash(t::Tuple, h)`, `base/tuple.jl:602-603`. -/
+def hashRec (o : Ops α) : List α → Nat → Nat
+  | [], h => h ^^^ tuplehashSeed
+  | a :: r, h => o.hash a (hashRec o r h)
+
+/-- `hash(t::Any32, h)`, `base/tuple.jl:604-610`: `for i = length(t):-1:1`. -/
+def hashLoop (o : Ops α) (t : List α) : Nat → Nat → Nat
+  | 0, out => out
+  | k + 1, out => match t[k]? with
+    | some a => hashLoop o t k (o.hash a out)
+    | none => out
+
+def hash (o : Ops α) (t : List α) (h : Nat) : Nat :=
+  if t.length ≥ 32 then hashLoop o t t.length (h ^^^ tuplehashSeed) else hashRec o t h
+
+end JuliaLean.Tuples
+
+namespace JuliaLean.Tuples
+
+/-- `sym_in`, `base/tuple.jl:696-703`. -/
+def symIn (x : String) (itr : List String) : Bool := itr.any (· == x)
+
+end JuliaLean.Tuples
+
+namespace JuliaLean.Tuples
+
+variable {α : Type}
+
+/-- `circshift(t::Tuple, shift::Integer)`, `base/tuple.jl:717-724`: tuples of length 0
+and 1 are returned; length 2 gives `iseven(shift) ? t : reverse(t)` (`reverse(t::Tuple) =
+revargs(t...)`, `base/tuple.jl:671`); longer tuples use `len = N + 3`,
+`j = mod1(shift, len)` and `ntuple(k -> getindex(x, k-j+ifelse(k>j,0,len)), Val(len))`
+(`base/ntuple.jl:65-72`), with `k::Int`, the exact mixed comparison `k > j`
+(`base/int.jl:578`, `base/promotion.jl`) and the wrapping mixed `-` and `+`. -/
+def circshiftTuple (t : List α) (ty : IntTy) (shift : JInt ty) : R (List α) :=
+  match t with
+  | [] => .ok []
+  | [a] => .ok [a]
+  | [a, b] => do
+    let e ← iseven shift
+    pure (if e then [a, b] else revargs [a, b])
+  | t@(_ :: _ :: _ :: _) => do
+    let len : JInt64 := JInt.lit .i64 t.length
+    let j ← mod1 shift len
+    (List.range len.val.toNat).mapM fun (k : Nat) =>
+      let kI : JInt64 := JInt.lit .i64 ((k : Int) + 1)
+      let off : JInt64 := if kI.val > j.val then JInt.lit .i64 0 else len
+      getindex t (.int _ (addMixed (subMixed kI j) off))
+
+end JuliaLean.Tuples
+
+
+/-!
+Value-level methods of `base/tuple.jl` (master `bbfa0ce4150`) that the `Tuples`
+area does not model: indexing helpers, iteration, `rest` and `split_rest`,
+`n`-argument `map`, `foreach`, `sym_in`. A tuple is the `List α` of its
+elements (the `Tuples` convention). An iterator is a finite list of the values
+it produces (with a flag for `IteratorSize(itr) == IsInfinite()`), a vector is
+the `List α` of its elements indexed from 1.
+-/
+
+namespace JuliaLean.SortTuplesCov
+
+open JuliaLean
+open JuliaLean.Tuples (R Err getfield bounds argErr liftJ Idx getindex getindexColon
+  getindexLogical ntupleInt splitRestVector checkLengthSplitRest restTuple indexedIterate
+  fillToLength)
+
+namespace Tup
+
+variable {α β : Type}
+
+/-- `length(t) = nfields(t)`, `firstindex(t) = 1`, `lastindex(t) = length(t)`,
+`base/tuple.jl:28-30`. -/
+def length (t : List α) : Nat := t.length
+def firstindex (_ : List α) : Int := 1
+def lastindex (t : List α) : Int := t.length
+
+/-- `d == 1` for an `Integer` `d` (exact mixed comparison; `true == 1`). -/
+def idxIsOne : Idx → Bool
+  | .int _ v => v.val == 1
+  | .bool b => b
+
+/-- `size(t, d::Integer) = (d == 1) ? length(t) : throw(ArgumentError(...))`,
+`base/tuple.jl:31`. -/
+def size (t : List α) (d : Idx) : R Nat :=
+  if idxIsOne d then .ok t.length else argErr "invalid tuple dimension"
+
+/-- `axes(t) = (OneTo(length(t)),)` (`base/tuple.jl:32`) and
+`keys(t) = OneTo(length(t))` (`base/tuple.jl:75`): the length of the `OneTo`. -/
+def axes (t : List α) : List Nat := [t.length]
+def keys (t : List α) : Nat := t.length
+
+/-- `__safe_getindex(t, i::Int) = getfield(t, i, false)`, `base/tuple.jl:35`: the
+access is unchecked; `none` marks an out-of-bounds read (undefined behaviour). -/
+def safeGetindex (t : List α) (i : Int) : Option α :=
+  if 1 ≤ i then t[(i - 1).toNat]? else none
+
+/-- `getindex(t, r::AbstractArray{<:Any,1}) = (eltype(t)[t[ri] for ri in r]...,)`,
+`base/tuple.jl:36`, for an index vector `r` of `Integer` values (not `Bool`s,
+whose vectors take the method of line 37). -/
+def getindexVec (t : List α) (r : List Idx) : R (List α) := r.mapM (getindex t)
+
+/-- `getindex(t, c::Colon) = t`, `base/tuple.jl:38`. -/
+def getindexColonAll (t : List α) : List α := t
+
+/-- `i in 1:length(t)` for an `Integer` `i`. -/
+def idxInRange (i : Idx) (n : Nat) : Bool := decide (1 ≤ i.val ∧ i.val ≤ n)
+
+/-- `get(f::Callable, t::Tuple, i::Integer) = i in 1:length(t) ? getindex(t, i) : f()`,
+`base/tuple.jl:41`; `f()` is the thunk `f`. -/
+def getF (f : Unit → R α) (t : List α) (i : Idx) : R α :=
+  if idxInRange i t.length then getindex t i else f ()
+
+/-- `iterate(t::Tuple, i::Int=1) = (1 <= i <= length(t)) ? (t[i], i + 1) : nothing`,
+`base/tuple.jl:69-73`. -/
+def iterate (t : List α) (i : Int := 1) : R (Option (α × Int)) :=
+  if 1 ≤ i ∧ i ≤ t.length then do
+    let x ← getfield t i
+    pure (some (x, i + 1))
+  else .ok none
+
+/-- `Int(i)` for an `Integer` `i`: `InexactError` outside `Int`. -/
+def idxToInt : Idx → R (JInt .i64)
+  | .int _ v => liftJ (JInt.convert (IntTy.i64.name) .i64 v.val)
+  | .bool b => .ok (JInt.lit .i64 (if b then 1 else 0))
+
+/-- `prevind(t, i::Integer) = Int(i)-1` and `nextind(t, i::Integer) = Int(i)+1`,
+`base/tuple.jl:145-146` (wrapping `Int` arithmetic). -/
+def prevind (_ : List α) (i : Idx) : R (JInt .i64) := do
+  let j ← idxToInt i
+  pure (j - JInt.lit .i64 1)
+def nextind (_ : List α) (i : Idx) : R (JInt .i64) := do
+  let j ← idxToInt i
+  pure (j + JInt.lit .i64 1)
+
+/-- `keys(t::Tuple, t2::Tuple...)`, `base/tuple.jl:148-157`: `OneTo(length(t))`
+when every `t2` has the length of `t`, else `DimensionMismatch` (`none`). The
+tuples are given by their lengths. -/
+def keysMany (lent : Nat) (lens : List Nat) : Option Nat :=
+  if lens.all (· == lent) then some lent else none
+
+/-- `indexed_iterate(a::Union{Array,Memory}, i::Int, state=1) = (a[i], i+1)`,
+`base/tuple.jl:162` (checked `a[i]`). -/
+def indexedIterateArray (a : List α) (i : Int) : R (α × Int) := do
+  let x ← getfield a i
+  pure (x, i + 1)
+
+/-- A generic iterator: `iterate(I)` returns `first`, and `iterate(I, state)`
+returns `next state`. -/
+structure Iter (α σ : Type) where
+  first : Option (α × σ)
+  next : σ → Option (α × σ)
+
+/-- `indexed_iterate(I, i)`, `base/tuple.jl:163-167`: `iterate(I)`, and
+`BoundsError` when it returns `nothing`. -/
+def indexedIterateGen {σ : Type} (I : Iter α σ) (_ : Int) : R (α × σ) :=
+  match I.first with
+  | none => bounds
+  | some x => .ok x
+
+/-- `indexed_iterate(I, i, state)`, `base/tuple.jl:168-172`. -/
+def indexedIterateGenState {σ : Type} (I : Iter α σ) (_ : Int) (state : σ) : R (α × σ) :=
+  match I.next state with
+  | none => bounds
+  | some x => .ok x
+
+/-- `rest(t::Tuple) = t`, `base/tuple.jl:206`. -/
+def restAll (t : List α) : List α := t
+
+/-- `rest(a::Union{Array,Memory,Core.SimpleVector}, i=1) = a[(i::Int):end]`,
+`base/tuple.jl:212`. -/
+def restArray (a : List α) (i : JInt .i64) : R (List α) :=
+  getindexColon a i (JInt.lit .i64 a.length)
+
+/-- `rest(itr, state...) = Iterators.rest(itr, state...)`, `base/tuple.jl:213`:
+the lazy iterator that starts from `state` (or from the beginning). -/
+def restIter {σ : Type} (I : Iter α σ) (state : Option σ) : Iter α σ :=
+  match state with
+  | none => I
+  | some s => { first := I.next s, next := I.next }
+
+/-- The values an iterator produces from `start`, with at most `fuel` steps. -/
+def Iter.collectFrom {σ : Type} (I : Iter α σ) : Nat → Option (α × σ) → List α
+  | 0, _ => []
+  | _ + 1, none => []
+  | k + 1, some (x, s) => x :: I.collectFrom k (I.next s)
+
+/-- `_split_rest(a::Union{AbstractArray, Core.SimpleVector}, n::Int)`,
+`base/tuple.jl:260-263`: `_check_length_split_rest(length(a), n)`, then
+`(a[begin:end-n], a[end-n+1:end])` with checked `UnitRange{Int}` slices. -/
+def splitRestArray (a : List α) (n : JInt .i64) : R (List α × List α) := do
+  checkLengthSplitRest a.length n
+  let len : JInt .i64 := JInt.lit .i64 a.length
+  let x ← getindexColon a (JInt.lit .i64 1) (len - n)
+  let y ← getindexColon a (len - n + JInt.lit .i64 1) len
+  pure (x, y)
+
+/-- `split_rest(itr, n::Int, state...)`, `base/tuple.jl:248-254`: `ArgumentError`
+for an infinite iterator; otherwise `_split_rest(rest(itr, state...), n)`, which
+collects the remaining values `rest` into a `Vector` and splits that with the
+`Vector` method of `base/bitarray.jl` (`splitRestVector`). -/
+def splitRestIter (infinite : Bool) (rest : List α) (n : JInt .i64) :
+    R (List (Option α) × List α) :=
+  if infinite then argErr "Cannot split an infinite iterator in the middle."
+  else splitRestVector rest n (JInt.lit .i64 1)
+
+/-- `safe_tail(t::Tuple) = tail(t)`, `safe_tail(t::Tuple{}) = ()`, `base/tuple.jl:323-324`. -/
+def safeTail : List α → List α
+  | [] => []
+  | _ :: r => r
+
+/-! ### `map` with `n ≥ 3` tuples, `base/tuple.jl:421-439` -/
+
+/-- `heads(ts::Tuple...) = map(t -> t[1], ts)`, `base/tuple.jl:421`. -/
+def heads : List (List α) → R (List α)
+  | [] => .ok []
+  | t :: ts => do
+    let x ← getfield t 1
+    let r ← heads ts
+    pure (x :: r)
+
+/-- `tails(ts::Tuple...) = map(tail, ts)`, `base/tuple.jl:422`. -/
+def tails : List (List α) → R (List (List α))
+  | [] => .ok []
+  | t :: ts => do
+    let x ← JuliaLean.Tuples.tail t
+    let r ← tails ts
+    pure (x :: r)
+
+/-- `anyempty(x::Tuple{}, xs...) = true`, `anyempty(x::Tuple, xs...) = anyempty(xs...)`,
+`anyempty() = false`, `base/tuple.jl:424-426`. -/
+def anyempty : List (List α) → Bool
+  | [] => false
+  | [] :: _ => true
+  | (_ :: _) :: xs => anyempty xs
+
+/-- `map(f, ::Tuple{}, ::Tuple{}...) = ()` (`base/tuple.jl:423`) and
+`map(f, t1, t2, ts...)` (`base/tuple.jl:427-431`): stop when any tuple is
+empty, else `f(heads...)` followed by the map of the tails. `fuel` is the
+recursion depth (a tuple length bound). -/
+def mapRec (f : List α → β) : Nat → List (List α) → R (List β)
+  | 0, _ => .ok []
+  | k + 1, ts =>
+    if anyempty ts then .ok [] else do
+      let h ← heads ts
+      let tl ← tails ts
+      let r ← mapRec f k tl
+      pure (f h :: r)
+
+/-- `map(f, t1::Any32, t2::Any32, ts::Any32...)`, `base/tuple.jl:432-439`:
+`n = min(length(t1), length(t2), minimum(length, ts))`, then
+`A[i] = f(t1[i], t2[i], map(t -> t[i], ts)...)` for `i = 1:n`. -/
+def mapLoop (f : List α → β) (ts : List (List α)) : R (List β) :=
+  let n := (ts.map List.length).foldl min (ts.headD []).length
+  (List.range n).mapM fun (i : Nat) => do
+    let xs ← ts.mapM fun t => getfield t ((i : Int) + 1)
+    pure (f xs)
+
+/-- `map` over `ts = [t1, t2, ...]` (at least 3 tuples): the `Any32` method when
+every tuple has at least 32 elements, else the recursive one. -/
+def mapN (f : List α → β) (ts : List (List α)) : R (List β) :=
+  if ts.all (fun t => t.length ≥ 32) then mapLoop f ts
+  else mapRec f ((ts.map List.length).foldl max 0) ts
+
+/-! ### `foreach`, `sym_in`, `isempty`, `empty` -/
+
+/-- `foreach(f, itr::Tuple) = foldl((_, x) -> (f(x); nothing), itr, init=nothing)`,
+`base/tuple.jl:714`. The effect of `f(x)` is a state update `f s x`. -/
+def foreach {σ : Type} (f : σ → α → σ) (s : σ) (t : List α) : σ :=
+  t.foldl f s
+
+/-- `zip(itr, itrs...)`: tuples of the `k`-th elements, up to the shortest. -/
+def zipN : List (List α) → Nat → List (List α)
+  | _, 0 => []
+  | ts, k + 1 =>
+    match ts.mapM List.head? with
+    | some h => if ts.isEmpty then [] else h :: zipN (ts.map List.tail) k
+    | none => []
+
+/-- `foreach(f, itr::Tuple, itrs::Tuple...) = foldl((_, xs) -> (f(xs...); nothing),
+zip(itr, itrs...), init=nothing)`, `base/tuple.jl:715`. -/
+def foreachN {σ : Type} (f : σ → List α → σ) (s : σ) (t : List α) (ts : List (List α)) : σ :=
+  (zipN (t :: ts) t.length).foldl f s
+
+/-- `sym_in(x::Symbol, itr::Tuple{Vararg{Symbol}})`, `base/tuple.jl:696-703`:
+the loop `for y in itr; y === x && return true; end; return false`. Symbols
+are strings. -/
+def symInLoop (x : String) : List String → Bool
+  | [] => false
+  | y :: r => if y == x then true else symInLoop x r
+
+/-- `in(x::Symbol, itr::Tuple{Vararg{Symbol}}) = sym_in(x, itr)`, `base/tuple.jl:704`. -/
+def inSym (x : String) (itr : List String) : Bool := symInLoop x itr
+
+/-- `isempty(x::Tuple{}) = true`, `isempty(x::Tuple) = false`, `base/tuple.jl:665-666`. -/
+def isempty : List α → Bool
+  | [] => true
+  | _ :: _ => false
+
+/-- `empty(x::Tuple) = ()`, `base/tuple.jl:712`. -/
+def empty (_ : List α) : List α := []
+
+end Tup
+
+open Tup
+
+end JuliaLean.SortTuplesCov
+
+
+/-! Faithful models for the remaining type and construction methods in
+`base/tuple.jl` (master `bbfa0ce4150`). -/
+
+namespace JuliaLean.SortTuplesCov
+
+open JuliaLean
+
+mutual
+  inductive TupleTy where
+    | bottom | any | atom (name : String)
+    | tuple (params : List TupleParam)
+    | union (a b : TupleTy)
+    | unionAll (body : TupleTy)
+
+  /-- A tuple parameter is a type, a value parameter, or `Vararg{T,N}`. -/
+  inductive TupleParam where
+    | type (ty : TupleTy)
+    | value
+    | vararg (ty : TupleTy) (length : Option Int)
+end
+
+/-- `_counttuple(::Type{<:NTuple{N,Any}})`, `base/tuple.jl:23`. -/
+def countTupleSpecific : TupleTy → Option Int
+  | .tuple [.vararg .any (some n)] => some n
+  | _ => none
+
+/-- `_counttuple(::Type) = nothing`, `base/tuple.jl:24`. -/
+def countTupleFallback (_ : TupleTy) : Option Int := none
+
+def unwrapVararg : TupleParam → TupleParam
+  | .vararg t _ => .type t
+  | p => p
+
+def paramType : TupleParam → Option TupleTy
+  | .type t | .vararg t _ => some t
+  | .value => none
+
+/-- `_compute_eltype`, `base/tuple.jl:291-313`.  `free` models
+`has_free_typevars`; `join` is Julia's `promote_typejoin`. -/
+def computeTupleEltype (join : TupleTy → TupleTy → TupleTy) (free : TupleTy → Bool) :
+    (t : TupleTy) → TupleTy
+  | .union a b =>
+    if free (.union a b) then .any else join a b
+  | .tuple [] => if free (.tuple []) then .any else .bottom
+  | .tuple (p :: ps) =>
+    if free (.tuple (p :: ps)) then .any else
+    match paramType (unwrapVararg p) with
+    | none => .bottom
+    | some first => ps.foldl (fun r p =>
+        match r, paramType (unwrapVararg p) with
+        | .any, _ => .any
+        | _, none => .bottom
+        | _, some e => join e r) first
+  | .unionAll body =>
+    if free (.unionAll body) then .any else body
+  | t => if free t then .any else .bottom
+
+/-- `_eltype_ntuple`, `base/tuple.jl:279`: a defined type parameter is used;
+an empty vacuous match is Bottom; otherwise `_compute_eltype` recovers the join. -/
+def eltypeNTuple (join : TupleTy → TupleTy → TupleTy) (free : TupleTy → Bool) :
+    TupleTy → TupleTy
+  | t@(.tuple [.vararg e _]) => e
+  | t@(.tuple []) => .bottom
+  | t => computeTupleEltype join free t
+
+/-- `eltype(::Type{<:Tuple})`, `base/tuple.jl:282-290`. -/
+def tupleEltype (join : TupleTy → TupleTy → TupleTy) (free : TupleTy → Bool)
+    (ntupleSignature : TupleTy → Bool) (t : TupleTy) : TupleTy :=
+  match t with
+  | .tuple [] => .bottom
+  | _ => if ntupleSignature t then eltypeNTuple join free t else computeTupleEltype join free t
+
+/-- `keytype(t::Tuple)` and `keytype(::Type{<:Tuple})`,
+`base/tuple.jl:316-317`. -/
+def tupleKeytypeValue (_ : List TupleTy) : TupleTy := .atom "Int64"
+def tupleKeytypeType (_ : TupleTy) : TupleTy := .atom "Int64"
+
+/-- `valtype(t::Tuple)` and `valtype(::Type{<:Tuple})`,
+`base/tuple.jl:319-320`. -/
+def tupleValtypeValue (join : TupleTy → TupleTy → TupleTy) (ts : List TupleTy) : TupleTy :=
+  computeTupleEltype join (fun _ => false) (.tuple (ts.map .type))
+def tupleValtypeType (join : TupleTy → TupleTy → TupleTy) (t : TupleTy) : TupleTy :=
+  computeTupleEltype join (fun _ => false) t
+
+/-- `tuple_type_tail`, `base/tuple.jl:453-468`. -/
+def tupleTypeTail : TupleTy → Jl TupleTy
+  | .unionAll body => tupleTypeTail body |>.map .unionAll
+  | .union a b => do pure (.union (← tupleTypeTail a) (← tupleTypeTail b))
+  | .tuple [.vararg t (some n)] => .ok (.tuple [.vararg t (some (n - 1))])
+  | .tuple (_ :: ps) => .ok (.tuple ps)
+  | .tuple [] => .ok (.tuple [])
+  | _ => .error (.methodError "tuple_type_tail")
+
+/-! ### Tuple construction from iterators -/
+
+/-- `(::Type{T})(x::Tuple)`, `base/tuple.jl:470`. -/
+def tupleTypeCall {V : Type} (isT : List V → Bool) (convert : List V → Jl (List V))
+    (x : List V) : Jl (List V) :=
+  if isT x then .ok x else convert x
+
+/-- `Tuple(x::Ref)` and `Tuple(x::Array{T,0})`, `base/tuple.jl:472-473`. -/
+def tupleRef {V : Type} (x : V) : List V := [x]
+def tupleArray0 {V : Type} (x : V) : List V := [x]
+
+/-- `_totuple_err`, `base/tuple.jl:479-482`. -/
+def toTupleError {V : Type} : Jl (List V) :=
+  .error (.argumentError "too few elements for tuple type")
+
+/-- Recursive `_totuple(::Type{T}, itr, state...)`, `base/tuple.jl:484-495`.
+The target field types are processed left to right and conversion happens only
+when the value is not already of the requested type. -/
+def toTupleFixed {V : Type} (hasType : V → TupleTy → Bool)
+    (convert : TupleTy → V → Jl V) : List TupleTy → List V → Jl (List V)
+  | [], _ => .ok []
+  | _ :: _, [] => toTupleError
+  | t :: ts, x :: xs => do
+    let y ← if hasType x t then .ok x else convert t x
+    pure (y :: (← toTupleFixed hasType convert ts xs))
+
+/-- Iterative `All32` method, `base/tuple.jl:498-505`. -/
+def toTupleLong {V : Type} (convert : V → Jl V) (length : Nat) (xs : List V) : Jl (List V) := do
+  let ys ← (xs.take length).mapM convert
+  if ys.length = length then .ok ys else toTupleError
+
+/-- Vararg and unparameterized methods, `base/tuple.jl:509-511`. -/
+def toTupleVararg {V : Type} (convert : V → Jl V) (xs : List V) : Jl (List V) :=
+  xs.mapM convert
+def toTupleAny {V : Type} (xs : List V) : List V := xs
+
+inductive TupleSource (V : Type) where
+  | array (xs : List V) | simpleVector (xs : List V) | namedTuple (xs : List V)
+  | pair (first second : V) | number (x : V)
+
+/-- Fast `_totuple(::Type{Tuple}, ...)` methods, `base/tuple.jl:514-518`. -/
+def toTupleFast {V : Type} : TupleSource V → List V
+  | .array xs | .simpleVector xs | .namedTuple xs => xs
+  | .pair a b => [a, b]
+  | .number x => [x]
+
+end JuliaLean.SortTuplesCov
+
+namespace JuliaLean.SortTuplesCov.NTup
+
+open JuliaLean
+open JuliaLean.Tuples (R argErr)
+variable {α T : Type}
+
+
+/-- `T(itr)` for the fixed tuple type `Tuple{tys...}` (`_totuple`,
+`base/tuple.jl:475-495`): the first `length(tys)` values, each converted;
+`ArgumentError` when there are fewer. -/
+def totupleFixed (conv : T → α → R α) : List T → List α → R (List α)
+  | [], _ => .ok []
+  | _ :: _, [] => argErr "too few elements for tuple type"
+  | ty :: tys, x :: xs => do
+    let y ← conv ty x
+    let ys ← totupleFixed conv tys xs
+    pure (y :: ys)
+
+end JuliaLean.SortTuplesCov.NTup

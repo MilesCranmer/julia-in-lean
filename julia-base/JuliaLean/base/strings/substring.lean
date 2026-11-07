@@ -117,13 +117,14 @@ Julia source: base/strings/substring.jl:76-84 @ f755f49a9e41380d7da126b3c1db9fe7
 ```
 -/
 def typedSubString {S C CT E : Type} (ops : SubStringOps S C CT E)
-    (s : S) (i j : Index) : Except E (SubString S) := do
+    (s : S) (i j : Index) (boundscheck : Bool := true) : Except E (SubString S) := do
   if j.val < i.val then
     pure ⟨s, zero, zero⟩
   else
-    ops.checkboundsRange s i j
-    if !(← ops.isvalid s i) then throw (ops.stringIndexError s i)
-    if !(← ops.isvalid s j) then throw (ops.stringIndexError s j)
+    if boundscheck then
+      ops.checkboundsRange s i j
+      if !(← ops.isvalid s i) then throw (ops.stringIndexError s i)
+      if !(← ops.isvalid s j) then throw (ops.stringIndexError s j)
     pure ⟨s, i - one, (← ops.nextind s j) - i⟩
 
 /-!
@@ -138,9 +139,9 @@ Julia source: base/strings/substring.jl:86-91 @ f755f49a9e41380d7da126b3c1db9fe7
 ```
 -/
 def rawSubstring {S C CT E : Type} (ops : SubStringOps S C CT E)
-    (s : S) (firstIndex count : Index) : Except E (SubString S) := do
-  if count.val < 0 || firstIndex.val < 1 ||
-      count.val > (ops.ncodeunits s - firstIndex + one).val then
+    (s : S) (firstIndex count : Index) (boundscheck : Bool := true) : Except E (SubString S) := do
+  if boundscheck && (count.val < 0 || firstIndex.val < 1 ||
+      count.val > (ops.ncodeunits s - firstIndex + one).val) then
     throw (ops.boundsError s firstIndex (firstIndex + count - one))
   pure ⟨s, firstIndex - one, count⟩
 
@@ -156,9 +157,9 @@ Julia source: base/strings/substring.jl:93-98 @ f755f49a9e41380d7da126b3c1db9fe7
 ```
 -/
 def rawSubstringView {S C CT E : Type} (ops : SubStringOps S C CT E)
-    (s : SubString S) (firstIndex count : Index) : Except E (SubString S) := do
-  if count.val < 0 || firstIndex.val < 1 ||
-      count.val > (s.ncodeunits - firstIndex + one).val then
+    (s : SubString S) (firstIndex count : Index) (boundscheck : Bool := true) : Except E (SubString S) := do
+  if boundscheck && (count.val < 0 || firstIndex.val < 1 ||
+      count.val > (s.ncodeunits - firstIndex + one).val) then
     throw (ops.viewBoundsError s firstIndex (firstIndex + count - one))
   pure ⟨s.string, firstIndex + s.offset - one, count⟩
 
@@ -180,8 +181,8 @@ Julia source: base/strings/substring.jl:108-108 @ f755f49a9e41380d7da126b3c1db9f
 ```
 -/
 def subStringInt {S C CT E : Type} (ops : SubStringOps S C CT E)
-    (s : S) (i j : Index) : Except E (SubString S) := do
-  let result ← typedSubString ops s i j
+    (s : S) (i j : Index) (boundscheck : Bool := true) : Except E (SubString S) := do
+  let result ← typedSubString ops s i j boundscheck
   pure result
 
 /-!
@@ -191,10 +192,11 @@ Julia source: base/strings/substring.jl:109-109 @ f755f49a9e41380d7da126b3c1db9f
 ```
 -/
 def subStringInteger {S C CT E I : Type} (ops : SubStringOps S C CT E)
-    (toInt : I → Except E Index) (s : S) (i j : I) : Except E (SubString S) := do
+    (toInt : I → Except E Index) (s : S) (i j : I) (boundscheck : Bool := true) :
+    Except E (SubString S) := do
   let i ← toInt i
   let j ← toInt j
-  subStringInt ops s i j
+  subStringInt ops s i j boundscheck
 
 /-!
 Julia source: base/strings/substring.jl:109-109 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -203,9 +205,10 @@ Julia source: base/strings/substring.jl:109-109 @ f755f49a9e41380d7da126b3c1db9f
 ```
 -/
 def subStringIntegerDefault {S C CT E I : Type} (ops : SubStringOps S C CT E)
-    (toInt : I → Except E Index) (lastindex : S → Except E Index) (s : S) (i : I) : Except E (SubString S) := do
+    (toInt : I → Except E Index) (lastindex : S → Except E Index) (s : S) (i : I)
+    (boundscheck : Bool := true) : Except E (SubString S) := do
   let j ← lastindex s
-  subStringInt ops s (← toInt i) j
+  subStringInt ops s (← toInt i) j boundscheck
 
 /-!
 Julia source: base/strings/substring.jl:110-110 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -241,7 +244,7 @@ SubString(s::AbstractString) = @inbounds raw_substring(s, 1, Int(ncodeunits(s)):
 ```
 -/
 def subStringWhole {S C CT E : Type} (ops : SubStringOps S C CT E)
-    (s : S) : Except E (SubString S) := rawSubstring ops s one (ops.ncodeunits s)
+    (s : S) : Except E (SubString S) := rawSubstring ops s one (ops.ncodeunits s) false
 
 /-!
 Julia source: base/strings/substring.jl:118-118 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -1079,3 +1082,728 @@ def getindexStringRange {S C CT E R I : Type} (ops : SubStringOps S C CT E)
   pure result
 
 end JuliaLean.base.strings.substring
+
+
+/-! Coverage models for `base/strings/substring.jl` at Julia `bbfa0ce4150`. -/
+
+namespace JuliaLean.Strings
+
+/-- The code units of a SubString: `codeunit(s::SubString, i) =
+codeunit(s.string, s.offset + i)`, `base/strings/substring.jl:146-149`. -/
+def JSub.view (ss : JSub) : JStr := ss.str.slice ss.offset.val.toNat ss.ncu.val.toNat
+
+/-- `SubString{T}(s, i, j)`, `base/strings/substring.jl:76-84`. `checked = false`
+models `@inbounds`. `checkbounds(s, i:j)` is `1 ≤ i && j ≤ ncodeunits(s)` for a
+nonempty range (`base/strings/basic.jl:206-207`). -/
+def substring (s : JStr) (i j : JInt64) (checked : Bool := true) : SJl JSub :=
+  if !decide (i.val ≤ j.val) then .ok ⟨s, ix 0, ix 0⟩
+  else
+    let chk : SJl Unit :=
+      if !checked then .ok ()
+      else if !(decide (1 ≤ i.val) && decide (j.val ≤ (ncodeunits s).val)) then .error boundsErr
+      else if !isvalidAt s i then .error (.stringIndexError i.val)
+      else if !isvalidAt s j then .error (.stringIndexError j.val)
+      else .ok ()
+    match chk with
+    | .error e => .error e
+    | .ok () =>
+      match nextind s j with
+      | .error e => .error e
+      | .ok j' => .ok ⟨s, i - ix 1, j' - i⟩
+
+/-- `raw_substring(s, first_index, n_codeunits)`, `base/strings/substring.jl:86-91`. -/
+def rawSubstring (s : JStr) (first n : JInt64) (checked : Bool := true) : SJl JSub :=
+  if checked && (decide (n.val < 0) || decide (first.val < 1) ||
+      decide (n.val > (ncodeunits s - first + ix 1).val)) then .error boundsErr
+  else .ok ⟨s, first - ix 1, n⟩
+
+/-- `SubString(s) = @inbounds raw_substring(s, 1, ncodeunits(s))`,
+`base/strings/substring.jl:117`. -/
+def wholeSub (s : JStr) : JSub := ⟨s, ix 0, ncodeunits s⟩
+
+/-- `iterate(s::SubString, i)`, `base/strings/substring.jl:151-158`. -/
+def subIterate (ss : JSub) (i : JInt64) : SJl (Option (UInt32 × JInt64)) :=
+  if i.val = (ss.ncu + ix 1).val then .ok none
+  else if !(decide (1 ≤ i.val) && decide (i.val ≤ ss.ncu.val)) then .error boundsErr
+  else
+    match iterate ss.str (ss.offset + i) with
+    | none => .ok none
+    | some (c, j) => .ok (some (c, j - ss.offset))
+
+/-- `length(s::SubString{String})`, `base/strings/substring.jl:144`. -/
+def subLength (ss : JSub) : SJl JInt64 :=
+  lengthRange ss.str (ss.offset + ix 1) (ss.offset + ss.ncu)
+
+/-- `isvalid(s::SubString, i)`, `base/strings/substring.jl:168-172`. -/
+def subIsvalid (ss : JSub) (i : JInt64) : Bool :=
+  decide (1 ≤ i.val ∧ i.val ≤ ss.ncu.val) && isvalidAt ss.str (ss.offset + i)
+
+/-- `getindex(s::SubString, i)`, `base/strings/substring.jl:160-163`. -/
+def subGetindex (ss : JSub) (i : JInt64) : SJl UInt32 :=
+  if !(decide (1 ≤ i.val) && decide (i.val ≤ ss.ncu.val)) then .error boundsErr
+  else getindex ss.str (ss.offset + i)
+
+end JuliaLean.Strings
+
+namespace JuliaLean.StringsCovA.Substring
+
+open JuliaLean JuliaLean.Strings
+
+def ctor (s : JStr) (i j : JInt64) := Strings.substring s i j
+def rawCtor (s : JStr) (first n : JInt64) := Strings.rawSubstring s first n
+def rawCtorSub (s : JSub) (first n : JInt64) :=
+  Strings.rawSubstring s.str (s.offset + first) n
+def whole (s : JStr) : JSub := Strings.wholeSub s
+def ctorInts (s : JStr) (i j : JInt64) := ctor s i j
+def ctorRange (s : JStr) (r : JInt64 × JInt64) := ctor s r.1 r.2
+def ctorSub (s : JSub) (i j : JInt64) := ctor s.str (s.offset + i) (s.offset + j)
+def identity (s : JSub) : JSub := s
+def view (s : JStr) (i j : JInt64) := ctor s i j
+def maybeviewRange (s : JStr) (i j : JInt64) := view s i j
+def maybeviewArgs {α : Type} (get : JStr → α → β) (s : JStr) (args : α) := get s args
+def convertSub (convert : α → JStr) (s : α) := whole (convert s)
+def convertIdentity (s : JSub) := s
+def convertUnionString (s : JStr) : Sum JStr JSub := Sum.inl s
+def convertUnionSub (s : JSub) : Sum JStr JSub := Sum.inr s
+def convertUnionAbstract (convert : α → JStr) (s : α) : Sum JStr JSub := Sum.inl (convert s)
+def toString (s : JSub) : List UInt8 := s.view.bytes
+
+def ncodeunits (s : JSub) := s.ncu
+def codeunitType (_s : JSub) : Nat := 8
+def length (s : JSub) := Strings.subLength s
+def codeunit (s : JSub) (i : JInt64) : SJl UInt8 :=
+  if i.val < 1 || i.val > s.ncu.val then .error boundsErr else Strings.codeunit s.str (s.offset + i)
+def getindex (s : JSub) (i : JInt64) := Strings.subGetindex s i
+def isascii (s : JSub) := Strings.isascii s.view
+def isvalid (s : JSub) (i : JInt64) := Strings.subIsvalid s i
+def thisind (s : JSub) (i : JInt64) := Strings.thisind s.view i
+def nextind (s : JSub) (i : JInt64) := Strings.nextind s.view i
+def lastindex (s : JSub) := Strings.lastindex s.view
+def parent (s : JSub) := s.str
+def parentindices (s : JSub) : Int × Int := (s.offset.val + 1, s.offset.val + s.ncu.val)
+def eq (a b : JSub) := a.view.bytes == b.view.bytes
+def cmp (a b : JSub) := Strings.cmp a.view b.view
+def cconvert (s : JSub) := s
+def unsafeConvert (base : Nat) (s : JSub) := base + s.offset.val.toNat
+def pointer (base : Nat) (s : JSub) := unsafeConvert base s
+def pointerAt (base : Nat) (s : JSub) (i : Int) := base + s.offset.val + i - 1
+def hash (H : List UInt8 → UInt64 → UInt64) (s : JSub) (h : UInt64) := H s.view.bytes h
+def isannotated (f : JStr → Bool) (s : JSub) := f s.str
+def stringString (s : JStr) := s
+def stringSub (s : JSub) := s.view
+def symbol (intern : List UInt8 → Nat) (s : JSub) := intern s.view.bytes
+
+inductive Piece where | char (bytes : List UInt8) | string (bytes : List UInt8) | symbol (bytes : List UInt8)
+
+def pieceBytes : Piece → List UInt8
+  | .char b | .string b | .symbol b => b
+def unsafeWrite (out : List UInt8) (piece : Piece) (offset : Nat) : List UInt8 :=
+  out.take (offset - 1) ++ pieceBytes piece ++ out.drop (offset - 1 + (pieceBytes piece).length)
+def buildString (pieces : List Piece) : List UInt8 := (pieces.map pieceBytes).flatten
+def stringPieces (pieces : List Piece) := buildString pieces
+
+def repeatBitInteger (s : JStr) (r : JInt64) := Strings.repeatStr s r
+def repeatInteger (s : JSub) (r : JInt64) := Strings.repeatStr s.view r
+def filter (f : UInt32 → Bool) (s : JSub) := stringOfChars ((Strings.chars s.view).filter f)
+def getindexRange (s : JStr) (i j : JInt64) := Strings.substring s i j
+
+end JuliaLean.StringsCovA.Substring
+
+
+namespace JuliaLean.StringsCovA.SubstringFaithfulAccess
+
+open JuliaLean JuliaLean.Strings
+
+def ncodeunitsM (s : JSub) := s.ncu
+
+def codeunitType (codeunitParent : JStr → Nat) (s : JSub) := codeunitParent s.str
+
+def lengthGeneric (lengthParent : JStr → JInt64 → JInt64 → SJl JInt64) (s : JSub) :=
+  lengthParent s.str (s.offset + ix 1) (s.offset + s.ncu)
+
+def lengthString (lengthParent : JStr → JInt64 → JInt64 → SJl JInt64) (s : JSub) :=
+  lengthParent s.str (s.offset + ix 1) (s.offset + s.ncu)
+
+def codeunitAt (codeunitParent : JStr → JInt64 → SJl UInt8) (s : JSub) (i : JInt64) : SJl UInt8 :=
+  if i.val < 1 || i.val > s.ncu.val then .error boundsErr else codeunitParent s.str (s.offset + i)
+
+def getindexAt (getParent : JStr → JInt64 → SJl UInt32) (s : JSub) (i : JInt64) : SJl UInt32 :=
+  if i.val < 1 || i.val > s.ncu.val then .error boundsErr else getParent s.str (s.offset + i)
+
+def isasciiM (asciiBytes : List UInt8 → Bool) (s : JSub) := asciiBytes s.view.bytes
+
+def isvalidM (check : JSub → JInt64 → Bool) (parentValid : JStr → JInt64 → Bool) (s : JSub) (i : JInt64) :=
+  check s i && parentValid s.str (s.offset + i)
+
+def thisindM (helper : JSub → JInt64 → SJl JInt64) (s : JSub) (i : JInt64) := helper s i
+
+def nextindM (helper : JSub → JInt64 → SJl JInt64) (s : JSub) (i : JInt64) := helper s i
+
+def lastindexM (thisind : JSub → JInt64 → JInt64) (s : JSub) := thisind s s.ncu
+
+def parentM (s : JSub) := s.str
+
+def parentindicesM (thisind : JStr → JInt64 → JInt64) (s : JSub) :=
+  (s.offset + ix 1, thisind s.str (s.offset + s.ncu))
+
+def eqM (memcmp : JSub → JSub → Int) (a b : JSub) : Bool :=
+  a.ncu.val == b.ncu.val && memcmp a b == 0
+
+def cmpM (memcmp : JSub → JSub → Int) (a b : JSub) : Int :=
+  let c := memcmp a b
+  if c < 0 then -1 else if c > 0 then 1 else Int.sign (a.ncu.val - b.ncu.val)
+
+def cconvertU8 (s : JSub) := s
+
+def cconvertI8 (s : JSub) := s
+
+def unsafeConvert (convert : Nat → Nat) (base : Nat) (s : JSub) := convert base + s.offset.val
+
+def pointerM (base : Nat) (s : JSub) := base + s.offset.val.toNat
+
+def pointerAtM (base : Int) (s : JSub) (i : Int) := base + s.offset.val + i - 1
+
+def hashM (hashBytes : Nat → Nat → UInt64 → UInt64 → UInt64) (base : Nat)
+    (s : JSub) (h secret : UInt64) := hashBytes (base + s.offset.val.toNat) s.ncu.val.toNat h secret
+
+def isannotatedM (f : JStr → Bool) (s : JSub) := f s.str
+
+def stringString (s : JStr) := s
+
+def stringSub (toString : JSub → JStr) (s : JSub) := toString s
+
+def symbolM (ccall : Nat → Nat → Nat) (base : Nat) (s : JSub) :=
+  ccall (base + s.offset.val.toNat) s.ncu.val.toNat
+
+end JuliaLean.StringsCovA.SubstringFaithfulAccess
+
+
+namespace JuliaLean.StringsCovA.SubstringFaithfulCtor
+
+open JuliaLean JuliaLean.Strings
+
+def typedCtor (s : JStr) (i j : JInt64) : SJl JSub := Strings.substring s i j
+
+def rawCtor (s : JStr) (first n : JInt64) : SJl JSub := Strings.rawSubstring s first n
+
+def rawSubCtor (s : JSub) (first n : JInt64) : SJl JSub := Strings.rawSubstring s.str (s.offset + first) n
+
+def typedWhole (s : JStr) : JSub := ⟨s, ix 0, ncodeunits s⟩
+
+def ctorInt (s : JStr) (i j : JInt64) := typedCtor s i j
+
+def ctorInteger (s : JStr) (i j : JInt64) := ctorInt s i j
+
+def ctorRange (s : JStr) (r : JInt64 × JInt64) := ctorInteger s r.1 r.2
+
+def ctorNested (s : JSub) (i j : JInt64) : SJl JSub :=
+  if i.val ≤ j.val && !(1 ≤ i.val ∧ j.val ≤ s.ncu.val) then .error boundsErr
+  else typedCtor s.str (s.offset + i) (s.offset + j)
+
+def wholeAbstract (s : JStr) := rawCtor s (ix 1) (ncodeunits s)
+
+def wholeSub (s : JSub) := s
+
+def viewRange (s : JStr) (r : JInt64 × JInt64) := ctorRange s r
+
+def maybeviewRange (s : JStr) (r : JInt64 × JInt64) := viewRange s r
+
+def maybeviewArgs (getindex : JStr → α → β) (s : JStr) (args : α) := getindex s args
+
+def convertSub (convertString : α → JStr) (s : α) := typedWhole (convertString s)
+
+def convertIdentity (s : JSub) := s
+
+def convertUnionString (s : JStr) : Sum JStr JSub := .inl s
+
+def convertUnionSub (s : JSub) : Sum JStr JSub := .inr s
+
+def convertUnionAbstract (convertString : α → JStr) (s : α) : Sum JStr JSub := .inl (convertString s)
+
+def toString (s : JSub) : List UInt8 := s.view.bytes
+
+end JuliaLean.StringsCovA.SubstringFaithfulCtor
+
+
+namespace JuliaLean.StringsCovA.SubstringFaithfulFinal
+
+open JuliaLean JuliaLean.Strings
+
+def storeByte (out : List UInt8) (offs : Nat) (b : UInt8) : List UInt8 :=
+  Strings.writeAt out (offs - 1) [b]
+
+/-- `__unsafe_string!(out, c::Char, offs)` at `base/strings/substring.jl:215-231`. -/
+def writeChar (out : List UInt8) (c : UInt32) (offs : Nat) : List UInt8 × Nat :=
+  let x := bswap32 c
+  let n := ncodeunitsChar c
+  let out := storeByte out offs x.toUInt8
+  if n = 1 then (out, n) else
+  let x := x >>> (8 : UInt32)
+  let out := storeByte out (offs + 1) x.toUInt8
+  if n = 2 then (out, n) else
+  let x := x >>> (8 : UInt32)
+  let out := storeByte out (offs + 2) x.toUInt8
+  if n = 3 then (out, n) else
+  let x := x >>> (8 : UInt32)
+  (storeByte out (offs + 3) x.toUInt8, n)
+
+/-- String overload at lines 233-237. -/
+def writeString (out source : List UInt8) (offs : Nat) : List UInt8 × Nat :=
+  let n := source.length
+  (Strings.writeAt out (offs - 1) source, n)
+
+/-- SubString overload at lines 239-243. -/
+def writeSubString (out : List UInt8) (source : JSub) (offs : Nat) : List UInt8 × Nat :=
+  let bytes := source.view.bytes
+  let n := bytes.length
+  (Strings.writeAt out (offs - 1) bytes, n)
+
+/-- Symbol overload at lines 245-249; symbols are represented by their bytes. -/
+def writeSymbol (out source : List UInt8) (offs : Nat) : List UInt8 × Nat :=
+  let n := source.length
+  (Strings.writeAt out (offs - 1) source, n)
+
+inductive Value where
+  | char (bits : UInt32)
+  | string (bytes : List UInt8)
+  | substring (value : JSub)
+  | symbol (bytes : List UInt8)
+
+def valueSize : Value → Nat
+  | .char c => ncodeunitsChar c
+  | .string s => s.length
+  | .substring s => s.view.bytes.length
+  | .symbol s => s.length
+
+def writeValue (out : List UInt8) (v : Value) (offs : Nat) : List UInt8 × Nat :=
+  match v with
+  | .char c => writeChar out c offs
+  | .string s => writeString out s offs
+  | .substring s => writeSubString out s offs
+  | .symbol s => writeSymbol out s offs
+
+def writeValues : List Value → List UInt8 → Nat → List UInt8
+  | [], out, _ => out
+  | v :: vs, out, offs =>
+      let written := writeValue out v offs
+      writeValues vs written.1 (offs + written.2)
+
+/-- `_string(a...)` at lines 256-283, including its two type-dispatch loops. -/
+def buildString (values : List Value) : SJl (List UInt8) :=
+  let n := (values.map valueSize).sum
+  if n < 2 ^ 62 then
+    let out := List.replicate n 0
+    .ok (writeValues values out 1)
+  else .error .outOfMemory
+
+/-- The restricted vararg wrapper at line 252. -/
+def stringRestricted (values : List Value) := buildString values
+
+/-- The four-type vararg wrapper at line 254. -/
+def stringAll (values : List Value) := buildString values
+
+/-- BitInteger forwarding overload at line 287. -/
+def repeatBitInteger (s : JStr) (r : JInt64) := Strings.repeatStr s r
+
+/-- General Integer repeat at lines 289-307, modelled by the shared line-faithful implementation. -/
+def repeatInteger (s : JStr) (r : JInt64) := Strings.repeatStr s r
+
+/-- `filter` at lines 309-320. -/
+def filterString (f : UInt32 → Bool) (s : JStr) : SJl JStr :=
+  stringOfChars ((Strings.chars s).filter f)
+
+/-- Range indexing at line 322. -/
+def getindexRange (s : JStr) (i j : JInt64) := Strings.substring s i j
+
+end JuliaLean.StringsCovA.SubstringFaithfulFinal
+
+
+namespace JuliaLean.StringsCovA.SubstringRebuilt
+
+open JuliaLean JuliaLean.Strings
+
+structure Sub (S : Type) where
+  string : S
+  offset : JInt64
+  ncodeunits : JInt64
+
+structure IntegerInput (I : Type) where
+  value : I
+  toInt : SJl JInt64
+
+structure TypedCtorInput (S : Type) where
+  string : S
+  first : JInt64
+  last : JInt64
+  checkbounds : S → JInt64 → JInt64 → SJl Unit
+  isvalid : S → JInt64 → SJl Bool
+  stringIndexError : S → JInt64 → SJl Unit
+  nextind : S → JInt64 → SJl JInt64
+
+def typedCtor (input : TypedCtorInput S) : SJl (Sub S) :=
+  if input.last < input.first then .ok ⟨input.string, ix 0, ix 0⟩
+  else do
+    let _ ← input.checkbounds input.string input.first input.last
+    let firstValid ← input.isvalid input.string input.first
+    if !firstValid then
+      let _ ← input.stringIndexError input.string input.first
+      .error .assertion
+    else
+      let lastValid ← input.isvalid input.string input.last
+      if !lastValid then
+        let _ ← input.stringIndexError input.string input.last
+        .error .assertion
+      else
+        let after ← input.nextind input.string input.last
+        return ⟨input.string, input.first - ix 1, after - input.first⟩
+
+def emptyOffsetInput : TypedCtorInput Unit where
+  string := ()
+  first := ix 4
+  last := ix 3
+  checkbounds := fun _ _ _ => .ok ()
+  isvalid := fun _ _ => .error .assertion
+  stringIndexError := fun _ _ => .error .assertion
+  nextind := fun _ _ => .error .assertion
+
+structure RawCtorInput (S : Type) where
+  string : S
+  first : JInt64
+  count : JInt64
+  ncodeunits : S → SJl JInt64
+
+def rawCtor (input : RawCtorInput S) : SJl (Sub S) := do
+  let total ← input.ncodeunits input.string
+  if input.count < ix 0 || input.first < ix 1 || total - input.first + ix 1 < input.count then
+    .error (.jl .boundsError)
+  else .ok ⟨input.string, input.first - ix 1, input.count⟩
+
+structure RawNestedInput (S : Type) where
+  substring : Sub S
+  first : JInt64
+  count : JInt64
+
+def rawNested (input : RawNestedInput S) : SJl (Sub S) :=
+  if input.count < ix 0 || input.first < ix 1 ||
+      input.substring.ncodeunits - input.first + ix 1 < input.count then
+    .error (.jl .boundsError)
+  else .ok ⟨input.substring.string,
+    input.first + input.substring.offset - ix 1, input.count⟩
+
+def typedWhole (s : S) (ncodeunits : S → SJl JInt64) : SJl (Sub S) := do
+  let count ← ncodeunits s
+  return ⟨s, ix 0, count⟩
+
+def ctorInt (input : TypedCtorInput S) : SJl (Sub S) := typedCtor input
+
+def ctorInteger (s : S) (first : IntegerInput I) (last : IntegerInput J)
+    (ctor : S → JInt64 → JInt64 → SJl (Sub S)) : SJl (Sub S) := do
+  let i ← first.toInt
+  let j ← last.toInt
+  ctor s i j
+
+structure UnitRangeInput (I J : Type) where
+  value : I
+  first : I → SJl (IntegerInput J)
+  last : I → SJl (IntegerInput J)
+
+def ctorRange (s : S) (range : UnitRangeInput R I)
+    (ctor : S → IntegerInput I → IntegerInput I → SJl (Sub S)) : SJl (Sub S) := do
+  let first ← range.first range.value
+  let last ← range.last range.value
+  ctor s first last
+
+structure NestedCtorInput (S : Type) where
+  substring : Sub S
+  first : JInt64
+  last : JInt64
+  checkbounds : Sub S → JInt64 → JInt64 → SJl Unit
+  parentCtor : S → JInt64 → JInt64 → SJl (Sub S)
+
+def nestedCtor (input : NestedCtorInput S) : SJl (Sub S) := do
+  if input.first ≤ input.last then
+    let _ ← input.checkbounds input.substring input.first input.last
+    pure ()
+  else pure ()
+  input.parentCtor input.substring.string
+    (input.substring.offset + input.first) (input.substring.offset + input.last)
+
+def wholeAbstract (s : S) (ncodeunits : S → SJl JInt64)
+    (rawUnchecked : S → JInt64 → JInt64 → SJl (Sub S)) : SJl (Sub S) := do
+  let count ← ncodeunits s
+  rawUnchecked s (ix 1) count
+
+def wholeIdentity (s : Sub S) : Sub S := s
+
+def viewRange (s : S) (range : R) (ctor : S → R → SJl V) : SJl V := ctor s range
+
+def maybeviewRange (s : S) (range : R) (view : S → R → SJl V) : SJl V := view s range
+
+def maybeviewArgs (s : S) (args : Args) (getindex : S → Args → SJl V) : SJl V :=
+  getindex s args
+
+structure ConvertInput (S T : Type) where
+  source : S
+  convertParent : S → SJl T
+  substring : T → SJl (Sub T)
+  typeAssert : Sub T → SJl (Sub T)
+
+def convertSub (input : ConvertInput S T) : SJl (Sub T) := do
+  let parent ← input.convertParent input.source
+  let substring ← input.substring parent
+  input.typeAssert substring
+
+def convertIdentity (s : Sub S) : Sub S := s
+
+structure CopyInput (P : Type) where
+  parent : JStr
+  offset : JInt64
+  count : JInt64
+  pointer : JStr → JInt64 → SJl P
+  unsafeString : P → JInt64 → SJl JStr
+
+def toString (input : CopyInput P) : SJl JStr := do
+  let pointer ← input.pointer input.parent (input.offset + ix 1)
+  input.unsafeString pointer input.count
+
+/-! Generic accessors and pointer operations, lines 139-206. -/
+
+def ncodeunits (s : Sub S) : JInt64 := s.ncodeunits
+
+def codeunitType (s : Sub S) (codeunit : S → SJl T) : SJl T := codeunit s.string
+
+def lengthSub (s : Sub S) (length : S → JInt64 → JInt64 → SJl JInt64) : SJl JInt64 :=
+  length s.string (s.offset + ix 1) (s.offset + s.ncodeunits)
+
+def codeunitAt (s : Sub S) (index : I) (checkbounds : Sub S → I → SJl Unit)
+    (add : JInt64 → I → SJl JInt64) (codeunit : S → JInt64 → SJl T) : SJl T := do
+  let _ ← checkbounds s index
+  let parentIndex ← add s.offset index
+  codeunit s.string parentIndex
+
+def getindexAt (s : Sub S) (index : I) (checkbounds : Sub S → I → SJl Unit)
+    (add : JInt64 → I → SJl JInt64) (getindex : S → JInt64 → SJl T) : SJl T := do
+  let _ ← checkbounds s index
+  let parentIndex ← add s.offset index
+  getindex s.string parentIndex
+
+def isvalidAt (s : Sub S) (index : I) (checkbounds : Sub S → I → SJl Bool)
+    (add : JInt64 → I → SJl JInt64) (isvalid : S → JInt64 → SJl Bool) : SJl Bool := do
+  let inbounds ← checkbounds s index
+  if !inbounds then return false
+  let parentIndex ← add s.offset index
+  isvalid s.string parentIndex
+
+def thisindString (s : JSub) (index : JInt64) : SJl JInt64 :=
+  Strings.thisind s.view index
+
+def nextindString (s : JSub) (index : JInt64) : SJl JInt64 :=
+  Strings.nextind s.view index
+
+def lastindexString (s : JSub) : SJl JInt64 := thisindString s s.ncu
+
+def parent (s : Sub S) : S := s.string
+
+def parentindices (s : Sub S) (thisind : S → JInt64 → SJl JInt64) : SJl (JInt64 × JInt64) := do
+  let last ← thisind s.string (s.offset + s.ncodeunits)
+  return (s.offset + ix 1, last)
+
+inductive StringOrSub where
+  | string (value : JStr)
+  | substring (value : JSub)
+
+def stringSize : StringOrSub → JInt64
+  | .string value => Strings.ncodeunits value
+  | .substring value => value.ncu
+
+def eqStringSub (a b : StringOrSub) (memcmp : StringOrSub → StringOrSub → Int) : Bool :=
+  stringSize a == stringSize b && memcmp a b == 0
+
+def cmpSub (a b : JSub) (memcmp : JSub → JSub → Int) : Int :=
+  let comparison := memcmp a b
+  if comparison < 0 then -1 else if comparison > 0 then 1
+  else if a.ncu < b.ncu then -1 else if b.ncu < a.ncu then 1 else 0
+
+def pointerAt (base : Nat) (s : JSub) (index : IntegerInput I)
+    (subtractOne : I → SJl Int) : SJl Nat := do
+  let delta ← subtractOne index.value
+  return base + s.offset.val.toNat + delta.toNat
+
+structure HashInput where
+  substring : JSub
+  seed : UInt64
+  secret : UInt64
+  pointer : JSub → SJl Nat
+  sizeof : JSub → SJl Nat
+  hashBytes : Nat → Nat → UInt64 → UInt64 → SJl UInt64
+  toUInt : UInt64 → UInt64
+
+def hashSub (input : HashInput) : SJl UInt64 := do
+  let pointer ← input.pointer input.substring
+  let size ← input.sizeof input.substring
+  let hash ← input.hashBytes pointer size input.seed input.secret
+  return input.toUInt hash
+
+inductive ParentTypeKind where | annotatedString | annotatedChar | other deriving DecidableEq
+def isannotatedSub : ParentTypeKind → Bool
+  | .annotatedString => true
+  | .annotatedChar => true
+  | .other => false
+
+/-! Unsafe writers, string construction, repeat, filter, and range indexing. -/
+
+structure WriterInput (Out Source I : Type) where
+  output : Out
+  source : Source
+  offset : I
+  size : Source → SJl JInt64
+  pointerOut : Out → I → SJl Nat
+  pointerSource : Source → SJl Nat
+  copy : Nat → Nat → JInt64 → SJl Out
+  writable : Out → I → JInt64 → Prop
+
+def writeBytes (input : WriterInput Out Source I) : SJl (Out × JInt64) := do
+  let count ← input.size input.source
+  let destination ← input.pointerOut input.output input.offset
+  let source ← input.pointerSource input.source
+  let output ← input.copy destination source count
+  return (output, count)
+
+structure CharWriterInput (Out I : Type) where
+  output : Out
+  character : UInt32
+  offset : I
+  pointer : Out → I → Nat → SJl Nat
+  store : Out → Nat → UInt8 → SJl Out
+  writable : Out → I → Nat → Prop
+
+def writeCharStores (input : CharWriterInput Out I) : List UInt8 :=
+  let bits := bswap32 input.character
+  (List.range (ncodeunitsChar input.character)).map
+    (fun offset => (bits >>> (UInt32.ofNat (8 * offset))).toUInt8)
+
+def writeCharLoop (input : CharWriterInput Out I) : List UInt8 → Nat → Out → SJl Out
+  | [], _, output => .ok output
+  | byte :: rest, position, output => do
+      let pointer ← input.pointer output input.offset position
+      let output ← input.store output pointer byte
+      writeCharLoop input rest (position + 1) output
+
+def writeChar (input : CharWriterInput Out I) : SJl (Out × Nat) := do
+  let output ← writeCharLoop input (writeCharStores input) 0 input.output
+  return (output, ncodeunitsChar input.character)
+
+inductive RestrictedValue where
+  | char (value : UInt32)
+  | string (value : JStr)
+  | symbol (bytes : List UInt8)
+
+inductive FullValue where
+  | char (value : UInt32)
+  | string (value : JStr)
+  | substring (value : JSub)
+  | symbol (bytes : List UInt8)
+
+def stringRestricted (values : List RestrictedValue)
+    (build : List RestrictedValue → SJl JStr) : SJl JStr := build values
+
+def fullValueSize : FullValue → JInt64
+  | .char value => ix (ncodeunitsChar value)
+  | .string value => Strings.ncodeunits value
+  | .substring value => value.ncu
+  | .symbol bytes => ix bytes.length
+
+def sumSizes : List FullValue → JInt64
+  | [] => ix 0
+  | value :: rest => fullValueSize value + sumSizes rest
+
+def writeValues (write : Out → FullValue → JInt64 → SJl (Out × JInt64)) :
+    List FullValue → Out → JInt64 → SJl Out
+  | [], output, _ => .ok output
+  | value :: rest, output, offset => do
+      let written ← write output value offset
+      writeValues write rest written.1 (offset + written.2)
+
+def buildString (values : List FullValue) (allocate : JInt64 → SJl Out)
+    (write : Out → FullValue → JInt64 → SJl (Out × JInt64)) : SJl Out := do
+  let output ← allocate (sumSizes values)
+  writeValues write values output (ix 1)
+
+def repeatBitInteger (s : JStr) (count : I)
+    (invokeInteger : JStr → I → SJl JStr) : SJl JStr := invokeInteger s count
+
+structure RepeatInput (I : Type) where
+  bytes : List UInt8
+  count : I
+  negative : I → SJl Bool
+  toUInt : I → SJl UInt64
+
+def repeatInteger (input : RepeatInput I) : SJl (List UInt8) := do
+  let negative ← input.negative input.count
+  if negative then .error (.jl (.argumentError "negative repeat count"))
+  else
+    let count ← input.toUInt input.count
+    if count = 0 then .ok []
+    else if count = 1 then .ok input.bytes
+    else if input.bytes.isEmpty then .ok []
+    else if UInt64.ofNat input.bytes.length > UInt64.ofNat (2 ^ 64 - 1) / count then
+      .error .outOfMemory
+    else .ok (List.flatten (List.replicate count.toNat input.bytes))
+
+structure FilterInput (B : Type) where
+  bytes : JStr
+  characters : SJl (List UInt32)
+  allocate : JInt64 → SJl B
+  predicate : UInt32 → SJl Bool
+  write : B → UInt32 → JInt64 → SJl (B × JInt64)
+  resize : B → JInt64 → SJl B
+  sizehint : B → JInt64 → SJl B
+  makeString : B → SJl JStr
+
+def filterLoop (input : FilterInput B) : List UInt32 → B → JInt64 → SJl (B × JInt64)
+  | [], output, offset => .ok (output, offset)
+  | character :: rest, output, offset => do
+      let keep ← input.predicate character
+      let result ← if keep then input.write output character offset else .ok (output, ix 0)
+      filterLoop input rest result.1 (offset + result.2)
+
+def filterString (input : FilterInput B) : SJl JStr := do
+  let output ← input.allocate (Strings.ncodeunits input.bytes)
+  let characters ← input.characters
+  let result ← filterLoop input characters output (ix 1)
+  let resized ← input.resize result.1 (result.2 - ix 1)
+  let hinted ← input.sizehint resized (result.2 - ix 1)
+  input.makeString hinted
+
+def rangeGetindex (s : S) (range : UnitRangeInput R I)
+    (substring : S → UnitRangeInput R I → SJl V) : SJl V := substring s range
+
+end JuliaLean.StringsCovA.SubstringRebuilt
+
+namespace JuliaLean.ShellCmd
+
+open JuliaLean
+
+/-- `SubString(s, i, k)` and `s[i:k]` (`base/strings/substring.jl:76-84,114-117,322`):
+empty if `k < i`; otherwise a `BoundsError` unless `1 ≤ i` and `k ≤ ncodeunits(s)`,
+and a `StringIndexError` unless `i` and `k` are character indices. -/
+def slice (s : JS) (i k : Int) : SH JS :=
+  if k < i then .ok []
+  else if i < 1 ∨ k > ncu s then .error (.jl .boundsError)
+  else if !isStart s i then .error .stringIndex
+  else if !isStart s k then .error .stringIndex
+  else .ok (((pairsFrom 1 s).filter (fun q => i ≤ (q.1 : Int) ∧ (q.1 : Int) ≤ k)).map (·.2))
+
+end JuliaLean.ShellCmd
+
+namespace JuliaLean.MiscCov.Shell
+
+open JuliaLean JuliaLean.ShellCmd
+
+/-- `SubString(s, j)` of a `SubString` `s` with offset `off`: its characters and
+offset (`base/strings/substring.jl:37-49`; an empty result has offset 0). -/
+def subFrom (s : JS) (off : Nat) (j : Int) : SH (JS × Nat) := do
+  let t ← slice s j (lastindex s)
+  pure (t, if t.isEmpty then 0 else off + (j - 1).toNat)
+
+end JuliaLean.MiscCov.Shell

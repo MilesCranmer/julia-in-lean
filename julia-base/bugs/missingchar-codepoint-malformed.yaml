@@ -1,31 +1,49 @@
 id: missingchar-codepoint-malformed
-title: "codepoint(c) returns a value for malformed Chars whose first byte is ASCII"
+title: "Char conversions and arithmetic return values for malformed ASCII-leading data"
 priority: P2
 kind: missing-error
 area: MissingChar
 files: [base/char.jl]
-functions: ["codepoint(::Char)", "UInt32(::Char)", "Int(::Char)", "+(::Char, ::Integer)"]
+functions:
+  - "codepoint(::Char)"
+  - "UInt32(::Char)"
+  - "ismalformed(::Char)"
+  - "(::Type{T})(::AbstractChar) where T<:Union{Number,AbstractChar}"
+  - "(::Type{T})(::AbstractChar) where T<:Union{Int32,Int64}"
+  - "convert(::Type{T}, ::AbstractChar) where T<:Number"
+  - "rem(::AbstractChar, ::Type{<:Number})"
+  - "-(::AbstractChar, ::AbstractChar)"
+  - "-%(::AbstractChar, ::AbstractChar)"
+  - "(T::Union{Type{Int8},Type{UInt8}})(c::Char)"
+  - "Char(b::Union{Int8,UInt8})"
+  - "+(::Char, ::Integer)"
+  - "+%(::Char, ::Integer)"
+  - "+(::Integer, ::AbstractChar)"
+  - "+%(::Integer, ::AbstractChar)"
+  - "-(::Char, ::Integer)"
+  - "-%(::Char, ::Integer)"
+covers:
+  - char-numeric-from-char
+  - char-remainder-codepoint
+  - char-difference-codepoint
+  - char-smallinteger-conversions
+  - missingchar-char-add-codepoint
+  - char-sub-codepoint
 summary: |
-  A Char whose first byte is ASCII but whose other bytes are not zero is
-  malformed (Base.ismalformed is true), yet codepoint returns the first byte:
-  codepoint(reinterpret(Char, 0x61620000)) == 0x61, so Int(c) == 97 and
-  c + 1 == 'b'. Malformed Chars with a non-ASCII first byte, such as '\xc3',
-  throw InvalidCharError as documented.
+  The ASCII fast paths ignore nonzero trailing bytes in a malformed Char. As a result,
+  codepoint, integer conversions, remainder, Char difference, addition, and subtraction
+  return values based on the first byte instead of throwing for malformed storage.
 likelihood: |
-  Low: string iteration never produces such a Char (an ASCII byte always ends a
-  character); it takes reinterpret, bitcast or unsafe_load of raw data.
+  Low: ordinary String iteration does not create a Char with an ASCII first byte and
+  nonzero trailing bytes; the malformed representation requires raw reinterpretation.
 maybe_intended: |
-  The fast path for ASCII deliberately skips validation; the docstrings promise
-  an exception for every malformed character.
+  The ASCII fast paths are useful for valid single-byte characters, but they must not
+  accept a Char whose remaining stored bytes are nonzero.
 reproducer: |
-  c = reinterpret(Char, 0x61620000)   # the bytes "ab" packed into one Char
-  println("c = ", repr(c), ", ismalformed(c) = ", Base.ismalformed(c), ", isvalid(c) = ", isvalid(c))
-  r = try repr(codepoint(c)) catch e; "THROWS " * sprint(showerror, e) end
-  println("codepoint(c) = ", r)
-  println("Int(c) = ", Int(c), ", c + 1 = ", repr(c + 1), ", c == 'a' = ", c == 'a')
-  d = reinterpret(Char, 0xc3000000)   # a truncated two-byte sequence
-  println("codepoint(", repr(d), ") = ", try repr(codepoint(d)) catch e; "THROWS " * sprint(showerror, e) end)
-  Base.ismalformed(c) && r == "0x00000061" && println("REPRODUCED missingchar-codepoint-malformed")
+  Stored in repro/missingchar-codepoint-malformed.jl, repro/char-numeric-from-char.jl,
+  repro/char-remainder-codepoint.jl, repro/char-difference-codepoint.jl,
+  repro/char-smallinteger-conversions.jl, repro/missingchar-char-add-codepoint.jl,
+  and repro/char-sub-codepoint.jl. Each file was run separately on both versions.
 output:
   release: |
     c = '\x61\x62', ismalformed(c) = true, isvalid(c) = false
@@ -33,37 +51,77 @@ output:
     Int(c) = 97, c + 1 = 'b', c == 'a' = false
     codepoint('\xc3') = THROWS Base.InvalidCharError{Char}('\xc3')
     REPRODUCED missingchar-codepoint-malformed
+    ismalformed=true Int32=65 Int=65
+    REPRODUCED char-numeric-from-char
+    ismalformed=true c % UInt8=0x41
+    REPRODUCED char-remainder-codepoint
+    ismalformed=true c - 'A'=0
+    REPRODUCED char-difference-codepoint
+    ismalformed=true UInt8(c)=0x41
+    REPRODUCED char-smallinteger-conversions
+    ismalformed=true c + 1='B'
+    REPRODUCED missingchar-char-add-codepoint
+    ismalformed=true c - 1='@'
+    REPRODUCED char-sub-codepoint
   nightly: |
     c = '\x61\x62', ismalformed(c) = true, isvalid(c) = false
     codepoint(c) = 0x00000061
     Int(c) = 97, c + 1 = 'b', c == 'a' = false
     codepoint('\xc3') = THROWS Base.InvalidCharError{Char}('\xc3')
     REPRODUCED missingchar-codepoint-malformed
+    ismalformed=true Int32=65 Int=65
+    REPRODUCED char-numeric-from-char
+    ismalformed=true c % UInt8=0x41
+    REPRODUCED char-remainder-codepoint
+    ismalformed=true c - 'A'=0
+    REPRODUCED char-difference-codepoint
+    ismalformed=true UInt8(c)=0x41
+    REPRODUCED char-smallinteger-conversions
+    ismalformed=true c + 1='B'
+    REPRODUCED missingchar-char-add-codepoint
+    ismalformed=true c - 1='@'
+    REPRODUCED char-sub-codepoint
 reproduced: {release: true, nightly: true}
 expected: |
-  codepoint(c) throws InvalidCharError, as for every other malformed Char.
+  Every operation that converts or computes from a malformed Char should throw
+  Base.InvalidCharError instead of returning a value derived from the ASCII first byte.
 promised_by: |
-  base/char.jl:83-85 (codepoint docstring): "or throw an exception if c
-  represents a malformed character"; base/char.jl:141-142 (ismalformed
-  docstring): "Malformed data, in contrast, cannot be decoded to a codepoint
-  (codepoint will throw an exception)."
+  base/char.jl:46-48 says a Char may store "information that cannot be converted to a
+  Unicode codepoint" and that "converting such a Char to UInt32 will throw an error."
+  The codepoint docstring at base/char.jl:83-85 says "or throw an exception if c
+  represents a malformed character." The ismalformed docstring at base/char.jl:141-142
+  says "Malformed data, in contrast, cannot be decoded to a codepoint (`codepoint` will
+  throw an exception)."
 cause: |
-  base/char.jl:158-161: UInt32(c::Char) returns u >> 24 whenever
-  u < 0x80000000, before the malformation checks, so the low three bytes are
-  ignored. ismalformed (base/char.jl:111-117) does look at them.
+  base/char.jl:158-161 returns the high byte whenever the stored UInt32 is below
+  0x80000000, before checking malformed storage. The small-integer fast path at
+  base/char.jl:223-225 and the arithmetic paths at lines 279 and 289 similarly use
+  the ASCII first byte without validating the trailing bytes. ismalformed examines
+  those bytes, so the fast paths disagree with the predicate.
 possible_fix: |
-  Take the fast path only when u & 0x80ffffff == 0, i.e. u < 0x80000000 and
-  the low 24 bits are zero; otherwise fall through to the existing checks.
+  Require all three trailing bytes to be zero before taking each ASCII fast path;
+  otherwise use the existing full malformed-character checks.
 duplicates:
-  issues: []
+  issues:
+    - {number: 25072, relation: related}
+  prs:
+    - {number: 55152, relation: related}
+    - {number: 25559, relation: related}
+    - {number: 54393, state: closed, relation: related}
+    - {number: 61625, relation: related}
   queries:
-    - "issues: codepoint malformed"
-    - "issues: ismalformed codepoint"
-    - "issues: codepoint ascii malformed"
-    - "issues: UInt32 Char malformed"
-    - "issues: InvalidCharError reinterpret"
-    - "issues: codepoint malformed char"
-    - "prs: codepoint malformed"
+    - "issues: ismalformed"
+    - "issues: isoverlong"
+    - "issues: decode_overlong"
+    - 'issues: "malformed Char codepoint"'
+    - 'issues: "Char arithmetic malformed"'
+    - 'issues: "overlong char"'
+    - "PRs: ismalformed"
+    - "PRs: isoverlong"
+    - "PRs: decode_overlong"
+    - 'PRs: "malformed Char codepoint"'
+    - 'PRs: "Char arithmetic malformed"'
+    - 'PRs: "overlong char"'
 lean:
-  property: JuliaLean.MissingChar.CodepointThrowsMalformed
-  theorem: JuliaLean.MissingChar.codepointThrowsMalformed_refuted
+  property: JuliaLean.Proofs.base.char.CodepointThrowsExactlyMalformed
+  theorem: JuliaLean.Proofs.base.char.refute_codepoint_malformed

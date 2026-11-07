@@ -74,5 +74,5 @@ duplicates:
     - "issues: transcode overlong"
     - "prs: transcode"
 lean:
-  property: JuliaLean.Transcode.CwstringNoEmbeddedNul
-  theorem: JuliaLean.Transcode.cwstringNoEmbeddedNul_refuted
+  property: JuliaLean.Proofs.base.strings.cstring.CwstringWindowsNulSpec
+  theorem: JuliaLean.Proofs.base.strings.cstring.cwstringWindowsNul_refuted

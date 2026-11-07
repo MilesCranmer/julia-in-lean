@@ -1,53 +1,104 @@
 id: bitarrays-bitset-symdiff-duplicates
-title: "symdiff!(::BitSet, itr) toggles repeated elements of itr, unlike Set and the documented set semantics"
+title: "symdiff!(::BitSet, itr) cancels repeated iterable elements instead of ignoring duplicates"
 priority: P1
 kind: wrong-result
 area: BitArrays
-files: [base/bitset.jl]
-functions: ["symdiff!(::BitSet, itr)", "symdiff(::BitSet, itr)", "int_symdiff!"]
+files:
+  - base/bitset.jl
+  - base/abstractset.jl
+functions:
+  - "symdiff!(::BitSet, itr)"
+  - "symdiff(::BitSet, itr)"
+  - "int_symdiff!"
 summary: |
-  symdiff!(s::BitSet, itr) flips membership once per element of itr, so an
-  element that occurs twice in itr is added and removed again.
-  symdiff!(BitSet([1]), [2, 2]) returns BitSet([1]) while
-  symdiff!(Set([1]), [2, 2]) returns Set([1, 2]). symdiff(BitSet([1]), [2, 2])
-  is affected the same way. Since #46397 every other symdiff method treats its
-  arguments as sets and ignores multiplicity.
+  symdiff!(BitSet(), [1, 1]) produces an empty set, while the same operation
+  on Set{Int} produces the singleton containing 1. The BitSet specialization
+  toggles membership for every occurrence, so two copies of an initially
+  absent element cancel. The generic AbstractSet method first removes
+  duplicate input elements. The nonmutating BitSet wrapper uses the same
+  affected specialization.
 likelihood: |
-  Any call with a vector, range of repeated values or other iterable holding a
-  duplicate hits it; no extreme values are needed. The result is silently wrong.
-maybe_intended: ""
+  An ordinary duplicate-containing vector or other iterable triggers the
+  disagreement. No large values, allocation failure, or unusual callbacks
+  are required. Membership changes silently.
+maybe_intended: |
+  Toggling every occurrence implements parity semantics. The symdiff!
+  documentation restricts its multiplicity warning to array destinations,
+  and the generic AbstractSet method deduplicates the iterable. Historical
+  PR #46397 changed the generic behavior but retained this BitSet method.
+  Open issue #64145 and open repair PR #64442 identify this exact omission.
 reproducer: |
-  symdiff!(BitSet([1]), [2, 2])   # BitSet([1])
-  symdiff!(Set([1]), [2, 2])      # Set([1, 2])
+  function reproduced()
+      items = [1, 1]
+      actual = symdiff!(BitSet(), items)
+      reference = symdiff!(Set{Int}(), items)
+      return isempty(actual) && (1 in reference) && length(reference) == 1
+  end
+  ok = try
+      reproduced()
+  catch
+      false
+  end
+  println(ok ? "REPRODUCED bitarrays-bitset-symdiff-duplicates" :
+               "NOT_REPRODUCED bitarrays-bitset-symdiff-duplicates")
 output:
   release: |
-    [1] [1, 2] [1]
     REPRODUCED bitarrays-bitset-symdiff-duplicates
   nightly: |
-    [1] [1, 2] [1]
     REPRODUCED bitarrays-bitset-symdiff-duplicates
-reproduced: {release: true, nightly: true}
+reproduced:
+  release: true
+  nightly: true
 expected: |
-  BitSet([1, 2]): 2 occurs in exactly one of the two collections.
+  symdiff!(BitSet(), [1, 1]) contains exactly 1, matching
+  symdiff!(Set{Int}(), [1, 1]). Repeated elements of the iterable count once
+  when the destination is a set.
 promised_by: |
-  symdiff! docstring, base/abstractset.jl:282-284: "Construct the symmetric
-  difference of the passed in sets, and overwrite s with the result." The
-  generic method symdiff!(s::AbstractSet, itr) = symdiff!(s, Set(itr))
-  (base/abstractset.jl:297) deduplicates itr; PR #46397 ("symdiff does
-  uniquify", fixing #34686) made this the documented behaviour.
+  At Julia commit f755f49a9e41380d7da126b3c1db9fe7f83dd027,
+  base/abstractset.jl:284 states: "Construct the symmetric difference of the
+  passed in sets, and overwrite `s` with the result."
+  base/abstractset.jl:285-286 states: "When `s` is an array, the order is
+  maintained. Note that in this case the multiplicity of elements matters."
+  base/abstractset.jl:297 implements the set case explicitly:
+  `symdiff!(s::AbstractSet, itr) = symdiff!(s::AbstractSet, Set(itr))`.
 cause: |
-  base/bitset.jl:305-310 defines symdiff!(s::BitSet, ns) for any iterable and
-  calls int_symdiff! (base/bitset.jl:319-324) on every element, toggling
-  membership each time. PR #46397 added the AbstractSet method at
-  base/bitset.jl:312-317 but left this one toggling per element.
+  At the pinned commit, base/bitset.jl:305-310 specializes symdiff! for a
+  BitSet destination and an unrestricted iterable. It calls int_symdiff!
+  once for each occurrence. base/bitset.jl:319-323 converts the integer,
+  negates its current membership, and writes that bit. Two occurrences
+  therefore toggle the same bit twice. The AbstractSet specialization at
+  base/bitset.jl:312-317 does not intercept a Vector input.
 possible_fix: |
-  Deduplicate first, e.g. symdiff!(s::BitSet, ns) = symdiff!(s, BitSet(ns)) for
-  Integer iterables, or toggle only elements not seen before in ns.
+  Remove the unrestricted iterable BitSet specialization so the generic
+  AbstractSet method deduplicates the input. Retain appropriate specialized
+  methods for already distinct set inputs. Open PR #64442 proposes this
+  repair; no source repair is applied by this report.
 duplicates:
   issues:
-    - {number: 34686, state: closed, relation: related}
-    - {number: 44591, state: closed, relation: related}
-  queries: ["issues: symdiff", "issues: BitSet", "issues: symdiff multiplicity", "prs: symdiff", "prs: BitSet symdiff", "issues: symdiff! BitSet duplicates"]
+    - number: 64145
+      state: open
+      relation: duplicate
+    - number: 34686
+      state: closed
+      relation: related
+    - number: 44591
+      state: closed
+      relation: related
+  prs:
+    - number: 64442
+      state: open
+      relation: proposed-fix
+    - number: 46397
+      state: merged
+      relation: related
+  queries:
+    - "issues: BitSet symdiff"
+    - "issues: symdiff duplicates"
+    - "issues: symdiff multiplicity"
+    - "issues: BitSet symmetric difference"
+    - "prs: BitSet symdiff"
+    - "prs: symdiff duplicates"
+    - "prs: symdiff multiplicity"
 lean:
-  property: JuliaLean.BitArrays.BitSetSymdiffAgrees
-  theorem: JuliaLean.BitArrays.bitSetSymdiffAgrees_refuted
+  property: JuliaLean.Proofs.base.bitset.BitSetSymdiffAgrees
+  theorem: JuliaLean.ChatGPT.Batch4.Group16.BitarraysBitsetSymdiffDuplicates_refuted

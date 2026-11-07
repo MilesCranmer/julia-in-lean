@@ -1,264 +1,264 @@
 file	line	endline	name	signature	status	entry	note
-base/array.jl	14	14	DimensionMismatch	DimensionMismatch()	todo		
-base/array.jl	132	134	_safeindex	_safeindex(ex)	todo		
-base/array.jl	135	156	_safeindex	_safeindex(ex)	todo		
-base/array.jl	158	158	vect	vect()	todo		
-base/array.jl	159	166	vect	vect(X::T...) where T	todo		
-base/array.jl	183	186	vect	vect(X...)	todo		
-base/array.jl	188	188	asize_from	asize_from(a::Array, n)	todo		
-base/array.jl	190	190	allocatedinline	allocatedinline(@nospecialize T::Type)	todo		
-base/array.jl	206	206	isbitsunion	isbitsunion(u::Type)	todo		
-base/array.jl	208	208	unsetindex!	unsetindex!(A::Array, i::Integer)	todo		
-base/array.jl	209	214	unsetindex!	unsetindex!(A::Array, i::Int)	todo		
-base/array.jl	218	218	elsize	elsize(::Type{A}) where {T,A<:Array{T}}	todo		
-base/array.jl	219	225	elsize	elsize(::Type{Ptr{T}}) where T	todo		
-base/array.jl	226	226	elsize	elsize(::Type{Union{}})	todo		
-base/array.jl	227	227	elsize	elsize(::Type{Union{}}, slurp...)	todo		
-base/array.jl	229	229	sizeof	sizeof(a::Array)	todo		
-base/array.jl	231	237	isassigned	isassigned(a::Array, i::Int...)	todo		
-base/array.jl	239	244	isassigned	isassigned(a::Vector, i::Int)	todo		
-base/array.jl	259	264	unsafe_copyto!	unsafe_copyto!(dest::Ptr{T}, src::Ptr{T}, n) where T	todo		
-base/array.jl	276	280	unsafe_copyto!	unsafe_copyto!(dest::Array, doffs, src::Array, soffs, n)	todo		
-base/array.jl	288	289	copyto!	copyto!(dest::Array, doffs::Integer, src::Array, soffs::Integer, n::Integer)	todo		
-base/array.jl	290	291	copyto!	copyto!(dest::Array, doffs::Integer, src::Memory, soffs::Integer, n::Integer)	todo		
-base/array.jl	292	293	copyto!	copyto!(dest::Memory, doffs::Integer, src::Array, soffs::Integer, n::Integer)	todo		
-base/array.jl	296	297	copyto!	copyto!(dest::Array{T}, doffs::Integer, src::Array{T}, soffs::Integer, n::Integer) where {T}	todo		
-base/array.jl	299	315	_copyto_impl!	_copyto_impl!(dest::Union{Array,Memory}, doffs::Integer, src::Union{Array,Memory}, soffs::Integer, n::Integer)	todo		
-base/array.jl	321	321	_throw_argerror	_throw_argerror(s)	todo		
-base/array.jl	323	323	_copyto2arg!	_copyto2arg!(dest, src)	todo		
-base/array.jl	325	325	copyto!	copyto!(dest::Array, src::Array)	todo		
-base/array.jl	326	326	copyto!	copyto!(dest::Array, src::Memory)	todo		
-base/array.jl	327	327	copyto!	copyto!(dest::Memory, src::Array)	todo		
-base/array.jl	330	330	copyto!	copyto!(dest::Array{T}, src::Array{T}) where {T}	todo		
-base/array.jl	331	331	copyto!	copyto!(dest::Array{T}, src::Memory{T}) where {T}	todo		
-base/array.jl	332	332	copyto!	copyto!(dest::Memory{T}, src::Array{T}) where {T}	todo		
-base/array.jl	368	372	fill!	fill!(A::AbstractArray{T}, x) where T	todo		
-base/array.jl	373	378	_fill!	_fill!(A::AbstractArray{T}, x::T) where T	todo		
-base/array.jl	391	399	copy	copy(a::Array)	todo		
-base/array.jl	402	410	_take!	_take!(dst::Array{T,N}, src::Array{T,N}) where {T,N}	todo		
-base/array.jl	414	414	similar	similar(a::Vector{T}) where {T}	todo		
-base/array.jl	415	415	similar	similar(a::Matrix{T}) where {T}	todo		
-base/array.jl	416	416	similar	similar(a::Vector{T}, S::Type) where {T}	todo		
-base/array.jl	417	417	similar	similar(a::Matrix{T}, S::Type) where {T}	todo		
-base/array.jl	418	418	similar	similar(a::Array{T}, m::Int) where {T}	todo		
-base/array.jl	419	419	similar	similar(a::Array, T::Type, dims::Dims{N}) where {N}	todo		
-base/array.jl	420	420	similar	similar(a::Array{T}, dims::Dims{N}) where {T,N}	todo		
-base/array.jl	421	421	similar	similar(::Type{Array{T,N}}, dims::Dims) where {T,N}	todo		
-base/array.jl	445	461	getindex	getindex(::Type{T}, vals...) where T	todo		
-base/array.jl	463	470	getindex	getindex(::Type{Any}, @nospecialize vals...)	todo		
-base/array.jl	471	471	getindex	getindex(::Type{Any})	todo		
-base/array.jl	473	480	fill!	fill!(a::Union{Array{UInt8}, Array{Int8}}, x::Integer)	todo		
-base/array.jl	482	482	to_dim	to_dim(d::Integer)	todo		
-base/array.jl	483	483	to_dim	to_dim(d::OneTo)	todo		
-base/array.jl	581	581	fill	fill	todo		
-base/array.jl	583	583	fill	fill(v, dims::DimOrInd...)	todo		
-base/array.jl	584	584	fill	fill(v, dims::NTuple{N, Union{Integer, OneTo}}) where {N}	todo		
-base/array.jl	585	585	fill	fill(v, dims::NTuple{N, Integer}) where {N}	todo		
-base/array.jl	586	586	fill	fill(v, dims::NTuple{N, DimOrInd}) where {N}	todo		
-base/array.jl	587	587	fill	fill(v, dims::Tuple{})	todo		
-base/array.jl	608	608	zeros	zeros	todo		
-base/array.jl	629	629	ones	ones	todo		
-base/array.jl	633	633	$fname	$fname(dims::DimOrInd...)	todo		generated-loop: (fname, felt) in ((:zeros, :zero), (:ones, :one))
-base/array.jl	634	634	$fname	$fname(::Type{T}, dims::DimOrInd...) where {T}	todo		generated-loop: (fname, felt) in ((:zeros, :zero), (:ones, :one))
-base/array.jl	635	635	$fname	$fname(dims::Tuple{Vararg{DimOrInd}})	todo		generated-loop: (fname, felt) in ((:zeros, :zero), (:ones, :one))
-base/array.jl	636	636	$fname	$fname(::Type{T}, dims::NTuple{N, Union{Integer, OneTo}}) where {T,N}	todo		generated-loop: (fname, felt) in ((:zeros, :zero), (:ones, :one))
-base/array.jl	637	641	$fname	$fname(::Type{T}, dims::NTuple{N, Integer}) where {T,N}	todo		generated-loop: (fname, felt) in ((:zeros, :zero), (:ones, :one))
-base/array.jl	642	646	$fname	$fname(::Type{T}, dims::Tuple{}) where {T}	todo		generated-loop: (fname, felt) in ((:zeros, :zero), (:ones, :one))
-base/array.jl	647	651	$fname	$fname(::Type{T}, dims::NTuple{N, DimOrInd}) where {T,N}	todo		generated-loop: (fname, felt) in ((:zeros, :zero), (:ones, :one))
-base/array.jl	657	657	convert	convert(::Type{T}, a::AbstractArray) where {T<:Array}	todo		
-base/array.jl	659	659	promote_rule	promote_rule(a::Type{Array{T,n}}, b::Type{Array{S,n}}) where {T,n,S}	todo		
-base/array.jl	664	664	Array{T,N}	Array{T,N}(x::AbstractArray{S,N}) where {T,N,S}	todo		
-base/array.jl	665	665	AbstractArray{T,N}	AbstractArray{T,N}(A::AbstractArray{S,N}) where {T,N,S}	todo		
-base/array.jl	684	684	collect	collect(::Type{T}, itr) where {T}	todo		
-base/array.jl	686	687	_collect	_collect(::Type{T}, itr, isz::Union{HasLength,HasShape}) where {T}	todo		
-base/array.jl	688	694	_collect	_collect(::Type{T}, itr, isz::SizeUnknown) where T	todo		
-base/array.jl	697	697	_similar_for	_similar_for(c, ::Type{T}, itr, isz, shp) where {T}	todo		
-base/array.jl	699	699	_similar_shape	_similar_shape(itr, ::SizeUnknown)	todo		
-base/array.jl	700	700	_similar_shape	_similar_shape(itr, ::HasLength)	todo		
-base/array.jl	701	701	_similar_shape	_similar_shape(itr, ::HasShape)	todo		
-base/array.jl	703	704	_similar_for	_similar_for(c::AbstractArray, ::Type{T}, itr, ::SizeUnknown, ::Nothing) where {T}	todo		
-base/array.jl	705	706	_similar_for	_similar_for(c::AbstractArray, ::Type{T}, itr, ::HasLength, len::Integer) where {T}	todo		
-base/array.jl	707	708	_similar_for	_similar_for(c::AbstractArray, ::Type{T}, itr, ::HasShape, axs) where {T}	todo		
-base/array.jl	711	711	_array_for_inner	_array_for_inner(::Type{T}, ::SizeUnknown, ::Nothing) where {T}	todo		
-base/array.jl	712	712	_array_for_inner	_array_for_inner(::Type{T}, ::HasLength, len::Integer) where {T}	todo		
-base/array.jl	713	713	_array_for_inner	_array_for_inner(::Type{T}, ::HasShape{N}, axs) where {T,N}	todo		
-base/array.jl	716	716	_array_for	_array_for(::Type{T}, itr, isz) where {T}	todo		
-base/array.jl	771	771	collect	collect(itr)	todo		
-base/array.jl	773	773	collect	collect(A::AbstractArray)	todo		
-base/array.jl	775	775	collect_similar	collect_similar(cont, itr)	todo		
-base/array.jl	777	778	_collect	_collect(cont, itr, ::HasEltype, isz::Union{HasLength,HasShape})	todo		
-base/array.jl	780	786	_collect	_collect(cont, itr, ::HasEltype, isz::SizeUnknown)	todo		
-base/array.jl	788	792	_collect_indices	_collect_indices(::Tuple{}, A)	todo		
-base/array.jl	793	797	_collect_indices	_collect_indices(indsA::Tuple{Vararg{OneTo}}, A)	todo		
-base/array.jl	798	801	_collect_indices	_collect_indices(indsA, A)	todo		
-base/array.jl	805	815	_iterator_upper_bound	_iterator_upper_bound(itr)	todo		
-base/array.jl	821	831	default_eltype	default_eltype(itr)	todo		
-base/array.jl	833	853	collect	collect(itr::Generator)	todo		
-base/array.jl	855	856	_collect	_collect(c, itr, ::EltypeUnknown, isz::SizeUnknown)	todo		
-base/array.jl	858	873	_collect	_collect(c, itr, ::EltypeUnknown, isz::Union{HasLength,HasShape})	todo		
-base/array.jl	875	879	collect_to_with_first!	collect_to_with_first!(dest::AbstractArray, v1, itr, st)	todo		
-base/array.jl	881	884	collect_to_with_first!	collect_to_with_first!(dest, v1, itr, st)	todo		
-base/array.jl	886	893	setindex_widen_up_to	setindex_widen_up_to(dest::AbstractArray{T}, el, i) where T	todo		
-base/array.jl	895	912	collect_to!	collect_to!(dest::AbstractArray{T}, itr, offs, st) where T	todo		
-base/array.jl	914	920	grow_to!	grow_to!(dest, itr)	todo		
-base/array.jl	922	933	push_widen	push_widen(dest, el)	todo		
-base/array.jl	935	949	grow_to!	grow_to!(dest, itr, st)	todo		
-base/array.jl	972	972	getindex	getindex	todo		
-base/array.jl	974	978	getindex	getindex(A::Array, i1::Int, i2::Int, I::Int...)	todo		
-base/array.jl	981	990	getindex	getindex(A::Array, I::AbstractUnitRange{<:Integer})	todo		
-base/array.jl	993	993	getindex	getindex(a::Array, r::AbstractUnitRange{Bool})	todo		
-base/array.jl	995	1002	getindex	getindex(A::Array, c::Colon)	todo		
-base/array.jl	1005	1007	getindex	getindex(A::Array{S}, I::AbstractRange{Int}) where S	todo		
-base/array.jl	1029	1029	setindex!	setindex!	todo		
-base/array.jl	1031	1035	setindex!	setindex!(A::Array{T}, x, i::Int) where {T}	todo		
-base/array.jl	1036	1041	_setindex!	_setindex!(A::Array{T}, x::T, i::Int) where {T}	todo		
-base/array.jl	1042	1046	setindex!	setindex!(A::Array{T}, x, i1::Int, i2::Int, I::Int...) where {T}	todo		
-base/array.jl	1047	1053	_setindex!	_setindex!(A::Array{T}, x::T, i1::Int, i2::Int, I::Int...) where {T}	todo		
-base/array.jl	1055	1056	__safe_setindex!	__safe_setindex!(A::Vector{Any}, @nospecialize(x), i::Int)	todo		
-base/array.jl	1057	1058	__safe_setindex!	__safe_setindex!(A::Vector{T}, x::T, i::Int) where {T}	todo		
-base/array.jl	1059	1060	__safe_setindex!	__safe_setindex!(A::Vector{T}, x, i::Int) where {T}	todo		
-base/array.jl	1063	1075	setindex!	setindex!(A::Array, X::AbstractArray, I::AbstractVector{Int})	todo		
-base/array.jl	1078	1087	setindex!	setindex!(A::Array{T}, X::Array{T}, I::AbstractUnitRange{Int}) where T	todo		
-base/array.jl	1088	1096	setindex!	setindex!(A::Array{T}, X::Array{T}, c::Colon) where T	todo		
-base/array.jl	1102	1112	overallocation	overallocation(maxsize::Int)	todo		
-base/array.jl	1114	1114	array_new_memory	array_new_memory(mem::Memory, newlen::Int)	todo		
-base/array.jl	1116	1149	_growbeg_internal!	_growbeg_internal!(a::Vector, delta::Int, len::Int)	todo		
-base/array.jl	1151	1169	_growbeg!	_growbeg!(a::Vector, delta::Integer)	todo		
-base/array.jl	1171	1210	_growend_internal!	_growend_internal!(a::Vector, delta::Int, len::Int)	todo		
-base/array.jl	1212	1223	_growend!	_growend!(a::Vector, delta::Integer)	todo		
-base/array.jl	1225	1270	_growat!	_growat!(a::Vector, i::Integer, delta::Integer)	todo		
-base/array.jl	1273	1290	_deletebeg!	_deletebeg!(a::Vector, delta::Integer)	todo		
-base/array.jl	1291	1306	_deleteend!	_deleteend!(a::Vector, delta::Integer)	todo		
-base/array.jl	1307	1322	_deleteat!	_deleteat!(a::Vector, i::Integer, delta::Integer)	todo		
-base/array.jl	1351	1351	push!	push!	todo		
-base/array.jl	1353	1360	push!	push!(a::Vector{T}, item) where T	todo		
-base/array.jl	1361	1365	_push!	_push!(a::Vector{T}, item::T) where T	todo		
-base/array.jl	1368	1372	push!	push!(a::Vector{Any}, @nospecialize x)	todo		
-base/array.jl	1373	1382	push!	push!(a::Vector{Any}, @nospecialize x...)	todo		
-base/array.jl	1420	1420	append!	append!	todo		
-base/array.jl	1422	1428	append!	append!(a::Vector{T}, items::Union{AbstractVector{<:T},Tuple}) where T	todo		
-base/array.jl	1430	1430	append!	append!(a::AbstractVector, iter)	todo		
-base/array.jl	1431	1431	push!	push!(a::AbstractVector, iter...)	todo		
-base/array.jl	1432	1432	append!	append!(a::AbstractVector, iter...)	todo		
-base/array.jl	1434	1441	_append!	_append!(a::AbstractVector, ::Union{HasLength,HasShape}, iter)	todo		
-base/array.jl	1442	1447	_append!	_append!(a::AbstractVector, ::IteratorSize, iter)	todo		
-base/array.jl	1478	1478	prepend!	prepend!	todo		
-base/array.jl	1480	1493	prepend!	prepend!(a::Vector{T}, items::Union{AbstractVector{<:T},Tuple}) where T	todo		
-base/array.jl	1495	1495	prepend!	prepend!(a::AbstractVector, iter)	todo		
-base/array.jl	1496	1496	pushfirst!	pushfirst!(a::AbstractVector, iter...)	todo		
-base/array.jl	1497	1497	prepend!	prepend!(a::AbstractVector, iter...)	todo		
-base/array.jl	1499	1511	_prepend!	_prepend!(a::Vector, ::Union{HasLength,HasShape}, iter)	todo		
-base/array.jl	1512	1520	_prepend!	_prepend!(a::Vector, ::IteratorSize, iter)	todo		
-base/array.jl	1559	1574	resize!	resize!(a::Vector, nl_::Integer; first::Bool=false)	todo		
-base/array.jl	1610	1610	sizehint!	sizehint!	todo		
-base/array.jl	1612	1643	sizehint!	sizehint!(a::Vector, sz::Integer; first::Bool=false, shrink::Bool=true)	todo		
-base/array.jl	1647	1652	Core.kwcall	Core.kwcall(kwargs::NamedTuple{names}, ::typeof(sizehint!), a, sz) where names	todo		
-base/array.jl	1695	1702	pop!	pop!(a::Vector)	todo		
-base/array.jl	1736	1741	popat!	popat!(a::Vector, i::Integer)	todo		
-base/array.jl	1743	1751	popat!	popat!(a::Vector, i::Integer, default)	todo		
-base/array.jl	1772	1776	pushfirst!	pushfirst!(a::Vector{T}, item) where T	todo		
-base/array.jl	1777	1781	_pushfirst!	_pushfirst!(a::Vector{T}, item::T) where T	todo		
-base/array.jl	1784	1788	pushfirst!	pushfirst!(a::Vector{Any}, @nospecialize x)	todo		
-base/array.jl	1789	1797	pushfirst!	pushfirst!(a::Vector{Any}, @nospecialize x...)	todo		
-base/array.jl	1831	1838	popfirst!	popfirst!(a::Vector)	todo		
-base/array.jl	1861	1865	insert!	insert!(a::Vector{T}, i::Integer, item) where T	todo		
-base/array.jl	1866	1873	_insert!	_insert!(a::Vector{T}, i::Integer, item::T) where T	todo		
-base/array.jl	1894	1898	deleteat!	deleteat!(a::Vector, i::Integer)	todo		
-base/array.jl	1900	1909	deleteat!	deleteat!(a::Vector, r::AbstractUnitRange{<:Integer})	todo		
-base/array.jl	1940	1940	deleteat!	deleteat!(a::Vector, inds)	todo		
-base/array.jl	1941	1941	deleteat!	deleteat!(a::Vector, inds::AbstractVector)	todo		
-base/array.jl	1944	1944	push!	push!(::Nowhere, _)	todo		
-base/array.jl	1945	1945	_growend!	_growend!(::Nowhere, _)	todo		
-base/array.jl	1947	1954	_push_deleted!	_push_deleted!(dltd, a::Vector, ind)	todo		
-base/array.jl	1956	1963	_copy_item!	_copy_item!(a::Vector, p, q)	todo		
-base/array.jl	1965	1997	_deleteat!	_deleteat!(a::Vector, inds, dltd=Nowhere())	todo		
-base/array.jl	2000	2010	deleteat!	deleteat!(a::Vector, inds::AbstractVector{Bool})	todo		
-base/array.jl	2065	2081	splice!	splice!(a::Vector, i::Integer, ins=_default_splice)	todo		
-base/array.jl	2120	2146	splice!	splice!(a::Vector, r::AbstractUnitRange{<:Integer}, ins=_default_splice)	todo		
-base/array.jl	2148	2148	splice!	splice!(a::Vector, inds)	todo		
-base/array.jl	2150	2153	empty!	empty!(a::Vector)	todo		
-base/array.jl	2156	2167	cmp	cmp(a::Array{UInt8,1}, b::Array{UInt8,1})	todo		
-base/array.jl	2171	2186	==	==(a::Arr, b::Arr) where {Arr <: BitIntegerArray}	todo		
-base/array.jl	2188	2205	==	==(a::Arr, b::Arr) where Arr <: BitIntegerArray{1}	todo		
-base/array.jl	2248	2261	reverse	reverse(A::AbstractVector, start::Integer, stop::Integer=lastindex(A))	todo		
-base/array.jl	2266	2266	$f	$f(A::AbstractVector; dims::D=:) where {D}	todo		generated-loop: (f,_f) in ((:reverse,:_reverse), (:reverse!,:_reverse!))
-base/array.jl	2267	2267	$_f	$_f(A::AbstractVector, ::Colon)	todo		generated-loop: (f,_f) in ((:reverse,:_reverse), (:reverse!,:_reverse!))
-base/array.jl	2268	2268	$_f	$_f(A::AbstractVector, dim::Tuple{Integer})	todo		generated-loop: (f,_f) in ((:reverse,:_reverse), (:reverse!,:_reverse!))
-base/array.jl	2269	2272	$_f	$_f(A::AbstractVector, dim::Integer)	todo		generated-loop: (f,_f) in ((:reverse,:_reverse), (:reverse!,:_reverse!))
-base/array.jl	2276	2279	reverseind	reverseind(a::AbstractVector, i::Integer)	todo		
-base/array.jl	2283	2283	midpoint	midpoint(lo::T, hi::T) where T<:Integer	todo		
-base/array.jl	2284	2284	midpoint	midpoint(lo::Integer, hi::Integer)	todo		
-base/array.jl	2312	2328	reverse!	reverse!(v::AbstractVector, start::Integer, stop::Integer=lastindex(v))	todo		
-base/array.jl	2332	2332	vcat	vcat()	todo		
-base/array.jl	2333	2333	hcat	hcat()	todo		
-base/array.jl	2335	2343	hcat	hcat(V::Vector{T}...) where T	todo		
-base/array.jl	2344	2344	hcat	hcat(A::Vector...)	todo		
-base/array.jl	2346	2360	vcat	vcat(arrays::Vector{T}...) where T	todo		
-base/array.jl	2361	2361	vcat	vcat(A::Vector...)	todo		
-base/array.jl	2363	2363	_cat	_cat(n::Integer, x::Integer...)	todo		
-base/array.jl	2399	2399	findnext	findnext(A, start)	todo		
-base/array.jl	2436	2436	findfirst	findfirst(A)	todo		
-base/array.jl	2439	2439	findfirst	findfirst(A::AbstractArray)	todo		
-base/array.jl	2470	2481	findnext	findnext(testf::Function, A, start)	todo		
-base/array.jl	2518	2523	findfirst	findfirst(testf::Function, A)	todo		
-base/array.jl	2526	2527	findfirst	findfirst(testf::Function, A::Union{AbstractArray, AbstractString})	todo		
-base/array.jl	2529	2530	findfirst	findfirst(p::Union{Fix2{typeof(isequal),T},Fix2{typeof(==),T}}, r::OneTo) where {T<:Integer}	todo		
-base/array.jl	2532	2532	findfirst	findfirst(::typeof(iszero), ::OneTo)	todo		
-base/array.jl	2533	2533	findfirst	findfirst(::typeof(isone), r::OneTo)	todo		
-base/array.jl	2535	2539	findfirst	findfirst(p::Union{Fix2{typeof(isequal),T},Fix2{typeof(==),T}}, r::AbstractUnitRange{<:Integer}) where {T<:Integer}	todo		
-base/array.jl	2541	2547	findfirst	findfirst(p::Union{Fix2{typeof(isequal),T},Fix2{typeof(==),T}}, r::StepRange{T,S}) where {T,S}	todo		
-base/array.jl	2549	2549	findfirst	findfirst(::typeof(iszero), r::AbstractRange)	todo		
-base/array.jl	2550	2550	findfirst	findfirst(::typeof(isone), r::AbstractRange)	todo		
-base/array.jl	2586	2586	findprev	findprev(A, start)	todo		
-base/array.jl	2624	2624	findlast	findlast(A)	todo		
-base/array.jl	2627	2627	findlast	findlast(A::AbstractArray)	todo		
-base/array.jl	2666	2677	findprev	findprev(testf::Function, A, start)	todo		
-base/array.jl	2711	2716	findlast	findlast(testf::Function, A)	todo		
-base/array.jl	2719	2720	findlast	findlast(testf::Function, A::Union{AbstractArray, AbstractString})	todo		
-base/array.jl	2723	2726	findlast	findlast(p::Union{Fix2{typeof(isequal),<:Integer},Fix2{typeof(==),<:Integer},typeof(iszero),typeof(isone)}, r::AbstractUnitRange{<:Integer})	todo		
-base/array.jl	2728	2731	findlast	findlast(p::Union{Fix2{typeof(isequal),T},Fix2{typeof(==),T},typeof(iszero),typeof(isone)}, r::StepRange{T,S}) where {T,S}	todo		
-base/array.jl	2784	2787	findall	findall(testf::Function, A)	todo		
-base/array.jl	2791	2791	findall	findall(testf::F, A::AbstractArray) where {F<:Function}	todo		
-base/array.jl	2833	2835	findall	findall(A)	todo		
-base/array.jl	2838	2849	findall	findall(A::AbstractArray{Bool})	todo		
-base/array.jl	2851	2851	findall	findall(x::Bool)	todo		
-base/array.jl	2852	2852	findall	findall(testf::Function, x::Number)	todo		
-base/array.jl	2853	2853	findall	findall(p::Fix2{typeof(in)}, x::Number)	todo		
-base/array.jl	2887	2896	indexin	indexin(a, b::AbstractArray)	todo		
-base/array.jl	2898	2904	_findin	_findin(a::Union{AbstractArray, Tuple}, b::AbstractSet)	todo		
-base/array.jl	2905	2905	_findin	_findin(a::Union{AbstractArray, Tuple}, b)	todo		
-base/array.jl	2910	2950	_sortedfindin	_sortedfindin(v::Union{AbstractArray, Tuple}, w)	todo		
-base/array.jl	2952	2958	findall	findall(pred::Fix2{typeof(in),<:Union{Array{<:Real},Real}}, x::Array{<:Real})	todo		
-base/array.jl	2961	2961	findall	findall(pred::Fix2{typeof(in)}, x::AbstractArray)	todo		
-base/array.jl	2962	2962	findall	findall(pred::Fix2{typeof(in)}, x::Tuple)	todo		
-base/array.jl	2965	2974	indcopy	indcopy(sz::Dims, I::Vector)	todo		
-base/array.jl	2976	2986	indcopy	indcopy(sz::Dims, I::Tuple{Vararg{RangeIndex}})	todo		
-base/array.jl	3015	3025	filter	filter(f, a::Array{T, N}) where {T, N}	todo		
-base/array.jl	3027	3042	filter	filter(f, a::AbstractArray)	todo		
-base/array.jl	3061	3075	filter!	filter!(f, a::AbstractVector)	todo		
-base/array.jl	3100	3102	filter	filter(f)	todo		
-base/array.jl	3129	3129	keepat!	keepat!(a::Vector, inds)	todo		
-base/array.jl	3154	3154	keepat!	keepat!(a::Vector, m::AbstractVector{Bool})	todo		
-base/array.jl	3159	3167	_unique_filter!	_unique_filter!(pred::P, update!::U, state) where {P,U}	todo		
-base/array.jl	3169	3169	_grow_filter!	_grow_filter!(seen)	todo		
-base/array.jl	3170	3170	_shrink_filter!	_shrink_filter!(keep)	todo		
-base/array.jl	3172	3178	_grow!	_grow!(pred!, v::AbstractVector, itrs)	todo		
-base/array.jl	3180	3181	union!	union!(v::AbstractVector{T}, itrs...) where {T}	todo		
-base/array.jl	3183	3184	symdiff!	symdiff!(v::AbstractVector{T}, itrs...) where {T}	todo		
-base/array.jl	3186	3191	_shrink!	_shrink!(shrinker!::F, v::AbstractVector, itrs) where F	todo		
-base/array.jl	3193	3193	intersect!	intersect!(v::AbstractVector, itrs...)	todo		
-base/array.jl	3194	3194	setdiff!	setdiff!( v::AbstractVector, itrs...)	todo		
-base/array.jl	3196	3196	vectorfilter	vectorfilter(T::Type, f, v)	todo		
-base/array.jl	3198	3202	intersect	intersect(itr, itrs...)	todo		
-base/array.jl	3204	3208	setdiff	setdiff(itr, itrs...)	todo		
-base/array.jl	3210	3215	intersect	intersect(v::AbstractVector, r::AbstractRange)	todo		
-base/array.jl	3216	3216	intersect	intersect(r::AbstractRange, v::AbstractVector)	todo		
-base/array.jl	3219	3225	getindex	getindex(v::AbstractRange, i::Integer)	todo		
-base/array.jl	3233	3233	wrap	wrap	todo		
-base/array.jl	3236	3242	_wrap	_wrap(ref::MemoryRef{T}, dims::NTuple{N, Int}) where {T, N}	todo		
-base/array.jl	3244	3247	invalid_wrap_err	invalid_wrap_err(len, dims, proddims)	todo		
-base/array.jl	3249	3253	wrap	wrap(::Type{Array}, m::MemoryRef{T}, dims::NTuple{N, Integer}) where {T, N}	todo		
-base/array.jl	3255	3259	wrap	wrap(::Type{Array}, m::Memory{T}, dims::NTuple{N, Integer}) where {T, N}	todo		
-base/array.jl	3260	3264	wrap	wrap(::Type{Array}, m::MemoryRef{T}, l::Integer) where {T}	todo		
-base/array.jl	3265	3269	wrap	wrap(::Type{Array}, m::Memory{T}, l::Integer) where {T}	todo		
-base/array.jl	3270	3274	wrap	wrap(::Type{Array}, m::Memory{T}) where {T}	todo		
+base/array.jl	14	14	DimensionMismatch	DimensionMismatch()	modelled	arrayops-dequeue	
+base/array.jl	132	134	_safeindex	_safeindex(ex)	modelled	array-safeindex-macro-escape	JuliaLean.base.array.Completion2.safeindexMacro. Open source-order, error/state, identity or argument invariant.
+base/array.jl	135	156	_safeindex	_safeindex(ex)	modelled	array-raw-safeindex-read-and-bounds	JuliaLean.base.array.Completion2.safeindexRaw. Open source-order, error/state, identity or argument invariant.
+base/array.jl	158	158	vect	vect()	modelled	array-empty-literal	
+base/array.jl	159	166	vect	vect(X::T...) where T	modelled	array-vect-homogeneous	JuliaLean.base.array.Models1Group13.vectHomogeneous. New concrete binding of existing vectTyped to checked mutableAllocate and safeSetindex1057/mutableMemoryref/memoryWrite. Covers native tuple size and type/size allocation errors without a success hypothesis; static alpha is the selected element type. No raw uninitialized cell is observed. Selected homogeneous dispatch is nonempty; nullary public dispatch stays source158. Complete source composition at the recorded existing runtime boundary; property remains todo.
+base/array.jl	183	186	vect	vect(X...)	modelled	array-promoted-literal-arguments	JuliaLean.base.array.Completion3.vectPromoted. Open source-order, error/state, identity or argument invariant.
+base/array.jl	188	188	asize_from	asize_from(a::Array, n)	modelled	array-dimension-suffix-empty	JuliaLean.base.array.Completion4.asizeFrom. Open source-order, error/state, identity or argument invariant.
+base/array.jl	190	190	allocatedinline	allocatedinline(@nospecialize T::Type)	modelled	multidimcov-isbitsunion-many-members	
+base/array.jl	206	206	isbitsunion	isbitsunion(u::Type)	modelled	array-isbitsunion-small	
+base/array.jl	208	208	unsetindex!	unsetindex!(A::Array, i::Integer)	modelled	array-unset-integer-conversion-failures	JuliaLean.base.array.Completion3.unsetInteger. Open source-order, error/state, identity or argument invariant.
+base/array.jl	209	214	unsetindex!	unsetindex!(A::Array, i::Int)	modelled	arrayops-deleteat-mask	
+base/array.jl	218	218	elsize	elsize(::Type{A}) where {T,A<:Array{T}}	modelled	array-elsize-array-runtime	JuliaLean.base.array.Models1Group13.elsizeArrayRuntime. Composes existing runtime_internals.alignedSizeof, uniontypeLayout and datatypeAlignment over their established TypeOps/Core/C/RefValue interfaces. RefValue allocation/index semantics and native metadata remain explicit existing boundaries, not assumed-correct Base callbacks. Independent minimal-padding and full error/state/divergence statement. Complete source composition at the recorded existing runtime boundary; property remains todo.
+base/array.jl	219	225	elsize	elsize(::Type{Ptr{T}}) where T	modelled	array-elsize-ptr-runtime	JuliaLean.base.array.Models1Group13.elsizePtrRuntime. Binds existing elsizePtr to actual datatypeAlignment and alignInt; preserves Any fast path, non-DataType Core.sizeof(Any) action, payload-before-alignment ordering, every native error/state/divergence. Existing TypeOps runtime boundary is explicit. Complete source composition at the recorded existing runtime boundary; property remains todo.
+base/array.jl	226	226	elsize	elsize(::Type{Union{}})	modelled	multidimcov-array-v2-elsize-sizeof	
+base/array.jl	227	227	elsize	elsize(::Type{Union{}}, slurp...)	modelled	multidimcov-array-v2-elsize-sizeof	
+base/array.jl	229	229	sizeof	sizeof(a::Array)	modelled	array-sizeof-array-runtime	JuliaLean.base.array.Models1Group13.sizeofArrayRuntime. Composes installed native size/length paths, complete elsizeArrayRuntime composition, and wrapping sizeofArray multiplication. Header projection retains all dimensions and native rank/capacity invariants; no assigned-cell or no-overflow premise. Includes zero-element native errors and omitted union selector bytes. Complete source composition at the recorded existing runtime boundary; property remains todo.
+base/array.jl	231	237	isassigned	isassigned(a::Array, i::Int...)	modelled	array-isassigned-array-all-indices	JuliaLean.base.array.Models1Group13.assignedArray. Concrete installed essentials/abstractarray bounds and sub2ind composition for every native Int tuple arity; preserves bounds-before-linearization, shared memory offsets and read-only state. Reuses GenericMemoryRef isassigned and adds the exact necessary local C assignment projection (boxed/inline-pointer null test; pointer-free always assigned). Native rank/window/size representation invariants; existing cell/native boundary, no correctness law. Complete source composition at the recorded existing runtime boundary; property remains todo.
+base/array.jl	239	244	isassigned	isassigned(a::Vector, i::Int)	modelled	arrayops-deleteat-mask	
+base/array.jl	259	264	unsafe_copyto!	unsafe_copyto!(dest::Ptr{T}, src::Ptr{T}, n) where T	modelled	array-pointer-copy-layout-failures	JuliaLean.base.array.Completion3.unsafeCopyPointer. Open source-order, error/state, identity or argument invariant.
+base/array.jl	276	280	unsafe_copyto!	unsafe_copyto!(dest::Array, doffs, src::Array, soffs, n)	todo		Missing callee composition: unsafe_copyto!(::GenericMemoryRef, ::GenericMemoryRef, n) and _copyto_impl! over live headers, all Integer offset/count types and mixed element types. The installed concrete native copy path fixes a common element type and native Int operands; the older generic bodies still expose fixed Base copy operations as callbacks.
+base/array.jl	288	289	copyto!	copyto!(dest::Array, doffs::Integer, src::Array, soffs::Integer, n::Integer)	todo		Missing callee composition: unsafe_copyto!(::GenericMemoryRef, ::GenericMemoryRef, n) and _copyto_impl! over live headers, all Integer offset/count types and mixed element types. The installed concrete native copy path fixes a common element type and native Int operands; the older generic bodies still expose fixed Base copy operations as callbacks.
+base/array.jl	290	291	copyto!	copyto!(dest::Array, doffs::Integer, src::Memory, soffs::Integer, n::Integer)	todo		Missing callee composition: unsafe_copyto!(::GenericMemoryRef, ::GenericMemoryRef, n) and _copyto_impl! over live headers, all Integer offset/count types and mixed element types. The installed concrete native copy path fixes a common element type and native Int operands; the older generic bodies still expose fixed Base copy operations as callbacks.
+base/array.jl	292	293	copyto!	copyto!(dest::Memory, doffs::Integer, src::Array, soffs::Integer, n::Integer)	todo		Missing callee composition: unsafe_copyto!(::GenericMemoryRef, ::GenericMemoryRef, n) and _copyto_impl! over live headers, all Integer offset/count types and mixed element types. The installed concrete native copy path fixes a common element type and native Int operands; the older generic bodies still expose fixed Base copy operations as callbacks.
+base/array.jl	296	297	copyto!	copyto!(dest::Array{T}, doffs::Integer, src::Array{T}, soffs::Integer, n::Integer) where {T}	todo		Missing callee composition: unsafe_copyto!(::GenericMemoryRef, ::GenericMemoryRef, n) and _copyto_impl! over live headers, all Integer offset/count types and mixed element types. The installed concrete native copy path fixes a common element type and native Int operands; the older generic bodies still expose fixed Base copy operations as callbacks.
+base/array.jl	299	315	_copyto_impl!	_copyto_impl!(dest::Union{Array,Memory}, doffs::Integer, src::Union{Array,Memory}, soffs::Integer, n::Integer)	todo		Missing callee composition: unsafe_copyto!(::GenericMemoryRef, ::GenericMemoryRef, n) and _copyto_impl! over live headers, all Integer offset/count types and mixed element types. The installed concrete native copy path fixes a common element type and native Int operands; the older generic bodies still expose fixed Base copy operations as callbacks.
+base/array.jl	321	321	_throw_argerror	_throw_argerror(s)	modelled	array-throw-argument-state	JuliaLean.base.array.throwArgument. Source-mirrored generic dispatch; open exception/effect or argument/identity invariant.
+base/array.jl	323	323	_copyto2arg!	_copyto2arg!(dest, src)	modelled	array-copyto2arg-arguments	JuliaLean.base.array.Completion3.copyto2arg. Open source-order, error/state, identity or argument invariant.
+base/array.jl	325	325	copyto!	copyto!(dest::Array, src::Array)	todo		Missing callee composition: unsafe_copyto!(::GenericMemoryRef, ::GenericMemoryRef, n) and _copyto_impl! over live headers, all Integer offset/count types and mixed element types. The installed concrete native copy path fixes a common element type and native Int operands; the older generic bodies still expose fixed Base copy operations as callbacks.
+base/array.jl	326	326	copyto!	copyto!(dest::Array, src::Memory)	todo		Missing callee composition: unsafe_copyto!(::GenericMemoryRef, ::GenericMemoryRef, n) and _copyto_impl! over live headers, all Integer offset/count types and mixed element types. The installed concrete native copy path fixes a common element type and native Int operands; the older generic bodies still expose fixed Base copy operations as callbacks.
+base/array.jl	327	327	copyto!	copyto!(dest::Memory, src::Array)	todo		Missing callee composition: unsafe_copyto!(::GenericMemoryRef, ::GenericMemoryRef, n) and _copyto_impl! over live headers, all Integer offset/count types and mixed element types. The installed concrete native copy path fixes a common element type and native Int operands; the older generic bodies still expose fixed Base copy operations as callbacks.
+base/array.jl	330	330	copyto!	copyto!(dest::Array{T}, src::Array{T}) where {T}	modelled	array-copyto-array-array-native-control	JuliaLean.base.array.Models1Group13.nativeCopyArrayArray. Complete Base composition at existing Core/C runtime interfaces: actual firstindex/length/bounds/Int conversions, physical reference arithmetic, genericmemory.unsafeCopytoRefs bits/non-bits dispatch, isbitstype, pointer conversion, aligned_sizeof and local native-Int cmem.memmove wrapper. Shared byte heap admits arbitrary byte-offset aliases. Independent complete protocol statement covers empty/short cases, both native branches, byte counts/addresses, all errors, partial state, divergence and GC-end order without a native correctness law. Native C/GC behavior remains explicit; general Integer and mixed-element methods remain unclaimed. Complete source composition at the recorded existing runtime boundary; property remains todo.
+base/array.jl	331	331	copyto!	copyto!(dest::Array{T}, src::Memory{T}) where {T}	modelled	array-copyto-array-memory-native-control	JuliaLean.base.array.Models1Group13.nativeCopyArrayMemory. Complete Base composition at existing Core/C runtime interfaces: actual firstindex/length/bounds/Int conversions, physical reference arithmetic, genericmemory.unsafeCopytoRefs bits/non-bits dispatch, isbitstype, pointer conversion, aligned_sizeof and local native-Int cmem.memmove wrapper. Shared byte heap admits arbitrary byte-offset aliases. Independent complete protocol statement covers empty/short cases, both native branches, byte counts/addresses, all errors, partial state, divergence and GC-end order without a native correctness law. Native C/GC behavior remains explicit; general Integer and mixed-element methods remain unclaimed. Complete source composition at the recorded existing runtime boundary; property remains todo.
+base/array.jl	332	332	copyto!	copyto!(dest::Memory{T}, src::Array{T}) where {T}	modelled	array-copyto-memory-array-native-control	JuliaLean.base.array.Models1Group13.nativeCopyMemoryArray. Complete Base composition at existing Core/C runtime interfaces: actual firstindex/length/bounds/Int conversions, physical reference arithmetic, genericmemory.unsafeCopytoRefs bits/non-bits dispatch, isbitstype, pointer conversion, aligned_sizeof and local native-Int cmem.memmove wrapper. Shared byte heap admits arbitrary byte-offset aliases. Independent complete protocol statement covers empty/short cases, both native branches, byte counts/addresses, all errors, partial state, divergence and GC-end order without a native correctness law. Native C/GC behavior remains explicit; general Integer and mixed-element methods remain unclaimed. Complete source composition at the recorded existing runtime boundary; property remains todo.
+base/array.jl	368	372	fill!	fill!(A::AbstractArray{T}, x) where T	modelled	array-fill-checked-errors	JuliaLean.base.array.Completion.fillChecked. Source-mirrored generic dispatch; open exception/effect or argument/identity invariant.
+base/array.jl	373	378	_fill!	_fill!(A::AbstractArray{T}, x::T) where T	modelled	array-fill-typed-identity-and-errors	JuliaLean.base.array.fillTyped. Source-mirrored generic dispatch; open exception/effect or argument/identity invariant.
+base/array.jl	391	399	copy	copy(a::Array)	modelled	array-copy-array-native-shape-protocol	JuliaLean.base.array.Models1Group13.nativeOrdinaryCopy. Complete installed copyArray composition over a rank-typed mutable header map. Captures the initial reference, reads length before and after native allocation, and reads size after copying. Source Memory metadata selects the actual checked allocator; same-T unsafeCopytoRefs closes both native branches. Core header identity is followed by concrete field installation preserving other native effects. Independent mathematical counts, live observations and pointwise header/frame invariant cover every error, partial state and divergence without native correctness, header-preservation, successful-allocation or freshness laws. Frozen earlier models/properties stay unchanged. Complete source composition at the recorded existing runtime boundary; property remains todo.
+base/array.jl	402	410	_take!	_take!(dst::Array{T,N}, src::Array{T,N}) where {T,N}	modelled	array-take-aliases-and-frame	JuliaLean.base.array.Completion2.takeFields. Open source-order, error/state, identity or argument invariant.
+base/array.jl	414	414	similar	similar(a::Vector{T}) where {T}	modelled	array-similar-414-native-protocol	JuliaLean.base.array.Models1Group13.nativeSimilar414. Actual installed similar/size/Array undef/Memory allocation callees are composed at the existing raw allocation and Core header identity boundaries. Native payloads remain uninitialized; no all-none surrogate, success assumption, freshness law or ordinary-constructor callback is introduced. Independent mathematical dimension/count/byte checks and exact requested shape/type/rank constrain all errors, partial native states and divergence. Scalar dimensions and tuples retain native size limits; source421 discards the old rank. Complete source composition at the recorded existing runtime boundary; property remains todo.
+base/array.jl	415	415	similar	similar(a::Matrix{T}) where {T}	modelled	array-similar-415-native-protocol	JuliaLean.base.array.Models1Group13.nativeSimilar415. Actual installed similar/size/Array undef/Memory allocation callees are composed at the existing raw allocation and Core header identity boundaries. Native payloads remain uninitialized; no all-none surrogate, success assumption, freshness law or ordinary-constructor callback is introduced. Independent mathematical dimension/count/byte checks and exact requested shape/type/rank constrain all errors, partial native states and divergence. Scalar dimensions and tuples retain native size limits; source421 discards the old rank. Complete source composition at the recorded existing runtime boundary; property remains todo.
+base/array.jl	416	416	similar	similar(a::Vector{T}, S::Type) where {T}	modelled	array-similar-416-native-protocol	JuliaLean.base.array.Models1Group13.nativeSimilar416. Actual installed similar/size/Array undef/Memory allocation callees are composed at the existing raw allocation and Core header identity boundaries. Native payloads remain uninitialized; no all-none surrogate, success assumption, freshness law or ordinary-constructor callback is introduced. Independent mathematical dimension/count/byte checks and exact requested shape/type/rank constrain all errors, partial native states and divergence. Scalar dimensions and tuples retain native size limits; source421 discards the old rank. Complete source composition at the recorded existing runtime boundary; property remains todo.
+base/array.jl	417	417	similar	similar(a::Matrix{T}, S::Type) where {T}	modelled	array-similar-417-native-protocol	JuliaLean.base.array.Models1Group13.nativeSimilar417. Actual installed similar/size/Array undef/Memory allocation callees are composed at the existing raw allocation and Core header identity boundaries. Native payloads remain uninitialized; no all-none surrogate, success assumption, freshness law or ordinary-constructor callback is introduced. Independent mathematical dimension/count/byte checks and exact requested shape/type/rank constrain all errors, partial native states and divergence. Scalar dimensions and tuples retain native size limits; source421 discards the old rank. Complete source composition at the recorded existing runtime boundary; property remains todo.
+base/array.jl	418	418	similar	similar(a::Array{T}, m::Int) where {T}	modelled	array-similar-418-native-protocol	JuliaLean.base.array.Models1Group13.nativeSimilar418. Actual installed similar/size/Array undef/Memory allocation callees are composed at the existing raw allocation and Core header identity boundaries. Native payloads remain uninitialized; no all-none surrogate, success assumption, freshness law or ordinary-constructor callback is introduced. Independent mathematical dimension/count/byte checks and exact requested shape/type/rank constrain all errors, partial native states and divergence. Scalar dimensions and tuples retain native size limits; source421 discards the old rank. Complete source composition at the recorded existing runtime boundary; property remains todo.
+base/array.jl	419	419	similar	similar(a::Array, T::Type, dims::Dims{N}) where {N}	modelled	array-similar-419-native-protocol	JuliaLean.base.array.Models1Group13.nativeSimilar419. Actual installed similar/size/Array undef/Memory allocation callees are composed at the existing raw allocation and Core header identity boundaries. Native payloads remain uninitialized; no all-none surrogate, success assumption, freshness law or ordinary-constructor callback is introduced. Independent mathematical dimension/count/byte checks and exact requested shape/type/rank constrain all errors, partial native states and divergence. Scalar dimensions and tuples retain native size limits; source421 discards the old rank. Complete source composition at the recorded existing runtime boundary; property remains todo.
+base/array.jl	420	420	similar	similar(a::Array{T}, dims::Dims{N}) where {T,N}	modelled	array-similar-420-native-protocol	JuliaLean.base.array.Models1Group13.nativeSimilar420. Actual installed similar/size/Array undef/Memory allocation callees are composed at the existing raw allocation and Core header identity boundaries. Native payloads remain uninitialized; no all-none surrogate, success assumption, freshness law or ordinary-constructor callback is introduced. Independent mathematical dimension/count/byte checks and exact requested shape/type/rank constrain all errors, partial native states and divergence. Scalar dimensions and tuples retain native size limits; source421 discards the old rank. Complete source composition at the recorded existing runtime boundary; property remains todo.
+base/array.jl	421	421	similar	similar(::Type{Array{T,N}}, dims::Dims) where {T,N}	modelled	array-similar-421-native-protocol	JuliaLean.base.array.Models1Group13.nativeSimilar421. Actual installed similar/size/Array undef/Memory allocation callees are composed at the existing raw allocation and Core header identity boundaries. Native payloads remain uninitialized; no all-none surrogate, success assumption, freshness law or ordinary-constructor callback is introduced. Independent mathematical dimension/count/byte checks and exact requested shape/type/rank constrain all errors, partial native states and divergence. Scalar dimensions and tuples retain native size limits; source421 discards the old rank. Complete source composition at the recorded existing runtime boundary; property remains todo.
+base/array.jl	445	461	getindex	getindex(::Type{T}, vals...) where T	modelled	array-typed-literal-allocation-failures	JuliaLean.base.array.Completion6.typedLiteral. Open source-order, error/state, identity or argument invariant.
+base/array.jl	463	470	getindex	getindex(::Type{Any}, @nospecialize vals...)	modelled	array-any-literal-values	JuliaLean.base.array.Models1Group13.anyValues. Fixed native boxed layout, checked mutableAllocate, safeSetindex1055 and memoryWrite give actual source allocation/store order with no conversion. Full selected nonempty tuple domain includes native byte-size rejection before mutation. Existing471 handles empty dispatch. Independent exact-content/freshness/frame/error property. Complete source composition at the recorded existing runtime boundary; property remains todo.
+base/array.jl	471	471	getindex	getindex(::Type{Any})	modelled	array-empty-literal	
+base/array.jl	473	480	fill!	fill!(a::Union{Array{UInt8}, Array{Int8}}, x::Integer)	todo		Missing callee composition: convert(eltype(a), x) followed by cmem.memset for every Integer source type, including a converted result of a different Julia type and the Cint conversion. The installed native byte-fill path has a same-element-type scalar.
+base/array.jl	482	482	to_dim	to_dim(d::Integer)	modelled	multidimcov-array-v2-fill-dims	
+base/array.jl	483	483	to_dim	to_dim(d::OneTo)	modelled	array-one-to-dimension-endpoint	JuliaLean.base.array.Completion2.toDimOneTo. Open source-order, error/state, identity or argument invariant.
+base/array.jl	581	581	fill	fill	excluded		no-behaviour: generic function declaration without a method body.
+base/array.jl	583	583	fill	fill(v, dims::DimOrInd...)	modelled	array-fill-varargs-arguments	JuliaLean.base.array.Completion3.fillVarargs. Open source-order, error/state, identity or argument invariant.
+base/array.jl	584	584	fill	fill(v, dims::NTuple{N, Union{Integer, OneTo}}) where {N}	modelled	array-fill-mixed-dimensions	JuliaLean.base.array.Completion3.fillMixedDims. Open source-order, error/state, identity or argument invariant.
+base/array.jl	585	585	fill	fill(v, dims::NTuple{N, Integer}) where {N}	todo		Missing callee composition: Array{T,N}(undef, dims) for general Integer tuples followed by live fill! dispatch, including UInt8/Int8 memset and non-byte scalar stores. Existing native scalar fill covers only the empty dimension tuple.
+base/array.jl	586	586	fill	fill(v, dims::NTuple{N, DimOrInd}) where {N}	modelled	array-fill-axes-allocation-errors	JuliaLean.base.array.Completion4.fillAxes. Open source-order, error/state, identity or argument invariant.
+base/array.jl	587	587	fill	fill(v, dims::Tuple{})	modelled	array-fill-scalar-native	JuliaLean.base.array.Models1Group13.nativeFillScalar. Full selected scalar/empty-tuple domain via exhaustive UInt8/Int8/other type representation. Actual nativeArrayUndef, fillBang/fillTyped, eachindex/OneTo iteration and scalar setters close the generic path; actual fillBytes and local cmem.memset close the byte paths. Only existing allocation/Core-reference/Core-store/GC/C ABI boundaries remain. Independent singleton request observes Core memoryrefnew at index1/false, then the original-value store through its returned reference and post-operation world; byte paths use signed Cint and the actual GC sequence. All native effects/errors/divergence are retained without a success or correctness law, and no disputed false-flag capacity rule is asserted. Complete source composition at the recorded existing runtime boundary; property remains todo.
+base/array.jl	608	608	zeros	zeros	excluded		no-behaviour: generic function declaration without a method body.
+base/array.jl	629	629	ones	ones	excluded		no-behaviour: generic function declaration without a method body.
+base/array.jl	633	633	$fname	$fname(dims::DimOrInd...)	modelled	array-constant-varargs-arguments	JuliaLean.base.array.Completion3.constantVarargs. Open source-order, error/state, identity or argument invariant.
+base/array.jl	634	634	$fname	$fname(::Type{T}, dims::DimOrInd...) where {T}	modelled	array-constant-typed-varargs-arguments	JuliaLean.base.array.Completion3.constantTypedVarargs. Open source-order, error/state, identity or argument invariant.
+base/array.jl	635	635	$fname	$fname(dims::Tuple{Vararg{DimOrInd}})	modelled	array-constant-default-float64	JuliaLean.base.array.Completion3.constantDefaultType. Open source-order, error/state, identity or argument invariant.
+base/array.jl	636	636	$fname	$fname(::Type{T}, dims::NTuple{N, Union{Integer, OneTo}}) where {T,N}	modelled	array-constant-mixed-dimensions	JuliaLean.base.array.Completion3.constantMixedDims. Open source-order, error/state, identity or argument invariant.
+base/array.jl	637	641	$fname	$fname(::Type{T}, dims::NTuple{N, Integer}) where {T,N}	todo		Missing callee composition: Array{T,N}(undef, dims) for general Integer tuples followed by live fill! dispatch, including UInt8/Int8 memset and non-byte scalar stores. Existing native scalar fill covers only the empty dimension tuple.
+base/array.jl	642	646	$fname	$fname(::Type{T}, dims::Tuple{}) where {T}	todo		Missing callee composition: Array{T,N}(undef, dims) for general Integer tuples followed by live fill! dispatch, including UInt8/Int8 memset and non-byte scalar stores. Existing native scalar fill covers only the empty dimension tuple.
+base/array.jl	647	651	$fname	$fname(::Type{T}, dims::NTuple{N, DimOrInd}) where {T,N}	modelled	array-constant-axes-element-errors	JuliaLean.base.array.Completion4.constantAxes. Open source-order, error/state, identity or argument invariant.
+base/array.jl	657	657	convert	convert(::Type{T}, a::AbstractArray) where {T<:Array}	modelled	array-convert-checked-identity-and-errors	JuliaLean.base.array.Completion.convertChecked. Source-mirrored generic dispatch; open exception/effect or argument/identity invariant.
+base/array.jl	659	659	promote_rule	promote_rule(a::Type{Array{T,n}}, b::Type{Array{S,n}}) where {T,n,S}	modelled	array-promote-array-preserves-matching-container	JuliaLean.base.array.Completion4.promoteArrayRule. Open source-order, error/state, identity or argument invariant.
+base/array.jl	664	664	Array{T,N}	Array{T,N}(x::AbstractArray{S,N}) where {T,N,S}	todo		Missing callee composition: Array{T,N}(undef, size(x)) with the complete user-array size result and copyto_axcheck! native-destination axis checking/copying. The older constructor body accepts a fixed-Base allocator callback.
+base/array.jl	665	665	AbstractArray{T,N}	AbstractArray{T,N}(A::AbstractArray{S,N}) where {T,N,S}	modelled	array-abstract-constructor-similar-errors	JuliaLean.base.array.Completion7.abstractArrayConstructor. Open source-order, error/state, identity or argument invariant.
+base/array.jl	684	684	collect	collect(::Type{T}, itr) where {T}	modelled	array-typed-collect-protocol	JuliaLean.base.array.Completion2.collectTyped. Open source-order, error/state, identity or argument invariant.
+base/array.jl	686	687	_collect	_collect(::Type{T}, itr, isz::Union{HasLength,HasShape}) where {T}	modelled	array-sized-collect-length-failures	JuliaLean.base.array.Completion6.collectSized. Open source-order, error/state, identity or argument invariant.
+base/array.jl	688	694	_collect	_collect(::Type{T}, itr, isz::SizeUnknown) where T	modelled	array-unknown-collect-allocation-failures	JuliaLean.base.array.Completion6.collectUnknown. Open source-order, error/state, identity or argument invariant.
+base/array.jl	697	697	_similar_for	_similar_for(c, ::Type{T}, itr, isz, shp) where {T}	modelled	array-similar-generic-arguments	JuliaLean.base.array.similarForGeneric. Source-mirrored generic dispatch; open exception/effect or argument/identity invariant.
+base/array.jl	699	699	_similar_shape	_similar_shape(itr, ::SizeUnknown)	modelled	array-collect-known-eltype	
+base/array.jl	700	700	_similar_shape	_similar_shape(itr, ::HasLength)	modelled	array-similar-length-errors	JuliaLean.base.array.Completion.similarShapeLength. Source-mirrored generic dispatch; open exception/effect or argument/identity invariant.
+base/array.jl	701	701	_similar_shape	_similar_shape(itr, ::HasShape)	modelled	array-similar-axes-protocol	JuliaLean.base.array.Completion.similarShapeAxes. Source-mirrored generic dispatch; open exception/effect or argument/identity invariant.
+base/array.jl	703	704	_similar_for	_similar_for(c::AbstractArray, ::Type{T}, itr, ::SizeUnknown, ::Nothing) where {T}	modelled	array-similar-unknown-arguments	JuliaLean.base.array.similarForUnknown. Source-mirrored generic dispatch; open exception/effect or argument/identity invariant.
+base/array.jl	705	706	_similar_for	_similar_for(c::AbstractArray, ::Type{T}, itr, ::HasLength, len::Integer) where {T}	modelled	array-similar-length-arguments	JuliaLean.base.array.similarForLength. Source-mirrored generic dispatch; open exception/effect or argument/identity invariant.
+base/array.jl	707	708	_similar_for	_similar_for(c::AbstractArray, ::Type{T}, itr, ::HasShape, axs) where {T}	modelled	array-similar-axes-arguments	JuliaLean.base.array.similarForAxes. Source-mirrored generic dispatch; open exception/effect or argument/identity invariant.
+base/array.jl	711	711	_array_for_inner	_array_for_inner(::Type{T}, ::SizeUnknown, ::Nothing) where {T}	modelled	array-for-unknown-empty	JuliaLean.base.array.Models1Group13.arrayForUnknownRuntime. Internal helper binds existing arrayForUnknown to checked mutableAllocate at native zero length. No uninitialized cell escapes for bits/union layouts; existing native allocation metadata/type-error boundary preserved. No invented public contract. A narrow independent full-domain todo invariant supplies coverage without asserting complete functional correctness. Complete source composition at the recorded existing runtime boundary; property remains todo.
+base/array.jl	712	712	_array_for_inner	_array_for_inner(::Type{T}, ::HasLength, len::Integer) where {T}	modelled	array-for-length-conversion-failures	JuliaLean.base.array.Completion4.arrayForLength. Open source-order, error/state, identity or argument invariant.
+base/array.jl	713	713	_array_for_inner	_array_for_inner(::Type{T}, ::HasShape{N}, axs) where {T,N}	modelled	array-for-shape-arguments	JuliaLean.base.array.Completion4.arrayForShape. Open source-order, error/state, identity or argument invariant.
+base/array.jl	716	716	_array_for	_array_for(::Type{T}, itr, isz) where {T}	modelled	array-for-protocol	JuliaLean.base.array.Completion2.arrayFor. Open source-order, error/state, identity or argument invariant.
+base/array.jl	771	771	collect	collect(itr)	modelled	array-collect-traits-protocol	JuliaLean.base.array.Completion2.collect. Open source-order, error/state, identity or argument invariant.
+base/array.jl	773	773	collect	collect(A::AbstractArray)	modelled	array-collect-array-axes-protocol	JuliaLean.base.array.Completion2.collectArray. Open source-order, error/state, identity or argument invariant.
+base/array.jl	775	775	collect_similar	collect_similar(cont, itr)	modelled	array-collect-similar-protocol	JuliaLean.base.array.Completion2.collectSimilar. Open source-order, error/state, identity or argument invariant.
+base/array.jl	777	778	_collect	_collect(cont, itr, ::HasEltype, isz::Union{HasLength,HasShape})	modelled	array-known-sized-eltype-errors	JuliaLean.base.array.Completion2.collectKnownSized. Open source-order, error/state, identity or argument invariant.
+base/array.jl	780	786	_collect	_collect(cont, itr, ::HasEltype, isz::SizeUnknown)	modelled	array-known-unknown-eltype-errors	JuliaLean.base.array.Completion2.collectKnownUnknown. Open source-order, error/state, identity or argument invariant.
+base/array.jl	788	792	_collect_indices	_collect_indices(::Tuple{}, A)	todo		Missing callee composition: Array undef allocation and copyto_unaliased!/CartesianIndices copyto! at the full scalar/OneTo/custom-axis collection boundary. Older bodies leave the fixed native allocator and copying paths as callbacks.
+base/array.jl	793	797	_collect_indices	_collect_indices(indsA::Tuple{Vararg{OneTo}}, A)	todo		Missing callee composition: Array undef allocation and copyto_unaliased!/CartesianIndices copyto! at the full scalar/OneTo/custom-axis collection boundary. Older bodies leave the fixed native allocator and copying paths as callbacks.
+base/array.jl	798	801	_collect_indices	_collect_indices(indsA, A)	todo		Missing callee composition: Array undef allocation and copyto_unaliased!/CartesianIndices copyto! at the full scalar/OneTo/custom-axis collection boundary. Older bodies leave the fixed native allocator and copying paths as callbacks.
+base/array.jl	805	815	_iterator_upper_bound	_iterator_upper_bound(itr)	modelled	array-iterator-upper-bound-failure	JuliaLean.base.array.Models1Group13.iteratorUpperBoundRuntime. Internal source-shaped loop uses actual essentials.inferencebarrier(nothing) and dynamic Bool check. Existing iterators.Exec iteration interface retains arbitrary state, exceptions, effects and divergence without a finite-rank/fuel restriction. Empty initial result throws nothing; nonempty reaches TypeError. The documented value/state-pair protocol is the existing interface boundary; malformed custom iterate return objects/getfield failures are not represented. No new callable correctness law or public contract. A narrow independent full-domain todo invariant supplies coverage without asserting complete functional correctness. Complete source composition at the recorded existing runtime boundary; property remains todo.
+base/array.jl	821	831	default_eltype	default_eltype(itr)	todo		Missing callee composition: standalone default_eltype expansion and its Base._return_type/promote_typejoin_union compiler/type-runtime operations, followed by complete collect/grow/widen dispatch. Existing findall-specific compositions expose type-runtime boundaries and do not yet supply this general collector model.
+base/array.jl	833	853	collect	collect(itr::Generator)	todo		Missing callee composition: standalone default_eltype expansion and its Base._return_type/promote_typejoin_union compiler/type-runtime operations, followed by complete collect/grow/widen dispatch. Existing findall-specific compositions expose type-runtime boundaries and do not yet supply this general collector model.
+base/array.jl	855	856	_collect	_collect(c, itr, ::EltypeUnknown, isz::SizeUnknown)	todo		Missing callee composition: standalone default_eltype expansion and its Base._return_type/promote_typejoin_union compiler/type-runtime operations, followed by complete collect/grow/widen dispatch. Existing findall-specific compositions expose type-runtime boundaries and do not yet supply this general collector model.
+base/array.jl	858	873	_collect	_collect(c, itr, ::EltypeUnknown, isz::Union{HasLength,HasShape})	todo		Missing callee composition: standalone default_eltype expansion and its Base._return_type/promote_typejoin_union compiler/type-runtime operations, followed by complete collect/grow/widen dispatch. Existing findall-specific compositions expose type-runtime boundaries and do not yet supply this general collector model.
+base/array.jl	875	879	collect_to_with_first!	collect_to_with_first!(dest::AbstractArray, v1, itr, st)	modelled	array-collect-first-linear-errors	JuliaLean.base.array.Completion4.collectWithFirstArray. Open source-order, error/state, identity or argument invariant.
+base/array.jl	881	884	collect_to_with_first!	collect_to_with_first!(dest, v1, itr, st)	modelled	array-collect-with-first-push-errors	JuliaLean.base.array.Completion2.collectWithFirst. Open source-order, error/state, identity or argument invariant.
+base/array.jl	886	893	setindex_widen_up_to	setindex_widen_up_to(dest::AbstractArray{T}, el, i) where T	modelled	array-widen-type-join-errors	JuliaLean.base.array.Completion4.setindexWiden. Open source-order, error/state, identity or argument invariant.
+base/array.jl	895	912	collect_to!	collect_to!(dest::AbstractArray{T}, itr, offs, st) where T	modelled	array-collect-to-iteration-error	JuliaLean.base.array.Completion2.collectToLoop. Open source-order, error/state, identity or argument invariant.
+base/array.jl	914	920	grow_to!	grow_to!(dest, itr)	modelled	array-grow-first-empty-and-errors	JuliaLean.base.array.Completion2.growFirst. Open source-order, error/state, identity or argument invariant.
+base/array.jl	922	933	push_widen	push_widen(dest, el)	modelled	array-push-widen-eltype-errors	JuliaLean.base.array.Completion3.pushWiden. Open source-order, error/state, identity or argument invariant.
+base/array.jl	935	949	grow_to!	grow_to!(dest, itr, st)	modelled	array-grow-to-type-discovery-error	JuliaLean.base.array.Completion2.growTo. Open source-order, error/state, identity or argument invariant.
+base/array.jl	972	972	getindex	getindex	excluded		no-behaviour: generic function declaration without a method body.
+base/array.jl	974	978	getindex	getindex(A::Array, i1::Int, i2::Int, I::Int...)	modelled	array-cartesian-read	
+base/array.jl	981	990	getindex	getindex(A::Array, I::AbstractUnitRange{<:Integer})	modelled	array-unit-range-bounds-errors	JuliaLean.base.array.Completion4.getindexUnitRange. Open source-order, error/state, identity or argument invariant.
+base/array.jl	993	993	getindex	getindex(a::Array, r::AbstractUnitRange{Bool})	modelled	array-boolean-range-index-conversion-errors	JuliaLean.base.array.Completion4.getindexBoolRange. Open source-order, error/state, identity or argument invariant.
+base/array.jl	995	1002	getindex	getindex(A::Array, c::Colon)	modelled	multidimcov-array-v2-getindex-colon	
+base/array.jl	1005	1007	getindex	getindex(A::Array{S}, I::AbstractRange{Int}) where S	todo		Missing callee composition: collect(::Generator) for the typed range-index comprehension, including its native result allocation and type widening. The existing range body delegates the entire fixed comprehension collector.
+base/array.jl	1029	1029	setindex!	setindex!	excluded		no-behaviour: generic function declaration without a method body.
+base/array.jl	1031	1035	setindex!	setindex!(A::Array{T}, x, i::Int) where {T}	modelled	array-scalar-array-conversion-failures	JuliaLean.base.array.Completion4.setindexScalar. Open source-order, error/state, identity or argument invariant.
+base/array.jl	1036	1041	_setindex!	_setindex!(A::Array{T}, x::T, i::Int) where {T}	modelled	arrayops-dequeue	
+base/array.jl	1042	1046	setindex!	setindex!(A::Array{T}, x, i1::Int, i2::Int, I::Int...) where {T}	todo		Missing callee composition: _setindex!(::Array, value, ::Int...) over live all-rank headers, including complete _to_linear_index/_sub2ind routing and native stores; the installed new scalar setter covers the one-index method.
+base/array.jl	1047	1053	_setindex!	_setindex!(A::Array{T}, x::T, i1::Int, i2::Int, I::Int...) where {T}	modelled	array-cartesian-assignment	
+base/array.jl	1055	1056	__safe_setindex!	__safe_setindex!(A::Vector{Any}, @nospecialize(x), i::Int)	modelled	multidimcov-array-v2-vect-typed	
+base/array.jl	1057	1058	__safe_setindex!	__safe_setindex!(A::Vector{T}, x::T, i::Int) where {T}	modelled	multidimcov-array-v2-vect-typed	
+base/array.jl	1059	1060	__safe_setindex!	__safe_setindex!(A::Vector{T}, x, i::Int) where {T}	modelled	array-safe-setindex-conversion-failures	JuliaLean.base.array.Completion3.safeSetindexConvert. Open source-order, error/state, identity or argument invariant.
+base/array.jl	1063	1075	setindex!	setindex!(A::Array, X::AbstractArray, I::AbstractVector{Int})	todo		Missing callee composition: _setindex!(::Array, value, ::Int...) over live all-rank headers, including complete _to_linear_index/_sub2ind routing and native stores; the installed new scalar setter covers the one-index method.
+base/array.jl	1078	1087	setindex!	setindex!(A::Array{T}, X::Array{T}, I::AbstractUnitRange{Int}) where T	modelled	array-unit-range-assignment-bounds-errors	JuliaLean.base.array.Completion4.setindexUnitRange. Open source-order, error/state, identity or argument invariant.
+base/array.jl	1088	1096	setindex!	setindex!(A::Array{T}, X::Array{T}, c::Colon) where T	todo		Missing callee composition: setindex_shape_check(::Array, ::Int) and unsafe_copyto! for full same-element-type native Array headers. The older colon assignment exposes both fixed Base operations as callbacks.
+base/array.jl	1102	1112	overallocation	overallocation(maxsize::Int)	modelled	arrayops-dequeue	
+base/array.jl	1114	1114	array_new_memory	array_new_memory(mem::Memory, newlen::Int)	modelled	array-new-memory-request	JuliaLean.base.array.Models1Group13.nativeArrayNewMemory. Derives typeof(mem) layout from the existing native Memory header and invokes actual memoryUndef; raw empty/allocate remain the existing native primitive operands. Internal helper: no invented public contract. Indexed-reference creation and offset observation remain their existing explicit Core primitives, with true passed at copy starts/endpoints and false at final reference/unset sites. The conflicting frozen false-Bool interpretations are not assumed. Every native error, partial state and divergence is retained without a correctness law. General Integer wrappers remain blocked. A narrow independent full-domain todo invariant supplies coverage without asserting complete functional correctness. Complete source composition at the recorded existing runtime boundary; property remains todo.
+base/array.jl	1116	1149	_growbeg_internal!	_growbeg_internal!(a::Vector, delta::Int, len::Int)	modelled	array-growbeg-overflow-return	JuliaLean.base.array.Models1Group13.nativeGrowbegInternal. Binds checked arithmetic, overallocation, allocation and actual genericmemory copy/unset bodies over physical references and a mutable header store. Re-reads the source reference for the concurrency guard and returns the assigned MemoryRef; the frozen Unit-returning abstraction stays unchanged. Internal helper: no invented public contract. Indexed-reference creation and offset observation remain their existing explicit Core primitives, with true passed at copy starts/endpoints and false at final reference/unset sites. The conflicting frozen false-Bool interpretations are not assumed. Every native error, partial state and divergence is retained without a correctness law. General Integer wrappers remain blocked. A narrow independent full-domain todo invariant supplies coverage without asserting complete functional correctness. Complete source composition at the recorded existing runtime boundary; property remains todo.
+base/array.jl	1151	1169	_growbeg!	_growbeg!(a::Vector, delta::Integer)	modelled	array-growbeg-conversion-failures	JuliaLean.base.array.Completion3.growbeg. Open source-order, error/state, identity or argument invariant.
+base/array.jl	1171	1210	_growend_internal!	_growend_internal!(a::Vector, delta::Int, len::Int)	modelled	array-growend-overflow	JuliaLean.base.array.Models1Group13.nativeGrowendInternal. Reuses the existing source body with the complete reached native Storage closure, physical aliases, mutable header re-read and correct explicit nothing return. Internal helper: no invented public contract. Indexed-reference creation and offset observation remain their existing explicit Core primitives, with true passed at copy starts/endpoints and false at final reference/unset sites. The conflicting frozen false-Bool interpretations are not assumed. Every native error, partial state and divergence is retained without a correctness law. General Integer wrappers remain blocked. A narrow independent full-domain todo invariant supplies coverage without asserting complete functional correctness. Complete source composition at the recorded existing runtime boundary; property remains todo.
+base/array.jl	1212	1223	_growend!	_growend!(a::Vector, delta::Integer)	modelled	array-growend-conversion-failures	JuliaLean.base.array.Completion3.growend. Open source-order, error/state, identity or argument invariant.
+base/array.jl	1225	1270	_growat!	_growat!(a::Vector, i::Integer, delta::Integer)	modelled	array-growat-conversion-failures	JuliaLean.base.array.Completion5.growat. Open source-order, error/state, identity or argument invariant.
+base/array.jl	1273	1290	_deletebeg!	_deletebeg!(a::Vector, delta::Integer)	modelled	array-deletebeg-conversion-failures	JuliaLean.base.array.Completion3.deletebeg. Open source-order, error/state, identity or argument invariant.
+base/array.jl	1291	1306	_deleteend!	_deleteend!(a::Vector, delta::Integer)	modelled	array-deleteend-conversion-failures	JuliaLean.base.array.Completion3.deleteend. Open source-order, error/state, identity or argument invariant.
+base/array.jl	1307	1322	_deleteat!	_deleteat!(a::Vector, i::Integer, delta::Integer)	modelled	array-deleteat-index-conversion-failures	JuliaLean.base.array.Completion5.deleteat. Open source-order, error/state, identity or argument invariant.
+base/array.jl	1351	1351	push!	push!	excluded		no-behaviour: generic function declaration without a method body.
+base/array.jl	1353	1360	push!	push!(a::Vector{T}, item) where T	modelled	arrayops-dequeue	
+base/array.jl	1361	1365	_push!	_push!(a::Vector{T}, item::T) where T	modelled	arrayops-dequeue	
+base/array.jl	1368	1372	push!	push!(a::Vector{Any}, @nospecialize x)	modelled	array-push-append	
+base/array.jl	1373	1382	push!	push!(a::Vector{Any}, @nospecialize x...)	modelled	multidimcov-array-faithful-1794	
+base/array.jl	1420	1420	append!	append!	excluded		no-behaviour: generic function declaration without a method body.
+base/array.jl	1422	1428	append!	append!(a::Vector{T}, items::Union{AbstractVector{<:T},Tuple}) where T	todo		Missing callee composition: convert(Tuple{Vararg{T}}, items) with complete tuple element conversion/type assertions, then native grow/copy dispatch. Resizing now has native compositions, but the fixed tuple conversion and append/prepend copying are still callback boundaries.
+base/array.jl	1430	1430	append!	append!(a::AbstractVector, iter)	modelled	array-append-iterator-boundaries	IteratorSize effects precede sized/unsized dispatch; sized iteration converts the observed length before capacity changes.
+base/array.jl	1431	1431	push!	push!(a::AbstractVector, iter...)	modelled	array-push-many-arguments	JuliaLean.base.array.Completion2.pushMany. Open source-order, error/state, identity or argument invariant.
+base/array.jl	1432	1432	append!	append!(a::AbstractVector, iter...)	modelled	arrayops-append-many-self	
+base/array.jl	1434	1441	_append!	_append!(a::AbstractVector, ::Union{HasLength,HasShape}, iter)	modelled	array-append-iterator-boundaries	Declared length and Int conversion precede sizehint and streaming element pushes.
+base/array.jl	1442	1447	_append!	_append!(a::AbstractVector, ::IteratorSize, iter)	modelled	multidimcov-array-v2-append-iter	
+base/array.jl	1478	1478	prepend!	prepend!	excluded		no-behaviour: generic function declaration without a method body.
+base/array.jl	1480	1493	prepend!	prepend!(a::Vector{T}, items::Union{AbstractVector{<:T},Tuple}) where T	todo		Missing callee composition: convert(Tuple{Vararg{T}}, items) with complete tuple element conversion/type assertions, then native grow/copy dispatch. Resizing now has native compositions, but the fixed tuple conversion and append/prepend copying are still callback boundaries.
+base/array.jl	1495	1495	prepend!	prepend!(a::AbstractVector, iter)	modelled	array-prepend-iterator-boundaries	IteratorSize precedes closed pinned-Base Vector helper dispatch; type or trait mismatch raises MethodError.
+base/array.jl	1496	1496	pushfirst!	pushfirst!(a::AbstractVector, iter...)	modelled	array-pushfirst-many-arguments	JuliaLean.base.array.Completion2.pushfirstMany. Open source-order, error/state, identity or argument invariant.
+base/array.jl	1497	1497	prepend!	prepend!(a::AbstractVector, iter...)	modelled	arrayops-append-many-self	
+base/array.jl	1499	1511	_prepend!	_prepend!(a::Vector, ::Union{HasLength,HasShape}, iter)	modelled	array-prepend-iterator-boundaries	One-based indexing, length conversion and front capacity hint precede streaming front pushes and reversal.
+base/array.jl	1512	1520	_prepend!	_prepend!(a::Vector, ::IteratorSize, iter)	modelled	multidimcov-array-v2-prepend-iter	
+base/array.jl	1559	1574	resize!	resize!(a::Vector, nl_::Integer; first::Bool=false)	modelled	multidimcov-array-v2-resize	
+base/array.jl	1610	1610	sizehint!	sizehint!	excluded		no-behaviour: generic function declaration without a method body.
+base/array.jl	1612	1643	sizehint!	sizehint!(a::Vector, sz::Integer; first::Bool=false, shrink::Bool=true)	modelled	multidimcov-array-v2-append-iter	
+base/array.jl	1647	1652	Core.kwcall	Core.kwcall(kwargs::NamedTuple{names}, ::typeof(sizehint!), a, sz) where names	modelled	array-sizehint-keyword-type-errors	JuliaLean.base.array.Completion3.sizehintKwcall. Open source-order, error/state, identity or argument invariant.
+base/array.jl	1695	1702	pop!	pop!(a::Vector)	modelled	arrayops-dequeue	
+base/array.jl	1736	1741	popat!	popat!(a::Vector, i::Integer)	modelled	multidimcov-array-v2-popat	
+base/array.jl	1743	1751	popat!	popat!(a::Vector, i::Integer, default)	modelled	multidimcov-array-v2-popat	
+base/array.jl	1772	1776	pushfirst!	pushfirst!(a::Vector{T}, item) where T	modelled	arrayops-dequeue	
+base/array.jl	1777	1781	_pushfirst!	_pushfirst!(a::Vector{T}, item::T) where T	modelled	arrayops-dequeue	
+base/array.jl	1784	1788	pushfirst!	pushfirst!(a::Vector{Any}, @nospecialize x)	modelled	multidimcov-array-v2-pushfirst-convert	
+base/array.jl	1789	1797	pushfirst!	pushfirst!(a::Vector{Any}, @nospecialize x...)	modelled	multidimcov-array-faithful-1794	
+base/array.jl	1831	1838	popfirst!	popfirst!(a::Vector)	modelled	arrayops-dequeue	
+base/array.jl	1861	1865	insert!	insert!(a::Vector{T}, i::Integer, item) where T	modelled	multidimcov-array-v2-insert	
+base/array.jl	1866	1873	_insert!	_insert!(a::Vector{T}, i::Integer, item::T) where T	modelled	multidimcov-array-v2-insert	
+base/array.jl	1894	1898	deleteat!	deleteat!(a::Vector, i::Integer)	modelled	arrayops-deleteat-index	
+base/array.jl	1900	1909	deleteat!	deleteat!(a::Vector, r::AbstractUnitRange{<:Integer})	modelled	arrayops-splice-convert-undef	
+base/array.jl	1940	1940	deleteat!	deleteat!(a::Vector, inds)	modelled	multidimcov-array-v2-deleteat-internal	
+base/array.jl	1941	1941	deleteat!	deleteat!(a::Vector, inds::AbstractVector)	modelled	multidimcov-array-v2-deleteat-internal	
+base/array.jl	1944	1944	push!	push!(::Nowhere, _)	modelled	multidimcov-array-v2-deleteat-internal	
+base/array.jl	1945	1945	_growend!	_growend!(::Nowhere, _)	modelled	multidimcov-array-v2-deleteat-internal	
+base/array.jl	1947	1954	_push_deleted!	_push_deleted!(dltd, a::Vector, ind)	modelled	multidimcov-array-v2-deleteat-internal	
+base/array.jl	1956	1963	_copy_item!	_copy_item!(a::Vector, p, q)	modelled	arrayops-deleteat-mask	
+base/array.jl	1965	1997	_deleteat!	_deleteat!(a::Vector, inds, dltd=Nowhere())	modelled	multidimcov-array-v2-deleteat-internal	
+base/array.jl	2000	2010	deleteat!	deleteat!(a::Vector, inds::AbstractVector{Bool})	modelled	array-deleteat-mask-boundary	Length comparison precedes live mask iteration; assigned copies and unset slots retain alias-dependent effects.
+base/array.jl	2065	2081	splice!	splice!(a::Vector, i::Integer, ins=_default_splice)	todo		Missing callee composition: Vector getindex/array slicing and the full source-typed splice arithmetic/copying paths, including arbitrary Integer indices and user insertion iterators. Existing splice bodies expose those fixed Array operations as callbacks.
+base/array.jl	2120	2146	splice!	splice!(a::Vector, r::AbstractUnitRange{<:Integer}, ins=_default_splice)	todo		Missing callee composition: Vector getindex/array slicing and the full source-typed splice arithmetic/copying paths, including arbitrary Integer indices and user insertion iterators. Existing splice bodies expose those fixed Array operations as callbacks.
+base/array.jl	2148	2148	splice!	splice!(a::Vector, inds)	modelled	multidimcov-array-v2-deleteat-internal	
+base/array.jl	2150	2153	empty!	empty!(a::Vector)	modelled	array-empty-clears	
+base/array.jl	2156	2167	cmp	cmp(a::Array{UInt8,1}, b::Array{UInt8,1})	modelled	multidimcov-array-v2-cmp-bytes	
+base/array.jl	2171	2186	==	==(a::Arr, b::Arr) where {Arr <: BitIntegerArray}	modelled	multidimcov-array-v2-eq-bitint	
+base/array.jl	2188	2205	==	==(a::Arr, b::Arr) where Arr <: BitIntegerArray{1}	modelled	multidimcov-array-v2-eq-bitint	
+base/array.jl	2248	2261	reverse	reverse(A::AbstractVector, start::Integer, stop::Integer=lastindex(A))	modelled	array-reverse-start-errors	JuliaLean.base.array.reverse. Source-mirrored generic dispatch; open exception/effect or argument/identity invariant.
+base/array.jl	2266	2266	$f	$f(A::AbstractVector; dims::D=:) where {D}	modelled	multidimcov-array-v2-reverse-dims	generated-loop: (f,_f) in ((:reverse,:_reverse), (:reverse!,:_reverse!))
+base/array.jl	2267	2267	$_f	$_f(A::AbstractVector, ::Colon)	modelled	array-reverse-colon-arguments	JuliaLean.base.array.reverseColon. Source-mirrored generic dispatch; open exception/effect or argument/identity invariant.
+base/array.jl	2268	2268	$_f	$_f(A::AbstractVector, dim::Tuple{Integer})	modelled	array-reverse-tuple-arguments	JuliaLean.base.array.reverseTupleDim. Source-mirrored generic dispatch; open exception/effect or argument/identity invariant.
+base/array.jl	2269	2272	$_f	$_f(A::AbstractVector, dim::Integer)	modelled	multidimcov-array-v2-reverse-dims	generated-loop: (f,_f) in ((:reverse,:_reverse), (:reverse!,:_reverse!))
+base/array.jl	2276	2279	reverseind	reverseind(a::AbstractVector, i::Integer)	modelled	array-reverseind-boundary-protocol	LinearIndices construction precedes first and last observations; native-width sum is subtracted from the unchanged index.
+base/array.jl	2283	2283	midpoint	midpoint(lo::T, hi::T) where T<:Integer	modelled	arrayops-reverse-window-inconsistent	
+base/array.jl	2284	2284	midpoint	midpoint(lo::Integer, hi::Integer)	modelled	array-midpoint-promotion-errors	JuliaLean.base.array.midpointPromoted. Source-mirrored generic dispatch; open exception/effect or argument/identity invariant.
+base/array.jl	2312	2328	reverse!	reverse!(v::AbstractVector, start::Integer, stop::Integer=lastindex(v))	modelled	array-reverse-bang-start-failures	JuliaLean.base.array.Completion3.reverseBang. Open source-order, error/state, identity or argument invariant.
+base/array.jl	2332	2332	vcat	vcat()	modelled	multidimcov-array-v2-empty-concat	
+base/array.jl	2333	2333	hcat	hcat()	modelled	multidimcov-array-v2-empty-concat	
+base/array.jl	2335	2343	hcat	hcat(V::Vector{T}...) where T	modelled	multidimcov-hcat-vector-eltype	
+base/array.jl	2344	2344	hcat	hcat(A::Vector...)	todo		Missing callee composition: cat/_cat for Vector arguments with Val(2)/Val(1), including native mixed-element-type result allocation. catKeyword is installed, but its fixed Vector concatenation continuation is still opaque in these callers.
+base/array.jl	2346	2360	vcat	vcat(arrays::Vector{T}...) where T	modelled	multidimcov-array-v2-vcat-same	
+base/array.jl	2361	2361	vcat	vcat(A::Vector...)	todo		Missing callee composition: cat/_cat for Vector arguments with Val(2)/Val(1), including native mixed-element-type result allocation. catKeyword is installed, but its fixed Vector concatenation continuation is still opaque in these callers.
+base/array.jl	2363	2363	_cat	_cat(n::Integer, x::Integer...)	todo		Missing callee composition: typed tuple literal construction and reshape(::Array, tuple) after arbitrary-Integer ntuple construction. The old _cat body leaves its fixed Array literal/reshape paths as callbacks.
+base/array.jl	2399	2399	findnext	findnext(A, start)	modelled	array-findnext-identity-protocol	JuliaLean.base.array.Completion.findnextIdentity. Source-mirrored generic dispatch; open exception/effect or argument/identity invariant.
+base/array.jl	2436	2436	findfirst	findfirst(A)	modelled	array-findfirst-identity-protocol	JuliaLean.base.array.Completion.findfirstIdentity. Source-mirrored generic dispatch; open exception/effect or argument/identity invariant.
+base/array.jl	2439	2439	findfirst	findfirst(A::AbstractArray)	modelled	array-findfirst-array-identity-protocol	JuliaLean.base.array.Completion.findfirstArrayIdentity. Source-mirrored generic dispatch; open exception/effect or argument/identity invariant.
+base/array.jl	2470	2481	findnext	findnext(testf::Function, A, start)	modelled	array-findnext-key-failures	JuliaLean.base.array.Completion3.findnext. Open source-order, error/state, identity or argument invariant.
+base/array.jl	2518	2523	findfirst	findfirst(testf::Function, A)	modelled	array-pair-search-construction	Effectful pair construction precedes the first-match streaming search.
+base/array.jl	2526	2527	findfirst	findfirst(testf::Function, A::Union{AbstractArray, AbstractString})	modelled	array-findfirst-array-predicate-protocol	JuliaLean.base.array.Completion.findfirstArrayPredicate. Source-mirrored generic dispatch; open exception/effect or argument/identity invariant.
+base/array.jl	2529	2530	findfirst	findfirst(p::Union{Fix2{typeof(isequal),T},Fix2{typeof(==),T}}, r::OneTo) where {T<:Integer}	modelled	array-search-oneto-first	
+base/array.jl	2532	2532	findfirst	findfirst(::typeof(iszero), ::OneTo)	modelled	array-search-oneto-first	
+base/array.jl	2533	2533	findfirst	findfirst(::typeof(isone), r::OneTo)	modelled	array-search-oneto-first	
+base/array.jl	2535	2539	findfirst	findfirst(p::Union{Fix2{typeof(isequal),T},Fix2{typeof(==),T}}, r::AbstractUnitRange{<:Integer}) where {T<:Integer}	modelled	ranges-operations-findfirst-overflow	
+base/array.jl	2541	2547	findfirst	findfirst(p::Union{Fix2{typeof(isequal),T},Fix2{typeof(==),T}}, r::StepRange{T,S}) where {T,S}	modelled	ranges-operations-findfirst-overflow	
+base/array.jl	2549	2549	findfirst	findfirst(::typeof(iszero), r::AbstractRange)	modelled	array-range-target-search-overflow	
+base/array.jl	2550	2550	findfirst	findfirst(::typeof(isone), r::AbstractRange)	modelled	array-range-target-search-overflow	
+base/array.jl	2586	2586	findprev	findprev(A, start)	modelled	array-findprev-identity-protocol	JuliaLean.base.array.Completion.findprevIdentity. Source-mirrored generic dispatch; open exception/effect or argument/identity invariant.
+base/array.jl	2624	2624	findlast	findlast(A)	modelled	array-findlast-identity-protocol	JuliaLean.base.array.Completion.findlastIdentity. Source-mirrored generic dispatch; open exception/effect or argument/identity invariant.
+base/array.jl	2627	2627	findlast	findlast(A::AbstractArray)	modelled	array-findlast-array-identity-protocol	JuliaLean.base.array.Completion.findlastArrayIdentity. Source-mirrored generic dispatch; open exception/effect or argument/identity invariant.
+base/array.jl	2666	2677	findprev	findprev(testf::Function, A, start)	modelled	array-findprev-key-failures	JuliaLean.base.array.Completion3.findprev. Open source-order, error/state, identity or argument invariant.
+base/array.jl	2711	2716	findlast	findlast(testf::Function, A)	modelled	array-pair-search-construction	Pair construction and reverse-iterator construction precede the last-match loop.
+base/array.jl	2719	2720	findlast	findlast(testf::Function, A::Union{AbstractArray, AbstractString})	modelled	array-findlast-array-predicate-protocol	JuliaLean.base.array.Completion.findlastArrayPredicate. Source-mirrored generic dispatch; open exception/effect or argument/identity invariant.
+base/array.jl	2723	2726	findlast	findlast(p::Union{Fix2{typeof(isequal),<:Integer},Fix2{typeof(==),<:Integer},typeof(iszero),typeof(isone)}, r::AbstractUnitRange{<:Integer})	modelled	array-range-target-search-overflow	
+base/array.jl	2728	2731	findlast	findlast(p::Union{Fix2{typeof(isequal),T},Fix2{typeof(==),T},typeof(iszero),typeof(isone)}, r::StepRange{T,S}) where {T,S}	modelled	array-range-target-search-overflow	
+base/array.jl	2784	2787	findall	findall(testf::Function, A)	modelled	array-findall-deferred-construction	Deferred Filter/Generator collection preserves repeated macro argument evaluation, growth, widening, errors and divergence.
+base/array.jl	2791	2791	findall	findall(testf::F, A::AbstractArray) where {F<:Function}	modelled	multidimcov-array-v2-find-pure	
+base/array.jl	2833	2835	findall	findall(A)	modelled	multidimcov-array-v2-find-pure	
+base/array.jl	2838	2849	findall	findall(A::AbstractArray{Bool})	modelled	array-findall-bool-array-boundary	Count, keys and key type precede allocation; live pairs are stored using wrapping native indices.
+base/array.jl	2851	2851	findall	findall(x::Bool)	modelled	multidimcov-array-v2-find-pure	
+base/array.jl	2852	2852	findall	findall(testf::Function, x::Number)	modelled	array-scalar-findall-boundary-errors	The predicate and Boolean-condition check precede fresh Int-vector allocation and selected-key storage.
+base/array.jl	2853	2853	findall	findall(p::Fix2{typeof(in)}, x::Number)	modelled	array-scalar-findall-boundary-errors	Membership and Boolean-condition check precede fresh Int-vector allocation and selected-key storage.
+base/array.jl	2887	2896	indexin	indexin(a, b::AbstractArray)	modelled	arraycov-indexin-isequal	
+base/array.jl	2898	2904	_findin	_findin(a::Union{AbstractArray, Tuple}, b::AbstractSet)	todo		Missing callee composition: _findin/_sortedfindin with native key-vector allocation, complete key-type discovery, mutable iterator observations and fixed copy/grow operations; the sorted dispatch additionally needs issorted at the Array/Real boundary. Older bodies use opaque native result operations or finite key lists.
+base/array.jl	2905	2905	_findin	_findin(a::Union{AbstractArray, Tuple}, b)	modelled	array-findall-in-sorted-isless	
+base/array.jl	2910	2950	_sortedfindin	_sortedfindin(v::Union{AbstractArray, Tuple}, w)	todo		Missing callee composition: _findin/_sortedfindin with native key-vector allocation, complete key-type discovery, mutable iterator observations and fixed copy/grow operations; the sorted dispatch additionally needs issorted at the Array/Real boundary. Older bodies use opaque native result operations or finite key lists.
+base/array.jl	2952	2958	findall	findall(pred::Fix2{typeof(in),<:Union{Array{<:Real},Real}}, x::Array{<:Real})	todo		Missing callee composition: _findin/_sortedfindin with native key-vector allocation, complete key-type discovery, mutable iterator observations and fixed copy/grow operations; the sorted dispatch additionally needs issorted at the Array/Real boundary. Older bodies use opaque native result operations or finite key lists.
+base/array.jl	2961	2961	findall	findall(pred::Fix2{typeof(in)}, x::AbstractArray)	modelled	array-findall-in-array-isequal	
+base/array.jl	2962	2962	findall	findall(pred::Fix2{typeof(in)}, x::Tuple)	modelled	tuples-findall-in-isequal	
+base/array.jl	2965	2974	indcopy	indcopy(sz::Dims, I::Vector)	todo		Missing callee composition: _findin plus typed native literal/comprehension allocation for the destination/source index collections. Existing indcopy runtime interfaces do not yet bind all fixed Base vector construction/search callees.
+base/array.jl	2976	2986	indcopy	indcopy(sz::Dims, I::Tuple{Vararg{RangeIndex}})	todo		Missing callee composition: _findin plus typed native literal/comprehension allocation for the destination/source index collections. Existing indcopy runtime interfaces do not yet bind all fixed Base vector construction/search callees.
+base/array.jl	3015	3025	filter	filter(f, a::Array{T, N}) where {T, N}	modelled	multidimcov-array-v2-filter-array	
+base/array.jl	3027	3042	filter	filter(f, a::AbstractArray)	todo		Missing callee composition: native temporary Vector allocation and resize!/sizehint! plus array-index result construction for filter/filter!, including the live Vector branch and user-array branch. Older models leave fixed temporary-vector operations as callbacks.
+base/array.jl	3061	3075	filter!	filter!(f, a::AbstractVector)	todo		Missing callee composition: native temporary Vector allocation and resize!/sizehint! plus array-index result construction for filter/filter!, including the live Vector branch and user-array branch. Older models leave fixed temporary-vector operations as callbacks.
+base/array.jl	3100	3102	filter	filter(f)	modelled	array-filter-curried	
+base/array.jl	3129	3129	keepat!	keepat!(a::Vector, inds)	modelled	multidimcov-keepat-undef	
+base/array.jl	3154	3154	keepat!	keepat!(a::Vector, m::AbstractVector{Bool})	modelled	multidimcov-keepat-undef	
+base/array.jl	3159	3167	_unique_filter!	_unique_filter!(pred::P, update!::U, state) where {P,U}	modelled	array-union-bang-first-appearance	
+base/array.jl	3169	3169	_grow_filter!	_grow_filter!(seen)	modelled	array-union-bang-first-appearance	
+base/array.jl	3170	3170	_shrink_filter!	_shrink_filter!(keep)	modelled	multidimcov-intersect-range-vector	
+base/array.jl	3172	3178	_grow!	_grow!(pred!, v::AbstractVector, itrs)	modelled	array-grow-filter-errors	JuliaLean.base.array.Completion2.grow. Open source-order, error/state, identity or argument invariant.
+base/array.jl	3180	3181	union!	union!(v::AbstractVector{T}, itrs...) where {T}	todo		Missing callee composition: Set{T} construction, sizehint!, native Set mutation/membership and _grow_filter!/_shrink_filter! composition at arbitrary element types. The existing vector-set bodies delegate those fixed Base Set operations.
+base/array.jl	3183	3184	symdiff!	symdiff!(v::AbstractVector{T}, itrs...) where {T}	modelled	multidimcov-array-v2-symdiff-vector	
+base/array.jl	3186	3191	_shrink!	_shrink!(shrinker!::F, v::AbstractVector, itrs) where F	todo		Missing callee composition: Set{T} construction, sizehint!, native Set mutation/membership and _grow_filter!/_shrink_filter! composition at arbitrary element types. The existing vector-set bodies delegate those fixed Base Set operations.
+base/array.jl	3193	3193	intersect!	intersect!(v::AbstractVector, itrs...)	modelled	multidimcov-array-v2-setdiff-bang-vector	
+base/array.jl	3194	3194	setdiff!	setdiff!( v::AbstractVector, itrs...)	modelled	multidimcov-array-v2-setdiff-bang-vector	
+base/array.jl	3196	3196	vectorfilter	vectorfilter(T::Type, f, v)	modelled	multidimcov-intersect-range-vector	
+base/array.jl	3198	3202	intersect	intersect(itr, itrs...)	modelled	multidimcov-array-v2-setdiff-vector	
+base/array.jl	3204	3208	setdiff	setdiff(itr, itrs...)	modelled	multidimcov-array-v2-setdiff-vector	
+base/array.jl	3210	3215	intersect	intersect(v::AbstractVector, r::AbstractRange)	todo		Missing callee composition: Set{T} construction, sizehint!, native Set mutation/membership and _grow_filter!/_shrink_filter! composition at arbitrary element types. The existing vector-set bodies delegate those fixed Base Set operations.
+base/array.jl	3216	3216	intersect	intersect(r::AbstractRange, v::AbstractVector)	modelled	array-intersect-argument-order	JuliaLean.base.array.Completion2.intersectRangeVector. Open source-order, error/state, identity or argument invariant.
+base/array.jl	3219	3225	getindex	getindex(v::AbstractRange, i::Integer)	modelled	array-range-index-ordinary	
+base/array.jl	3233	3233	wrap	wrap	excluded		no-behaviour: generic function declaration without a method body.
+base/array.jl	3236	3242	_wrap	_wrap(ref::MemoryRef{T}, dims::NTuple{N, Int}) where {T, N}	modelled	arraycov-wrap-memory-unsigned	
+base/array.jl	3244	3247	invalid_wrap_err	invalid_wrap_err(len, dims, proddims)	modelled	array-invalid-wrap-dimension-error	JuliaLean.base.array.invalidWrapError; exact interpolated DimensionMismatch payload and unchanged state.
+base/array.jl	3249	3253	wrap	wrap(::Type{Array}, m::MemoryRef{T}, dims::NTuple{N, Integer}) where {T, N}	modelled	multidimcov-wrap-negative-length	
+base/array.jl	3255	3259	wrap	wrap(::Type{Array}, m::Memory{T}, dims::NTuple{N, Integer}) where {T, N}	modelled	multidimcov-wrap-negative-length	
+base/array.jl	3260	3264	wrap	wrap(::Type{Array}, m::MemoryRef{T}, l::Integer) where {T}	modelled	multidimcov-wrap-negative-length	
+base/array.jl	3265	3269	wrap	wrap(::Type{Array}, m::Memory{T}, l::Integer) where {T}	modelled	arraycov-wrap-memory-unsigned	
+base/array.jl	3270	3274	wrap	wrap(::Type{Array}, m::Memory{T}) where {T}	modelled	multidimcov-wrap-negative-length	

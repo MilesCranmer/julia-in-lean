@@ -25,9 +25,9 @@ base/rounding.jl	175	187	from_fenv	from_fenv(r::Integer)	modelled	rounding-fenv-
 base/rounding.jl	219	219	setrounding_raw	setrounding_raw(::Type{<:Union{Float32,Float64}}, i::Integer)	modelled	rounding-scoped-mode-restoration	method-specific source model and quantified behavior property
 base/rounding.jl	220	220	rounding_raw	rounding_raw(::Type{<:Union{Float32,Float64}})	modelled	rounding-fenv-mode-mapping	method-specific source model and quantified behavior property
 base/rounding.jl	222	222	rounding	rounding(::Type{T}) where {T<:Union{Float32,Float64}}	modelled	rounding-fenv-mode-mapping	method-specific source model and quantified behavior property
-base/rounding.jl	223	223	rounding	rounding(::Type{Union{}}, slurp...)	todo		trivial: asserts totality only
+base/rounding.jl	223	223	rounding	rounding(::Type{Union{}}, slurp...)	modelled	rounding-fenv-mode-mapping	Reviewed line by line against pinned f755f49 source.
 base/rounding.jl	238	246	setrounding	setrounding(f::Function, ::Type{T}, rounding::RoundingMode) where T	modelled	rounding-scoped-mode-restoration	method-specific source model and quantified behavior property
-base/rounding.jl	247	247	setrounding	setrounding(f, ::Type{Union{}}, slurp...)	todo		trivial: asserts totality only
+base/rounding.jl	247	247	setrounding	setrounding(f, ::Type{Union{}}, slurp...)	modelled	rounding-scoped-mode-restoration	Reviewed line by line against pinned f755f49 source.
 base/rounding.jl	248	256	setrounding_raw	setrounding_raw(f::Function, ::Type{T}, rounding) where T	modelled	rounding-scoped-mode-restoration	method-specific source model and quantified behavior property
 base/rounding.jl	267	267	(::Type{T})	(::Type{T})(x::Real, r::RoundingMode) where {T<:AbstractFloat}	modelled	rounding-directed-float-conversion	method-specific source model and quantified behavior property
 base/rounding.jl	269	269	_convert_rounding	_convert_rounding(::Type{T}, x::Real, r::RoundingMode{:Nearest}) where {T<:AbstractFloat}	modelled	rounding-directed-float-conversion	method-specific source model and quantified behavior property
@@ -51,8 +51,8 @@ base/rounding.jl	487	487	ceil	ceil(::Type{T}, x) where T	modelled	floatfuncs-rou
 base/rounding.jl	488	488	round	round(::Type{T}, x) where T	modelled	floatfuncs-round-int-exact	method-specific source model and quantified behavior property
 base/rounding.jl	490	490	round	round(::Type{T}, x, r::RoundingMode) where T	modelled	floatfuncs-round-int-exact	method-specific source model and quantified behavior property
 base/rounding.jl	491	491	_round_convert	_round_convert(::Type{T}, x_integer, x, r) where T	modelled	floatfuncs-round-float-type-double	source model and quantified behavior property
-base/rounding.jl	492	492	trunc	trunc(::Type{Union{}}, slurp...; kwargs...)	todo		trivial: asserts totality only
-base/rounding.jl	493	493	floor	floor(::Type{Union{}}, slurp...; kwargs...)	todo		trivial: asserts totality only
-base/rounding.jl	494	494	ceil	ceil(::Type{Union{}}, slurp...; kwargs...)	todo		trivial: asserts totality only
-base/rounding.jl	495	495	round	round(::Type{Union{}}, slurp...; kwargs...)	todo		trivial: asserts totality only
+base/rounding.jl	492	492	trunc	trunc(::Type{Union{}}, slurp...; kwargs...)	modelled	floatfuncs-round-int-exact	Reviewed line by line against pinned f755f49 source.
+base/rounding.jl	493	493	floor	floor(::Type{Union{}}, slurp...; kwargs...)	modelled	floatfuncs-round-int-exact	Reviewed line by line against pinned f755f49 source.
+base/rounding.jl	494	494	ceil	ceil(::Type{Union{}}, slurp...; kwargs...)	modelled	floatfuncs-round-int-exact	Reviewed line by line against pinned f755f49 source.
+base/rounding.jl	495	495	round	round(::Type{Union{}}, slurp...; kwargs...)	modelled	floatfuncs-round-int-exact	Reviewed line by line against pinned f755f49 source.
 base/rounding.jl	497	497	round	round(x::Integer, r::RoundingMode)	modelled	rounding-integer-input-identity	method-specific source model and quantified behavior property

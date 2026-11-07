@@ -1,0 +1,89 @@
+id: abstractset-union-typemax-sentinel
+title: "union! treats typemax(Int) as a full capacity for an AbstractSet{Int}"
+priority: P3
+kind: wrong-result
+area: AbstractSet
+files: [base/abstractset.jl]
+functions: ["union!(s::AbstractSet{T}, itr)", "union!(s::AbstractSet, sets...)"]
+summary: |
+  A valid lazy `AbstractSet{Int}` containing every positive `Int` reports a
+  length of `typemax(Int)`. `union!(s, [1, 0])` then returns successfully without
+  adding `0`, even though the set does not contain it. Adding the same inputs
+  with `push!` includes `0`; the generic early exit mistakes the `typemax(Int)`
+  sentinel for the actual capacity of `Int`.
+likelihood: |
+  This requires a custom set whose exact length is `typemax(Int)`, so ordinary
+  collections will not reach it. The method still returns a silently incomplete
+  union for this valid AbstractSet implementation.
+maybe_intended: |
+  The early exit is intended for types with a known finite number of values. For
+  general `Int`, `typemax(Int)` is only the fallback sentinel from `max_values`.
+reproducer: |
+  mutable struct HugeIntSet <: AbstractSet{Int}
+      extra::Set{Int}
+  end
+  Base.length(s::HugeIntSet) = isempty(s.extra) ? typemax(Int) : throw(OverflowError("cardinality exceeds typemax(Int)"))
+  Base.in(x::Int, s::HugeIntSet) = x > 0 || x in s.extra
+  function Base.iterate(s::HugeIntSet, state=(false, 1))
+      extras, next = state
+      if !extras
+          return (next, next == typemax(Int) ? (true, nothing) : (false, next + 1))
+      end
+      item = next === nothing ? iterate(s.extra) : iterate(s.extra, next)
+      item === nothing && return nothing
+      x, following = item
+      return (x, (true, following))
+  end
+  function Base.push!(s::HugeIntSet, x::Int)
+      x <= 0 && push!(s.extra, x)
+      return s
+  end
+  s = HugeIntSet(Set{Int}())
+  result = union!(s, [1, 0])
+  reference = HugeIntSet(Set{Int}())
+  foreach(x -> push!(reference, x), [1, 0])
+  println("length before = ", typemax(Int))
+  println("0 in union! result = ", 0 in result)
+  println("0 after pushing both inputs = ", 0 in reference)
+  if !(0 in result) && (0 in reference)
+      println("REPRODUCED abstractset-union-typemax-sentinel")
+  else
+      error("Early exit did not omit zero")
+  end
+output:
+  release: |
+    JULIA 1.13.2 COMMIT 45b6d15e34bbd2003a31acce0b1847b63dad029c
+    length before = 9223372036854775807
+    0 in union! result = false
+    0 after pushing both inputs = true
+    REPRODUCED abstractset-union-typemax-sentinel
+  nightly: |
+    JULIA 1.15.0-DEV.unknown COMMIT f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    length before = 9223372036854775807
+    0 in union! result = false
+    0 after pushing both inputs = true
+    REPRODUCED abstractset-union-typemax-sentinel
+reproduced: {release: true, nightly: true}
+expected: |
+  When `union!` returns successfully, `0` must be a member because it is in an
+  input collection. An overflow error is preferable to returning a set that
+  silently omits the input value.
+promised_by: |
+  `union!` constructs the union of the passed-in sets and overwrites `s`
+  (base/abstractset.jl:63-66); the generic iterator method pushes each element
+  (base/abstractset.jl:105-112).
+cause: |
+  `max_values(::Type)` returns `typemax(Int)` as its fallback (base/abstractset.jl:92).
+  The generic `union!` loop breaks whenever `length(s) == max_values(T)`
+  (base/abstractset.jl:105-110). For `T == Int`, that fallback is not the true
+  cardinality limit, so the loop stops after revisiting `1` and never pushes `0`.
+possible_fix: |
+  Use the capacity early exit only for element types with a real finite value
+  count; do not treat the fallback `typemax(Int)` sentinel as one.
+duplicates:
+  issues:
+    - {number: 64168, state: closed, relation: related}
+  queries: ["issues: AbstractSet union max_values typemax", "issues: union max_values", "issues: max_values", "prs: AbstractSet union typemax", "prs: max_values"]
+lean:
+  property: JuliaLean.Proofs.base.abstractset.DictsUnionMaxValuesBreak
+  theorem: JuliaLean.Proofs.base.abstractset.DictsUnionMaxValuesBreak_refuted

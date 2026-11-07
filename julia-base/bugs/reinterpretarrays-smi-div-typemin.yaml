@@ -46,5 +46,5 @@ duplicates:
   issues: []
   queries: ["SignedMultiplicativeInverse", "multiplicativeinverse", "MultiplicativeInverses", "multiplicative inverse typemin"]
 lean:
-  property: JuliaLean.ReinterpretArrays.SmiDivAll
-  theorem: JuliaLean.ReinterpretArrays.smiDivAll_refuted
+  property: JuliaLean.Proofs.base.multinverses.SignedInverseDivisionAndDivrem
+  theorem: JuliaLean.Proofs.base.multinverses.round4SignedInverseDivisionAndDivrem_refuted

@@ -8,17 +8,17 @@ base/file.jl	149	149	cd	cd(f::Function)	modelled	files-method-cd
 base/file.jl	151	156	checkmode	checkmode(mode::Integer)	modelled	files-method-checkmode	
 base/file.jl	179	194	mkdir	mkdir(path::AbstractString; mode::Integer = 0o777)	modelled	files-method-mkdir	
 base/file.jl	239	256	mkpath	mkpath(path::AbstractString; mode::Integer = 0o777)	modelled	files-method-mkpath	
-base/file.jl	260	260	delayed_delete_ref	delayed_delete_ref()	modelled	files-method-delayed-delete-ref	
+base/file.jl	260	260	delayed_delete_ref	delayed_delete_ref()	excluded		no-behaviour: private delayed-DLL-deletion helper; native body and delayedDeleteRef_route lemma retained, with the old claim recorded in registry/Files.retired.tsv.
 base/file.jl	283	326	rm	rm(path::AbstractString; force::Bool=false, recursive::Bool=false, allow_delayed_delete::Bool=true)	modelled	files-method-rm	
 base/file.jl	331	343	delayed_delete_dll	delayed_delete_dll(path)	excluded		platform: Windows-only delayed deletion for loaded DLL files.
 base/file.jl	348	357	_resolved_path	_resolved_path(path::AbstractString, keep_link::Bool)	modelled	files-method-resolved-path	
-base/file.jl	359	360	_is_within	_is_within(inner::AbstractString, outer::AbstractString)	modelled	files-method-is-within	
+base/file.jl	359	360	_is_within	_is_within(inner::AbstractString, outer::AbstractString)	modelled	files-method-check-copy	Private containment helper used by the copy/move guard; native isWithin_route lemma and retired standalone claim are preserved.
 base/file.jl	363	391	checkfor_mv_cp_cptree	checkfor_mv_cp_cptree(src::AbstractString, dst::AbstractString, txt::AbstractString; force::Bool=false, follow_symlinks::Bool=false)	modelled	files-method-check-copy	
 base/file.jl	393	398	cptree	cptree(src::String, dst::String; force::Bool=false, follow_symlinks::Bool=false)	modelled	files-method-cptree	
 base/file.jl	402	418	_cptree	_cptree(src::String, dst::String, follow_symlinks::Bool)	modelled	files-method-cptree	
 base/file.jl	419	420	cptree	cptree(src::AbstractString, dst::AbstractString; kwargs...)	modelled	files-method-cptree	
 base/file.jl	447	458	cp	cp(src::AbstractString, dst::AbstractString; force::Bool=false, follow_symlinks::Bool=false)	modelled	files-method-cp	
-base/file.jl	505	511	mv	mv(src::AbstractString, dst::AbstractString; force::Bool=false)	modelled	files-method-mv	
+base/file.jl	505	511	mv	mv(src::AbstractString, dst::AbstractString; force::Bool=false)	modelled	files-method-mv	Preserves selected move method, return value, exceptions and world for both force values.
 base/file.jl	513	542	_mv_replace	_mv_replace(src::AbstractString, dst::AbstractString)	modelled	files-method-mv-replace	
 base/file.jl	544	558	_mv_noreplace	_mv_noreplace(src::AbstractString, dst::AbstractString)	modelled	files-method-mv-noreplace	
 base/file.jl	586	594	touch	touch(path::AbstractString)	modelled	files-method-touch-path	

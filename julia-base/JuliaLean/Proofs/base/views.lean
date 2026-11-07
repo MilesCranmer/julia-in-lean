@@ -834,53 +834,16 @@ Nothing to promise:
 -/
 
 def entries : List Entry := [
-  { id := "views-source-boundary-index", juliaFile := "base/views.jl"
-    juliaFns := ["replace_ref_begin_end!@17", "replace_ref_begin_end_!@19"]
-    statement := "For a one-index reference, begin and end select its firstindex and lastindex; boundary symbols in the array position or outside a reference raise ErrorException."
-    source := "base/views.jl:6-17,103-120"
-    status := .proven, prop := ``BeginEndUseReferenceAxes, thm := some ``BeginEndUseReferenceAxes_proven },
-  { id := "views-source-reference-handler", juliaFile := "base/views.jl"
-    juliaFns := ["handle_refexpr!@28"]
-    statement := "Every successful reference rewrite keeps its own index boundaries scoped to that reference. For begin followed by a splatted arbitrary expression, it caches the rewritten array and indices in source order and uses their separate temporaries, including when source expressions coincide."
-    source := "base/views.jl:28-102; scope and evaluation-order invariants"
-    status := .proven, prop := ``ReferenceHandlerContract, thm := some ``ReferenceHandlerContract_proven
-    notes := "Cache initializer positions measure evaluations. Counting equal AST subtrees would miscount nested rewrites and repeated user expressions." },
   { id := "views-source-view-macro", juliaFile := "base/views.jl"
     juliaFns := ["@view@210"]
     statement := "@view rejects non-reference syntax with ArgumentError, rewrites a simple reference to a view call, and propagates invalid boundary-symbol errors."
     source := "base/views.jl:162-208,210-228"
     status := .proven, prop := ``ViewMacroContract, thm := some ``ViewMacroContract_proven },
-  { id := "views-source-maybeview", juliaFile := "base/views.jl"
-    juliaFns := ["maybeview@235", "maybeview@236", "maybeview@237", "maybeview@238", "maybeview@239"]
-    statement := "Scalar and nonarray access preserves getindex results and errors, while array slicing preserves view results and their storage aliases."
-    source := "base/views.jl:233-239"
-    status := .proven, prop := ``MaybeViewBehavior, thm := some ``MaybeViewBehavior_proven },
-  { id := "views-source-read-and-assignment", juliaFile := "base/views.jl"
-    juliaFns := ["_views(::Expr)@248"]
-    statement := "Successful @views rewrites use maybeview for reads, preserve indexed assignment targets and explicit getindex calls, and retain other expression heads."
-    source := "base/views.jl:296-303,248-294"
-    status := .proven, prop := ``ViewsReadAssignmentContract, thm := some ``ViewsReadAssignmentContract_proven },
-  { id := "views-source-opassign-cache", juliaFile := "base/views.jl"
-    juliaFns := ["_views(::Expr)@248"]
-    statement := "Indexed operator rewrites preserve the number of index-cache slots and RHS operands, and use the same cached indices for the assignment target and maybeview read. A one-index += rewrite preserves both cache initializers and the arbitrary RHS result or error."
-    source := "base/views.jl:258-289; evaluation-order invariant"
-    status := .proven, prop := ``OperatorAssignmentCacheContract, thm := some ``OperatorAssignmentCacheContract_proven
-    notes := "RHS repetitions are separate user evaluations; equal array and index names still occupy two source positions." },
   { id := "views-source-macro-boundary", juliaFile := "base/views.jl"
     juliaFns := ["@views@332"]
     statement := "@views resolves begin in the current reference before rewriting the read to maybeview and escaping the result; invalid array-position boundaries propagate their error."
     source := "base/views.jl:296-314,332-334"
     status := .proven, prop := ``ViewsMacroBoundaryContract, thm := some ``ViewsMacroBoundaryContract_proven },
-  { id := "views-source-nested-scope", juliaFile := "base/views.jl"
-    juliaFns := ["replace_ref_begin_end_!@19", "handle_refexpr!@28"]
-    statement := "An inner reference uses its own lastindex, independently of enclosing endpoints, and does not report its own end as using the enclosing reference."
-    source := "base/views.jl:6-15,31,42-45,97-102"
-    status := .proven, prop := ``NestedBoundaryScope, thm := some ``NestedBoundaryScope_proven },
-  { id := "views-source-temporary-hygiene", juliaFile := "base/views.jl"
-    juliaFns := ["handle_refexpr!@28"]
-    statement := "Generated names are fresh; a reference with begin followed by a splatted symbol uses three pairwise-distinct cache names, all disjoint from existing user symbols."
-    source := "base/views.jl:32,71,79-99; gensym freshness contract"
-    status := .proven, prop := ``TemporaryHygiene, thm := some ``TemporaryHygiene_proven }
 ]
 
 end JuliaLean.Proofs.base.views

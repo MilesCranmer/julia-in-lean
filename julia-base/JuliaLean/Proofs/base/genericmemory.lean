@@ -1,4 +1,10 @@
 import JuliaLean.base.genericmemory
+import JuliaLean.src.genericmemory_c
+import JuliaLean.base.cmem
+import JuliaLean.base.essentials
+import JuliaLean.base.operators
+import JuliaLean.base.tuple
+import JuliaLean.base.abstractarray
 import JuliaLean.Registry.Types
 
 /-!
@@ -12,6 +18,7 @@ operations remain typed callees supplied by their owning Base or runtime modules
 namespace JuliaLean.Proofs.base.genericmemory
 
 open JuliaLean JuliaLean.base.genericmemory JuliaLean.Registry
+open JuliaLean.src.genericmemory_c (interpretSlots dictUnsetEffects boxedDictLayout)
 
 abbrev I64 := JuliaLean.base.genericmemory.I64
 
@@ -49,74 +56,530 @@ def GenericMemoryCheckedAccessesInBounds : Prop :=
     checkbounds a indices = none →
       setindexMemoryRange (T := T) copy checkbounds rangeLength rangeFirst shapeCheck true a x indices = none)
 
-/-- Copy operations preserve the original slot sequence, including undefined slots; fallback
-copy converts defined values to the destination element type. -/
+abbrev HeapM (T : Type) := StateM (Nat → Option T)
+
+def heapCopiedElements {T : Type} (heap : Nat → Option T)
+    (dest src count address : Nat) : Option T :=
+  if dest ≤ address ∧ address < dest + count then
+    heap (src + (address - dest))
+  else heap address
+
+def heapCopyWindow {T : Type} (dest src : Nat) (n : I64) : HeapM T Unit :=
+  fun heap => ((), fun address => heapCopiedElements heap dest src n.val.toNat address)
+
+def heapContents {T : Type} (mem : Nat) (offset n : I64) : HeapM T (List (Option T)) :=
+  fun heap => ((List.range n.val.toNat).map fun i =>
+    heap (mem + (offset.val - 1).toNat + i), heap)
+
+def heapRefContents {T : Type} (ref : GenericMemoryRef Nat Nat) (n : I64) :
+    HeapM T (List (Option T)) :=
+  fun heap => ((List.range n.val.toNat).map fun i => heap (ref.ptr_or_offset + i), heap)
+
+def heapCopyOps {T : Type} :
+    MemoryCopyOps (HeapM T) Nat Nat I64 I64 I64 I64 Nat Unit :=
+  { isZero := fun n => n == 0
+    toInt := fun n => pure n
+    byteCount := fun _ n => pure n
+    checkEnd := fun ref _ => pure ref
+    memoryrefDest := fun mem i => pure ⟨mem, mem + (i.val - 1).toNat⟩
+    memoryrefSource := fun mem i => pure ⟨mem, mem + (i.val - 1).toNat⟩
+    memoryrefoffset := fun ref => JInt.wrap .i64 (Int.ofNat (ref.ptr_or_offset - ref.mem + 1))
+    isBitsType := fun _ => true
+    gcPreserveBegin := fun _ => ()
+    gcPreserveEnd := fun _ => pure ()
+    unsafeConvert := fun ref => pure ref.ptr_or_offset
+    memmove := fun dest src n => heapCopyWindow dest src n
+    ccallCopy := fun _ dest _ src n => heapCopyWindow dest src n
+    pointerDest := fun mem i => pure (mem + (i.val - 1).toNat)
+    pointerSource := fun mem i => pure (mem + (i.val - 1).toNat)
+    pointerLess := fun a b => a < b
+    pointerGreater := fun a b => a > b
+    sourceEnd := fun soffs n => pure (soffs + n - 1)
+    forwardRange := fun n => pure ((List.range n.val.toNat).map fun i =>
+      JInt.wrap .i64 (Int.ofNat i))
+    backwardRange := fun n => pure (((List.range n.val.toNat).reverse).map fun i =>
+      JInt.wrap .i64 (Int.ofNat i))
+    destIndex := fun doffs i => pure (JInt.wrap .i64 (doffs.val + i.val))
+    sourceIndex := fun soffs i => pure (JInt.wrap .i64 (soffs.val + i.val)) }
+
+theorem heapCopiedElements_zero {T : Type} (heap : Nat → Option T) (dest src : Nat) :
+    (fun address => heapCopiedElements heap dest src 0 address) = heap := by
+  funext address
+  simp [heapCopiedElements]
+  omega
+
+theorem heapCopiedElements_at {T : Type} (heap : Nat → Option T)
+    (dest src count i : Nat) (hi : i < count) :
+    heapCopiedElements heap dest src count (dest + i) = heap (src + i) := by
+  simp [heapCopiedElements]
+  omega
+
+theorem heapCopyWindow_contents {T : Type} (heap : Nat → Option T)
+    (dest src count : Nat) :
+    (List.range count).map
+      (fun i => heapCopiedElements heap dest src count (dest + i)) =
+    (List.range count).map (fun i => heap (src + i)) := by
+  apply List.map_congr_left
+  intro i hi
+  exact heapCopiedElements_at heap dest src count i (List.mem_range.mp hi)
+theorem heapI64ZeroVal : (0 : I64).val = 0 := rfl
+theorem heapI64OneVal : (1 : I64).val = 1 := rfl
+
+theorem heapMemoryTypedCopy_state {T : Type} (heap : Nat → Option T)
+    (dest src : Nat) (doffs soffs n : I64) :
+    (unsafeCopytoMemoryTyped (T := T) (heapCopyOps (T := T)) false
+      dest doffs src soffs n).run heap =
+      (dest, fun address => heapCopiedElements heap
+        (dest + (doffs.val - 1).toNat) (src + (soffs.val - 1).toNat)
+        n.val.toNat address) := by
+  by_cases hnzero : n.val = 0
+  · simp [unsafeCopytoMemoryTyped, unsafeCopytoRefs, heapCopyOps, heapCopyWindow,
+      hnzero, heapCopiedElements_zero, heapI64ZeroVal, ExceptT.run, ExceptT.bind,
+      ExceptT.bindCont, ExceptT.pure, ExceptT.mk, StateT.run, StateT.bind,
+      StateT.pure, Bind.bind, Pure.pure]
+  · simp [unsafeCopytoMemoryTyped, unsafeCopytoRefs, heapCopyOps, heapCopyWindow,
+      hnzero, heapI64ZeroVal, ExceptT.run, ExceptT.bind, ExceptT.bindCont,
+      ExceptT.pure, ExceptT.mk, StateT.run, StateT.bind, StateT.pure,
+      Bind.bind, Pure.pure]
+
+theorem heapMemoryTypedCopy_contents {T : Type} (heap : Nat → Option T)
+    (dest src : Nat) (doffs soffs n : I64) :
+    (((do
+      let _ ← unsafeCopytoMemoryTyped (T := T) (heapCopyOps (T := T)) false
+        dest doffs src soffs n
+      heapContents dest doffs n).run heap).1) =
+    ((heapContents src soffs n).run heap).1 := by
+  simp only [StateT.run_bind, heapMemoryTypedCopy_state]
+  simp [heapContents, heapCopyWindow_contents, StateT.run, StateT.pure, Bind.bind, Pure.pure]
+
+theorem heapMemoryRefsCopy_state {T : Type} (heap : Nat → Option T)
+    (dest src : GenericMemoryRef Nat Nat) (n : I64) :
+    (unsafeCopytoRefs (T := T) (heapCopyOps (T := T)) false dest src n).run heap =
+      (dest, fun address => heapCopiedElements heap dest.ptr_or_offset
+        src.ptr_or_offset n.val.toNat address) := by
+  by_cases hnzero : n.val = 0
+  · simp [unsafeCopytoRefs, heapCopyOps, heapCopyWindow, hnzero,
+      heapCopiedElements_zero, heapI64ZeroVal, ExceptT.run, ExceptT.bind,
+      ExceptT.bindCont, ExceptT.pure, ExceptT.mk, StateT.run, StateT.bind,
+      StateT.pure, Bind.bind, Pure.pure]
+  · simp [unsafeCopytoRefs, heapCopyOps, heapCopyWindow, hnzero, heapI64ZeroVal,
+      ExceptT.run, ExceptT.bind, ExceptT.bindCont, ExceptT.pure, ExceptT.mk,
+      StateT.run, StateT.bind, StateT.pure, Bind.bind, Pure.pure]
+
+theorem heapMemoryRefsCopy_contents {T : Type} (heap : Nat → Option T)
+    (dest src : GenericMemoryRef Nat Nat) (n : I64) :
+    ((do
+      let _ ← unsafeCopytoRefs (T := T) (heapCopyOps (T := T)) false dest src n
+      heapRefContents dest n).run heap).1 =
+    (List.range n.val.toNat).map fun i => heap (src.ptr_or_offset + i) := by
+  simp only [StateT.run_bind, heapMemoryRefsCopy_state]
+  simp [heapRefContents, heapCopyWindow_contents, StateT.run, StateT.pure, Bind.bind, Pure.pure]
+
+theorem heapMemoryCopy_state {T : Type} (heap : Nat → Option T)
+    (src : Nat) (n : I64) :
+    (copyMemory (T := T) (heapCopyOps (T := T))
+      (fun _ => pure n) (fun _ => pure 1000) src).run heap =
+      (1000, fun address => heapCopiedElements heap 1000 src n.val.toNat address) := by
+  change (unsafeCopytoMemoryTyped (T := T) (heapCopyOps (T := T))
+    false 1000 1 src 1 n).run heap = _
+  simpa [heapI64ZeroVal, heapI64OneVal] using
+    heapMemoryTypedCopy_state (T := T) heap 1000 src 1 1 n
+
+theorem heapMemoryCopy_contents {T : Type} (heap : Nat → Option T)
+    (src : Nat) (n : I64) :
+    ((do
+      let result ← copyMemory (T := T) (heapCopyOps (T := T))
+        (fun _ => pure n) (fun _ => pure 1000) src
+      heapContents result 1 n).run heap).1 =
+    (List.range n.val.toNat).map fun i => heap (src + i) := by
+  simp only [StateT.run_bind, heapMemoryCopy_state]
+  simp [heapContents, heapI64OneVal, heapCopyWindow_contents, StateT.run,
+    StateT.bind, StateT.pure, Bind.bind, Pure.pure]
+abbrev SlotHeap (T : Type) := Nat → I64 → Option T
+abbrev SlotM (T : Type) := StateM (SlotHeap T)
+
+def slotIndex (i : Nat) : I64 := JInt.wrap .i64 (Int.ofNat (i + 1))
+theorem slotIndex_cast (i : Nat) :
+    slotIndex i = JInt.wrap .i64 ((i : Int) + 1) := by
+  change JInt.wrap .i64 ((i + 1 : Nat) : Int) =
+    JInt.wrap .i64 ((i : Nat) + 1)
+  rw [Int.natCast_add, Int.natCast_one]
+theorem slotI64ZeroVal : (0 : I64).val = 0 := by
+  change wrapInt .i64 0 = 0
+  exact wrapInt_of_inRange .i64 0 (by decide)
+
+theorem slotI64EqZero (n : I64) : (n == 0) = true ↔ n.val = 0 := by
+  change (n.val == (0 : I64).val) = true ↔ n.val = 0
+  rw [slotI64ZeroVal]
+  simp
+
+def slotRead {T : Type} (mem : Nat) (index : I64) : SlotM T (Option T) :=
+  fun heap => (heap mem index, heap)
+
+def slotWrite {T : Type} (mem : Nat) (index : I64) (value : Option T) : SlotM T Unit :=
+  fun heap => ((), fun other key => if other == mem && key == index then value else heap other key)
+
+@[simp] theorem boxedSlotUnsetProjection {T : Type} (old : Option T) :
+    (interpretSlots (dictUnsetEffects boxedDictLayout 0) 1 (fun _ => old)) 1 = none := by
+  rfl
+
+def slotAccessOps {T : Type} [Inhabited T] :
+    MemoryAccessOps (JuliaLean.Proofs.base.genericmemory.SlotM T) Nat I64 T T :=
+  { memoryref := fun mem => pure ⟨mem, 1⟩
+    memoryrefAt := fun mem index => pure ⟨mem, index⟩
+    memoryrefNew := fun ref index _ => pure ⟨ref.mem, index⟩
+    memoryrefIsAssigned := fun ref _ _ => do
+      let value ← JuliaLean.Proofs.base.genericmemory.slotRead ref.mem ref.ptr_or_offset
+      pure value.isSome
+    memoryrefUnset := fun ref _ _ => do
+      let old ← JuliaLean.Proofs.base.genericmemory.slotRead ref.mem ref.ptr_or_offset
+      let value := (interpretSlots (dictUnsetEffects boxedDictLayout 0) 1 (fun _ => old)) 1
+      JuliaLean.Proofs.base.genericmemory.slotWrite ref.mem ref.ptr_or_offset value
+    memoryrefSet := fun ref value _ _ =>
+      JuliaLean.Proofs.base.genericmemory.slotWrite ref.mem ref.ptr_or_offset (some value)
+    defaultOrderMemory := fun _ => .notAtomic
+    defaultOrderRef := fun _ => .notAtomic
+    checkboundsBool := fun _ _ => pure true
+    checkbounds := fun _ _ => pure ()
+    castElement := some
+    convertElement := fun value => pure value
+    getindex := fun mem index => do
+      let value ← JuliaLean.Proofs.base.genericmemory.slotRead mem index
+      pure (value.getD default) }
+
+def slotConvertAccessOps {T : Type} [Inhabited T] (convert : T → T) :
+    MemoryAccessOps (SlotM T) Nat I64 T T :=
+  { slotAccessOps with
+    castElement := fun _ => none
+    convertElement := fun value => pure (convert value) }
+
+def slotCopyOps {T : Type} (isBits : Bool) :
+    MemoryCopyOps (SlotM T) Nat I64 I64 I64 I64 Nat (Nat × I64) Unit :=
+  { isZero := fun n => n == 0
+    toInt := fun n => pure n
+    byteCount := fun _ n => pure n
+    checkEnd := fun ref _ => pure ref
+    memoryrefDest := fun mem offset => pure ⟨mem, offset⟩
+    memoryrefSource := fun mem offset => pure ⟨mem, offset⟩
+    memoryrefoffset := fun ref => ref.ptr_or_offset
+    isBitsType := fun _ => isBits
+    gcPreserveBegin := fun _ => ()
+    gcPreserveEnd := fun _ => pure ()
+    unsafeConvert := fun ref => pure (ref.mem, ref.ptr_or_offset)
+    memmove := fun dest src n => fun heap =>
+      ((), fun mem index =>
+        if mem == dest.1 && dest.2.val ≤ index.val && index.val < dest.2.val + n.val
+        then heap src.1 (JInt.wrap .i64 (src.2.val + (index.val - dest.2.val)))
+        else heap mem index)
+    ccallCopy := fun dest doffs src soffs n => fun heap =>
+      ((), fun mem index =>
+        if mem == dest && doffs.val ≤ index.val && index.val < doffs.val + n.val
+        then heap src (JInt.wrap .i64 (soffs.val + (index.val - doffs.val)))
+        else heap mem index)
+    pointerDest := fun mem offset => pure (mem, offset)
+    pointerSource := fun mem offset => pure (mem, offset)
+    pointerLess := fun _ _ => true
+    pointerGreater := fun _ _ => false
+    sourceEnd := fun soffs n => pure (soffs + n - 1)
+    forwardRange := fun n => pure (List.range n.val.toNat)
+    backwardRange := fun n => pure (List.range n.val.toNat).reverse
+    destIndex := fun _ i => pure (slotIndex i)
+    sourceIndex := fun _ i => pure (slotIndex i) }
+
+def memoryFallbackStep {m : Type → Type} [Monad m]
+    {M P TD TS VS D S N I Ptr Token : Type}
+    (destOps : MemoryAccessOps m M P TD VS) (srcOps : MemoryAccessOps m M P TS VS)
+    (copy : MemoryCopyOps m M P D S N I Ptr Token)
+    (dest : M) (doffs : D) (src : M) (soffs : S) (i : I) : m Unit := do
+  let sourceIndex ← copy.sourceIndex soffs i
+  if ← isassignedMemory srcOps false src sourceIndex then
+    let destIndex ← copy.destIndex doffs i
+    let value ← srcOps.getindex src sourceIndex
+    let _ ← setindexMemory destOps destOps.convertElement pure false dest value destIndex
+    pure ()
+  else
+    let destIndex ← copy.destIndex doffs i
+    let _ ← unsetindexMemoryInt destOps false dest destIndex
+    pure ()
+
+def slotUpdatedHeap {T : Type} (heap : SlotHeap T) (convert : T → T)
+    (dest src i : Nat) : SlotHeap T :=
+  fun other key =>
+    if other == dest && key == slotIndex i
+    then (heap src (slotIndex i)).map convert
+    else heap other key
+
+def slotCopiedHeap {T : Type} (convert : T → T) (dest src : Nat) :
+    SlotHeap T → List Nat → SlotHeap T
+  | heap, [] => heap
+  | heap, i :: is =>
+      slotCopiedHeap convert dest src (slotUpdatedHeap heap convert dest src i) is
+
+def slotFallbackStep {T : Type} [Inhabited T] (convert : T → T)
+    (dest src : Nat) (i : Nat) : SlotM T (ForInStep PUnit) := do
+  let sourceIndex ← (slotCopyOps (T := T) false).sourceIndex 1 i
+  if ← isassignedMemory slotAccessOps false src sourceIndex then
+    let destIndex ← (slotCopyOps (T := T) false).destIndex 1 i
+    let value ← slotAccessOps.getindex src sourceIndex
+    let _ ← setindexMemory (slotConvertAccessOps convert) (slotConvertAccessOps convert).convertElement pure false dest value destIndex
+  else
+    let destIndex ← (slotCopyOps (T := T) false).destIndex 1 i
+    let _ ← unsetindexMemoryInt (slotConvertAccessOps convert) false dest destIndex
+  pure (ForInStep.yield PUnit.unit)
+
+theorem slotFallbackStep_state {T : Type} [Inhabited T] (heap : SlotHeap T)
+    (convert : T → T) (dest src i : Nat) :
+    (slotFallbackStep convert dest src i).run heap =
+      (ForInStep.yield PUnit.unit, slotUpdatedHeap heap convert dest src i) := by
+  cases hsource : heap src (slotIndex i) with
+  | none =>
+    have hsource' : heap src (JInt.wrap .i64 ((i : Int) + 1)) = none := by
+      rw [← slotIndex_cast i]
+      exact hsource
+    simp [slotFallbackStep, slotCopyOps, slotAccessOps, slotConvertAccessOps,
+      slotIndex, isassignedMemory, setindexMemory, setindexMemoryRaw,
+      unsetindexMemoryInt, unsetindexRef, slotRead, slotWrite, hsource',
+      StateT.run, StateT.bind, StateT.pure, Bind.bind, Pure.pure]
+    apply Prod.ext
+    · rfl
+    · funext other key
+      simp [slotUpdatedHeap, slotIndex_cast, hsource']
+  | some value =>
+    have hsource' : heap src (JInt.wrap .i64 ((i : Int) + 1)) = some value := by
+      rw [← slotIndex_cast i]
+      exact hsource
+    simp [slotFallbackStep, slotCopyOps, slotAccessOps, slotConvertAccessOps,
+      slotIndex, isassignedMemory, setindexMemory, setindexMemoryRaw,
+      unsetindexMemoryInt, unsetindexRef, slotRead, slotWrite, hsource',
+      StateT.run, StateT.bind, StateT.pure, Bind.bind, Pure.pure]
+    apply Prod.ext
+    · rfl
+    · funext other key
+      simp [slotUpdatedHeap, slotIndex_cast, hsource']
+
+def slotFallbackLoopList {T : Type} [Inhabited T] (convert : T → T)
+    (dest src : Nat) (indices : List Nat) : SlotM T PUnit :=
+  forIn indices PUnit.unit (fun i _ => slotFallbackStep convert dest src i)
+
+theorem slotFallbackLoopList_state {T : Type} [Inhabited T]
+    (heap : SlotHeap T) (convert : T → T) (dest src : Nat)
+    (indices : List Nat) :
+    (slotFallbackLoopList convert dest src indices).run heap =
+      (PUnit.unit, slotCopiedHeap convert dest src heap indices) := by
+  induction indices generalizing heap with
+  | nil => simp [slotFallbackLoopList, slotCopiedHeap, StateT.run, StateT.pure, Pure.pure]
+  | cons i is ih =>
+    simp only [slotFallbackLoopList, List.forIn_cons, StateT.run_bind]
+    rw [slotFallbackStep_state]
+    change (slotFallbackLoopList convert dest src is).run
+        (slotUpdatedHeap heap convert dest src i) =
+      (PUnit.unit, slotCopiedHeap convert dest src heap (i :: is))
+    rw [ih]
+    rfl
+
+def slotContentsOnKeys {T : Type} (heap : SlotHeap T) (mem : Nat)
+    (keys : List I64) : List (Option T) :=
+  keys.map (heap mem)
+
+def convertedSlots {T : Type} (xs : List (Option T)) (convert : T → T) : List (Option T) :=
+  xs.map (Option.map convert)
+
+theorem slotCopiedHeap_lookup {T : Type} (heap : SlotHeap T) (convert : T → T)
+    (dest src : Nat) (keys : List Nat) (index : I64) (hds : src ≠ dest) :
+    slotCopiedHeap convert dest src heap keys dest index =
+      if index ∈ keys.map slotIndex then (heap src index).map convert else heap dest index := by
+  induction keys generalizing heap with
+  | nil => simp [slotCopiedHeap]
+  | cons i is ih =>
+    simp only [slotCopiedHeap, List.map_cons, List.mem_cons]
+    rw [ih]
+    have hs : slotUpdatedHeap heap convert dest src i src index = heap src index := by
+      simp [slotUpdatedHeap, hds]
+    by_cases hk : index = slotIndex i
+    · subst index
+      simp [slotUpdatedHeap, hds, hs]
+    · have hindex : index.val ≠ (slotIndex i).val := by
+        intro hval
+        apply hk
+        exact Subtype.ext hval
+      by_cases ht : index ∈ List.map slotIndex is
+      · simp [slotUpdatedHeap, hds, hk, ht, hs, hindex]
+      · simp [slotUpdatedHeap, hds, hk, ht, hs, hindex]
+
+theorem slotFallbackContentsOnKeys {T : Type} (heap : SlotHeap T)
+    (convert : T → T) (n : I64) :
+    slotContentsOnKeys
+      (slotCopiedHeap convert 0 1 heap (List.range n.val.toNat)) 0
+      ((List.range n.val.toNat).map slotIndex) =
+    convertedSlots (slotContentsOnKeys heap 1 ((List.range n.val.toNat).map slotIndex)) convert := by
+  have hright :
+      convertedSlots (slotContentsOnKeys heap 1
+        ((List.range n.val.toNat).map slotIndex)) convert =
+      ((List.range n.val.toNat).map slotIndex).map
+        (fun index => (heap 1 index).map convert) := by
+    simp [convertedSlots, slotContentsOnKeys, List.map_map, Function.comp_def]
+  rw [hright]
+  change List.map
+      (fun index => slotCopiedHeap convert 0 1 heap (List.range n.val.toNat) 0 index)
+      ((List.range n.val.toNat).map slotIndex) =
+    List.map (fun index => (heap 1 index).map convert)
+      ((List.range n.val.toNat).map slotIndex)
+  apply List.map_congr_left
+  intro index hin
+  rcases List.mem_map.mp hin with ⟨i, hi, rfl⟩
+  have hkey : slotIndex i ∈ (List.range n.val.toNat).map slotIndex :=
+    List.mem_map.mpr ⟨i, hi, rfl⟩
+  rw [slotCopiedHeap_lookup heap convert 0 1 (List.range n.val.toNat)
+    (slotIndex i) (by decide)]
+  simp [hkey]
+
+def slotFallbackExpected {T : Type} [Inhabited T]
+    (convert : T → T) (n : I64) : SlotM T Nat := do
+  if (slotCopyOps (T := T) false).isZero n then return 0
+  let _ ← (slotCopyOps (T := T) false).pointerDest 0 1
+  let _ ← (slotCopyOps (T := T) false).pointerSource 1 1
+  let endOffset ← (slotCopyOps (T := T) false).sourceEnd 1 n
+  let _ ← (slotCopyOps (T := T) false).pointerSource 1 endOffset
+  let indices ← (slotCopyOps (T := T) false).forwardRange n
+  let _ ← slotFallbackLoopList convert 0 1 indices
+  return 0
+
+theorem slotUnsafeCopyFallback_action {T : Type} [Inhabited T]
+    (convert : T → T) (n : I64) :
+    unsafeCopytoMemoryFallback (slotConvertAccessOps convert) slotAccessOps
+      (slotCopyOps false) (slotConvertAccessOps convert).convertElement pure 0 1 1 1 n =
+    slotFallbackExpected convert n := by
+  by_cases hzero : n.val = 0
+  · have hz : (n == 0) = true := (slotI64EqZero n).mpr hzero
+    simp [unsafeCopytoMemoryFallback, slotFallbackExpected, slotCopyOps,
+      slotAccessOps, slotConvertAccessOps, slotFallbackLoopList, slotFallbackStep,
+      isassignedMemory, setindexMemory, setindexMemoryRaw,
+      unsetindexMemoryInt, unsetindexRef, slotRead, slotWrite, slotIndex,
+      slotI64ZeroVal, hzero, hz, StateT.bind, StateT.pure, Bind.bind, Pure.pure]
+  · have hz : (n == 0) = false := by
+      cases heq : n == 0 with
+      | false => rfl
+      | true =>
+          have hval : n.val = 0 := (slotI64EqZero n).mp heq
+          omega
+    simp [unsafeCopytoMemoryFallback, slotFallbackExpected, slotCopyOps,
+      slotAccessOps, slotConvertAccessOps, slotFallbackLoopList, slotFallbackStep,
+      isassignedMemory, setindexMemory, setindexMemoryRaw,
+      unsetindexMemoryInt, unsetindexRef, slotRead, slotWrite, slotIndex,
+      slotI64ZeroVal, hzero, hz, StateT.bind, StateT.pure, Bind.bind, Pure.pure]
+  all_goals rfl
+
+theorem slotFallbackExpected_run {T : Type} [Inhabited T]
+    (heap : SlotHeap T) (convert : T → T) (n : I64) (hpos : 0 < n.val) :
+    (slotFallbackExpected convert n).run heap =
+      (0, slotCopiedHeap convert 0 1 heap (List.range n.val.toNat)) := by
+  have hz : (n == 0) = false := by
+    cases heq : n == 0 with
+    | false => rfl
+    | true =>
+        have hval : n.val = 0 := (slotI64EqZero n).mp heq
+        omega
+  have hnz : n.val ≠ 0 := by omega
+  simp [slotFallbackExpected, slotCopyOps, hz, hnz, slotI64ZeroVal,
+    StateT.run_bind, StateT.run_pure, StateT.run]
+  change StateT.run
+    ((fun _ : PUnit => 0) <$> slotFallbackLoopList convert 0 1
+      (List.range n.val.toNat)) heap =
+    (0, slotCopiedHeap convert 0 1 heap (List.range n.val.toNat))
+  rw [StateT.run_map, slotFallbackLoopList_state heap convert 0 1
+    (List.range n.val.toNat)]
+  rfl
+
+theorem slotUnsafeCopyFallback_contents {T : Type} [Inhabited T]
+    (heap : SlotHeap T) (convert : T → T) (n : I64) (hn : 0 ≤ n.val) :
+    slotContentsOnKeys
+      ((unsafeCopytoMemoryFallback (slotConvertAccessOps convert) slotAccessOps
+        (slotCopyOps false) (slotConvertAccessOps convert).convertElement pure 0 1 1 1 n).run heap).2 0
+      ((List.range n.val.toNat).map slotIndex) =
+    convertedSlots (slotContentsOnKeys heap 1
+      ((List.range n.val.toNat).map slotIndex)) convert := by
+  by_cases hzero : n.val = 0
+  · have hz : (n == 0) = true := (slotI64EqZero n).mpr hzero
+    have hrun :
+        (unsafeCopytoMemoryFallback (slotConvertAccessOps convert) slotAccessOps
+          (slotCopyOps false) (slotConvertAccessOps convert).convertElement pure 0 1 1 1 n).run heap = (0, heap) := by
+      rw [slotUnsafeCopyFallback_action]
+      simp [slotFallbackExpected, slotCopyOps, hz, hzero, slotI64ZeroVal,
+        StateT.run, StateT.bind, StateT.pure, Bind.bind, Pure.pure]
+    rw [hrun]
+    simp [slotContentsOnKeys, convertedSlots, hzero]
+  · have hpos : 0 < n.val := by omega
+    have hrun :
+        (unsafeCopytoMemoryFallback (slotConvertAccessOps convert) slotAccessOps
+          (slotCopyOps false) (slotConvertAccessOps convert).convertElement pure 0 1 1 1 n).run heap =
+          (0, slotCopiedHeap convert 0 1 heap (List.range n.val.toNat)) := by
+      rw [slotUnsafeCopyFallback_action,
+        slotFallbackExpected_run heap convert n hpos]
+    rw [hrun]
+    exact slotFallbackContentsOnKeys heap convert n
+/-- Concrete typed and fallback copy models preserve source contents and undefined slots. -/
 def MemoryCopyPreservesContents : Prop :=
-  (∀ {m : Type → Type} {M P T N D S I Ptr Token : Type} [Monad m]
-      (copy : MemoryCopyOps m M P D S N I Ptr Token)
-      (contents : GenericMemoryRef M P → N → m (List (Option T)))
-      (dest src : GenericMemoryRef M P) (n : N) (before : List (Option T)),
-    contents src n = pure before →
-      (do
-        let _ ← unsafeCopytoRefs (T := T) copy true dest src n
-        contents dest n) = pure before) ∧
-  (∀ {m : Type → Type} {M P T Ptr Token : Type} [Monad m]
-      (copy : MemoryCopyOps m M P I64 I64 I64 I64 Ptr Token)
-      (contents : M → I64 → I64 → m (List (Option T)))
-      (dest src : M) (doffs soffs n : I64) (before : List (Option T)),
-    contents src soffs n = pure before →
-      (do
-        let _ ← unsafeCopytoMemoryTyped (T := T) copy true dest doffs src soffs n
-        contents dest doffs n) = pure before) ∧
-  (∀ {m : Type → Type} {M P TD TS D S N I Ptr Token : Type} [Monad m]
-      (destOps : MemoryAccessOps m M P TD TS) (srcOps : MemoryAccessOps m M P TS TS)
-      (copy : MemoryCopyOps m M P D S N I Ptr Token)
-      (sourceContents : M → S → N → m (List (Option TS)))
-      (destinationContents : M → D → N → m (List (Option TD)))
-      (dest src : M) (doffs : D) (soffs : S) (n : N) (before : List (Option TS)),
-    sourceContents src soffs n = pure before →
-      (do
-        let _ ← unsafeCopytoMemoryFallback destOps srcOps copy dest doffs src soffs n
-        destinationContents dest doffs n) =
-          before.mapM fun slot => do
-            match slot with
-            | none => pure none
-            | some value =>
-                let stored ← match destOps.castElement value with
-                  | some converted => pure converted
-                  | none => destOps.convertElement value
-                pure (some stored)) ∧
-  (∀ {m : Type → Type} {M P TD TS N I Ptr Token : Type} [Monad m]
-      (destOps : MemoryAccessOps m M P TD TS) (srcOps : MemoryAccessOps m M P TS TS)
+  (∀ {T : Type} (heap : Nat → Option T) (dest src : Nat) (doffs soffs n : I64),
+    (((do
+      let _ ← unsafeCopytoMemoryTyped (T := T) (heapCopyOps (T := T)) false
+        dest doffs src soffs n
+      heapContents dest doffs n).run heap).1) =
+      ((heapContents src soffs n).run heap).1) ∧
+  (∀ {T : Type} (heap : Nat → Option T)
+      (dest src : GenericMemoryRef Nat Nat) (n : I64),
+    ((do
+      let _ ← unsafeCopytoRefs (T := T) (heapCopyOps (T := T)) false dest src n
+      heapRefContents dest n).run heap).1 =
+      (List.range n.val.toNat).map fun i => heap (src.ptr_or_offset + i)) ∧
+  (∀ {T : Type} [Inhabited T] (heap : SlotHeap T) (convert : T → T) (n : I64),
+    0 ≤ n.val →
+      slotContentsOnKeys
+        ((unsafeCopytoMemoryFallback (slotConvertAccessOps convert) slotAccessOps
+          (slotCopyOps false) (slotConvertAccessOps convert).convertElement pure 0 1 1 1 n).run heap).2 0
+        ((List.range n.val.toNat).map slotIndex) =
+      convertedSlots (slotContentsOnKeys heap 1
+        ((List.range n.val.toNat).map slotIndex)) convert) ∧
+  (∀ {T : Type} (heap : Nat → Option T) (src : Nat) (n : I64),
+    ((do
+      let result ← copyMemory (T := T) (heapCopyOps (T := T))
+        (fun _ => pure n) (fun _ => pure 1000) src
+      heapContents result 1 n).run heap).1 =
+      (List.range n.val.toNat).map fun i => heap (src + i))
+
+theorem memoryCopyPreservesContents_proven : MemoryCopyPreservesContents := by
+  exact ⟨heapMemoryTypedCopy_contents, heapMemoryRefsCopy_contents,
+    slotUnsafeCopyFallback_contents, heapMemoryCopy_contents⟩
+
+/-- Generic memory references select the typed or conversion-aware copy path by element type. -/
+def MemoryCopyDispatchesByElementType : Prop :=
+  (∀ {m : Type → Type} {M P TD TS VS N I Ptr Token : Type} [Monad m]
+      (destOps : MemoryAccessOps m M P TD VS) (srcOps : MemoryAccessOps m M P TS VS)
       (copy : MemoryCopyOps m M P I64 I64 N I Ptr Token)
       (memoryrefoffset : GenericMemoryRef M P → I64)
-      (sourceContents : M → I64 → N → m (List (Option TS)))
-      (destinationContents : M → I64 → N → m (List (Option TD)))
-      (sameElementType : Decidable (TD = TS)) (dest src : GenericMemoryRef M P) (n : N)
-      (before : List (Option TS)),
-    sourceContents src.mem (memoryrefoffset src) n = pure before →
-      (do
-        let _ ← unsafeCopytoGenericRefs destOps srcOps copy true memoryrefoffset
-          sameElementType dest src n
-        destinationContents dest.mem (memoryrefoffset dest) n) =
-          before.mapM fun slot => do
-            match slot with
-            | none => pure none
-            | some value =>
-                let stored ← match destOps.castElement value with
-                  | some converted => pure converted
-                  | none => destOps.convertElement value
-                pure (some stored)) ∧
-  (∀ {m : Type → Type} {M P T Ptr Token : Type} [Monad m]
-      (copy : MemoryCopyOps m M P I64 I64 I64 I64 Ptr Token)
-      (length : M → m I64) (construct : I64 → m M)
-      (contents : M → I64 → I64 → m (List (Option T)))
-      (source : M) (n : I64) (before : List (Option T)),
-    length source = pure n → contents source 1 n = pure before →
-      (do
-        let result ← copyMemory (T := T) copy length construct source
-        contents result 1 n) = pure before)
+      (dest src : GenericMemoryRef M P) (n : N) (same : TD = TS),
+    copy.isZero n = false →
+      unsafeCopytoGenericRefs destOps srcOps copy destOps.convertElement pure false memoryrefoffset
+        (isTrue same) dest src n =
+        (do
+          let _ ← unsafeCopytoMemoryTyped (T := TD) copy false dest.mem
+            (memoryrefoffset dest) src.mem (memoryrefoffset src) n
+          return dest)) ∧
+  (∀ {m : Type → Type} {M P TD TS VS N I Ptr Token : Type} [Monad m]
+      (destOps : MemoryAccessOps m M P TD VS) (srcOps : MemoryAccessOps m M P TS VS)
+      (copy : MemoryCopyOps m M P I64 I64 N I Ptr Token)
+      (memoryrefoffset : GenericMemoryRef M P → I64)
+      (dest src : GenericMemoryRef M P) (n : N) (different : TD ≠ TS),
+    copy.isZero n = false →
+      unsafeCopytoGenericRefs destOps srcOps copy destOps.convertElement pure false memoryrefoffset
+        (isFalse different) dest src n =
+        (do
+          let _ ← unsafeCopytoMemoryFallback destOps srcOps copy destOps.convertElement pure dest.mem
+            (memoryrefoffset dest) src.mem (memoryrefoffset src) n
+          return dest))
 
+theorem memoryCopyDispatchesByElementType_proven :
+    MemoryCopyDispatchesByElementType := by
+  constructor <;> intros <;> simp [unsafeCopytoGenericRefs, *]
 /-- Unsetting a memory slot returns its original reference or memory object, and after a
 successful runtime unset its reference reads unassigned. -/
 def MemoryUnsetReturnsTarget : Prop :=
@@ -325,13 +788,13 @@ def MemoryScalarSetindexReturnsTarget : Prop :=
     ops.castElement value = some stored → ops.checkbounds a i = some () →
       ops.memoryref a = some base → ops.memoryrefNew base i false = some ref →
         ops.memoryrefSet ref stored .notAtomic false = some () →
-          setindexMemory ops true a value i = some a) ∧
+          setindexMemory ops ops.convertElement pure true a value i = some a) ∧
   (∀ {M P T V : Type} (ops : MemoryAccessOps Option M P T V)
       (throwBounds : M → I64 → I64 → List I64 → Option Unit)
       (a : M) (value : V) (i1 i2 : I64) (indices : List I64),
     i2 = 1 → indices.all (fun i => i == 1) = true →
-      setindexMemoryCartesian ops true throwBounds a value i1 i2 indices =
-        setindexMemory ops true a value i1)
+      setindexMemoryCartesian ops ops.convertElement pure throwBounds true a value i1 i2 indices =
+        setindexMemory ops ops.convertElement pure true a value i1)
 
 /-- Range and colon assignment reject a source whose shape does not match the target span. -/
 def MemoryBulkSetindexChecksShape : Prop :=
@@ -841,7 +1304,570 @@ theorem atomicMemoryOperationsPreserveOrdering_proven : AtomicMemoryOperationsPr
       expected input i ref value result
     intro href hcast hset
     simp [replaceindexAtomic, href, hcast, hset]
+namespace Round2
 
+open JuliaLean JuliaLean.base.genericmemory JuliaLean.Proofs.base.genericmemory
+
+namespace ByteComparisonBinding
+
+/-- Pointer metadata and typed slot objects are two observations of the same UInt8 memory.
+The mapping stores object fields, not operations or an expected comparison result. -/
+abbrev Pointers := Nat → JuliaLean.base.pointer.PointerMemoryObject (JInt .u8)
+
+/-- Concrete dispatch for the splatted native-Int multiplication used by tuple `prod`.
+Only the singleton branch is reachable from `size(::GenericMemory)`, but all arities use
+installed multiplication definitions rather than a callback returning a supplied length. -/
+def multiplyDimensions (xs : List (JInt .i64)) : JInt .i64 :=
+  match xs with
+  | [] => JuliaLean.base.tuple.prodEmpty
+  | [x] => JuliaLean.base.operators.unaryMulNumber x
+  | [x, y] => JuliaLean.base.int.mul x y
+  | x :: y :: z :: rest =>
+    (JuliaLean.base.operators.naryOperator
+      (τ := Unit) (σ := Unit) (Acc := fun _ => JInt .i64) (Elem := fun _ => JInt .i64)
+      JuliaLean.base.int.mul
+      (fun a b => ⟨(), JuliaLean.base.int.mul a b⟩)
+      (fun a b => ⟨(), JuliaLean.base.int.mul a.2 b.2⟩)
+      x y z (rest.map fun v => ⟨(), v⟩)).2
+
+/-- Read `size(::GenericMemory)` through the installed heap model, then execute the
+source-mirrored `length(::AbstractArray)` and tuple-product methods. The pure size callback
+carries the result of that actual modeled read, not an assumed law. Failure remains `none`. -/
+def lengthModel (objects : JuliaLean.base.essentials.Heap)
+    (mem : JuliaLean.base.essentials.Mem) : Option (JInt .i64) := do
+  let outcome ← (JuliaLean.base.essentials.sizeGenericMemory mem).run objects
+  match outcome with
+  | .ok (dims, _) => some (JuliaLean.base.essentials.lengthAbstract
+      (fun _ => dims) (JuliaLean.base.tuple.prodIntTuple multiplyDimensions) mem)
+  | .error _ => none
+
+/-- Observable extent from the runtime object's stored slots; no comparison operation occurs. -/
+def extent (objects : JuliaLean.base.essentials.Heap)
+    (mem : JuliaLean.base.essentials.Mem) : Nat :=
+  match objects[mem.handle]? with
+  | some obj => obj.slots.length
+  | none => 0
+
+/-- Bytes of a memory object, read from the shared installed byte heap. Aliases share these bytes. -/
+def contents (bytes : JuliaLean.base.pointer.ByteHeap)
+    (objects : JuliaLean.base.essentials.Heap) (pointers : Pointers)
+    (mem : JuliaLean.base.essentials.Mem) : List (JInt .u8) :=
+  bytes.readBytes (pointers mem.handle).ptr.address.val.toNat (extent objects mem)
+
+/-- A constructible live UInt8 memory object: one byte per element, non-atomic, in the shared
+heap; its extent and address range do not wrap. Zero length and aliases are permitted. -/
+def ValidMemory (bytes : JuliaLean.base.pointer.ByteHeap)
+    (objects : JuliaLean.base.essentials.Heap) (pointers : Pointers)
+    (mem : JuliaLean.base.essentials.Mem) : Prop :=
+  ∃ obj, objects[mem.handle]? = some obj ∧
+    obj.atomic = false ∧ obj.elsize = 1 ∧ obj.isunion = false ∧
+    (pointers mem.handle).arrayElement = 0 ∧
+    (pointers mem.handle).layoutBytes.val = 1 ∧
+    obj.slots.length < 2 ^ 62 ∧
+    (pointers mem.handle).ptr.address.val.toNat + obj.slots.length ≤ 2 ^ 64 ∧
+    bytes.validRange (pointers mem.handle).ptr.address.val.toNat obj.slots.length ∧
+    obj.slots = (contents bytes objects pointers mem).map
+      (fun v => some (JuliaLean.BootCov.JVal.int v.val))
+
+/-- Independent lexicographic order: a strict prefix, or the first differing byte after an
+identical prefix, determines which byte sequence comes first. -/
+def LexLess (xs ys : List (JInt .u8)) : Prop :=
+  (∃ tail : List (JInt .u8), tail ≠ [] ∧ ys = xs ++ tail) ∨
+  (∃ (sharedPrefix : List (JInt .u8)) (x y : JInt .u8) (xt yt : List (JInt .u8)),
+    xs = sharedPrefix ++ x :: xt ∧ ys = sharedPrefix ++ y :: yt ∧ x.val < y.val)
+
+/-- The ordinary native-Int comparison callee, bound to its source-mirrored definitions. -/
+def compareLengths (x y : JInt .i64) : Option (JInt .i64) :=
+  some (JInt.wrap .i64 (JuliaLean.base.operators.cmpInteger
+    (JuliaLean.base.operators.islessReal JuliaLean.base.int.lt)
+    (JuliaLean.base.operators.islessReal JuliaLean.base.int.lt) x y))
+
+end ByteComparisonBinding
+
+/-- Comparing any two valid UInt8 memories succeeds with -1, 0, or 1 exactly according to
+lexicographic byte order, including empty memories, proper prefixes and overlapping storage.
+Julia source: base/genericmemory.jl:367-376 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+Julia documentation: base/operators.jl:508-526; base/genericmemory.jl:366-376 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-/
+def ByteMemoryComparisonCorrect : Prop :=
+  ∀ (bytes : JuliaLean.base.pointer.ByteHeap)
+    (objects : JuliaLean.base.essentials.Heap)
+    (pointers : ByteComparisonBinding.Pointers)
+    (a b : JuliaLean.base.essentials.Mem),
+    ByteComparisonBinding.ValidMemory bytes objects pointers a →
+    ByteComparisonBinding.ValidMemory bytes objects pointers b →
+    -- The read-only byte/object snapshot stays rooted throughout this observation.
+    -- Unit callbacks erase compiler liveness metadata only. The installed
+    -- essentials.gcPreserveBegin/End are macro AST builders, not runtime operations.
+    let result := JuliaLean.base.genericmemory.cmpByteMemory
+      (ByteComparisonBinding.lengthModel objects)
+      (fun _ => ()) (fun _ => some ())
+      (fun mem => some (JuliaLean.base.pointer.unsafeConvertMemoryCvoid
+        (pointers mem.handle)))
+      (fun pa pb n =>
+        (JuliaLean.base.cmem.memcmp JuliaLean.base.cmem.StandardC.standardCMemoryOps
+          (fun n : JInt .i64 => .ok (JuliaLean.base.int.remT .u64 n))
+          bytes pa pb n).toOption)
+      ByteComparisonBinding.compareLengths a b
+    let left := ByteComparisonBinding.contents bytes objects pointers a
+    let right := ByteComparisonBinding.contents bytes objects pointers b
+    ∃ c : JInt .i64, result = some c ∧
+      (c.val = -1 ∨ c.val = 0 ∨ c.val = 1) ∧
+      (c.val = -1 ↔ ByteComparisonBinding.LexLess left right) ∧
+      (c.val = 0 ↔ left = right) ∧
+      (c.val = 1 ↔ ByteComparisonBinding.LexLess right left)
+
+end Round2
+
+namespace Round2
+
+open JuliaLean JuliaLean.base.genericmemory JuliaLean.Proofs.base.genericmemory
+
+namespace BitIntegerEqualityBinding
+
+/-- Native pointer metadata for memories of the one chosen BitInteger type. -/
+abbrev Pointers (t : IntTy) := Nat → JuliaLean.base.pointer.PointerMemoryObject (JInt t)
+
+/-- Concrete dispatch for the splatted native-Int multiplication used by tuple `prod`.
+Only the singleton branch is reachable from `size(::GenericMemory)`, but all arities use
+installed multiplication definitions rather than a callback returning a supplied length. -/
+def multiplyDimensions (xs : List (JInt .i64)) : JInt .i64 :=
+  match xs with
+  | [] => JuliaLean.base.tuple.prodEmpty
+  | [x] => JuliaLean.base.operators.unaryMulNumber x
+  | [x, y] => JuliaLean.base.int.mul x y
+  | x :: y :: z :: rest =>
+    (JuliaLean.base.operators.naryOperator
+      (τ := Unit) (σ := Unit) (Acc := fun _ => JInt .i64) (Elem := fun _ => JInt .i64)
+      JuliaLean.base.int.mul
+      (fun a b => ⟨(), JuliaLean.base.int.mul a b⟩)
+      (fun a b => ⟨(), JuliaLean.base.int.mul a.2 b.2⟩)
+      x y z (rest.map fun v => ⟨(), v⟩)).2
+
+/-- Read `size(::GenericMemory)` through the installed heap model, then execute the
+source-mirrored `length(::AbstractArray)` and tuple-product methods. The pure size callback
+carries the result of that actual modeled read, not an assumed law. Failure remains `none`. -/
+def lengthModel (objects : JuliaLean.base.essentials.Heap)
+    (mem : JuliaLean.base.essentials.Mem) : Option (JInt .i64) := do
+  let outcome ← (JuliaLean.base.essentials.sizeGenericMemory mem).run objects
+  match outcome with
+  | .ok (dims, _) => some (JuliaLean.base.essentials.lengthAbstract
+      (fun _ => dims) (JuliaLean.base.tuple.prodIntTuple multiplyDimensions) mem)
+  | .error _ => none
+
+/-- Observable extent from the runtime object's stored slots; no comparison operation occurs. -/
+def extent (objects : JuliaLean.base.essentials.Heap)
+    (mem : JuliaLean.base.essentials.Mem) : Nat :=
+  match objects[mem.handle]? with
+  | some obj => obj.slots.length
+  | none => 0
+
+/-- Stored abstract values of an object. No byte comparison is performed here. -/
+def values (objects : JuliaLean.base.essentials.Heap)
+    (mem : JuliaLean.base.essentials.Mem) : List (Option JuliaLean.BootCov.JVal) :=
+  match objects[mem.handle]? with
+  | some obj => obj.slots
+  | none => []
+
+/-- Byte-level representation of the installed runtime bit pattern, in native endian order.
+This is a representation observation, not an equality implementation or an unconstrained codec.
+The two endian cases are documented by base/io.jl:838-844; C.fromJInt is the existing
+runtime-intrinsic bridge in JuliaLean/src/runtime_intrinsics_c.lean:18. -/
+def nativeBytes (t : IntTy) (littleEndian : Bool) (value : JInt t) : List (JInt .u8) :=
+  let bits := (JuliaLean.C.fromJInt value).toNat
+  let little := (List.range (JuliaLean.base.int.sizeofT t)).map fun i =>
+    JInt.wrap .u8 (Int.ofNat (bits / 2 ^ (8 * i)))
+  if littleEndian then little else little.reverse
+
+/-- Type/layout and shared-storage validity for a same-type BitInteger memory, with all
+slots represented by their actual native bytes. The bounds exclude Int/pointer wraparound;
+empty memories, arbitrary integer bit patterns and overlapping memory objects remain allowed. -/
+def ValidMemory (t : IntTy) (littleEndian : Bool)
+    (bytes : JuliaLean.base.pointer.ByteHeap)
+    (objects : JuliaLean.base.essentials.Heap) (pointers : Pointers t)
+    (mem : JuliaLean.base.essentials.Mem) : Prop :=
+  ∃ obj, objects[mem.handle]? = some obj ∧
+    obj.atomic = false ∧ obj.elsize = JuliaLean.base.int.sizeofT t ∧ obj.isunion = false ∧
+    (pointers mem.handle).arrayElement = 0 ∧
+    (pointers mem.handle).layoutBytes.val = Int.ofNat (JuliaLean.base.int.sizeofT t) ∧
+    obj.slots.length < 2 ^ 62 ∧
+    obj.slots.length * JuliaLean.base.int.sizeofT t < 2 ^ 63 ∧
+    bytes.validRange (pointers mem.handle).ptr.address.val.toNat
+      (obj.slots.length * JuliaLean.base.int.sizeofT t) ∧
+    (∀ i, i < obj.slots.length → ∃ value : JInt t,
+      obj.slots[i]? = some (some (JuliaLean.BootCov.JVal.int value.val)) ∧
+      bytes.readBytes
+        ((pointers mem.handle).ptr.address.val.toNat + i * JuliaLean.base.int.sizeofT t)
+        (JuliaLean.base.int.sizeofT t) = nativeBytes t littleEndian value)
+
+/-- Typed dispatch from the exact queried Lean carrier back to its fixed runtime IntTy tag.
+The source caller's `M <: BitIntegerMemory` has one concrete element type `JInt t`, and its
+installed `eltypeArray` call below returns that same carrier. This guard consumes the actual
+queried type: it does not silently size a different type using captured `t`. The zero branch
+is an unreachable adapter sentinel, not a claimed sizeof result for arbitrary Julia types.
+The reachable branch executes the installed sizeof wrapper and Core BitInteger size model. -/
+noncomputable def elementSize (t : IntTy) (queriedType : Type) : JInt .i64 :=
+  @ite (JInt .i64) (queriedType = JInt t) (Classical.propDecidable _)
+    (JuliaLean.base.essentials.sizeof
+      (fun ty : IntTy => JInt.wrap .i64 (Int.ofNat (JuliaLean.base.int.sizeofT ty))) t)
+    (JInt.wrap .i64 0)
+
+end BitIntegerEqualityBinding
+
+/-- Two same-type BitInteger memories compare equal exactly when their lengths and all
+corresponding integer values agree, for every signed/unsigned width, including empty and aliased
+memories; the comparison always returns a Bool.
+Julia source: base/genericmemory.jl:378-393 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+Julia documentation: base/operators.jl:109-128; base/int.jl:4-20; base/io.jl:838-844 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-/
+def BitIntegerMemoryEqualityCorrect : Prop :=
+  ∀ (t : IntTy) (littleEndian : Bool)
+    (bytes : JuliaLean.base.pointer.ByteHeap)
+    (objects : JuliaLean.base.essentials.Heap)
+    (pointers : BitIntegerEqualityBinding.Pointers t)
+    (a b : JuliaLean.base.essentials.Mem),
+    BitIntegerEqualityBinding.ValidMemory t littleEndian bytes objects pointers a →
+    BitIntegerEqualityBinding.ValidMemory t littleEndian bytes objects pointers b →
+    -- These callbacks erase only compiler liveness metadata in a rooted read-only snapshot;
+    -- essentials.gcPreserveBegin/End construct macro AST, not runtime heap operations.
+    let result := JuliaLean.base.genericmemory.equalBitIntegerMemory
+      (BitIntegerEqualityBinding.lengthModel objects)
+      (fun _ => ()) (fun _ => some ())
+      (fun mem => some (JuliaLean.base.pointer.unsafeConvertMemoryCvoid
+        (pointers mem.handle)))
+      (BitIntegerEqualityBinding.elementSize t)
+      (fun _ => JuliaLean.base.abstractarray.eltypeArray JuliaLean.BootCov.JVal (some (JInt t)))
+      (fun pa pb n =>
+        (JuliaLean.base.cmem.memcmp JuliaLean.base.cmem.StandardC.standardCMemoryOps
+          (fun n : JInt .i64 => .ok (JuliaLean.base.int.remT .u64 n))
+          bytes pa pb n).toOption) a b
+    ∃ equal : Bool, result = some equal ∧
+      (equal = true ↔
+        BitIntegerEqualityBinding.values objects a = BitIntegerEqualityBinding.values objects b) ∧
+      (equal = false ↔
+        BitIntegerEqualityBinding.values objects a ≠ BitIntegerEqualityBinding.values objects b)
+
+end Round2
+
+end JuliaLean.Proofs.base.genericmemory
+
+namespace JuliaLean.ChatGPT.Batch4.Group22
+open JuliaLean JuliaLean.base.pointer JuliaLean.base.cmem
+open JuliaLean.Proofs.base.genericmemory.Round2
+
+theorem gmLex_nil (ys : List (JInt .u8)) :
+    ByteComparisonBinding.LexLess [] ys ↔ ys ≠ [] := by
+  constructor
+  · intro h
+    rcases h with ⟨tail, hn, h⟩ | ⟨pre, x, y, xt, yt, hx, hy, hlt⟩
+    · simpa only [List.nil_append] using h.symm ▸ hn
+    · have hlen := congrArg List.length hx
+      simp only [List.length_nil, List.length_append, List.length_cons] at hlen
+      omega
+  · intro h
+    exact Or.inl ⟨ys, h, rfl⟩
+
+theorem gmLex_right_nil (xs : List (JInt .u8)) :
+    ¬ ByteComparisonBinding.LexLess xs [] := by
+  intro h
+  rcases h with ⟨tail, hn, h⟩ | ⟨pre, x, y, xt, yt, hx, hy, hlt⟩
+  · have hlen := congrArg List.length h
+    simp only [List.length_nil, List.length_append] at hlen
+    have : tail.length = 0 := by omega
+    exact hn (List.length_eq_zero_iff.mp this)
+  · have hlen := congrArg List.length hy
+    simp only [List.length_nil, List.length_append, List.length_cons] at hlen
+    omega
+
+theorem gmLex_cons (x y : JInt .u8) (xs ys : List (JInt .u8)) :
+    ByteComparisonBinding.LexLess (x :: xs) (y :: ys) ↔
+      x.val < y.val ∨ (x = y ∧ ByteComparisonBinding.LexLess xs ys) := by
+  constructor
+  · intro h
+    rcases h with ⟨tail, hn, h⟩ | ⟨pre, a, b, ats, bt, hx, hy, hlt⟩
+    · simp only [List.cons_append, List.cons.injEq] at h
+      exact Or.inr ⟨h.1.symm, Or.inl ⟨tail, hn, h.2⟩⟩
+    · cases pre with
+      | nil =>
+        simp only [List.nil_append, List.cons.injEq] at hx hy
+        exact Or.inl (hx.1 ▸ hy.1 ▸ hlt)
+      | cons z zs =>
+        simp only [List.cons_append, List.cons.injEq] at hx hy
+        exact Or.inr ⟨hx.1.trans hy.1.symm,
+          Or.inr ⟨zs, a, b, ats, bt, hx.2, hy.2, hlt⟩⟩
+  · intro h
+    rcases h with h | ⟨rfl, h⟩
+    · exact Or.inr ⟨[], x, y, xs, ys, rfl, rfl, h⟩
+    · rcases h with ⟨tail, hn, h⟩ | ⟨pre, a, b, ats, bt, hx, hy, hlt⟩
+      · exact Or.inl ⟨tail, hn, by rw [h]; rfl⟩
+      · exact Or.inr ⟨x :: pre, a, b, ats, bt,
+          by rw [hx]; rfl, by rw [hy]; rfl, hlt⟩
+
+def gmListCmp : List (JInt .u8) → List (JInt .u8) → Int
+  | [], [] => 0
+  | [], _ :: _ => -1
+  | _ :: _, [] => 1
+  | x :: xs, y :: ys =>
+      if x = y then gmListCmp xs ys else if x.val < y.val then -1 else 1
+
+theorem gmListCmp_spec (xs ys : List (JInt .u8)) :
+    (gmListCmp xs ys = -1 ∨ gmListCmp xs ys = 0 ∨ gmListCmp xs ys = 1) ∧
+    (gmListCmp xs ys = -1 ↔ ByteComparisonBinding.LexLess xs ys) ∧
+    (gmListCmp xs ys = 0 ↔ xs = ys) ∧
+    (gmListCmp xs ys = 1 ↔ ByteComparisonBinding.LexLess ys xs) := by
+  induction xs generalizing ys with
+  | nil =>
+    cases ys with
+    | nil => simp [gmListCmp, gmLex_nil, gmLex_right_nil]
+    | cons y ys => simp [gmListCmp, gmLex_nil, gmLex_right_nil]
+  | cons x xs ih =>
+    cases ys with
+    | nil => simp [gmListCmp, gmLex_nil, gmLex_right_nil]
+    | cons y ys =>
+      by_cases hxy : x = y
+      · subst y
+        simpa [gmListCmp, gmLex_cons] using ih ys
+      · have hv : x.val ≠ y.val := fun h => hxy (Subtype.ext h)
+        by_cases hlt : x.val < y.val
+        · have hn : ¬ y.val < x.val := by omega
+          simp [gmListCmp, gmLex_cons, hxy, Ne.symm hxy, hlt, hn]
+        · have hgt : y.val < x.val := by omega
+          simp [gmListCmp, gmLex_cons, hxy, Ne.symm hxy, hlt, hgt]
+
+def gmCompareCounts (n m : Nat) : Int :=
+   if n < m then -1 else if m < n then 1 else 0
+
+def gmFinish (c : Int) (n m : Nat) : Int :=
+   if c < 0 then -1 else if 0 < c then 1 else gmCompareCounts n m
+
+theorem gmFinish_succ (c : Int) (n m : Nat) :
+     gmFinish c (n+1) (m+1) = gmFinish c n m := by
+   simp only [gmFinish, gmCompareCounts, Nat.add_lt_add_iff_right]
+
+theorem gmCmem_finish (heap : ByteHeap) (n m left right : Nat) :
+    gmFinish (StandardC.cMemcmp heap left right (min n m)).val n m =
+      gmListCmp (heap.readBytes left n) (heap.readBytes right m) := by
+  induction n generalizing m left right with
+  | zero =>
+    cases m with
+    | zero => simp [gmFinish, gmCompareCounts, StandardC.cMemcmp, ByteHeap.readBytes, gmListCmp, StandardC.i32Lit]
+    | succ m => simp [gmFinish, gmCompareCounts, StandardC.cMemcmp, ByteHeap.readBytes, gmListCmp, StandardC.i32Lit]
+  | succ n ih =>
+    cases m with
+    | zero => simp [gmFinish, gmCompareCounts, StandardC.cMemcmp, ByteHeap.readBytes, gmListCmp, StandardC.i32Lit]
+    | succ m =>
+      have hmin : min (n+1) (m+1) = min n m + 1 := by omega
+      rw [hmin]
+      simp only [StandardC.cMemcmp, ByteHeap.readBytes, gmListCmp]
+      by_cases heq : heap.readByte left = heap.readByte right
+      · simp only [heq, ite_true, gmFinish_succ]
+        exact ih m (left+1) (right+1)
+      · simp only [heq, ite_false]
+        by_cases hlt : (heap.readByte left).val < (heap.readByte right).val
+        · simp [hlt, gmFinish, StandardC.i32Lit]
+        · simp [hlt, gmFinish, StandardC.i32Lit]
+
+theorem gmLengthModel
+    (objects : JuliaLean.base.essentials.Heap)
+    (mem : JuliaLean.base.essentials.Mem)
+    (obj : JuliaLean.base.essentials.MemObj)
+    (h : objects[mem.handle]? = some obj) :
+    ByteComparisonBinding.lengthModel objects mem =
+      some (JInt.wrap .i64 (Int.ofNat obj.slots.length)) := by
+  simp [ByteComparisonBinding.lengthModel, JuliaLean.base.essentials.sizeGenericMemory,
+    JuliaLean.base.essentials.memLength, JuliaLean.base.essentials.memObj,
+    StateT.run, StateT.bind, StateT.pure, StateT.get, get, getThe, MonadStateOf.get, ExceptT.bind, ExceptT.pure, ExceptT.bindCont,
+    ExceptT.run, ExceptT.mk, Bind.bind, Pure.pure, h,
+    JuliaLean.base.essentials.lengthAbstract, JuliaLean.base.tuple.prodIntTuple,
+    ByteComparisonBinding.multiplyDimensions, JuliaLean.base.operators.unaryMulNumber]
+
+theorem gmI64_wrap_val (x : Int) (hx : -(2^63 : Int) ≤ x ∧ x < 2^63) :
+    (JInt.wrap .i64 x).val = x :=
+  wrapInt_of_inRange .i64 x (by change -(2^63 : Int) ≤ x ∧ x ≤ 2^63 - 1; omega)
+
+theorem gmU64_rem_val (x : JInt .i64) (hx : 0 ≤ x.val) :
+    (JuliaLean.base.int.remT .u64 x).val = x.val := by
+  have hb := x.property
+  change -(2^63 : Int) ≤ x.val ∧ x.val ≤ 2^63-1 at hb
+  change wrapInt .u64 (Int.ofNat (BitVec.ofInt 64 x.val).toNat) = x.val
+  simp only [BitVec.toNat_ofInt, wrapInt, IntTy.signed, IntTy.bits]
+  simp only [Bool.false_eq_true, ite_false]
+  change (((x.val % 18446744073709551616).toNat : Nat) : Int) % 18446744073709551616 = x.val
+  rw [Int.emod_eq_of_lt hx (by omega), Int.toNat_of_nonneg hx, Int.emod_eq_of_lt hx (by omega)]
+
+theorem gmI64_toInt (x : JInt .i64) :
+    (JuliaLean.C.fromJInt x).toInt = x.val := by
+  have hb := x.property
+  change -(2^63 : Int) ≤ x.val ∧ x.val ≤ 2^63-1 at hb
+  simp only [JuliaLean.C.fromJInt, BitVec.toInt_ofInt, IntTy.bits, Int.bmod_def]
+  split <;> omega
+
+theorem gmI64_lt (x y : JInt .i64) :
+    JuliaLean.base.int.lt x y = decide (x.val < y.val) := by
+  have hx : JuliaLean.base.int.widenTo .i64 x = x := by
+    apply Subtype.ext
+    exact wrapInt_of_inRange .i64 x.val x.property
+  have hy : JuliaLean.base.int.widenTo .i64 y = y := by
+    apply Subtype.ext
+    exact wrapInt_of_inRange .i64 y.val y.property
+  change JuliaLean.base.int.slt_int (JuliaLean.base.int.widenTo .i64 x)
+    (JuliaLean.base.int.widenTo .i64 y) = _
+  rw [hx, hy]
+  simp only [JuliaLean.base.int.slt_int, JuliaLean.C.jlSltInt, gmI64_toInt]
+
+theorem gmCompareLengths (x y : JInt .i64) (n m : Nat)
+    (hx : x.val = n) (hy : y.val = m) :
+    ByteComparisonBinding.compareLengths x y =
+      some (JInt.wrap .i64 (gmCompareCounts n m)) := by
+  simp only [ByteComparisonBinding.compareLengths, JuliaLean.base.operators.cmpInteger,
+    JuliaLean.base.operators.islessReal, gmI64_lt, hx, hy,
+    JuliaLean.base.operators.ifelseValue, gmCompareCounts, Int.ofNat_lt,
+    decide_eq_true_eq]
+  by_cases hnm : n < m <;> by_cases hmn : m < n <;> simp [hnm, hmn]
+
+theorem gmMin_val (x y : JInt .i64) (n m : Nat)
+    (hx : x.val = n) (hy : y.val = m) :
+    (min x y).val = (min n m : Nat) := by
+  change (if x.val ≤ y.val then x else y).val = _
+  by_cases h : x.val ≤ y.val
+  · rw [if_pos h, hx]
+    have hnm : n ≤ m := by omega
+    rw [Nat.min_eq_left hnm]
+  · rw [if_neg h, hy]
+    have hmn : m ≤ n := by omega
+    rw [Nat.min_eq_right hmn]
+
+theorem gmMemcmp_evaluate (heap : ByteHeap) (pa pb : Ptr Unit)
+    (n : JInt .i64) (hn : 0 ≤ n.val) :
+    (JuliaLean.base.cmem.memcmp StandardC.standardCMemoryOps
+      (fun n : JInt .i64 => .ok (JuliaLean.base.int.remT .u64 n))
+      heap pa pb n).toOption =
+    some (JInt.wrap .i64
+      (StandardC.cMemcmp heap pa.address.val.toNat pb.address.val.toNat n.val.toNat).val) := by
+  change some (JInt.wrap .i64
+    (StandardC.cMemcmp heap pa.address.val.toNat pb.address.val.toNat
+      (JuliaLean.base.int.remT .u64 n).val.toNat).val) = _
+  rw [gmU64_rem_val n hn]
+
+
+theorem gmCmem_val_range (heap : ByteHeap) (left right count : Nat) :
+    (StandardC.cMemcmp heap left right count).val = -1 ∨
+    (StandardC.cMemcmp heap left right count).val = 0 ∨
+    (StandardC.cMemcmp heap left right count).val = 1 := by
+  induction count generalizing left right with
+  | zero => exact Or.inr (Or.inl rfl)
+  | succ count ih =>
+    simp only [StandardC.cMemcmp]
+    split
+    · exact ih (left+1) (right+1)
+    · split
+      · exact Or.inl rfl
+      · exact Or.inr (Or.inr rfl)
+
+theorem gmReadBytes_length (heap : ByteHeap) (address count : Nat) :
+    (heap.readBytes address count).length = count := by
+  induction count generalizing address with
+  | zero => rfl
+  | succ count ih =>
+    simp only [ByteHeap.readBytes, List.length_cons, ih]
+
+theorem gmSmall_wrap_val (z : Int) (h : z = -1 ∨ z = 0 ∨ z = 1) :
+    (JInt.wrap .i64 z).val = z := by
+  apply gmI64_wrap_val
+  rcases h with h | h | h <;> rw [h] <;> decide
+
+theorem gmNat_wrap_val (n : Nat) (h : n < 2^62) :
+    (JInt.wrap .i64 (Int.ofNat n)).val = (n : Int) := by
+  apply gmI64_wrap_val
+  change n < 4611686018427387904 at h
+  change -(2^63 : Int) ≤ (n : Int) ∧ (n : Int) < 2^63
+  omega
+
+theorem GenericmemoryByteComparisonV2_proven :
+    JuliaLean.Proofs.base.genericmemory.Round2.ByteMemoryComparisonCorrect := by
+  intro bytes objects pointers a b ha hb
+  rcases ha with ⟨oa, hoa, haAtomic, haSize, haUnion, haArray,
+    haLayout, haLen, haPtr, haValid, haSlots⟩
+  rcases hb with ⟨ob, hob, hbAtomic, hbSize, hbUnion, hbArray,
+    hbLayout, hbLen, hbPtr, hbValid, hbSlots⟩
+  let na := oa.slots.length
+  let nb := ob.slots.length
+  let pa := (pointers a.handle).ptr
+  let pb := (pointers b.handle).ptr
+  let la := JInt.wrap .i64 (Int.ofNat na)
+  let lb := JInt.wrap .i64 (Int.ofNat nb)
+  let ca := StandardC.cMemcmp bytes pa.address.val.toNat pb.address.val.toNat (min na nb)
+  have hla : ByteComparisonBinding.lengthModel objects a = some la :=
+    gmLengthModel objects a oa hoa
+  have hlb : ByteComparisonBinding.lengthModel objects b = some lb :=
+    gmLengthModel objects b ob hob
+  have hlav : la.val = (na : Int) := gmNat_wrap_val na haLen
+  have hlbv : lb.val = (nb : Int) := gmNat_wrap_val nb hbLen
+  have hmin : (min la lb).val = ((min na nb : Nat) : Int) :=
+    gmMin_val la lb na nb hlav hlbv
+  have hca := gmCmem_val_range bytes pa.address.val.toNat pb.address.val.toNat (min na nb)
+  have hcaw : (JInt.wrap .i64 ca.val).val = ca.val := gmSmall_wrap_val ca.val hca
+  have hmem := gmMemcmp_evaluate bytes pa pb (min la lb) (by rw [hmin]; exact Int.natCast_nonneg _)
+  have hminNat : (min la lb).val.toNat = min na nb := by rw [hmin]; rfl
+  rw [hminNat] at hmem
+  have hcmp := gmCompareLengths la lb na nb hlav hlbv
+  let left := bytes.readBytes pa.address.val.toNat na
+  let right := bytes.readBytes pb.address.val.toNat nb
+  let answer := gmListCmp left right
+  have hfinish : gmFinish ca.val na nb = answer :=
+    gmCmem_finish bytes na nb pa.address.val.toNat pb.address.val.toNat
+  have hspec := gmListCmp_spec left right
+  have hanswer : (JInt.wrap .i64 answer).val = answer := gmSmall_wrap_val answer hspec.1
+  have hcall := JuliaLean.Proofs.base.genericmemory.byteMemoryComparisonOrdersPrefix_proven
+    (ByteComparisonBinding.lengthModel objects)
+    (fun _ => ()) (fun _ => some ())
+    (fun mem => some (JuliaLean.base.pointer.unsafeConvertMemoryCvoid (pointers mem.handle)))
+    (fun p q n =>
+      (JuliaLean.base.cmem.memcmp StandardC.standardCMemoryOps
+        (fun n : JInt .i64 => .ok (JuliaLean.base.int.remT .u64 n)) bytes p q n).toOption)
+    ByteComparisonBinding.compareLengths a b (JInt.wrap .i64 ca.val) pa pb la lb () ()
+    hla hlb rfl rfl rfl rfl rfl rfl hmem
+  dsimp only
+  refine ⟨JInt.wrap .i64 answer, ?_, ?_⟩
+  · by_cases hneg : ca.val < 0
+    · have hnegc : (JInt.wrap .i64 ca.val) < (0 : JInt .i64) := by
+        change (JInt.wrap .i64 ca.val).val < 0
+        rw [hcaw]
+        exact hneg
+      have heq : answer = -1 := by
+        rw [← hfinish]
+        simp only [gmFinish, hneg, ite_true]
+      rw [heq]
+      exact hcall.1 hnegc
+    · by_cases hpos : 0 < ca.val
+      · have hposc : (0 : JInt .i64) < (JInt.wrap .i64 ca.val) := by
+          change 0 < (JInt.wrap .i64 ca.val).val
+          rw [hcaw]
+          exact hpos
+        have heq : answer = 1 := by
+          rw [← hfinish]
+          simp only [gmFinish, hneg, hpos, ite_false, ite_true]
+        rw [heq]
+        exact hcall.2.1 hposc
+      · have hz : ca.val = 0 := by omega
+        have hzc : JInt.wrap .i64 ca.val = (0 : JInt .i64) := by
+          apply Subtype.ext
+          change (JInt.wrap .i64 ca.val).val = 0
+          rw [hcaw, hz]
+        have heq : answer = gmCompareCounts na nb := by
+          rw [← hfinish]
+          simp only [gmFinish, hneg, hpos, ite_false]
+        rw [heq]
+        exact (hcall.2.2 hzc).trans hcmp
+  · rw [hanswer]
+    simpa only [ByteComparisonBinding.contents, ByteComparisonBinding.extent,
+      hoa, hob] using hspec
+
+end JuliaLean.ChatGPT.Batch4.Group22
+
+namespace JuliaLean.Proofs.base.genericmemory
+
+open JuliaLean.Registry
 def entries : List Entry :=
   [ { id := "genericmemory-linear-indexing", juliaFile := "base/genericmemory.jl",
       juliaFns := ["IndexStyle(::Type{<:GenericMemory})"],
@@ -879,12 +1905,16 @@ def entries : List Entry :=
       prop := ``AtomicMemoryUnsetReturnsReference, thm := some ``atomicMemoryUnsetReturnsReference_proven }
   , { id := "genericmemory-copy-content", juliaFile := "base/genericmemory.jl",
       juliaFns := ["unsafe_copyto!(::MemoryRef{T}, ::MemoryRef{T}, n)",
-        "unsafe_copyto!(::GenericMemoryRef, ::GenericMemoryRef, n)",
         "unsafe_copyto!(::Memory{T}, doffs, ::Memory{T}, soffs, n)",
         "unsafe_copyto!(::Memory, doffs, ::Memory, soffs, n)", "copy(::Memory)"],
-      statement := "Unsafe copy preserves source slots, including undefined slots, across overlapping ranges; fallback copy converts defined elements to the destination type.",
-      source := "base/genericmemory.jl:197-263; copy semantics", status := .todo,
-      prop := ``MemoryCopyPreservesContents }
+      statement := "Typed and reference copies preserve source contents, including undefined slots, across overlaps; in a concrete slot model, fallback copy converts defined values and preserves undefined slots; copy(::Memory) retains source contents.",
+      source := "base/genericmemory.jl:197-263; copy semantics", status := .proven,
+      prop := ``MemoryCopyPreservesContents, thm := some ``JuliaLean.Proofs.base.genericmemory.memoryCopyPreservesContents_proven }
+  , { id := "genericmemory-copy-dispatch", juliaFile := "base/genericmemory.jl",
+      juliaFns := ["unsafe_copyto!(::GenericMemoryRef, ::GenericMemoryRef, n)"],
+      statement := "Generic memory references use typed copying when element types match and conversion-aware fallback copying otherwise.",
+      source := "base/genericmemory.jl:216-221", status := .proven,
+      prop := ``MemoryCopyDispatchesByElementType, thm := some ``JuliaLean.Proofs.base.genericmemory.memoryCopyDispatchesByElementType_proven }
   , { id := "genericmemory-copy-extent", juliaFile := "base/genericmemory.jl",
       juliaFns := ["copy(::Memory)"],
       statement := "copy(::Memory) creates independent storage with the source element count.",
@@ -943,26 +1973,21 @@ def entries : List Entry :=
       statement := "BitIntegerMemory values of different lengths compare unequal; equal-length values compare all stored bytes.",
       source := "base/genericmemory.jl:378-393", status := .proven,
       prop := ``BitIntegerMemoryEqualityRequiresEqualLengths, thm := some ``bitIntegerMemoryEqualityRequiresEqualLengths_proven }
+  , { id := "genericmemory-byte-comparison-v2", juliaFile := "base/genericmemory.jl",
+      juliaFns := ["cmp(::Memory{UInt8}, ::Memory{UInt8})"],
+      statement := "Byte-memory comparison follows lexicographic byte order, with memory length deciding ties after an equal prefix.",
+      source := "base/genericmemory.jl:366-393", status := .proven,
+      prop := ``Round2.ByteMemoryComparisonCorrect, thm := some ``JuliaLean.ChatGPT.Batch4.Group22.GenericmemoryByteComparisonV2_proven }
+  , { id := "genericmemory-equal-bitinteger-memory-v2", juliaFile := "base/genericmemory.jl",
+      juliaFns := ["==(a::M, b::M) where {M <: BitIntegerMemory}"],
+      statement := "BitIntegerMemory values of different lengths compare unequal; equal-length values compare all stored bytes.",
+      source := "base/genericmemory.jl:378-393", status := .todo,
+      prop := ``Round2.BitIntegerMemoryEqualityCorrect, thm := none }
   , { id := "genericmemory-sorted-findall", juliaFile := "base/genericmemory.jl",
       juliaFns := ["findall(::Fix2{typeof(in),<:Union{Memory{<:Real},Real}}, ::Memory{<:Real})"],
       statement := "Sorted values and sorted search values use the sorted-search path; other inputs use general membership search.",
       source := "base/genericmemory.jl:395-401", status := .proven,
       prop := ``MemoryFindallUsesSortedSearch, thm := some ``memoryFindallUsesSortedSearch_proven }
-  , { id := "genericmemory-indcopy-regions", juliaFile := "base/genericmemory.jl",
-      juliaFns := ["indcopy(::Dims, ::GenericMemory)"],
-      statement := "indcopy returns one destination and one source index for each element of its GenericMemory index input.",
-      source := "base/genericmemory.jl:403-413", status := .proven,
-      prop := ``MemoryIndcopyKeepsDimensionRegions, thm := some ``memoryIndcopyKeepsDimensionRegions_proven }
-  , { id := "genericmemory-atomic-ordering", juliaFile := "base/genericmemory.jl",
-      juliaFns := ["getindex_atomic(::GenericMemory, ::Symbol, ::Int)",
-        "setindex_atomic!(::GenericMemory, ::Symbol, value, ::Int)",
-        "setindexonce_atomic!(::GenericMemory, ::Symbol, ::Symbol, value, ::Int)",
-        "modifyindex_atomic!(::GenericMemory, ::Symbol, op, value, ::Int)",
-        "swapindex_atomic!(::GenericMemory, ::Symbol, value, ::Int)",
-        "replaceindex_atomic!(::GenericMemory, ::Symbol, ::Symbol, expected, desired, ::Int)"],
-      statement := "Atomic memory operations use the supplied memory ordering and perform each requested get, set, once-set, modification, swap or replacement atomically.",
-      source := "Atomic Operations manual; base/genericmemory.jl:415-490", status := .proven,
-      prop := ``AtomicMemoryOperationsPreserveOrdering, thm := some ``atomicMemoryOperationsPreserveOrdering_proven }
   ]
 
 /-! Method -> property coverage. Pure forwarding/plumbing methods are listed above. -/
@@ -975,7 +2000,8 @@ def entries : List Entry :=
 160,175,181 -> genericmemory-atomic-unset-order
 185,186 -> Nothing to promise
 189,195 -> genericmemory-isassigned-bounds; memsafety-genericmemory-checked-callers
-198,216,223,230,257 -> genericmemory-copy-content; genericmemory-copy-extent; memsafety-genericmemory-checked-callers
+198,223,230,257 -> genericmemory-copy-content; genericmemory-copy-extent; memsafety-genericmemory-checked-callers
+216 -> genericmemory-copy-dispatch
 272,274,276,278,280 -> genericmemory-similar-extent
 283 -> genericmemory-byte-fill
 294,296 -> genericmemory-convert-promote

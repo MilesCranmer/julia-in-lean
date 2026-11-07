@@ -1,50 +1,50 @@
 file	line	endline	name	signature	status	entry	note
-base/errorshow.jl	30	30	showerror	showerror(io::IO, ex)	todo		
-base/errorshow.jl	32	32	show_index	show_index(io::IO, x::Any)	todo		
-base/errorshow.jl	33	33	show_index	show_index(io::IO, x::Slice)	todo		
-base/errorshow.jl	34	34	show_index	show_index(io::IO, x::LogicalIndex)	todo		
-base/errorshow.jl	35	35	show_index	show_index(io::IO, x::OneTo)	todo		
-base/errorshow.jl	36	36	show_index	show_index(io::IO, x::Colon)	todo		
+base/errorshow.jl	30	30	showerror	showerror(io::IO, ex)	modelled	errorshow-fallback-errors	showerrorAny preserves custom show dispatch, arbitrary return values, exceptions and effects.
+base/errorshow.jl	32	32	show_index	show_index(io::IO, x::Any)	modelled	errorshow-fallback-errors	showIndexAny preserves custom show dispatch, arbitrary return values, exceptions and effects.
+base/errorshow.jl	33	33	show_index	show_index(io::IO, x::Slice)	modelled	errorshow-index-forwarding-errors	showIndexSlice selects the original indices payload's show_index method without restricting the result.
+base/errorshow.jl	34	34	show_index	show_index(io::IO, x::LogicalIndex)	modelled	errorshow-index-forwarding-errors	showIndexLogical selects the original mask payload's summary method without restricting the result.
+base/errorshow.jl	35	35	show_index	show_index(io::IO, x::OneTo)	modelled	errorshow-oneto-rendering-failure	showIndexOneTo retains every Integer stop type and open printing inside the installed variadic print protocol.
+base/errorshow.jl	36	36	show_index	show_index(io::IO, x::Colon)	modelled	errorshow-colon-index-text	showIndexColon uses the installed literal-character byte print path.
 base/errorshow.jl	38	44	showerror	showerror(io::IO, ex::Meta.ParseError)	todo		
-base/errorshow.jl	46	53	showerror	showerror(io::IO, ex::Core.TypeNameError)	todo		
+base/errorshow.jl	46	53	showerror	showerror(io::IO, ex::Core.TypeNameError)	modelled	errorshow-typename-error-text	Existing showTypeNameError retains the built-in union classification and exact literal branch order.
 base/errorshow.jl	55	76	showerror	showerror(io::IO, ex::BoundsError)	todo		
 base/errorshow.jl	78	105	showerror	showerror(io::IO, ex::TypeError)	todo		
-base/errorshow.jl	107	113	showerror	showerror(io::IO, ex, bt; backtrace=true)	todo		
+base/errorshow.jl	107	113	showerror	showerror(io::IO, ex, bt; backtrace=true)	modelled	errorshow-backtrace-finally-effects	showErrorBacktraceWith implements finally on normal and exceptional paths while preserving the renderer's arbitrary raw return.
 base/errorshow.jl	115	119	showerror	showerror(io::IO, ex::LoadError, bt; backtrace=true)	todo		
 base/errorshow.jl	120	120	showerror	showerror(io::IO, ex::LoadError)	todo		
-base/errorshow.jl	122	126	showerror	showerror(io::IO, ex::InitError, bt; backtrace=true)	todo		
-base/errorshow.jl	127	127	showerror	showerror(io::IO, ex::InitError)	todo		
+base/errorshow.jl	122	126	showerror	showerror(io::IO, ex::InitError, bt; backtrace=true)	modelled	errorshow-initerror-rendering-failure	Existing showInitError preserves prefix, open wrapped-error rendering and module-symbol suffix in source order.
+base/errorshow.jl	127	127	showerror	showerror(io::IO, ex::InitError)	modelled	errorshow-initerror-default-rendering-failure	showInitErrorDefaultNative closes the typed renderer with an actual empty frame vector and default true backtrace keyword.
 base/errorshow.jl	129	143	showerror	showerror(io::IO, ex::DomainError)	todo		
 base/errorshow.jl	145	158	showerror	showerror(io::IO, ex::SystemError)	todo		
-base/errorshow.jl	160	160	showerror	showerror(io::IO, ::DivideError)	todo		
-base/errorshow.jl	161	161	showerror	showerror(io::IO, ::StackOverflowError)	todo		
-base/errorshow.jl	162	162	showerror	showerror(io::IO, ::UndefRefError)	todo		
-base/errorshow.jl	163	163	showerror	showerror(io::IO, ::EOFError)	todo		
-base/errorshow.jl	164	164	showerror	showerror(io::IO, ex::ErrorException)	todo		
-base/errorshow.jl	165	167	showerror	showerror(io::IO, ex::KeyError)	todo		
-base/errorshow.jl	168	168	showerror	showerror(io::IO, ex::InterruptException)	todo		
-base/errorshow.jl	169	169	showerror	showerror(io::IO, ex::ArgumentError)	todo		
-base/errorshow.jl	170	170	showerror	showerror(io::IO, ex::DimensionMismatch)	todo		
-base/errorshow.jl	171	171	showerror	showerror(io::IO, ex::AssertionError)	todo		
-base/errorshow.jl	172	172	showerror	showerror(io::IO, ex::OverflowError)	todo		
-base/errorshow.jl	174	175	showerror	showerror(io::IO, ex::UndefKeywordError)	todo		
+base/errorshow.jl	160	160	showerror	showerror(io::IO, ::DivideError)	modelled	errorshow-errorshow-l160-v2	Existing showDivideError matches the pinned literal and installed String print path.
+base/errorshow.jl	161	161	showerror	showerror(io::IO, ::StackOverflowError)	modelled	errorshow-stackoverflow-text	Existing showStackOverflowError matches the pinned diagnostic literal and String print path.
+base/errorshow.jl	162	162	showerror	showerror(io::IO, ::UndefRefError)	modelled	errorshow-errorshow-l162-v2	Existing showUndefRefError matches the pinned literal and installed String print path.
+base/errorshow.jl	163	163	showerror	showerror(io::IO, ::EOFError)	modelled	errorshow-errorshow-l163-v2	Existing showEOFError matches the pinned literal and installed String print path.
+base/errorshow.jl	164	164	showerror	showerror(io::IO, ex::ErrorException)	modelled	errorshow-error-exception-text	showErrorExceptionWith retains arbitrary AbstractString payload printing and its raw return value.
+base/errorshow.jl	165	167	showerror	showerror(io::IO, ex::KeyError)	modelled	errorshow-keyerror-rendering-failure	Existing showKeyError preserves prefix, open key show dispatch and suffix in source order.
+base/errorshow.jl	168	168	showerror	showerror(io::IO, ex::InterruptException)	modelled	errorshow-errorshow-l168-v2	Existing showInterruptException matches the pinned literal and installed String print path.
+base/errorshow.jl	169	169	showerror	showerror(io::IO, ex::ArgumentError)	modelled	errorshow-labelled-message-text	showArgumentErrorWith retains arbitrary AbstractString printing inside the installed lock/finally variadic print protocol.
+base/errorshow.jl	170	170	showerror	showerror(io::IO, ex::DimensionMismatch)	modelled	errorshow-labelled-message-text	showDimensionMismatchWith retains arbitrary AbstractString printing inside the installed lock/finally variadic print protocol.
+base/errorshow.jl	171	171	showerror	showerror(io::IO, ex::AssertionError)	modelled	errorshow-labelled-message-text	showAssertionErrorWith retains arbitrary AbstractString printing inside the installed lock/finally variadic print protocol.
+base/errorshow.jl	172	172	showerror	showerror(io::IO, ex::OverflowError)	modelled	errorshow-labelled-message-text	showOverflowErrorWith retains arbitrary AbstractString printing inside the installed lock/finally variadic print protocol.
+base/errorshow.jl	174	175	showerror	showerror(io::IO, ex::UndefKeywordError)	modelled	errorshow-errorshow-l174-v2	Existing showUndefKeywordError preserves the Symbol bytes between the source diagnostic literals.
 base/errorshow.jl	177	190	showerror	showerror(io::IO, ex::UndefVarError)	todo		
 base/errorshow.jl	192	205	showerror	showerror(io::IO, ex::InexactError)	todo		
-base/errorshow.jl	207	209	showerror	showerror(io::IO, ex::CanonicalIndexError)	todo		
+base/errorshow.jl	207	209	showerror	showerror(io::IO, ex::CanonicalIndexError)	modelled	errorshow-canonical-index-rendering-failure	Existing showCanonicalIndexError preserves String function bytes, arbitrary payload printing and the installed variadic print protocol.
 base/errorshow.jl	213	213	typesof	typesof(@nospecialize args...)	todo		
 base/errorshow.jl	215	233	print_with_compare	print_with_compare(io::IO, @nospecialize(a::DataType), @nospecialize(b::DataType), color::Symbol)	todo		
-base/errorshow.jl	235	241	print_with_compare	print_with_compare(io::IO, @nospecialize(a), @nospecialize(b), color::Symbol)	todo		
+base/errorshow.jl	235	241	print_with_compare	print_with_compare(io::IO, @nospecialize(a), @nospecialize(b), color::Symbol)	modelled	errorshow-print-with-compare-selection-effects	Source-mirrored model JuliaLean.base.errorshow.Models2Group17.printWithCompareAny; reviewed against Julia f755f49.
 base/errorshow.jl	243	258	show_convert_error	show_convert_error(io::IO, ex::MethodError, arg_types_param)	todo		
 base/errorshow.jl	260	409	showerror	showerror(io::IO, ex::MethodError)	todo		
 base/errorshow.jl	411	415	showerror	showerror(io::IO, exc::FieldError)	todo		
-base/errorshow.jl	417	417	striptype	striptype(::Type{T}) where {T}	todo		
-base/errorshow.jl	418	418	striptype	striptype(::Any)	todo		
+base/errorshow.jl	417	417	striptype	striptype(::Type{T}) where {T}	modelled	errorshow-striptype-classification	Source-mirrored model JuliaLean.base.errorshow.Models2Group17.striptypeType; reviewed against Julia f755f49.
+base/errorshow.jl	418	418	striptype	striptype(::Any)	modelled	errorshow-striptype-classification	Source-mirrored model JuliaLean.base.errorshow.Models2Group17.striptypeAny; reviewed against Julia f755f49.
 base/errorshow.jl	420	446	showerror_ambiguous	showerror_ambiguous(io::IO, meths, f, args::Type)	todo		
-base/errorshow.jl	450	456	showerror_nostdio	showerror_nostdio(@nospecialize(err), msg::AbstractString)	todo		
-base/errorshow.jl	458	458	stacktrace_expand_basepaths	stacktrace_expand_basepaths()::Bool	todo		
-base/errorshow.jl	459	459	stacktrace_contract_userdir	stacktrace_contract_userdir()::Bool	todo		
-base/errorshow.jl	460	460	stacktrace_linebreaks	stacktrace_linebreaks()::Bool	todo		
-base/errorshow.jl	461	461	stacktrace_full_loading	stacktrace_full_loading()::Bool	todo		
+base/errorshow.jl	450	456	showerror_nostdio	showerror_nostdio(@nospecialize(err), msg::AbstractString)	modelled	errorshow-no-stdio-call-effects	Source-mirrored model JuliaLean.base.errorshow.Models2Group17.showErrorNoStdio; reviewed against Julia f755f49.
+base/errorshow.jl	458	458	stacktrace_expand_basepaths	stacktrace_expand_basepaths()::Bool	modelled	errorshow-stacktrace-environment-options	stacktraceExpandBasepathsNative binds the installed Base environment parser with default false; prior generic API retained.
+base/errorshow.jl	459	459	stacktrace_contract_userdir	stacktrace_contract_userdir()::Bool	modelled	errorshow-stacktrace-environment-options	stacktraceContractUserdirNative binds the installed Base environment parser with default true; prior generic API retained.
+base/errorshow.jl	460	460	stacktrace_linebreaks	stacktrace_linebreaks()::Bool	modelled	errorshow-stacktrace-environment-options	stacktraceLinebreaksNative binds the installed Base environment parser with default false; prior generic API retained.
+base/errorshow.jl	461	461	stacktrace_full_loading	stacktrace_full_loading()::Bool	modelled	errorshow-stacktrace-environment-options	stacktraceFullLoadingNative binds the installed Base environment parser with default false; prior generic API retained.
 base/errorshow.jl	466	493	show_type_diff	show_type_diff(io::IO, @nospecialize(sig), @nospecialize(called), use_color::Bool, top_level::Bool=true)	todo		
 base/errorshow.jl	495	501	show_separator	show_separator(io::IO, use_color::Bool)	todo		
 base/errorshow.jl	503	511	show_type_match	show_type_match(io::IO, @nospecialize(ty), use_color::Bool)	todo		
@@ -75,21 +75,21 @@ base/errorshow.jl	1410	1413	process_backtrace	process_backtrace(t::Vector{StackF
 base/errorshow.jl	1415	1421	process_backtrace	process_backtrace(tracecount::Vector{Any})	todo		
 base/errorshow.jl	1423	1436	show_exception_stack	show_exception_stack(io::IO, stack)	todo		
 base/errorshow.jl	1439	1446	show	show(io::IO, ip::InterpreterIP)	todo		
-base/errorshow.jl	1451	1458	noncallable_number_hint_handler	noncallable_number_hint_handler(io, ex, arg_types, kwargs)	todo		
+base/errorshow.jl	1451	1458	noncallable_number_hint_handler	noncallable_number_hint_handler(io, ex, arg_types, kwargs)	modelled	errorshow-noncallable-number-hint-effects	Source-mirrored model JuliaLean.base.errorshow.Models2Group17.noncallableNumberHint; reviewed against Julia f755f49.
 base/errorshow.jl	1468	1483	nonsetable_type_hint_handler	nonsetable_type_hint_handler(io, ex, arg_types, kwargs)	todo		
 base/errorshow.jl	1489	1495	string_concatenation_hint_handler	string_concatenation_hint_handler(@nospecialize(io::IO), ex::MethodError, arg_types::Vector{Any}, kwargs::Vector{Any})	todo		
 base/errorshow.jl	1501	1507	string_replace_hint_handler	string_replace_hint_handler(@nospecialize(io::IO), ex::MethodError, arg_types::Vector{Any}, kwargs::Vector{Any})	todo		
 base/errorshow.jl	1513	1532	methods_on_iterable	methods_on_iterable(io, ex, arg_types, kwargs)	todo		
-base/errorshow.jl	1537	1546	fielderror_dict_hint_handler	fielderror_dict_hint_handler(io, exc)	todo		
+base/errorshow.jl	1537	1546	fielderror_dict_hint_handler	fielderror_dict_hint_handler(io, exc)	modelled	errorshow-fielderror-dict-hint-effects	Source-mirrored model JuliaLean.base.errorshow.Models2Group17.fielderrorDictHint; reviewed against Julia f755f49.
 base/errorshow.jl	1550	1564	fielderror_listfields_hint_handler	fielderror_listfields_hint_handler(io, exc)	todo		
 base/errorshow.jl	1566	1573	_propertynames_bytype	_propertynames_bytype(T::Type)	todo		
-base/errorshow.jl	1577	1582	apply_type_unionall_hint_handler	apply_type_unionall_hint_handler(io, ex)	todo		
+base/errorshow.jl	1577	1582	apply_type_unionall_hint_handler	apply_type_unionall_hint_handler(io, ex)	modelled	errorshow-apply-type-unionall-hint-effects	Source-mirrored model JuliaLean.base.errorshow.Models2Group17.applyTypeUnionallHint; reviewed against Julia f755f49.
 base/errorshow.jl	1586	1649	UndefVarError_hint	UndefVarError_hint(io::IO, ex::UndefVarError)	todo		
 base/errorshow.jl	1651	1696	_UndefVarError_warnfor	_UndefVarError_warnfor(io::IO, modules, var::Symbol)	todo		
 base/errorshow.jl	1701	1701	size	size(s::ExceptionStack)	todo		
 base/errorshow.jl	1702	1702	getindex	getindex(s::ExceptionStack, i::Int)	todo		
 base/errorshow.jl	1704	1708	show	"show(io::IO, ::MIME""text/plain"", stack::ExceptionStack)"	todo		
 base/errorshow.jl	1709	1709	show	show(io::IO, stack::ExceptionStack)	todo		
-base/errorshow.jl	1714	1714	incomplete_tag	incomplete_tag(ex)	todo		
+base/errorshow.jl	1714	1714	incomplete_tag	incomplete_tag(ex)	modelled	errorshow-incomplete-tag-fallback	incompleteTagAny returns the literal Symbol none without inspecting the arbitrary payload.
 base/errorshow.jl	1715	1733	incomplete_tag	incomplete_tag(ex::Expr)	todo		
-base/errorshow.jl	1734	1734	incomplete_tag	incomplete_tag(exc::Meta.ParseError)	todo		
+base/errorshow.jl	1734	1734	incomplete_tag	incomplete_tag(exc::Meta.ParseError)	modelled	errorshow-incomplete-tag-parse-failure	incompleteTagParseErrorWith preserves open detail dispatch, arbitrary returns, exceptions and effects.

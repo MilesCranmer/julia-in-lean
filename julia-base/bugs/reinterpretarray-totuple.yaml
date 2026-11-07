@@ -1,0 +1,66 @@
+id: reinterpretarray-totuple
+title: "NTuple conversion rejects a matrix despite enough iterable elements"
+priority: P2
+kind: wrong-exception
+area: ReinterpretArrays
+files: [base/reinterpretarray.jl]
+functions: ["convert(::Type{NTuple{N,T}}, ::AbstractArray)"]
+summary: |
+  Converting a 4×8 UInt8 matrix to NTuple{32,UInt8} throws on Julia 1.15 even
+  though the matrix contains exactly 32 UInt8 elements and Tuple(vec(A)) succeeds.
+  The same conversion succeeds on Julia 1.13.2.
+likelihood: |
+  Low: the failure requires converting a matrix directly to a tuple when the
+  matrix's first dimension is not a multiple of the requested tuple length.
+  The general tuple conversion should use the array's iteration order.
+maybe_intended: ""
+reproducer: |
+  function reproduce()
+      a = reshape(UInt8.(1:32), 4, 8)
+      expected = Tuple(vec(a))
+      @assert NTuple{31,UInt8}(a) == expected[1:31]
+      @assert NTuple{32,UInt8}(vec(a)) == expected
+      result = try
+          NTuple{32,UInt8}(a)
+      catch err
+          err
+      end
+      if result isa ArgumentError && occursin("non-integral first dimension", sprint(showerror, result))
+          println("NTuple{32,UInt8}(4x8 Matrix) throws: ", sprint(showerror, result))
+          println("REPRODUCED reinterpretarray-totuple")
+      elseif result == expected
+          println("NTuple{32,UInt8}(4x8 Matrix) returned all 32 values")
+          println("NOT REPRODUCED reinterpretarray-totuple")
+      else
+          error("unexpected tuple conversion result")
+      end
+  end
+  reproduce()
+output:
+  release: |
+    NTuple{32,UInt8}(4x8 Matrix) returned all 32 values
+    NOT REPRODUCED reinterpretarray-totuple
+  nightly: |
+    NTuple{32,UInt8}(4x8 Matrix) throws: ArgumentError: cannot reinterpret an `UInt8` array to `NTuple{32, UInt8}` whose first dimension has size `4`. The resulting array would have a non-integral first dimension.
+    REPRODUCED reinterpretarray-totuple
+reproduced: {release: false, nightly: true}
+expected: |
+  NTuple{32,UInt8}(A) should return Tuple(vec(A)) when length(A) is 32, regardless
+  of A's rank or shape.
+promised_by: |
+  Array iteration and Tuple conversion accept an iterable containing the requested
+  number of values; Julia 1.13.2 successfully performs this public conversion.
+cause: |
+  The Julia 1.15 ReinterpretArray-based tuple conversion reinterprets the input
+  array's storage shape instead of consuming its iteration sequence. A 4×8 matrix
+  cannot be reinterpreted as one 32-byte tuple along its first dimension, so the
+  conversion rejects it before using its 32 available elements.
+possible_fix: |
+  Use the iterable conversion fallback when the array's first dimension is not a
+  multiple of the requested tuple length.
+duplicates:
+  issues: []
+  queries: ["issues: reinterpret NTuple", "prs: reinterpret NTuple", "issues: NTuple reshape ArgumentError", "prs: NTuple reshape ArgumentError", "issues: _totuple reinterpret", "prs: _totuple reinterpret"]
+lean:
+  property: JuliaLean.Proofs.base.reinterpretarray.Strict.FullTuplePrefix
+  theorem: JuliaLean.Proofs.base.reinterpretarray.Strict.fullTuplePrefix_refuted

@@ -1,0 +1,93 @@
+id: array-range-target-search-overflow
+title: findfirst and findlast return negative keys for matching narrow integer ranges
+priority: P1
+kind: wrong-result
+area: Ranges
+files:
+  - base/array.jl
+functions:
+  - findfirst(::typeof(iszero), ::AbstractRange)
+  - findfirst(::typeof(isone), ::AbstractRange)
+  - findlast(::Union{Fix2{typeof(isequal),<:Integer},Fix2{typeof(==),<:Integer},typeof(iszero),typeof(isone)}, ::AbstractUnitRange{<:Integer})
+  - findlast(::Union{Fix2{typeof(isequal),T},Fix2{typeof(==),T},typeof(iszero),typeof(isone)}, ::StepRange{T,S})
+summary: |
+  On Int8(-128):Int8(127), findfirst(iszero, r) returns -127 instead of 129,
+  findfirst(isone, r) returns -126 instead of 130, and findlast also returns
+  negative keys for contained values. A stepped Int8 range similarly gives -27
+  instead of 101. Collecting the same ranges gives the correct positive keys.
+likelihood: |
+  The failure appears when a narrow integer range spans enough of its element
+  type for the difference between the searched-for value and the range start to
+  overflow. Compact integer data can trigger silent invalid keys without an
+  exception during the search.
+maybe_intended: |
+  Overflow in intermediate element arithmetic cannot make a negative result a
+  valid range key. Open issue #64122 reports the stepped-range case, and open PR
+  #63399 proposes overflow-safe distance arithmetic.
+reproducer: |
+  u = Int8(-128):Int8(127)
+  s = Int8(-100):Int8(2):Int8(120)
+  findfirst(iszero, u)
+  findfirst(isone, u)
+  findlast(==(Int8(0)), u)
+  findlast(==(Int8(100)), s)
+  findlast(iszero, u)
+  findfirst(iszero, collect(u))
+  findlast(==(Int8(100)), collect(s))
+output:
+  release: |
+    JULIA 1.13.2 COMMIT 45b6d15e34bbd2003a31acce0b1847b63dad029c
+    REPRODUCED array-range-target-search-overflow
+  nightly: |
+    JULIA 1.15.0-DEV.unknown COMMIT f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    REPRODUCED array-range-target-search-overflow
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  The five range searches return 129, 130, 129, 101 and 129 respectively,
+  matching searches of the collected data. The reproducer asserts the
+  observed negative keys.
+promised_by: |
+  base/array.jl:2486-2490 at f755f49a9e41380d7da126b3c1db9fe7f83dd027:
+  "Return the index or key of the first element of `A` for which `predicate` returns `true`.
+  Return `nothing` if there is no such element.
+
+  Indices or keys are of the same type as those returned by [`keys(A)`](@ref)
+  and [`pairs(A)`](@ref)."
+  base/array.jl:2682-2683:
+  "Return the index or key of the last element of `A` for which `predicate` returns `true`.
+  Return `nothing` if there is no such element."
+cause: |
+  The unit-range method computes p.x - first(r) before converting to the key
+  type at base/array.jl:2538. The step-range method computes the same difference
+  in the narrow element type at line 2544, then divides and converts at lines
+  2545-2546. iszero and isone delegate at lines 2549-2550; range findlast
+  delegates to findfirst at lines 2723-2731. Conversion occurs after overflow.
+possible_fix: |
+  Compute the distance from the range start with overflow-safe arithmetic before
+  forming the index. Preserve the nonnegative mathematical distance, including
+  ranges spanning more than half the element type, as proposed in PR #63399.
+duplicates:
+  issues:
+    - number: 64122
+      state: open
+      relation: duplicate
+  prs:
+    - number: 63399
+      state: open
+      relation: duplicate
+  queries:
+    - 'gh search issues --repo JuliaLang/julia findfirst range overflow'
+    - 'gh search issues --repo JuliaLang/julia findfirst Int8'
+    - 'gh search issues --repo JuliaLang/julia findlast range overflow'
+    - 'gh search prs --repo JuliaLang/julia findfirst range overflow'
+    - 'gh search prs --repo JuliaLang/julia findfirst Int8'
+    - 'gh search prs --repo JuliaLang/julia findlast range overflow'
+  notes: |
+    Inspected #64122, which gives the same Int8 stepped range and -27 result.
+    Inspected PR #63399, whose body identifies target-minus-start overflow in
+    range findfirst and proposes unsigned-distance arithmetic. It remains open.
+lean:
+  property: JuliaLean.Proofs.base.array.RangeTargetSearchSpec
+  theorem: JuliaLean.ChatGPT.Batch4.Group2.ArrayRangeTargetSearchOverflow_refuted

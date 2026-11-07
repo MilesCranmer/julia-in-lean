@@ -43,5 +43,5 @@ duplicates:
   issues: []
   queries: ["take! read-only IOBuffer", "take! reset initial state"]
 lean:
-  property: JuliaLean.IOBuffers.TakeResets
-  theorem: JuliaLean.IOBuffers.takeResets_refuted
+  property: JuliaLean.Proofs.base.iobuffer.TakeResets
+  theorem: JuliaLean.Proofs.base.iobuffer.takeResets_refuted

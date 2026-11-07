@@ -55,5 +55,5 @@ duplicates:
   issues: []
   queries: ["Markdown list", "Markdown ordered list", "Markdown ArgumentError", "invalid base 10 digit", "Markdown unicode", "Markdown Persian", "Markdown digit"]
 lean:
-  property: JuliaLean.Markdown.ListUnicodeDigit
-  theorem: JuliaLean.Markdown.listUnicodeDigit_refuted
+  property: JuliaLean.Markdown.ListNoArgumentError
+  theorem: JuliaLean.Markdown.listNoArgumentError_refuted

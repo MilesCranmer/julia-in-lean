@@ -72,5 +72,5 @@ duplicates:
     - {number: 42065, state: closed, relation: related}
   queries: ["keepat! undef", "keepat! UndefRefError", "keepat undefined", "_keepat! #undef", "deleteat! keepat! undef", "keepat", "UndefRefError deleteat", "undef filter! UndefRefError"]
 lean:
-  property: JuliaLean.MultidimCov.ArrayV2.PKeepat
-  theorem: JuliaLean.MultidimCov.ArrayV2.pKeepat_refuted
+  property: JuliaLean.Proofs.base.array.KeepatAssignedStateSpec
+  theorem: JuliaLean.Proofs.base.array.LegacyRefutations.keepatAssignedState_refuted

@@ -1,24 +1,24 @@
 file	line	endline	name	signature	status	entry	note
-base/stacktraces.jl	82	83	StackFrame	StackFrame(func, file, line, linfo, from_c, inlined, pointer)	todo		
-base/stacktraces.jl	84	85	StackFrame	StackFrame(func, file, line)	todo		
-base/stacktraces.jl	103	105	==	==(a::StackFrame, b::StackFrame)	todo		
-base/stacktraces.jl	107	115	hash	hash(frame::StackFrame, h::UInt)	todo		
-base/stacktraces.jl	117	125	_add_linetable_frames!	_add_linetable_frames!(frames, pointer, di::Core.DebugInfo, pc::Int)	todo		
-base/stacktraces.jl	130	146	_add_di_frames!	_add_di_frames!(frames, pointer, di::Core.DebugInfo, pc::Int)	todo		
-base/stacktraces.jl	155	195	lookup	lookup(pointer::Ptr{Cvoid})	todo		
-base/stacktraces.jl	201	231	lookup	lookup(ip::Base.InterpreterIP)	todo		
-base/stacktraces.jl	240	254	stacktrace	stacktrace(trace::Vector{<:Union{Base.InterpreterIP,Ptr{Cvoid}}}, c_funcs::Bool=false)	todo		
-base/stacktraces.jl	256	263	stacktrace	stacktrace(c_funcs::Bool=false)	todo		
-base/stacktraces.jl	273	276	remove_frames!	remove_frames!(stack::StackTrace, name::Symbol)	todo		
-base/stacktraces.jl	278	281	remove_frames!	remove_frames!(stack::StackTrace, names::Vector{Symbol})	todo		
-base/stacktraces.jl	288	291	remove_frames!	remove_frames!(stack::StackTrace, m::Module)	todo		
-base/stacktraces.jl	293	293	is_top_level_frame	is_top_level_frame(f::StackFrame)	todo		
-base/stacktraces.jl	295	302	frame_method_or_module	frame_method_or_module(lkup::StackFrame)	todo		
-base/stacktraces.jl	304	310	frame_mi	frame_mi(lkup::StackFrame)	todo		
-base/stacktraces.jl	312	331	frame_location	frame_location(frame::StackFrame)	todo		
-base/stacktraces.jl	333	365	show_spec_linfo	show_spec_linfo(io::IO, frame::StackFrame)	todo		
-base/stacktraces.jl	368	372	show_custom_spec_sig	show_custom_spec_sig(io::IO, @nospecialize(owner), linfo::CodeInstance, frame::StackFrame)	todo		
-base/stacktraces.jl	374	401	show_spec_sig	show_spec_sig(io::IO, m::Method, @nospecialize(sig::Type))	todo		
-base/stacktraces.jl	403	423	show	show(io::IO, frame::StackFrame)	todo		
-base/stacktraces.jl	425	449	Base.parentmodule	Base.parentmodule(frame::StackFrame)	todo		
-base/stacktraces.jl	456	458	from	from(frame::StackFrame, m::Module)	todo		
+base/stacktraces.jl	82	83	StackFrame	StackFrame(func, file, line, linfo, from_c, inlined, pointer)	modelled	stacktraces-constructor-defaults	Verified against f755f49; JuliaLean.base.stacktraces.StackFrame_7. Runtime/debug-info primitives and dispatch-selected display calls are typed inputs.
+base/stacktraces.jl	84	85	StackFrame	StackFrame(func, file, line)	modelled	stacktraces-short-constructor	Verified against f755f49; JuliaLean.base.stacktraces.StackFrame_3. Runtime/debug-info primitives and dispatch-selected display calls are typed inputs.
+base/stacktraces.jl	103	105	==	==(a::StackFrame, b::StackFrame)	modelled	stacktraces-equality	Verified against f755f49; JuliaLean.base.stacktraces.eq_StackFrame. Runtime/debug-info primitives and dispatch-selected display calls are typed inputs.
+base/stacktraces.jl	107	115	hash	hash(frame::StackFrame, h::UInt)	modelled	stacktraces-hash-equality	Verified against f755f49; JuliaLean.base.stacktraces.hash_StackFrame. Runtime/debug-info primitives and dispatch-selected display calls are typed inputs.
+base/stacktraces.jl	117	125	_add_linetable_frames!	_add_linetable_frames!(frames, pointer, di::Core.DebugInfo, pc::Int)	modelled	stacktraces-exclude-c-frames	Verified against f755f49; JuliaLean.base.stacktraces._add_linetable_frames. Runtime/debug-info primitives and dispatch-selected display calls are typed inputs.
+base/stacktraces.jl	130	146	_add_di_frames!	_add_di_frames!(frames, pointer, di::Core.DebugInfo, pc::Int)	modelled	stacktraces-exclude-c-frames	Verified against f755f49; JuliaLean.base.stacktraces._add_di_frames. Runtime/debug-info primitives and dispatch-selected display calls are typed inputs.
+base/stacktraces.jl	155	195	lookup	lookup(pointer::Ptr{Cvoid})	modelled	stacktraces-exclude-c-frames	Verified against f755f49; JuliaLean.base.stacktraces.lookup_Ptr. Runtime/debug-info primitives and dispatch-selected display calls are typed inputs.
+base/stacktraces.jl	201	231	lookup	lookup(ip::Base.InterpreterIP)	modelled	stacktraces-exclude-c-frames	Verified against f755f49; JuliaLean.base.stacktraces.lookup_InterpreterIP. Runtime/debug-info primitives and dispatch-selected display calls are typed inputs.
+base/stacktraces.jl	240	254	stacktrace	stacktrace(trace::Vector{<:Union{Base.InterpreterIP,Ptr{Cvoid}}}, c_funcs::Bool=false)	modelled	stacktraces-exclude-c-frames	Verified against f755f49; JuliaLean.base.stacktraces.stacktrace_trace. Runtime/debug-info primitives and dispatch-selected display calls are typed inputs.
+base/stacktraces.jl	256	263	stacktrace	stacktrace(c_funcs::Bool=false)	modelled	stacktraces-remove-name-order	Verified against f755f49; JuliaLean.base.stacktraces.stacktrace_cfuncs. Runtime/debug-info primitives and dispatch-selected display calls are typed inputs.
+base/stacktraces.jl	273	276	remove_frames!	remove_frames!(stack::StackTrace, name::Symbol)	modelled	stacktraces-remove-name-order	Verified against f755f49; JuliaLean.base.stacktraces.remove_frames_Symbol. Runtime/debug-info primitives and dispatch-selected display calls are typed inputs.
+base/stacktraces.jl	278	281	remove_frames!	remove_frames!(stack::StackTrace, names::Vector{Symbol})	modelled	stacktraces-remove-name-order	Verified against f755f49; JuliaLean.base.stacktraces.remove_frames_Vector. Runtime/debug-info primitives and dispatch-selected display calls are typed inputs.
+base/stacktraces.jl	288	291	remove_frames!	remove_frames!(stack::StackTrace, m::Module)	modelled	stacktraces-remove-module	Verified against f755f49; JuliaLean.base.stacktraces.remove_frames_Module. Runtime/debug-info primitives and dispatch-selected display calls are typed inputs.
+base/stacktraces.jl	293	293	is_top_level_frame	is_top_level_frame(f::StackFrame)	modelled	stacktraces-top-level	Verified against f755f49; JuliaLean.base.stacktraces.is_top_level_frame. Runtime/debug-info primitives and dispatch-selected display calls are typed inputs.
+base/stacktraces.jl	295	302	frame_method_or_module	frame_method_or_module(lkup::StackFrame)	modelled	stacktraces-top-level	Verified against f755f49; JuliaLean.base.stacktraces.frame_method_or_module. Runtime/debug-info primitives and dispatch-selected display calls are typed inputs.
+base/stacktraces.jl	304	310	frame_mi	frame_mi(lkup::StackFrame)	modelled	stacktraces-top-level	Verified against f755f49; JuliaLean.base.stacktraces.frame_mi. Runtime/debug-info primitives and dispatch-selected display calls are typed inputs.
+base/stacktraces.jl	312	331	frame_location	frame_location(frame::StackFrame)	modelled	stacktraces-c-location	Verified against f755f49; JuliaLean.base.stacktraces.frame_location. Runtime/debug-info primitives and dispatch-selected display calls are typed inputs.
+base/stacktraces.jl	333	365	show_spec_linfo	show_spec_linfo(io::IO, frame::StackFrame)	modelled	stacktraces-c-location	Verified against f755f49; JuliaLean.base.stacktraces.show_spec_linfo. Runtime/debug-info primitives and dispatch-selected display calls are typed inputs.
+base/stacktraces.jl	368	372	show_custom_spec_sig	show_custom_spec_sig(io::IO, @nospecialize(owner), linfo::CodeInstance, frame::StackFrame)	modelled	stacktraces-c-location	Verified against f755f49; JuliaLean.base.stacktraces.show_custom_spec_sig_default. Runtime/debug-info primitives and dispatch-selected display calls are typed inputs.
+base/stacktraces.jl	374	401	show_spec_sig	show_spec_sig(io::IO, m::Method, @nospecialize(sig::Type))	modelled	stacktraces-c-location	Verified against f755f49; JuliaLean.base.stacktraces.show_spec_sig. Runtime/debug-info primitives and dispatch-selected display calls are typed inputs.
+base/stacktraces.jl	403	423	show	show(io::IO, frame::StackFrame)	modelled	stacktraces-c-location	Verified against f755f49; JuliaLean.base.stacktraces.show_StackFrame. Runtime/debug-info primitives and dispatch-selected display calls are typed inputs.
+base/stacktraces.jl	425	449	Base.parentmodule	Base.parentmodule(frame::StackFrame)	modelled	stacktraces-missing-module	Verified against f755f49; JuliaLean.base.stacktraces.parentmodule_StackFrame. Runtime/debug-info primitives and dispatch-selected display calls are typed inputs.
+base/stacktraces.jl	456	458	from	from(frame::StackFrame, m::Module)	modelled	stacktraces-remove-module	Verified against f755f49; JuliaLean.base.stacktraces.from_frame. Runtime/debug-info primitives and dispatch-selected display calls are typed inputs.

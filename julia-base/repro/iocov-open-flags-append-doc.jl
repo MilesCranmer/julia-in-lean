@@ -1,7 +1,10 @@
-f = Base.open_flags(append=true)
-println("open_flags(append=true) = ", f)
-# open docstring table: read defaults to !write, write to truncate | append,
-# truncate to !read & write; so append=true alone documents truncate == true.
-if f.write && !f.read && !f.truncate
-    println("REPRODUCED iocov-open-flags-append-doc")
+mktempdir() do dir
+    path = joinpath(dir, "append.txt")
+    write(path, "old")
+    open(path; append=true) do io
+        write(io, "new")
+    end
+    contents = read(path, String)
+    println("open(path; append=true) = ", repr(contents))
+    contents == "oldnew" && println("REPRODUCED iocov-open-flags-append-doc")
 end

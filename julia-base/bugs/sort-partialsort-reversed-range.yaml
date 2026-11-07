@@ -51,7 +51,15 @@ possible_fix: |
   ScratchQuickSort(r::OrdinalRange) (BracketedSort already uses minimum/maximum).
 duplicates:
   issues: []
-  queries: ["issues/prs: partialsort range", "issues: partialsort reversed range", "issues/prs: partialsortperm"]
+  search_notes: |
+    No exact duplicate issue or PR for descending partialsort or ScratchQuickSort is known.
+  queries: ["issues/prs: partialsort range", "issues: partialsort reversed range", "issues/prs: partialsortperm", "gh search issues 'partialsort descending range' --repo JuliaLang/julia --limit 50 --json number,title,state,url", "gh search issues 'partialsort range' --repo JuliaLang/julia --limit 100 --json number,title,state,url", "gh search prs 'partialsort descending' --repo JuliaLang/julia --limit 100 --json number,title,state,url", "gh search prs 'ScratchQuickSort descending' --repo JuliaLang/julia --limit 100 --json number,title,state,url"]
 lean:
   property: JuliaLean.Sort.PartialsortRangeCorrect
   theorem: JuliaLean.Sort.partialsortRangeCorrect_refuted
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: true
+  output: |
+    [2, 2, 1]  expected: [2, 2, 2]
+    REPRODUCED sort-partialsort-reversed-range

@@ -52,5 +52,7 @@ duplicates:
   issues: []
   queries: ["wrap Array negative", "Base.wrap negative dims", "wrap Memory negative length", "wrap checked_dims", "issues: wrap (title scan)"]
 lean:
-  property: JuliaLean.MultidimCov.ArrayV2.P3241
-  theorem: JuliaLean.MultidimCov.ArrayV2.p3241_refuted
+  property: JuliaLean.Proofs.base.array.WrapDocumented
+  theorem: JuliaLean.Proofs.base.array.wrapDocumented_refuted
+
+covers: [memsafety-array-wrap-memory]

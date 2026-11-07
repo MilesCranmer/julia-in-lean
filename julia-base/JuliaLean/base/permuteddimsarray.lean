@@ -1,3 +1,4 @@
+import JuliaLean.base.combinatorics
 import JuliaLean.Core
 import JuliaLean.base.array
 import JuliaLean.base.abstractarray
@@ -712,3 +713,42 @@ def showarg [Monad m] {T A IO : Type} {N : Nat}
   else pure ()
 
 end JuliaLean.base.permuteddimsarray
+
+namespace JuliaLean.ReinterpretArrays
+
+open JuliaLean
+
+/-- `genperm(I, perm)`, `base/permuteddimsarray.jl:87`: `ntuple(d -> I[perm[d]], N)`. -/
+def genperm {α : Type} [Inhabited α] (I : List α) (perm : List Int) : List α :=
+  perm.map (fun p => I.getD (p - 1).toNat default)
+
+/-- `PermutedDimsArray(data, perm)` for `ndims(data) == N`, `base/permuteddimsarray.jl:42-46` and the
+inner constructor's checks, lines 12-17; returns `iperm`. -/
+def pdaNew (perm : List Int) (N : Nat) : Jl (List Int) := do
+  if perm.length ≠ N then throw (.argumentError "not a valid permutation")
+  let iperm ← invperm perm
+  if !isperm perm then throw (.argumentError "not a valid permutation")
+  if !((List.range N).all (fun d => iperm.getD ((perm.getD d 0) - 1).toNat 0 = (d : Int) + 1)) then
+    throw (.argumentError "must be inverses")
+  pure iperm
+
+end JuliaLean.ReinterpretArrays
+
+namespace JuliaLean.ReinterpretArrays
+
+open JuliaLean
+
+/-- Julia's `ErrorException` (thrown by `error(msg)`), recorded as a distinct exception message. -/
+def errorException (msg : String) : JlError := .argumentError ("ErrorException: " ++ msg)
+
+/-- `PermutedDimsArray(data, perm)`, `base/permuteddimsarray.jl:42-46`, for `perm` with entries of
+integer type `t`: `(perm...,)` keeps the element type, and the inner constructor
+(`base/permuteddimsarray.jl:12-17`) first requires `perm` and `iperm` to be `NTuple{N,Int}` (line 13,
+`error(...)`); the remaining checks are those of `pdaNew`. -/
+def pdaNewTyped (t : IntTy) (perm : List (JInt t)) (N : Nat) : Jl (List Int) := do
+  if perm.length ≠ N then throw (.argumentError "not a valid permutation")
+  let _ ← invperm (perm.map (·.val))
+  if t ≠ .i64 then throw (errorException "perm and iperm must both be NTuple{N,Int}")
+  pdaNew (perm.map (·.val)) N
+
+end JuliaLean.ReinterpretArrays

@@ -9,7 +9,7 @@ function typed_secret(keys::Vector{UInt8})
     ccall(:grantpt, Cint, (Cint,), mfd) == 0 || error("grantpt failed")
     ccall(:unlockpt, Cint, (Cint,), mfd) == 0 || error("unlockpt failed")
     slave = open(unsafe_string(ccall(:ptsname, Cstring, (Cint,), mfd)), "r+")
-    code = """s = Base.getpass("PROMPT>"; with_suffix=false); println(); println("SECRET ", repr(read(s, String)))"""
+    code = """s = Base.getpass("PROMPT>"); println(); println("SECRET ", repr(read(s, String)))"""
     p = open(pipeline(`$(Base.julia_cmd()) --startup-file=no -e $code`, stdin=slave), "r")
     readuntil(p, "PROMPT>")          # printed after the terminal is switched to raw mode
     ccall(:write, Cssize_t, (Cint, Ptr{UInt8}, Csize_t), mfd, keys, length(keys))

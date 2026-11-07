@@ -83,5 +83,5 @@ duplicates:
   issues: []
   queries: ["threaded comprehension firstindex overflow", "_comprehension_widened_eltype", "typemax firstindex @threads", "prs: threaded comprehension firstindex overflow", "prs: _comprehension_widened_eltype", "prs: typemax firstindex @threads"]
 lean:
-  property: JuliaLean.MemSafety.G5.ComprehensionWidenAccessesInBounds
-  theorem: JuliaLean.MemSafety.G5.comprehensionWidenAccessesInBounds_refuted
+  property: JuliaLean.Proofs.base.threadingconstructs.ComprehensionWidenAccessesInBounds
+  theorem: JuliaLean.Proofs.base.threadingconstructs.comprehensionWidenAccessesInBounds_refuted

@@ -41,7 +41,14 @@ possible_fix: |
   Default scratch to nothing and allocate it in the body after the dims check.
 duplicates:
   issues: []
-  queries: ["issues: sort! dims BoundsError", "issues: sort dims out of range"]
+  prs: []
+  queries:
+    - "issues: sort dims BoundsError"
+    - "issues: sort dims out of range"
+    - "issues: sort! dims empty"
+    - "PRs: sort dims BoundsError"
+    - "PRs: sort dims out of range"
+    - "PRs: sort! dims empty"
 lean:
-  property: JuliaLean.SortTuplesCov.SortDimsChecked
-  theorem: JuliaLean.SortTuplesCov.sortDimsChecked_refuted
+  property: JuliaLean.Proofs.base.sort.SortDimsChecked
+  theorem: JuliaLean.Proofs.base.sort.sortDimsChecked_refuted

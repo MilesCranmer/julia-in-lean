@@ -1,31 +1,35 @@
 id: array-reverseind-wide-index
-title: "reverseind wraps when vector endpoint is typemax(Int)"
-priority: P2
+title: reverseind overflows its endpoint sum before subtracting a wide index
+priority: P3
 kind: wrong-result
 area: Array
-files: [base/array.jl]
-functions: ["reverseind(a::AbstractVector, i::Integer)"]
+files:
+  - base/array.jl
+  - base/strings/basic.jl
+functions:
+  - reverseind(a::AbstractVector, i::Integer)
 summary: |
-  reverseind computes first(li) + last(li) before subtracting i. For an AbstractVector
-  with size typemax(Int), this Int addition wraps; even with i = Int128(1), the result
-  is -9223372036854775809 instead of typemax(Int).
+  For a lazy AbstractVector of length typemax(Int), reverseind(v, Int128(1))
+  returns -9223372036854775809 on a 64-bit runtime. The corresponding index
+  should be 9223372036854775807. The machine-sized endpoint sum wraps before the
+  Int128 subtraction can widen it. The reproducer allocates no enormous array.
 likelihood: |
-  Very low: requires a custom AbstractVector with typemax(Int) elements and a wide
-  integer index. Ordinary arrays cannot practically have this length.
-maybe_intended: ""
+  Very low. The reproducer requires a custom lazy vector with typemax(Int)
+  elements and a wider integer index. An ordinary dense vector cannot
+  practically have that length.
+maybe_intended: |
+  No restriction on vector length beyond its valid Int size is stated here, and
+  the method explicitly accepts Integer indices. The failure is an intermediate
+  arithmetic overflow rather than an invalid index supplied by the caller.
 reproducer: |
-  struct HugeReverseVector <: AbstractVector{Int}
-  end
+  struct HugeReverseVector <: AbstractVector{Int} end
   Base.size(::HugeReverseVector) = (typemax(Int),)
   Base.getindex(::HugeReverseVector, i::Int) = i
-
   v = HugeReverseVector()
   i = Int128(1)
   expected = Int128(typemax(Int))
   actual = reverseind(v, i)
   println("reverseind result=", actual, " expected=", expected)
-  @assert actual != expected
-  println("REPRODUCED array-reverseind-wide-index")
 output:
   release: |
     JULIA 1.13.2 COMMIT 45b6d15e34bbd2003a31acce0b1847b63dad029c
@@ -35,25 +39,44 @@ output:
     JULIA 1.15.0-DEV.unknown COMMIT f755f49a9e41380d7da126b3c1db9fe7f83dd027
     reverseind result=-9223372036854775809 expected=9223372036854775807
     REPRODUCED array-reverseind-wide-index
-reproduced: {release: true, nightly: true}
+reproduced:
+  release: true
+  nightly: true
 expected: |
-  reverseind(v, Int128(1)) returns typemax(Int), the index in v corresponding to
-  index 1 in reverse(v).
+  reverseind(v, Int128(1)) returns Int128(typemax(Int)), a valid final index
+  in v. It should never produce a negative index for this positive input.
 promised_by: |
-  The reverseind docstring in base/strings/basic.jl:721-725 says it returns the
-  corresponding index in v so that v[reverseind(v,i)] == reverse(v)[i].
-  The affected AbstractVector method is base/array.jl:2281-2284.
+  base/strings/basic.jl:724-726 at f755f49a9e41380d7da126b3c1db9fe7f83dd027:
+  "Given an index `i` in [`reverse(v)`](@ref), return the corresponding index in
+  `v` so that `v[reverseind(v,i)] == reverse(v)[i]`. (This can be nontrivial in
+  cases where `v` contains non-ASCII characters.)"
+  The AbstractVector implementation is at base/array.jl:2276-2279.
 cause: |
-  base/array.jl:2283 evaluates first(li) + last(li) using machine-sized Int arithmetic
-  before subtracting i. With last(li) == typemax(Int), the sum wraps to typemin(Int) + 1.
-  Subtracting Int128(1) then gives -9223372036854775809.
+  base/array.jl:2278 evaluates first(li) + last(li) - i left to right.
+  Both endpoints are Int, so 1 + typemax(Int) wraps to typemin(Int). Only
+  the subsequent subtraction promotes to Int128, producing typemin(Int) - 1.
 possible_fix: |
-  Reorder the calculation to subtract i before adding first(li), for example
-  first(li) + (last(li) - i), so valid vector indices do not overflow in the
-  intermediate endpoint sum.
+  Subtract the index before adding the first endpoint, for example
+  first(li) + (last(li) - i). For valid vector indices, the endpoint
+  difference does not require the overflowing intermediate sum.
 duplicates:
   issues: []
-  queries: ["reverseind", "reverseind overflow", "reverseind Int128", "reverseind typemax"]
+  prs:
+    - number: 42366
+      state: merged
+      relation: related
+  queries:
+    - 'gh search issues --repo JuliaLang/julia reverseind overflow'
+    - 'gh search issues --repo JuliaLang/julia reverseind Int128'
+    - 'gh search issues --repo JuliaLang/julia reverseind'
+    - 'gh search prs --repo JuliaLang/julia reverseind overflow'
+    - 'gh search prs --repo JuliaLang/julia reverseind Int128'
+    - 'gh search prs --repo JuliaLang/julia reverseind'
+  notes: |
+    No existing issue reports this. PR #42366 adds array tests for reverseind
+    (its body says "Both appear uncovered on codecov."). It is related
+    coverage work, not a report or fix of the overflowing endpoint sum. Other
+    reverseind work concerns strings.
 lean:
   property: JuliaLean.Proofs.base.array.ReverseIndexReflectionSpec
-  theorem: JuliaLean.Proofs.base.array.reverseIndexReflectionSpec_refuted
+  theorem: JuliaLean.ChatGPT.Batch4.Group2.ArrayReverseindWideIndex_refuted

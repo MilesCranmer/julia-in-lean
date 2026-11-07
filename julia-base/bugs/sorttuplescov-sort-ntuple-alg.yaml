@@ -1,54 +1,80 @@
 id: sorttuplescov-sort-ntuple-alg
-title: "sort(::NTuple; alg=...) throws an internal MethodError for every explicit algorithm"
+title: "sort((2, 1); alg=InsertionSort) throws an internal MethodError"
 priority: P2
 kind: wrong-exception
 area: Sort
-files: [base/sort.jl]
-functions: ["sort(x::NTuple; alg, lt, by, rev, order, scratch)", "_sort(x::NTuple, a::Union{DefaultStable, DefaultUnstable}, o, kw)"]
+files:
+  - base/sort.jl
+functions:
+  - "sort(::NTuple; alg)"
+  - "_sort(::NTuple, ::Algorithm, ::Ordering, kw)"
 summary: |
-  sort on an NTuple accepts an alg keyword, but every algorithm other than
-  DEFAULT_STABLE and DEFAULT_UNSTABLE (InsertionSort, QuickSort, MergeSort,
-  PartialQuickSort, ScratchQuickSort, ...) throws MethodError: no method matching
-  Base.Sort._sort(::NTuple, ::QuickSortAlg, ...). The same call on a Vector sorts.
+  The tuple sort signature accepts an Algorithm, but the built-in
+  InsertionSort has no matching tuple _sort method. Default sorting of the
+  same (2, 1) tuple succeeds. The reproducer uses InsertionSort only.
 likelihood: |
-  Moderate for code that forwards a sort algorithm to a generic routine that may
-  receive tuples; the error names an internal function.
+  Generic code that forwards an explicit algorithm can encounter this when
+  its input is a homogeneous tuple.
 maybe_intended: |
-  A comment at base/sort.jl:1796-1797 invites packages to add _sort methods for
-  their own algorithms, so leaving the built-in algorithms unhandled may be a
-  deliberate restriction; the sort docstring still lists alg for sort(v::NTuple; kws...).
+  Tuple sorting has its own optimized default implementation. Explicit
+  algorithms may be intentionally restricted, but that restriction is absent
+  from the public signature and docstring.
 reproducer: |
-  sort([3, 1, 2]; alg=QuickSort)   # [1, 2, 3]
-  sort((3, 1, 2); alg=QuickSort)   # MethodError: no method matching _sort(::Tuple{Int64, Int64, Int64}, ::QuickSortAlg, ...)
+  function reproduced()
+      x = (2, 1)
+      sort(x) == (1, 2) || return false
+      try
+          sort(x; alg=Base.Sort.InsertionSort)
+          false
+      catch e
+          e isa MethodError
+      end
+  end
+  println(reproduced() ? "REPRODUCED sorttuplescov-sort-ntuple-alg" : "NOT_REPRODUCED sorttuplescov-sort-ntuple-alg")
 output:
   release: |
-    [1, 2, 3]
-    MethodError
     REPRODUCED sorttuplescov-sort-ntuple-alg
   nightly: |
-    [1, 2, 3]
-    MethodError
+    Julia 1.15.0-DEV.unknown, commit f755f49a9e41380d7da126b3c1db9fe7f83dd027:
     REPRODUCED sorttuplescov-sort-ntuple-alg
-reproduced: {release: true, nightly: true}
+reproduced:
+  release: true
+  nightly: true
 expected: |
-  (1, 2, 3), sorted with the requested algorithm (for example through the vector
-  path of base/sort.jl:1801-1804), or an ArgumentError that names the unsupported
-  algorithm.
+  Return (1, 2) for the accepted InsertionSort keyword, or document and
+  explicitly reject unsupported tuple algorithms.
 promised_by: |
-  sort docstring, base/sort.jl:1744-1747: "sort(v; alg::Base.Sort.Algorithm=Base.Sort.defalg(v), ...)
-  ... sort(v::NTuple; kws...)::NTuple". The method signature at base/sort.jl:1785-1791
-  takes alg::Algorithm.
+  Pinned Julia commit f755f49a9e41380d7da126b3c1db9fe7f83dd027.
+  base/sort.jl:1745: "sort(v::NTuple; kws...)::NTuple"
+  base/sort.jl:1747: "Variant of [`sort!`](@ref) that returns a sorted copy of `v` leaving `v` itself unmodified."
+  base/sort.jl:1785-1786 accepts "function sort(x::NTuple;" and "alg::Algorithm=defalg(x),".
 cause: |
-  sort(x::NTuple) calls _sort(x, alg, ord(...), (;scratch)) (base/sort.jl:1794), and
-  _sort has only the method for Union{DefaultStable, DefaultUnstable}
-  (base/sort.jl:1798-1808).
+  base/sort.jl:1794 forwards the selected algorithm to _sort. The tuple method
+  at base/sort.jl:1798 accepts only Union{DefaultStable, DefaultUnstable},
+  so InsertionSort reaches missing-method dispatch.
 possible_fix: |
-  Add a fallback _sort(x::NTuple, a::Algorithm, o, kw) that sorts copymutable(x)
-  with _sort!(v, maybe_apply_initial_optimizations(a), o, kw) and converts back.
+  Support the built-in explicit algorithms through a tuple fallback or
+  state and validate the tuple algorithm restriction at the public entry point.
 duplicates:
   issues:
-    - {number: 54494, state: merged, relation: related}
-  queries: ["issues: sort tuple alg", "issues: sort NTuple QuickSort", "issues: sort NTuple MethodError", "issues/prs: sort tuple", "issues/prs: sort tuples"]
+    - number: 54494
+      state: merged
+      relation: related
+    - number: 60951
+      state: open
+      relation: related
+    - number: 56425
+      state: closed
+      relation: related
+  queries:
+    - "issues: sort tuple alg"
+    - "prs: sort tuple alg"
+    - "issues: sort NTuple MethodError"
+    - "prs: sort NTuple MethodError"
+    - "issues: sort tuple"
+    - "prs: sort tuple"
+    - "issues: NTuple"
+    - "prs: NTuple"
 lean:
-  property: JuliaLean.SortTuplesCov.SortNTupleAlgs
-  theorem: JuliaLean.SortTuplesCov.sortNTupleAlgs_refuted
+  property: JuliaLean.Proofs.base.sort.TupleSortExplicitAlgCorrect
+  theorem: JuliaLean.ChatGPT.Batch4.Group20.SorttuplescovSortNtupleAlg_refuted

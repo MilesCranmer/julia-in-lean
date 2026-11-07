@@ -1,0 +1,56 @@
+id: nummisc-tanh-float32-nonmonotone-v2
+title: "tanh decreases across adjacent positive Float32 inputs"
+priority: "P2"
+kind: "wrong-result"
+area: "NumMisc"
+files:
+  - "base/special/hyperbolic.jl"
+  - "base/math.jl"
+functions:
+  - "tanh(::Float32)"
+  - "tanh_kernel(::Float32)"
+summary: |
+  Adjacent Float32 inputs with bit patterns 0x3dfff085 and 0x3dfff086 produce decreasing tanh values, with output bits 0x3dfe9d8d and 0x3dfe9d8c. This contradicts exact monotonicity of tanh.
+likelihood: |
+  Two ordinary positive Float32 values near 0.125 suffice. The effect is a one-unit step in the last output place and may affect monotone search assumptions.
+maybe_intended: |
+  The polynomial is an approximation and the public docstring does not explicitly promise correctly rounded or monotone results. Maintainers may accept a small approximation error; the stronger monotonicity expectation still has a concrete counterexample.
+reproducer: |
+  x = reinterpret(Float32, UInt32(0x3dfff085))
+  y = reinterpret(Float32, UInt32(0x3dfff086))
+  @show x < y y == nextfloat(x) tanh(x) > tanh(y)
+  @show reinterpret(UInt32, tanh(x)) reinterpret(UInt32, tanh(y))
+output:
+  release: |
+    REPRODUCED nummisc-tanh-float32-nonmonotone-v2
+  nightly: |
+    REPRODUCED nummisc-tanh-float32-nonmonotone-v2
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  For ordered real inputs x < y, a monotone implementation should satisfy tanh(x) <= tanh(y).
+promised_by: |
+  base/math.jl:326-329 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027:
+  "tanh(x)"
+  "Compute hyperbolic tangent of `x`."
+  Monotonicity is a mathematical property of hyperbolic tangent, not an explicit numerical accuracy guarantee in this docstring.
+cause: |
+  base/special/hyperbolic.jl:157-160 evaluates the Float32 polynomial. Lines 172-174 select the small-input branch and multiply x by tanh_kernel(x*x). Rounded polynomial evaluation can step down between adjacent inputs.
+possible_fix: |
+  Use a Float32 approximation or evaluation scheme with a demonstrated monotonicity guarantee over the relevant interval.
+duplicates:
+  issues:
+    - number: 64225
+      state: open
+      relation: duplicate
+  prs: []
+  queries:
+    - "tanh Float32 monotonic"
+    - "tanh nonmonotonic"
+    - "tanh Float32 accuracy"
+  search_evidence: |
+    Open issue 64225 reports the same Float32 polynomial monotonicity defect at another adjacent input pair near 0.49214557. It is a duplicate of the defect, not of this exact input pair.
+lean:
+  property: JuliaLean.Proofs.base.special.hyperbolicArchive20261101.TanhMonotone
+  theorem: JuliaLean.ChatGPT.Batch4.Group15.NummiscTanhFloat32NonmonotoneV2_refuted

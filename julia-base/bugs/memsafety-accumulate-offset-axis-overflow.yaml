@@ -84,5 +84,5 @@ duplicates:
   issues: []
   queries: ["accumulate offset axis overflow", "accumulate typemax firstindex", "accumulate custom axes bounds", "prs: accumulate offset axis overflow", "prs: accumulate typemax firstindex", "prs: accumulate custom axes bounds"]
 lean:
-  property: JuliaLean.MemSafety.G5.AccumulateDimsAccessesInBounds
-  theorem: JuliaLean.MemSafety.G5.accumulateDimsAccessesInBounds_refuted
+  property: JuliaLean.Proofs.base.accumulate.AccumulateDimsAccessesInBounds
+  theorem: JuliaLean.Proofs.base.accumulate.accumulateDimsAccessesInBounds_refuted

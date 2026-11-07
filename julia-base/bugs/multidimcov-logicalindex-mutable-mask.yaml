@@ -58,5 +58,5 @@ duplicates:
   issues: []
   queries: ["issues: LogicalIndex mutate mask stale count", "issues: LogicalIndex TypeError mask", "prs: LogicalIndex mutate mask stale count", "prs: LogicalIndex TypeError mask"]
 lean:
-  property: JuliaLean.MultidimCov.LogicalIndexTracksMask
-  theorem: JuliaLean.MultidimCov.logicalIndexTracksMask_refuted
+  property: JuliaLean.Proofs.base.multidimensional.LogicalIndexTracksMask
+  theorem: JuliaLean.Proofs.base.multidimensional.logicalIndexTracksMask_refuted

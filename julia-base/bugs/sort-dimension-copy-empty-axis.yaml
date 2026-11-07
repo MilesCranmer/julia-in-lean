@@ -1,0 +1,54 @@
+id: sort-dimension-copy-empty-axis
+title: "sort(A; dims) throws when the sorted dimension is empty"
+priority: P2
+kind: wrong-exception
+area: Sort
+files: [base/sort.jl]
+functions: ["sort(A::AbstractArray; dims)", "sort_chunks!(Av, n, alg, order, scratch)"]
+summary: |
+  Sorting an empty array along a valid dimension should return an empty copy with
+  the same axes. Instead, sort(zeros(0, 3); dims=1) throws
+  ArgumentError("step cannot be zero"). The in-place sort! of the same empty
+  matrix and non-mutating sort along dims=2 both return empty matrices.
+likelihood: |
+  Empty arrays are valid inputs and can arise from filtering or slicing. The
+  exception depends on sorting along the zero-length dimension.
+maybe_intended: ""
+reproducer: |
+  A = zeros(0, 3)
+  r = try sort(A; dims=1) catch e; e end
+  inplace = sort!(copy(A); dims=1)
+  other = sort(A; dims=2)
+  println("sort(zeros(0, 3); dims=1) -> ", r isa Exception ? sprint(showerror, r) : summary(r))
+  println("sort!(copy(A); dims=1) -> ", summary(inplace), "; sort(A; dims=2) -> ", summary(other))
+  if r isa ArgumentError && size(inplace) == (0, 3) && size(other) == (0, 3)
+      println("REPRODUCED sort-dimension-copy-empty-axis")
+  end
+output:
+  release: |
+    sort(zeros(0, 3); dims=1) throws ArgumentError("step cannot be zero"); sort!(copy(A); dims=1) and sort(A; dims=2) return empty matrices
+    REPRODUCED sort-dimension-copy-empty-axis
+  nightly: |
+    sort(zeros(0, 3); dims=1) throws ArgumentError("step cannot be zero"); sort!(copy(A); dims=1) and sort(A; dims=2) return empty matrices
+    REPRODUCED sort-dimension-copy-empty-axis
+reproduced: {release: true, nightly: true}
+expected: |
+  sort(A; dims=1) returns an empty copy with axes (1:0, 1:3), consistent with
+  the result of sorting each empty slice.
+promised_by: |
+  The sort docstring, base/sort.jl:2112-2134, describes sort(A; dims) as
+  returning a sorted copy. An empty input has no elements to rearrange and
+  retains its dimensions.
+cause: |
+  The multidimensional copy path calls sort_chunks! with n = size(A, dims) = 0.
+  sort_chunks! constructs its chunk index range with step n, which raises
+  ArgumentError("step cannot be zero") for the empty dimension.
+possible_fix: |
+  Return the allocated empty copy without calling sort_chunks! when the sorted
+  dimension has length zero.
+duplicates:
+  issues: []
+  queries: ["sort dims empty", "sort_chunks", "step cannot be zero sort", "sort empty matrix dims"]
+lean:
+  property: JuliaLean.Proofs.base.sort.DimensionCopyEmptyAxis
+  theorem: JuliaLean.Proofs.base.sort.dimensionCopyEmptyAxis_refuted

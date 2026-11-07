@@ -62,5 +62,5 @@ duplicates:
     - {number: 47255, state: merged, relation: related}
   queries: ["complex division accuracy", "ComplexF64 division", "complex division exact", "robust complex division", "complex division NaN"]
 lean:
-  property: JuliaLean.Complex.DivRealDivisor
-  theorem: JuliaLean.Complex.divRealDivisor_refuted
+  property: JuliaLean.Proofs.base.complex.DivRealDivisor
+  theorem: JuliaLean.Proofs.base.complex.divRealDivisor_refuted

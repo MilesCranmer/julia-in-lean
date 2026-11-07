@@ -1,95 +1,95 @@
 file	line	endline	name	signature	status	entry	note
-base/promotion.jl	20	20	typejoin	typejoin()	todo		trivial: restates body
-base/promotion.jl	21	21	typejoin	typejoin(@nospecialize(t))	todo		trivial: restates body
-base/promotion.jl	22	22	typejoin	typejoin(@nospecialize(t), @nospecialize(s), @nospecialize(u))	todo		trivial: restates body
-base/promotion.jl	23	23	typejoin	typejoin(@nospecialize(t), @nospecialize(s), @nospecialize(u), ts...)	todo		trivial: restates body
-base/promotion.jl	25	35	_has_ancestor_typename	_has_ancestor_typename(@nospecialize(a), name::Core.TypeName)	todo		trivial: restates body
-base/promotion.jl	37	160	typejoin	typejoin(@nospecialize(a), @nospecialize(b))	todo		trivial: restates body
-base/promotion.jl	166	177	typesplit	typesplit(@nospecialize(a), @nospecialize(b))	todo		trivial: restates body
-base/promotion.jl	198	201	promote_typejoin	promote_typejoin(@nospecialize(a), @nospecialize(b))	todo		trivial: restates body
-base/promotion.jl	202	207	_promote_typesubtract	_promote_typesubtract(@nospecialize(a))	todo		trivial: restates body
-base/promotion.jl	209	224	promote_typejoin_union	promote_typejoin_union(::Type{T}) where T	todo		trivial: restates body
-base/promotion.jl	226	253	typejoin_union_tuple	typejoin_union_tuple(T::DataType)	todo		trivial: restates body
-base/promotion.jl	256	267	full_va_len	full_va_len(p::Core.SimpleVector)	todo		trivial: restates body
-base/promotion.jl	270	280	tailjoin	tailjoin(A::SimpleVector, i::Int)	todo		trivial: restates body
+base/promotion.jl	20	20	typejoin	typejoin()	modelled	promotion-typejoin-idempotent	Existing model reviewed against pinned f755f49 source.
+base/promotion.jl	21	21	typejoin	typejoin(@nospecialize(t))	modelled	promotion-typejoin-idempotent	Existing model reviewed against pinned f755f49 source.
+base/promotion.jl	22	22	typejoin	typejoin(@nospecialize(t), @nospecialize(s), @nospecialize(u))	modelled	promotion-typejoin-nary-upper-bound	Existing model reviewed against pinned f755f49 source.
+base/promotion.jl	23	23	typejoin	typejoin(@nospecialize(t), @nospecialize(s), @nospecialize(u), ts...)	modelled	promotion-typejoin-nary-upper-bound	Existing model reviewed against pinned f755f49 source.
+base/promotion.jl	25	35	_has_ancestor_typename	_has_ancestor_typename(@nospecialize(a), name::Core.TypeName)	modelled	promotion-typejoin-closest-common-ancestor	Existing model reviewed against pinned f755f49 source.
+base/promotion.jl	37	160	typejoin	typejoin(@nospecialize(a), @nospecialize(b))	modelled	promotion-typejoin-closest-common-ancestor	Both TypeEgal operands unwrap before one recursive call. pSubtype remains an approximation of Julia subtyping; parameterized and runtime type claims require a fuller subtype model.
+base/promotion.jl	166	177	typesplit	typesplit(@nospecialize(a), @nospecialize(b))	modelled	promotion-typesplit-removes-subtype	Existing model reviewed against pinned f755f49 source.
+base/promotion.jl	198	201	promote_typejoin	promote_typejoin(@nospecialize(a), @nospecialize(b))	modelled	promotion-promote-typejoin-union-membership	Existing model reviewed against pinned f755f49 source.
+base/promotion.jl	202	207	_promote_typesubtract	_promote_typesubtract(@nospecialize(a))	modelled	promotion-promote-typejoin-union-membership	Existing model reviewed against pinned f755f49 source.
+base/promotion.jl	209	224	promote_typejoin_union	promote_typejoin_union(::Type{T}) where T	modelled	promotion-normalize-union-upper-bound	Existing model reviewed against pinned f755f49 source.
+base/promotion.jl	226	253	typejoin_union_tuple	typejoin_union_tuple(T::DataType)	modelled	promotion-normalize-tuple-upper-bound	Existing model reviewed against pinned f755f49 source.
+base/promotion.jl	256	267	full_va_len	full_va_len(p::Core.SimpleVector)	modelled	promotion-full-va-len-fixed-tuple	Existing model reviewed against pinned f755f49 source.
+base/promotion.jl	270	280	tailjoin	tailjoin(A::SimpleVector, i::Int)	modelled	promotion-tailjoin-upper-bound	Existing model reviewed against pinned f755f49 source.
 base/promotion.jl	324	324	promote_type	promote_type	excluded		no-behaviour: generic function declaration at base/promotion.jl:324 has no method body
-base/promotion.jl	326	326	promote_type	promote_type()	todo		trivial: restates body
-base/promotion.jl	327	327	promote_type	promote_type(T)	todo		trivial: restates body
-base/promotion.jl	328	328	promote_type	promote_type(T, S, U)	todo		trivial: restates body
-base/promotion.jl	329	329	promote_type	promote_type(T, S, U, V...)	todo		trivial: restates body
-base/promotion.jl	331	331	promote_type	promote_type(::Type{Bottom}, ::Type{Bottom})	todo		trivial: restates body
-base/promotion.jl	332	332	promote_type	promote_type(::Type{T}, ::Type{T}) where {T}	todo		trivial: restates body
-base/promotion.jl	333	333	promote_type	promote_type(::Type{T}, ::Type{Bottom}) where {T}	todo		trivial: restates body
-base/promotion.jl	334	334	promote_type	promote_type(::Type{Bottom}, ::Type{T}) where {T}	todo		trivial: restates body
-base/promotion.jl	336	344	promote_type	promote_type(::Type{T}, ::Type{S}) where {T,S}	todo		trivial: restates body
+base/promotion.jl	326	326	promote_type	promote_type()	modelled	promotion-promote-type-nary-table	Existing model reviewed against pinned f755f49 source.
+base/promotion.jl	327	327	promote_type	promote_type(T)	modelled	promotion-promote-type-nary-table	Existing model reviewed against pinned f755f49 source.
+base/promotion.jl	328	328	promote_type	promote_type(T, S, U)	modelled	promotion-promote-type-nary-table	Existing model reviewed against pinned f755f49 source.
+base/promotion.jl	329	329	promote_type	promote_type(T, S, U, V...)	modelled	promotion-promote-type-nary-table	Existing model reviewed against pinned f755f49 source.
+base/promotion.jl	331	331	promote_type	promote_type(::Type{Bottom}, ::Type{Bottom})	modelled	promotion-promote-type-identities	Existing model reviewed against pinned f755f49 source.
+base/promotion.jl	332	332	promote_type	promote_type(::Type{T}, ::Type{T}) where {T}	modelled	promotion-promote-type-identities	Existing model reviewed against pinned f755f49 source.
+base/promotion.jl	333	333	promote_type	promote_type(::Type{T}, ::Type{Bottom}) where {T}	modelled	promotion-promote-type-identities	Existing model reviewed against pinned f755f49 source.
+base/promotion.jl	334	334	promote_type	promote_type(::Type{Bottom}, ::Type{T}) where {T}	modelled	promotion-promote-type-identities	Existing model reviewed against pinned f755f49 source.
+base/promotion.jl	336	344	promote_type	promote_type(::Type{T}, ::Type{S}) where {T,S}	modelled	promotion-promote-type-table	Existing model reviewed against pinned f755f49 source.
 base/promotion.jl	353	353	promote_rule	promote_rule	excluded		no-behaviour: generic function declaration at base/promotion.jl:353 has no method body
-base/promotion.jl	355	355	promote_rule	promote_rule(::Type, ::Type)	todo		trivial: restates body
-base/promotion.jl	358	358	promote_rule	promote_rule(::Type{Bottom}, slurp...)	todo		trivial: restates body
-base/promotion.jl	359	359	promote_rule	promote_rule(::Type{Bottom}, ::Type{Bottom}, slurp...)	todo		trivial: restates body
-base/promotion.jl	360	360	promote_rule	promote_rule(::Type{Bottom}, ::Type{T}, slurp...) where {T}	todo		trivial: restates body
-base/promotion.jl	361	361	promote_rule	promote_rule(::Type{T}, ::Type{Bottom}, slurp...) where {T}	todo		trivial: restates body
-base/promotion.jl	363	363	promote_result	promote_result(::Type,::Type,::Type{T},::Type{S}) where {T,S}	todo		trivial: restates body
-base/promotion.jl	366	366	promote_result	promote_result(::Type{T},::Type{S},::Type{Bottom},::Type{Bottom}) where {T,S}	todo		trivial: restates body
+base/promotion.jl	355	355	promote_rule	promote_rule(::Type, ::Type)	modelled	promotion-promote-rule-bottom-identities	Existing model reviewed against pinned f755f49 source.
+base/promotion.jl	358	358	promote_rule	promote_rule(::Type{Bottom}, slurp...)	modelled	promotion-promote-rule-bottom-identities	Existing model reviewed against pinned f755f49 source.
+base/promotion.jl	359	359	promote_rule	promote_rule(::Type{Bottom}, ::Type{Bottom}, slurp...)	modelled	promotion-promote-rule-bottom-identities	Existing model reviewed against pinned f755f49 source.
+base/promotion.jl	360	360	promote_rule	promote_rule(::Type{Bottom}, ::Type{T}, slurp...) where {T}	modelled	promotion-promote-rule-bottom-identities	Existing model reviewed against pinned f755f49 source.
+base/promotion.jl	361	361	promote_rule	promote_rule(::Type{T}, ::Type{Bottom}, slurp...) where {T}	modelled	promotion-promote-rule-bottom-identities	Existing model reviewed against pinned f755f49 source.
+base/promotion.jl	363	363	promote_result	promote_result(::Type,::Type,::Type{T},::Type{S}) where {T,S}	modelled	promotion-promote-type-table	Existing model reviewed against pinned f755f49 source.
+base/promotion.jl	366	366	promote_result	promote_result(::Type{T},::Type{S},::Type{Bottom},::Type{Bottom}) where {T,S}	modelled	promotion-promote-typejoin-fallback	Existing model reviewed against pinned f755f49 source.
 base/promotion.jl	395	395	promote	promote	excluded		no-behaviour: generic function declaration at base/promotion.jl:395 has no method body
-base/promotion.jl	397	401	_promote	_promote(x::T, y::S) where {T,S}	todo		trivial: restates body
-base/promotion.jl	402	402	promote_typeof	promote_typeof(x)	todo		trivial: restates body
-base/promotion.jl	403	403	promote_typeof	promote_typeof(x, y)	todo		trivial: restates body
-base/promotion.jl	404	404	promote_typeof	promote_typeof(x, y, z)	todo		trivial: restates body
-base/promotion.jl	405	405	promote_typeof	promote_typeof(x, y, z, a...)	todo		trivial: restates body
-base/promotion.jl	406	410	_promote	_promote(x, y, z)	todo		trivial: restates body
-base/promotion.jl	411	415	_promote	_promote(x, y, zs...)	todo		trivial: restates body
-base/promotion.jl	420	420	promote	promote()	todo		trivial: restates body
-base/promotion.jl	421	421	promote	promote(x)	todo		trivial: restates body
-base/promotion.jl	423	428	promote	promote(x, y)	todo		trivial: restates body
-base/promotion.jl	429	434	promote	promote(x, y, z)	todo		trivial: restates body
-base/promotion.jl	435	439	promote	promote(x, y, z, a...)	todo		trivial: restates body
-base/promotion.jl	441	441	promote	promote(x::T, y::T, zs::T...) where {T}	todo		trivial: restates body
-base/promotion.jl	443	443	not_sametype	not_sametype(x::T, y::T) where {T}	todo		trivial: restates body
-base/promotion.jl	445	445	not_sametype	not_sametype(x, y)	todo		trivial: restates body
-base/promotion.jl	447	452	sametype_error	sametype_error(input)	todo		trivial: restates body
-base/promotion.jl	454	454	+	+(x::Number, y::Number)	todo		trivial: restates body
-base/promotion.jl	455	455	*	*(x::Number, y::Number)	todo		trivial: restates body
-base/promotion.jl	456	456	-	-(x::Number, y::Number)	todo		trivial: restates body
-base/promotion.jl	457	457	/	/(x::Number, y::Number)	todo		trivial: restates body
-base/promotion.jl	459	459	+%	+%(x::Number, y::Number)	todo		trivial: restates body
-base/promotion.jl	460	460	*%	*%(x::Number, y::Number)	todo		trivial: restates body
-base/promotion.jl	461	461	-%	-%(x::Number, y::Number)	todo		trivial: restates body
-base/promotion.jl	507	507	^	^(x::Number, y::Number)	todo		trivial: restates body
-base/promotion.jl	509	509	fma	fma(x::Number, y::Number, z::Number)	todo		trivial: restates body
-base/promotion.jl	510	514	muladd	muladd(a::Number, b::Number, c::Number)	todo		trivial: restates body
-base/promotion.jl	516	516	==	==(x::Number, y::Number)	todo		trivial: restates body
-base/promotion.jl	517	517	<	<( x::Real, y::Real)	todo		trivial: restates body
-base/promotion.jl	518	518	<=	<=(x::Real, y::Real)	todo		trivial: restates body
-base/promotion.jl	520	520	rem	rem(x::Real, y::Real)	todo		trivial: restates body
-base/promotion.jl	521	521	mod	mod(x::Real, y::Real)	todo		trivial: restates body
-base/promotion.jl	522	522	mod1	mod1(x::Real, y::Real)	todo		trivial: restates body
-base/promotion.jl	523	523	fld1	fld1(x::Real, y::Real)	todo		trivial: restates body
-base/promotion.jl	525	525	max	max(x::Real, y::Real)	todo		trivial: restates body
-base/promotion.jl	526	526	min	min(x::Real, y::Real)	todo		trivial: restates body
-base/promotion.jl	527	527	minmax	minmax(x::Real, y::Real)	todo		trivial: restates body
-base/promotion.jl	529	532	TupleOrBottom	TupleOrBottom(tt...)	todo		trivial: restates body
-base/promotion.jl	641	645	promote_op	promote_op(f, S::Type...)	todo		trivial: restates body
-base/promotion.jl	650	650	no_op_err	no_op_err(name, T)	todo		trivial: restates body
-base/promotion.jl	651	651	+	(+)(x::T, y::T) where {T<:Number}	todo		trivial: restates body
-base/promotion.jl	652	652	*	(*)(x::T, y::T) where {T<:Number}	todo		trivial: restates body
-base/promotion.jl	653	653	-	(-)(x::T, y::T) where {T<:Number}	todo		trivial: restates body
-base/promotion.jl	654	654	/	(/)(x::T, y::T) where {T<:Number}	todo		trivial: restates body
-base/promotion.jl	655	655	^	(^)(x::T, y::T) where {T<:Number}	todo		trivial: restates body
-base/promotion.jl	657	657	fma	fma(x::T, y::T, z::T) where {T<:Number}	todo		trivial: restates body
-base/promotion.jl	658	658	fma	fma(x::Integer, y::Integer, z::Integer)	todo		trivial: restates body
-base/promotion.jl	659	659	muladd	muladd(x::T, y::T, z::T) where {T<:Number}	todo		trivial: restates body
-base/promotion.jl	661	661	&	(&)(x::T, y::T) where {T<:Integer}	todo		trivial: restates body
-base/promotion.jl	662	662	|	(|)(x::T, y::T) where {T<:Integer}	todo		trivial: restates body
-base/promotion.jl	663	663	xor	xor(x::T, y::T) where {T<:Integer}	todo		trivial: restates body
-base/promotion.jl	665	665	==	(==)(x::T, y::T) where {T<:Number}	todo		trivial: restates body
-base/promotion.jl	666	666	<	(< )(x::T, y::T) where {T<:Real}	todo		trivial: restates body
-base/promotion.jl	667	667	<=	(<=)(x::T, y::T) where {T<:Real}	todo		trivial: restates body
-base/promotion.jl	669	669	rem	rem(x::T, y::T) where {T<:Real}	todo		trivial: restates body
-base/promotion.jl	670	670	mod	mod(x::T, y::T) where {T<:Real}	todo		trivial: restates body
-base/promotion.jl	672	672	min	min(x::Real)	todo		trivial: restates body
-base/promotion.jl	673	673	max	max(x::Real)	todo		trivial: restates body
-base/promotion.jl	674	674	minmax	minmax(x::Real)	todo		trivial: restates body
-base/promotion.jl	676	676	max	max(x::T, y::T) where {T<:Real}	todo		trivial: restates body
-base/promotion.jl	677	677	min	min(x::T, y::T) where {T<:Real}	todo		trivial: restates body
-base/promotion.jl	678	678	minmax	minmax(x::T, y::T) where {T<:Real}	todo		trivial: restates body
-base/promotion.jl	680	680	flipsign	flipsign(x::T, y::T) where {T<:Signed}	todo		trivial: restates body
+base/promotion.jl	397	401	_promote	_promote(x::T, y::S) where {T,S}	modelled	promotion-promote-common-type-values	Existing source-mirrored model reviewed against pinned f755f49 source; dynamic numeric dispatch remains explicit.
+base/promotion.jl	402	402	promote_typeof	promote_typeof(x)	modelled	promotion-typeof-single-tag	Existing source-mirrored model reviewed against pinned f755f49 source; dynamic numeric dispatch remains explicit.
+base/promotion.jl	403	403	promote_typeof	promote_typeof(x, y)	modelled	promotion-promote-common-type-values	Existing source-mirrored model reviewed against pinned f755f49 source; dynamic numeric dispatch remains explicit.
+base/promotion.jl	404	404	promote_typeof	promote_typeof(x, y, z)	modelled	promotion-promote-triple-common-type	Existing source-mirrored model reviewed against pinned f755f49 source; dynamic numeric dispatch remains explicit.
+base/promotion.jl	405	405	promote_typeof	promote_typeof(x, y, z, a...)	modelled	promotion-rest-common-type	Existing source-mirrored model reviewed against pinned f755f49 source; dynamic numeric dispatch remains explicit.
+base/promotion.jl	406	410	_promote	_promote(x, y, z)	modelled	promotion-promote-triple-common-type	Existing source-mirrored model reviewed against pinned f755f49 source; dynamic numeric dispatch remains explicit.
+base/promotion.jl	411	415	_promote	_promote(x, y, zs...)	modelled	promotion-rest-common-type	Existing source-mirrored model reviewed against pinned f755f49 source; dynamic numeric dispatch remains explicit.
+base/promotion.jl	420	420	promote	promote()	modelled	promotion-promote-same-type-identity	Existing source-mirrored model reviewed against pinned f755f49 source; dynamic numeric dispatch remains explicit.
+base/promotion.jl	421	421	promote	promote(x)	modelled	promotion-promote-same-type-identity	Existing source-mirrored model reviewed against pinned f755f49 source; dynamic numeric dispatch remains explicit.
+base/promotion.jl	423	428	promote	promote(x, y)	modelled	promotion-promote-common-type-values	Existing source-mirrored model reviewed against pinned f755f49 source; dynamic numeric dispatch remains explicit.
+base/promotion.jl	429	434	promote	promote(x, y, z)	modelled	promotion-promote-triple-common-type	Existing source-mirrored model reviewed against pinned f755f49 source; dynamic numeric dispatch remains explicit.
+base/promotion.jl	435	439	promote	promote(x, y, z, a...)	modelled	promotion-many-rejects-unchanged	Existing source-mirrored model reviewed against pinned f755f49 source; dynamic numeric dispatch remains explicit.
+base/promotion.jl	441	441	promote	promote(x::T, y::T, zs::T...) where {T}	modelled	promotion-promote-same-type-identity	Existing source-mirrored model reviewed against pinned f755f49 source; dynamic numeric dispatch remains explicit.
+base/promotion.jl	443	443	not_sametype	not_sametype(x::T, y::T) where {T}	modelled	promotion-promote-nochange-error	Existing source-mirrored model reviewed against pinned f755f49 source; dynamic numeric dispatch remains explicit.
+base/promotion.jl	445	445	not_sametype	not_sametype(x, y)	modelled	promotion-promote-nochange-error	Existing source-mirrored model reviewed against pinned f755f49 source; dynamic numeric dispatch remains explicit.
+base/promotion.jl	447	452	sametype_error	sametype_error(input)	modelled	promotion-promote-nochange-error	Existing source-mirrored model reviewed against pinned f755f49 source; dynamic numeric dispatch remains explicit.
+base/promotion.jl	454	454	+	+(x::Number, y::Number)	modelled	promotion-arithmetic-promotion-errors	Existing source-mirrored model reviewed against pinned f755f49 source; dynamic numeric dispatch remains explicit.
+base/promotion.jl	455	455	*	*(x::Number, y::Number)	modelled	promotion-arithmetic-promotion-errors	Existing source-mirrored model reviewed against pinned f755f49 source; dynamic numeric dispatch remains explicit.
+base/promotion.jl	456	456	-	-(x::Number, y::Number)	modelled	promotion-arithmetic-promotion-errors	Existing source-mirrored model reviewed against pinned f755f49 source; dynamic numeric dispatch remains explicit.
+base/promotion.jl	457	457	/	/(x::Number, y::Number)	modelled	promotion-arithmetic-promotion-errors	Existing source-mirrored model reviewed against pinned f755f49 source; dynamic numeric dispatch remains explicit.
+base/promotion.jl	459	459	+%	+%(x::Number, y::Number)	modelled	promotion-arithmetic-promotion-errors	Existing source-mirrored model reviewed against pinned f755f49 source; dynamic numeric dispatch remains explicit.
+base/promotion.jl	460	460	*%	*%(x::Number, y::Number)	modelled	promotion-arithmetic-promotion-errors	Existing source-mirrored model reviewed against pinned f755f49 source; dynamic numeric dispatch remains explicit.
+base/promotion.jl	461	461	-%	-%(x::Number, y::Number)	modelled	promotion-arithmetic-promotion-errors	Existing source-mirrored model reviewed against pinned f755f49 source; dynamic numeric dispatch remains explicit.
+base/promotion.jl	507	507	^	^(x::Number, y::Number)	modelled	promotion-arithmetic-promotion-errors	Existing source-mirrored model reviewed against pinned f755f49 source; dynamic numeric dispatch remains explicit.
+base/promotion.jl	509	509	fma	fma(x::Number, y::Number, z::Number)	modelled	promotion-fma-promotion-errors	Existing source-mirrored model reviewed against pinned f755f49 source; dynamic numeric dispatch remains explicit.
+base/promotion.jl	510	514	muladd	muladd(a::Number, b::Number, c::Number)	modelled	promotion-muladd-false-strong-zero	Existing source-mirrored model reviewed against pinned f755f49 source; dynamic numeric dispatch remains explicit.
+base/promotion.jl	516	516	==	==(x::Number, y::Number)	modelled	promotion-arithmetic-promotion-errors	Existing source-mirrored model reviewed against pinned f755f49 source; dynamic numeric dispatch remains explicit.
+base/promotion.jl	517	517	<	<( x::Real, y::Real)	modelled	promotion-arithmetic-promotion-errors	Existing source-mirrored model reviewed against pinned f755f49 source; dynamic numeric dispatch remains explicit.
+base/promotion.jl	518	518	<=	<=(x::Real, y::Real)	modelled	promotion-arithmetic-promotion-errors	Existing source-mirrored model reviewed against pinned f755f49 source; dynamic numeric dispatch remains explicit.
+base/promotion.jl	520	520	rem	rem(x::Real, y::Real)	modelled	promotion-arithmetic-promotion-errors	Existing source-mirrored model reviewed against pinned f755f49 source; dynamic numeric dispatch remains explicit.
+base/promotion.jl	521	521	mod	mod(x::Real, y::Real)	modelled	promotion-arithmetic-promotion-errors	Existing source-mirrored model reviewed against pinned f755f49 source; dynamic numeric dispatch remains explicit.
+base/promotion.jl	522	522	mod1	mod1(x::Real, y::Real)	modelled	promotion-arithmetic-promotion-errors	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/promotion.jl	523	523	fld1	fld1(x::Real, y::Real)	modelled	promotion-arithmetic-promotion-errors	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/promotion.jl	525	525	max	max(x::Real, y::Real)	modelled	promotion-arithmetic-promotion-errors	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/promotion.jl	526	526	min	min(x::Real, y::Real)	modelled	promotion-arithmetic-promotion-errors	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/promotion.jl	527	527	minmax	minmax(x::Real, y::Real)	modelled	promotion-arithmetic-promotion-errors	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/promotion.jl	529	532	TupleOrBottom	TupleOrBottom(tt...)	modelled	promotion-promote-op-bottom	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/promotion.jl	641	645	promote_op	promote_op(f, S::Type...)	modelled	promotion-promote-op-bottom	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/promotion.jl	650	650	no_op_err	no_op_err(name, T)	modelled	promotion-numeric-fallback-errors	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/promotion.jl	651	651	+	(+)(x::T, y::T) where {T<:Number}	modelled	promotion-numeric-fallback-errors	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/promotion.jl	652	652	*	(*)(x::T, y::T) where {T<:Number}	modelled	promotion-numeric-fallback-errors	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/promotion.jl	653	653	-	(-)(x::T, y::T) where {T<:Number}	modelled	promotion-numeric-fallback-errors	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/promotion.jl	654	654	/	(/)(x::T, y::T) where {T<:Number}	modelled	promotion-numeric-fallback-errors	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/promotion.jl	655	655	^	(^)(x::T, y::T) where {T<:Number}	modelled	promotion-numeric-fallback-errors	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/promotion.jl	657	657	fma	fma(x::T, y::T, z::T) where {T<:Number}	modelled	promotion-numeric-fallback-errors	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/promotion.jl	658	658	fma	fma(x::Integer, y::Integer, z::Integer)	modelled	promotion-integer-fma-muladd-fallback	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/promotion.jl	659	659	muladd	muladd(x::T, y::T, z::T) where {T<:Number}	modelled	promotion-integer-fma-muladd-fallback	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/promotion.jl	661	661	&	(&)(x::T, y::T) where {T<:Integer}	modelled	promotion-numeric-fallback-errors	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/promotion.jl	662	662	|	(|)(x::T, y::T) where {T<:Integer}	modelled	promotion-numeric-fallback-errors	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/promotion.jl	663	663	xor	xor(x::T, y::T) where {T<:Integer}	modelled	promotion-numeric-fallback-errors	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/promotion.jl	665	665	==	(==)(x::T, y::T) where {T<:Number}	modelled	promotion-real-order-fallbacks	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/promotion.jl	666	666	<	(< )(x::T, y::T) where {T<:Real}	modelled	promotion-numeric-fallback-errors	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/promotion.jl	667	667	<=	(<=)(x::T, y::T) where {T<:Real}	modelled	promotion-real-order-fallbacks	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/promotion.jl	669	669	rem	rem(x::T, y::T) where {T<:Real}	modelled	promotion-numeric-fallback-errors	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/promotion.jl	670	670	mod	mod(x::T, y::T) where {T<:Real}	modelled	promotion-numeric-fallback-errors	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/promotion.jl	672	672	min	min(x::Real)	modelled	promotion-real-order-fallbacks	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/promotion.jl	673	673	max	max(x::Real)	modelled	promotion-real-order-fallbacks	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/promotion.jl	674	674	minmax	minmax(x::Real)	modelled	promotion-real-order-fallbacks	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/promotion.jl	676	676	max	max(x::T, y::T) where {T<:Real}	modelled	promotion-real-order-fallbacks	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/promotion.jl	677	677	min	min(x::T, y::T) where {T<:Real}	modelled	promotion-real-order-fallbacks	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/promotion.jl	678	678	minmax	minmax(x::T, y::T) where {T<:Real}	modelled	promotion-real-order-fallbacks	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/promotion.jl	680	680	flipsign	flipsign(x::T, y::T) where {T<:Signed}	modelled	promotion-numeric-fallback-errors	Existing source-mirrored model reviewed against pinned f755f49 source.

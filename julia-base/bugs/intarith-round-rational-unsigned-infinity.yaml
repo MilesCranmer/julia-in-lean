@@ -1,0 +1,48 @@
+id: intarith-round-rational-unsigned-infinity
+title: "round to an unsigned Rational target rejects positive rational infinity"
+priority: P2
+kind: wrong-exception
+area: IntArith
+files: [base/rational.jl, base/number.jl]
+functions: ["round(::Type{T}, x::Rational{Tr}, r::RoundingMode=RoundNearest) where {T,Tr}"]
+summary: |
+  round(Rational{UInt8}, UInt8(1)//UInt8(0), RoundNearest) raises OverflowError,
+  although the exact positive infinity is already representable in the target.
+likelihood: |
+  Affects explicit rational-target rounding of unsigned-component infinities.
+maybe_intended: |
+  An unsigned target cannot represent negative infinity. This input is positive,
+  and its numerator and denominator already have the requested target types.
+reproducer: |
+  Stored at repro/intarith-round-rational-unsigned-infinity.jl.
+  x = UInt8(1) // UInt8(0)
+  round(Rational{UInt8}, x, RoundNearest)
+output:
+  release: |
+    REPRODUCED intarith-round-rational-unsigned-infinity
+  nightly: |
+    REPRODUCED intarith-round-rational-unsigned-infinity
+reproduced: {release: true, nightly: true}
+expected: |
+  Return UInt8(1)//UInt8(0).
+promised_by: |
+  The explicit noninteger-target infinity branch at base/rational.jl:615-616
+  preserves the original numerator sign before converting to the target type.
+  Both the input and the exact requested result are positive rational infinity.
+cause: |
+  base/rational.jl:616 calls inherited copysign. Its eager ifelse at
+  base/number.jl:271 evaluates -x on the positive unsigned rational before
+  selecting the positive-sign branch, and that unnecessary negation overflows.
+possible_fix: |
+  Select the required sign without evaluating the unused negative unsigned
+  rational branch.
+duplicates:
+  issues: []
+  prs:
+    - {number: 34658, state: closed, relation: related, url: "https://github.com/JuliaLang/julia/pull/34658"}
+  queries:
+    - "GitHub issues and PRs: repo:JuliaLang/julia rational round infinity"
+    - "Web: site:github.com/JuliaLang/julia Rational unsigned infinity round OverflowError"
+lean:
+  property: JuliaLean.Proofs.base.rational.Models1Group20.RoundNativeRationalCorrect
+  theorem: JuliaLean.ChatGPT.Batch10.Group2.Models1G20RoundNativeRationalTarget_refuted

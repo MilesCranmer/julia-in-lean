@@ -21,11 +21,11 @@ base/float.jl	121	121	exponent_one	exponent_one(::Type{Float16})	modelled	float-
 base/float.jl	122	122	exponent_half	exponent_half(::Type{Float16})	modelled	float-bit-layout-invariants	
 base/float.jl	123	123	significand_mask	significand_mask(::Type{Float16})	modelled	float-bit-layout-invariants	
 base/float.jl	125	125	mantissa	mantissa(x::T) where {T}	modelled	float-bit-layout-invariants	
-base/float.jl	131	131	significand_bits	significand_bits(::Type{$T})	todo		generated-loop: T in (Float16, Float32, Float64)
-base/float.jl	132	132	exponent_bits	exponent_bits(::Type{$T})	todo		generated-loop: T in (Float16, Float32, Float64)
-base/float.jl	133	133	exponent_bias	exponent_bias(::Type{$T})	todo		generated-loop: T in (Float16, Float32, Float64)
-base/float.jl	135	135	exponent_max	exponent_max(::Type{$T})	todo		generated-loop: T in (Float16, Float32, Float64)
-base/float.jl	137	137	exponent_raw_max	exponent_raw_max(::Type{$T})	todo		generated-loop: T in (Float16, Float32, Float64)
+base/float.jl	131	131	significand_bits	significand_bits(::Type{$T})	modelled	float-generic-numeric-conversion-and-type,float-generic-floating-interfaces,float-finite-remainder-exact	Reviewed line by line against pinned f755f49 source.
+base/float.jl	132	132	exponent_bits	exponent_bits(::Type{$T})	modelled	float-generic-numeric-conversion-and-type,float-generic-floating-interfaces,float-finite-remainder-exact	Reviewed line by line against pinned f755f49 source.
+base/float.jl	133	133	exponent_bias	exponent_bias(::Type{$T})	modelled	float-generic-numeric-conversion-and-type,float-generic-floating-interfaces,float-finite-remainder-exact	Reviewed line by line against pinned f755f49 source.
+base/float.jl	135	135	exponent_max	exponent_max(::Type{$T})	modelled	float-generic-numeric-conversion-and-type,float-generic-floating-interfaces,float-finite-remainder-exact	Reviewed line by line against pinned f755f49 source.
+base/float.jl	137	137	exponent_raw_max	exponent_raw_max(::Type{$T})	modelled	float-generic-numeric-conversion-and-type,float-generic-floating-interfaces,float-finite-remainder-exact	Reviewed line by line against pinned f755f49 source.
 base/float.jl	154	154	exponent_max	exponent_max	excluded		no-behaviour: declares the generic function without a method body.
 base/float.jl	162	162	exponent_raw_max	exponent_raw_max	excluded		no-behaviour: declares the generic function without a method body.
 base/float.jl	167	167	ieee754_exponent_min	ieee754_exponent_min(::Type{T}) where {T<:IEEEFloat}	modelled	float-bit-layout-invariants	
@@ -40,10 +40,10 @@ base/float.jl	219	223	ieee754_representation	ieee754_representation( ::Type{F}, 
 base/float.jl	235	235	uabs	uabs(x::Integer)	modelled	intarith-division-uabs-typemin	
 base/float.jl	236	236	uabs	uabs(x::BitSigned)	modelled	intarith-division-uabs-typemin	
 base/float.jl	241	241	Float16	Float16(x::Integer)	modelled	float-small-integer-exact	
-base/float.jl	246	246	(::Type{$t1})	(::Type{$t1})(x::($st))	todo		generated-loop: t1 in (Float16, Float32, Float64); st in (Int8, Int16, Int32, Int64)
-base/float.jl	247	247	promote_rule	promote_rule(::Type{$t1}, ::Type{$st})	todo		generated-loop: t1 in (Float16, Float32, Float64); st in (Int8, Int16, Int32, Int64)
-base/float.jl	252	252	(::Type{$t1})	(::Type{$t1})(x::($ut))	todo		generated-loop: t1 in (Float16, Float32, Float64); ut in (Bool, UInt8, UInt16, UInt32, UInt64)
-base/float.jl	253	253	promote_rule	promote_rule(::Type{$t1}, ::Type{$ut})	todo		generated-loop: t1 in (Float16, Float32, Float64); ut in (Bool, UInt8, UInt16, UInt32, UInt64)
+base/float.jl	246	246	(::Type{$t1})	(::Type{$t1})(x::($st))	modelled	float-generic-numeric-conversion-and-type,float-generic-real-classification,float-integer-all-widths-correct-rounding	Reviewed line by line against pinned f755f49 source.
+base/float.jl	247	247	promote_rule	promote_rule(::Type{$t1}, ::Type{$st})	modelled	float-widen-convert-roundtrip	Reviewed line by line against pinned f755f49 source.
+base/float.jl	252	252	(::Type{$t1})	(::Type{$t1})(x::($ut))	modelled	float-generic-numeric-conversion-and-type,float-generic-real-classification,float-integer-all-widths-correct-rounding	Reviewed line by line against pinned f755f49 source.
+base/float.jl	253	253	promote_rule	promote_rule(::Type{$t1}, ::Type{$ut})	modelled	float-widen-convert-roundtrip	Reviewed line by line against pinned f755f49 source.
 base/float.jl	258	258	promote_rule	promote_rule(::Type{Float64}, ::Type{UInt128})	modelled	float-widen-convert-roundtrip	
 base/float.jl	259	259	promote_rule	promote_rule(::Type{Float64}, ::Type{Int128})	modelled	float-widen-convert-roundtrip	
 base/float.jl	260	260	promote_rule	promote_rule(::Type{Float32}, ::Type{UInt128})	modelled	float-widen-convert-roundtrip	
@@ -70,8 +70,8 @@ base/float.jl	385	385	float	float(::Type{T}) where {T<:AbstractFloat}	modelled	f
 base/float.jl	386	386	float	float(::Type{Union{}})	modelled	float-widen-convert-roundtrip	
 base/float.jl	387	387	float	float(::Type{Union{}}, slurp...)	modelled	float-widen-convert-roundtrip	
 base/float.jl	406	406	unsafe_trunc	unsafe_trunc	excluded		no-behaviour: declares the generic function without a method body.
-base/float.jl	410	410	unsafe_trunc	unsafe_trunc(::Type{$Ti}, x::IEEEFloat)	todo		generated-loop: Ti in (Int8, Int16, Int32, Int64)
-base/float.jl	415	415	unsafe_trunc	unsafe_trunc(::Type{$Ti}, x::IEEEFloat)	todo		generated-loop: Ti in (UInt8, UInt16, UInt32, UInt64)
+base/float.jl	410	410	unsafe_trunc	unsafe_trunc(::Type{$Ti}, x::IEEEFloat)	modelled	float-generic-floating-interfaces,float-finite-remainder-exact,float-epsilon-neighbor-gap	Reviewed line by line against pinned f755f49 source.
+base/float.jl	415	415	unsafe_trunc	unsafe_trunc(::Type{$Ti}, x::IEEEFloat)	modelled	float-generic-floating-interfaces,float-finite-remainder-exact,float-epsilon-neighbor-gap	Reviewed line by line against pinned f755f49 source.
 base/float.jl	419	430	unsafe_trunc	unsafe_trunc(::Type{UInt128}, x::Float64)	modelled	floatfuncs-trunc-int-exact	
 base/float.jl	431	433	unsafe_trunc	unsafe_trunc(::Type{Int128}, x::Float64)	modelled	floatfuncs-trunc-int-exact	
 base/float.jl	435	444	unsafe_trunc	unsafe_trunc(::Type{UInt128}, x::Float32)	modelled	floatfuncs-trunc-int-exact	
@@ -113,18 +113,18 @@ base/float.jl	617	617	<=	<=(x::T, y::T) where {T<:IEEEFloat}	modelled	float-ieee
 base/float.jl	619	619	isequal	isequal(x::T, y::T) where {T<:IEEEFloat}	modelled	float-isless-partition	
 base/float.jl	622	627	_fpint	_fpint(x)	modelled	float-isless-partition	
 base/float.jl	629	634	isless	isless(a::T, b::T) where T<:IEEEFloat	modelled	float-isless-partition	
-base/float.jl	652	655	==	==(x::$Tf, y::$Ti)	todo		generated-loop: Ti in (Int64,UInt64,Int128,UInt128); Tf in (Float32,Float64)
-base/float.jl	656	656	==	==(y::$Ti, x::$Tf)	todo		generated-loop: Ti in (Int64,UInt64,Int128,UInt128); Tf in (Float32,Float64)
-base/float.jl	658	661	<	<(x::$Ti, y::$Tf)	todo		generated-loop: Ti in (Int64,UInt64,Int128,UInt128); Tf in (Float32,Float64)
-base/float.jl	662	665	<=	<=(x::$Ti, y::$Tf)	todo		generated-loop: Ti in (Int64,UInt64,Int128,UInt128); Tf in (Float32,Float64)
-base/float.jl	667	670	<	<(x::$Tf, y::$Ti)	todo		generated-loop: Ti in (Int64,UInt64,Int128,UInt128); Tf in (Float32,Float64)
-base/float.jl	671	674	<=	<=(x::$Tf, y::$Ti)	todo		generated-loop: Ti in (Int64,UInt64,Int128,UInt128); Tf in (Float32,Float64)
-base/float.jl	680	680	$op	($op)(x::Float16, y::Union{Int128,UInt128,Int64,UInt64})	todo		generated-loop: op in (:(==), :<, :<=)
-base/float.jl	681	681	$op	($op)(x::Union{Int128,UInt128,Int64,UInt64}, y::Float16)	todo		generated-loop: op in (:(==), :<, :<=)
-base/float.jl	683	683	$op	($op)(x::Union{Float16,Float32}, y::Union{Int32,UInt32})	todo		generated-loop: op in (:(==), :<, :<=)
-base/float.jl	684	684	$op	($op)(x::Union{Int32,UInt32}, y::Union{Float16,Float32})	todo		generated-loop: op in (:(==), :<, :<=)
-base/float.jl	686	686	$op	($op)(x::Float16, y::Union{Int16,UInt16})	todo		generated-loop: op in (:(==), :<, :<=)
-base/float.jl	687	687	$op	($op)(x::Union{Int16,UInt16}, y::Float16)	todo		generated-loop: op in (:(==), :<, :<=)
+base/float.jl	652	655	==	==(x::$Tf, y::$Ti)	modelled	float-mixed-comparison-all-formats,float-wide-mixed-comparison-exact,promotion-mixed-compare-small	Reviewed line by line against pinned f755f49 source.
+base/float.jl	656	656	==	==(y::$Ti, x::$Tf)	modelled	float-mixed-comparison-all-formats,float-wide-mixed-comparison-exact,promotion-mixed-compare-small	Reviewed line by line against pinned f755f49 source.
+base/float.jl	658	661	<	<(x::$Ti, y::$Tf)	modelled	float-mixed-comparison-all-formats,float-wide-mixed-comparison-exact,promotion-mixed-compare-small	Reviewed line by line against pinned f755f49 source.
+base/float.jl	662	665	<=	<=(x::$Ti, y::$Tf)	modelled	float-mixed-comparison-all-formats,float-wide-mixed-comparison-exact,promotion-mixed-compare-small	Reviewed line by line against pinned f755f49 source.
+base/float.jl	667	670	<	<(x::$Tf, y::$Ti)	modelled	float-generic-real-classification,float-generic-integer-decomposition,float-mixed-comparison-all-formats	Reviewed line by line against pinned f755f49 source.
+base/float.jl	671	674	<=	<=(x::$Tf, y::$Ti)	modelled	float-mixed-comparison-all-formats,float-wide-mixed-comparison-exact,promotion-mixed-compare-small	Reviewed line by line against pinned f755f49 source.
+base/float.jl	680	680	$op	($op)(x::Float16, y::Union{Int128,UInt128,Int64,UInt64})	modelled	float-generic-real-classification,float-generic-integer-decomposition,float-mixed-comparison-all-formats	Reviewed line by line against pinned f755f49 source.
+base/float.jl	681	681	$op	($op)(x::Union{Int128,UInt128,Int64,UInt64}, y::Float16)	modelled	float-mixed-comparison-all-formats,promotion-mixed-compare-small	Reviewed line by line against pinned f755f49 source.
+base/float.jl	683	683	$op	($op)(x::Union{Float16,Float32}, y::Union{Int32,UInt32})	modelled	float-generic-real-classification,float-generic-integer-decomposition,float-mixed-comparison-all-formats	Reviewed line by line against pinned f755f49 source.
+base/float.jl	684	684	$op	($op)(x::Union{Int32,UInt32}, y::Union{Float16,Float32})	modelled	float-mixed-comparison-all-formats,promotion-mixed-compare-small	Reviewed line by line against pinned f755f49 source.
+base/float.jl	686	686	$op	($op)(x::Float16, y::Union{Int16,UInt16})	modelled	float-generic-real-classification,float-generic-integer-decomposition,float-mixed-comparison-all-formats	Reviewed line by line against pinned f755f49 source.
+base/float.jl	687	687	$op	($op)(x::Union{Int16,UInt16}, y::Float16)	modelled	float-mixed-comparison-all-formats,promotion-mixed-compare-small	Reviewed line by line against pinned f755f49 source.
 base/float.jl	692	692	abs	abs(x::IEEEFloat)	modelled	float-ieee-eq-lt-le	
 base/float.jl	702	702	isnan	isnan(x::AbstractFloat)	modelled	float-classification-and-decompose	
 base/float.jl	703	703	isnan	isnan(x::Number)	modelled	float-classification-and-decompose	
@@ -150,10 +150,10 @@ base/float.jl	853	853	nextfloat	nextfloat(f::AbstractFloat, d::Integer)	modelled
 base/float.jl	863	863	nextfloat	nextfloat(x::AbstractFloat)	modelled	floatfuncs-nextfloat-iterate	
 base/float.jl	871	871	prevfloat	prevfloat(x::AbstractFloat, d::Integer)	modelled	floatfuncs-nextfloat-iterate	
 base/float.jl	879	879	prevfloat	prevfloat(x::AbstractFloat)	modelled	floatfuncs-nextfloat-iterate	
-base/float.jl	888	894	round	round(::Type{$Ti},x::$Tf,::RoundingMode{:ToZero})	todo		generated-loop: Ti in (Int8, Int16, Int32, Int64, Int128, UInt8, UInt16, UInt32, UInt64, UInt128); Tf in (Float16, Float32, Float64)
-base/float.jl	895	904	(::Type{$Ti})	(::Type{$Ti})(x::$Tf)	todo		generated-loop: Ti in (Int8, Int16, Int32, Int64, Int128, UInt8, UInt16, UInt32, UInt64, UInt128); Tf in (Float16, Float32, Float64)
-base/float.jl	914	920	round	round(::Type{$Ti},x::$Tf,::RoundingMode{:ToZero})	todo		generated-loop: Ti in (Int8, Int16, Int32, Int64, Int128, UInt8, UInt16, UInt32, UInt64, UInt128); Tf in (Float16, Float32, Float64)
-base/float.jl	921	927	(::Type{$Ti})	(::Type{$Ti})(x::$Tf)	todo		generated-loop: Ti in (Int8, Int16, Int32, Int64, Int128, UInt8, UInt16, UInt32, UInt64, UInt128); Tf in (Float16, Float32, Float64)
+base/float.jl	888	894	round	round(::Type{$Ti},x::$Tf,::RoundingMode{:ToZero})	modelled	floatfuncs-trunc-int-exact	Reviewed line by line against pinned f755f49 source.
+base/float.jl	895	904	(::Type{$Ti})	(::Type{$Ti})(x::$Tf)	modelled	floatfuncs-int-convert-exact	Reviewed line by line against pinned f755f49 source.
+base/float.jl	914	920	round	round(::Type{$Ti},x::$Tf,::RoundingMode{:ToZero})	modelled	floatfuncs-trunc-int-exact	Reviewed line by line against pinned f755f49 source.
+base/float.jl	921	927	(::Type{$Ti})	(::Type{$Ti})(x::$Tf)	modelled	floatfuncs-int-convert-exact	Reviewed line by line against pinned f755f49 source.
 base/float.jl	953	956	issubnormal	issubnormal(x::T) where {T<:IEEEFloat}	modelled	float-bounds-and-eps	
 base/float.jl	958	958	ispow2	ispow2(x::AbstractFloat)	modelled	float-bounds-and-eps	
 base/float.jl	959	959	iseven	iseven(x::AbstractFloat)	modelled	float-bounds-and-eps	

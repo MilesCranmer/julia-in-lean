@@ -50,5 +50,6 @@ duplicates:
   issues: []
   queries: ["binomial typemin", "binomial -9223372036854775808", "binomial negative overflow"]
 lean:
-  property: JuliaLean.Combinatorics.BinomialContract
-  theorem: JuliaLean.Combinatorics.binomialContract_refuted
+  property: JuliaLean.Proofs.base.intfuncs.BinomialExactAndOverflow
+  theorem: JuliaLean.Proofs.base.intfuncs.binomialExactAndOverflow_refuted
+covers: [intfuncs-binomial-mixed-exact]

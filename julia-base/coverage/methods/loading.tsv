@@ -1,271 +1,271 @@
 file	line	endline	name	signature	status	entry	note
-base/loading.jl	10	10	isfile_casesensitive	isfile_casesensitive(path)	todo		
-base/loading.jl	13	16	isfile_casesensitive	isfile_casesensitive(path)	todo		
-base/loading.jl	46	74	isfile_casesensitive	isfile_casesensitive(path)	todo		
-base/loading.jl	77	81	isfile_casesensitive	isfile_casesensitive(path)	todo		
-base/loading.jl	86	93	isaccessibledir	isaccessibledir(dir)	todo		
-base/loading.jl	95	102	isaccessiblefile	isaccessiblefile(file)	todo		
-base/loading.jl	104	111	isaccessiblepath	isaccessiblepath(path)	todo		
+base/loading.jl	10	10	isfile_casesensitive	isfile_casesensitive(path)	modelled	loading-isfile-casesensitive-unix	Source-mirrored model reviewed against f755f49a9e41380d7da126b3c1db9fe7f83dd027; independent registered properties remain todo.
+base/loading.jl	13	16	isfile_casesensitive	isfile_casesensitive(path)	modelled	loading-isfile-casesensitive-windows	Source-mirrored model reviewed against f755f49a9e41380d7da126b3c1db9fe7f83dd027; independent registered properties remain todo.
+base/loading.jl	46	74	isfile_casesensitive	isfile_casesensitive(path)	modelled	loading-missing-package-literal,loading-file-macro-source-information,loading-preference-recording-set-semantics	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	77	81	isfile_casesensitive	isfile_casesensitive(path)	modelled	loading-isfile-casesensitive-generic;loading-core-action-adapter	Source-mirrored model reviewed against f755f49a9e41380d7da126b3c1db9fe7f83dd027; independent registered properties remain todo.
+base/loading.jl	86	93	isaccessibledir	isaccessibledir(dir)	modelled	loading-isaccessibledir	Source-mirrored model reviewed against f755f49a9e41380d7da126b3c1db9fe7f83dd027; independent registered properties remain todo.
+base/loading.jl	95	102	isaccessiblefile	isaccessiblefile(file)	modelled	loading-isaccessiblefile	Source-mirrored model reviewed against f755f49a9e41380d7da126b3c1db9fe7f83dd027; independent registered properties remain todo.
+base/loading.jl	104	111	isaccessiblepath	isaccessiblepath(path)	modelled	loading-isaccessiblepath	Source-mirrored model reviewed against f755f49a9e41380d7da126b3c1db9fe7f83dd027; independent registered properties remain todo.
 base/loading.jl	119	123	$name	$name(bytes::Vector{UInt8})	todo		"generated-loop: (name, namestr, numbytes) in [(:SHA1, ""SHA1"", 20), (:SHA256, ""SHA256"", 32)]"
-base/loading.jl	124	124	$name	$name(s::AbstractString)	todo		"generated-loop: (name, namestr, numbytes) in [(:SHA1, ""SHA1"", 20), (:SHA256, ""SHA256"", 32)]"
-base/loading.jl	125	125	parse	parse(::Type{$name}, s::AbstractString)	todo		"generated-loop: (name, namestr, numbytes) in [(:SHA1, ""SHA1"", 20), (:SHA256, ""SHA256"", 32)]"
-base/loading.jl	126	135	tryparse	tryparse(::Type{$name}, s::AbstractString)	todo		"generated-loop: (name, namestr, numbytes) in [(:SHA1, ""SHA1"", 20), (:SHA256, ""SHA256"", 32)]"
-base/loading.jl	137	137	string	string(hash::$name)	todo		"generated-loop: (name, namestr, numbytes) in [(:SHA1, ""SHA1"", 20), (:SHA256, ""SHA256"", 32)]"
-base/loading.jl	138	138	print	print(io::IO, hash::$name)	todo		"generated-loop: (name, namestr, numbytes) in [(:SHA1, ""SHA1"", 20), (:SHA256, ""SHA256"", 32)]"
-base/loading.jl	139	139	show	show(io::IO, hash::$name)	todo		"generated-loop: (name, namestr, numbytes) in [(:SHA1, ""SHA1"", 20), (:SHA256, ""SHA256"", 32)]"
-base/loading.jl	141	141	isless	isless(a::$name, b::$name)	todo		"generated-loop: (name, namestr, numbytes) in [(:SHA1, ""SHA1"", 20), (:SHA256, ""SHA256"", 32)]"
-base/loading.jl	142	142	hash	hash(a::$name, h::UInt)	todo		"generated-loop: (name, namestr, numbytes) in [(:SHA1, ""SHA1"", 20), (:SHA256, ""SHA256"", 32)]"
-base/loading.jl	143	143	==	==(a::$name, b::$name)	todo		"generated-loop: (name, namestr, numbytes) in [(:SHA1, ""SHA1"", 20), (:SHA256, ""SHA256"", 32)]"
-base/loading.jl	150	160	uuid5	uuid5(namespace::UUID, key::String)	todo		
-base/loading.jl	164	183	dummy_uuid	dummy_uuid(project_file::String)	todo		
-base/loading.jl	189	198	slug	slug(x::UInt32, p::Int)	todo		
-base/loading.jl	200	203	package_slug	package_slug(uuid::UUID, p::Int=5)	todo		
-base/loading.jl	205	209	version_slug	version_slug(uuid::UUID, sha1::SHA1, p::Int=5)	todo		
+base/loading.jl	124	124	$name	$name(s::AbstractString)	modelled	loading-sha-abstractstring	Source-mirrored model reviewed against f755f49a9e41380d7da126b3c1db9fe7f83dd027; independent registered properties remain todo.
+base/loading.jl	125	125	parse	parse(::Type{$name}, s::AbstractString)	modelled	loading-sha-parse	Source-mirrored model reviewed against f755f49a9e41380d7da126b3c1db9fe7f83dd027; independent registered properties remain todo.
+base/loading.jl	126	135	tryparse	tryparse(::Type{$name}, s::AbstractString)	modelled	loading-sha-tryparse	Source-mirrored model reviewed against f755f49a9e41380d7da126b3c1db9fe7f83dd027; independent registered properties remain todo.
+base/loading.jl	137	137	string	string(hash::$name)	modelled	loading-sha-string	"generated-loop: (name, namestr, numbytes) in [(:SHA1, ""SHA1"", 20), (:SHA256, ""SHA256"", 32)]; Prepared complete additive model under Models1Group9; public properties are todo with no theorem, pending parent kernel check.; Concrete installed bytes2hex with UInt8 tuple enumeration, checked size conversion, actual string allocation and pointer heap stores. All generated fixed-width values and allocation outcomes included."
+base/loading.jl	138	138	print	print(io::IO, hash::$name)	modelled	loading-sha-print	"generated-loop: (name, namestr, numbytes) in [(:SHA1, ""SHA1"", 20), (:SHA256, ""SHA256"", 32)]; Prepared complete additive model under Models1Group9; public properties are todo with no theorem, pending parent kernel check.; Concrete installed bytes2hexIO, tuple iteration, Char conversion and per-pair variadic print; arbitrary IOPrims/CharIO effects and failures preserved."
+base/loading.jl	139	139	show	show(io::IO, hash::$name)	modelled	loading-sha-show	"generated-loop: (name, namestr, numbytes) in [(:SHA1, ""SHA1"", 20), (:SHA256, ""SHA256"", 32)]; Prepared complete additive model under Models1Group9; public properties are todo with no theorem, pending parent kernel check.; Concrete String-prefix concatenation, raw6/8-byte allocation and native pointer copies occur before every IO event. Full source SHA widths, arbitrary initial storage, IO failure schedules and cleanup order are represented. Independent source/semantic review passed, but final aggregate Lean validation did not finish within the time limit; this addition is UNCHECKED."
+base/loading.jl	141	141	isless	isless(a::$name, b::$name)	modelled	loading-method-141-v2	"generated-loop: (name, namestr, numbytes) in [(:SHA1, ""SHA1"", 20), (:SHA256, ""SHA256"", 32)]; Reuses current complete tuple/integer binding Round1.ShaOrderBindings and existing proven registry property loading-method-141-v2; duplicate returned ordering declaration/property omitted."
+base/loading.jl	142	142	hash	hash(a::$name, h::UInt)	modelled	loading-sha-hash-seed;loading-sha-hash-equal	"generated-loop: (name, namestr, numbytes) in [(:SHA1, ""SHA1"", 20), (:SHA256, ""SHA256"", 32)]; Prepared complete additive model under Models1Group9; public properties are todo with no theorem, pending parent kernel check.; Concrete installed nested tuple hash, short/Any32 dispatch, UInt8/UInt64 hashing and type-hash composition; only explicit total jl_type_hash C primitive remains a free runtime result."
+base/loading.jl	143	143	==	==(a::$name, b::$name)	modelled	loading-sha-equality	"generated-loop: (name, namestr, numbytes) in [(:SHA1, ""SHA1"", 20), (:SHA256, ""SHA256"", 32)]; Prepared complete additive model under Models1Group9; public properties are todo with no theorem, pending parent kernel check.; New additive tuple-dispatched body; legacy eq_SHA and frozen statement/proof/id remain unchanged. Actual SHA1/SHA256 NTuple invariants required."
+base/loading.jl	150	160	uuid5	uuid5(namespace::UUID, key::String)	modelled	loading-uuid5-version-variant	Prepared complete additive model under Models1Group9; public properties are todo with no theorem, pending parent kernel check.; Concrete installed String/byte hashing, UInt64 tuple UUID hashing, sizeof/div/range arithmetic and UInt128 masks. Full UUID and installed String domain on the 64-bit little-endian target; no higher-level hash callback.
+base/loading.jl	164	183	dummy_uuid	dummy_uuid(project_file::String)	modelled	loading-missing-package-literal,loading-file-macro-source-information,loading-preference-recording-set-semantics	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	189	198	slug	slug(x::UInt32, p::Int)	modelled	loading-slug-output	Prepared complete additive model under Models1Group9; public properties are todo with no theorem, pending parent kernel check.; Concrete installed UInt32 divrem, String indexing, Int64 range and Char writes; allocation-aware local sprint/IOBuffer binding retains String, Memory and mutable-buffer OutOfMemoryError outcomes, including required buffer allocation for nonpositive precision. All UInt32/Int64 inputs and arbitrary fresh bytes; no allocator-success precondition.
+base/loading.jl	200	203	package_slug	package_slug(uuid::UUID, p::Int=5)	modelled	loading-crc-slug-format	Prepared complete additive model under Models1Group9; public properties are todo with no theorem, pending parent kernel check.; Concrete UUID/UInt128 and tuple Ref CRC wrapper composition plus allocation-aware slug; each raw RefValue allocation precedes its C call. Exact UInt32 accumulators and Csize_t counts16/20; only existing jl_crc32c and raw GC outcomes remain boundaries. Default precision5 and every Int64 precision included, with failures preserved.
+base/loading.jl	205	209	version_slug	version_slug(uuid::UUID, sha1::SHA1, p::Int=5)	modelled	loading-crc-slug-format	Prepared complete additive model under Models1Group9; public properties are todo with no theorem, pending parent kernel check.; Concrete UUID/UInt128 and tuple Ref CRC wrapper composition plus allocation-aware slug; each raw RefValue allocation precedes its C call. Exact UInt32 accumulators and Csize_t counts16/20; only existing jl_crc32c and raw GC outcomes remain boundaries. Default precision5 and every Int64 precision included, with failures preserved.
 base/loading.jl	220	234	CachedTOMLDict	CachedTOMLDict(p::TOML.Parser, path::String)	todo		
 base/loading.jl	236	254	get_updated_dict	get_updated_dict(p::TOML.Parser, f::CachedTOMLDict)	todo		
 base/loading.jl	278	287	LoadingCache	LoadingCache()	todo		
-base/loading.jl	294	294	TOMLCache	TOMLCache(p::TOML.Parser)	todo		
+base/loading.jl	294	294	TOMLCache	TOMLCache(p::TOML.Parser)	modelled	loading-toml-constructor-identity;loading-toml-constructor-fresh	Prepared complete additive model under Models1Group9; public properties are todo with no theorem, pending parent kernel check.; Preserves the original Parser reference and allocates a fresh mutable empty dictionary using installed Dict field initialization. Raw Dict-header allocation failure returns OutOfMemoryError without changing the old heap. Constructor-only object heap; old callers unchanged.
 base/loading.jl	295	295	TOMLCache	TOMLCache(p::TOML.Parser, d::Dict{String, Dict{String, Any}})	todo		
-base/loading.jl	299	299	parsed_toml	parsed_toml(project_file::AbstractString)	todo		
+base/loading.jl	299	299	parsed_toml	parsed_toml(project_file::AbstractString)	modelled	loading-parsed-toml-default	Source-mirrored model reviewed against f755f49a9e41380d7da126b3c1db9fe7f83dd027; independent registered properties remain todo.
 base/loading.jl	300	322	parsed_toml	parsed_toml(project_file::AbstractString, toml_cache::TOMLCache, toml_lock::ReentrantLock)	todo		
-base/loading.jl	327	334	find_package	find_package(arg)	todo		
-base/loading.jl	337	349	is_stdlib	is_stdlib(pkgid::PkgId)	todo		
+base/loading.jl	327	334	find_package	find_package(arg)	modelled	loading-missing-package-literal,loading-find-source-file,loading-sort-by	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	337	349	is_stdlib	is_stdlib(pkgid::PkgId)	modelled	loading-missing-package-literal,loading-file-macro-source-information,loading-preference-recording-set-semantics	Reviewed line by line against pinned f755f49 source.
 base/loading.jl	358	358	identify_package_env	identify_package_env(where::Module, name::String)	todo		
 base/loading.jl	359	404	identify_package_env	identify_package_env(where::PkgId, name::String)	todo		
-base/loading.jl	405	430	identify_package_env	identify_package_env(where::Nothing, name::String)	todo		
-base/loading.jl	431	431	identify_package_env	identify_package_env(name::String)	todo		
-base/loading.jl	433	447	identify_stdlib_project_dep	identify_stdlib_project_dep(stdlib::PkgId, depname::String)	todo		
-base/loading.jl	449	449	_nothing_or_first	_nothing_or_first(x)	todo		
+base/loading.jl	405	430	identify_package_env	identify_package_env(where::Nothing, name::String)	modelled	loading-missing-package-literal,loading-find-source-file,loading-sort-by	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	431	431	identify_package_env	identify_package_env(name::String)	modelled	loading-missing-package-literal,loading-find-source-file,loading-sort-by	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	433	447	identify_stdlib_project_dep	identify_stdlib_project_dep(stdlib::PkgId, depname::String)	modelled	loading-missing-package-literal,loading-file-macro-source-information,loading-preference-recording-set-semantics	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	449	449	_nothing_or_first	_nothing_or_first(x)	modelled	loading-nothing-or-first	Source-mirrored model reviewed against f755f49a9e41380d7da126b3c1db9fe7f83dd027; independent registered properties remain todo.
 base/loading.jl	476	476	identify_package	identify_package(where::Module, name::String)	todo		
 base/loading.jl	477	477	identify_package	identify_package(where::PkgId, name::String)	todo		
 base/loading.jl	478	478	identify_package	identify_package(name::String)	todo		
-base/loading.jl	480	537	locate_package_env	locate_package_env(pkg::PkgId, stopenv::Union{String, Nothing}=nothing)::Union{Nothing,Tuple{PkgLoadSpec, String}}	todo		
+base/loading.jl	480	537	locate_package_env	locate_package_env(pkg::PkgId, stopenv::Union{String, Nothing}=nothing)::Union{Nothing,Tuple{PkgLoadSpec, String}}	modelled	loading-missing-package-literal,loading-file-macro-source-information,loading-preference-recording-set-semantics	Reviewed line by line against pinned f755f49 source.
 base/loading.jl	553	559	locate_package	locate_package(pkg::PkgId, stopenv::Union{String, Nothing}=nothing)::Union{Nothing,String}	todo		
-base/loading.jl	561	567	locate_package_load_spec	locate_package_load_spec(pkg::PkgId, stopenv::Union{String, Nothing}=nothing)::Union{Nothing,PkgLoadSpec}	todo		
-base/loading.jl	580	589	pathof	pathof(m::Module)	todo		
+base/loading.jl	561	567	locate_package_load_spec	locate_package_load_spec(pkg::PkgId, stopenv::Union{String, Nothing}=nothing)::Union{Nothing,PkgLoadSpec}	modelled	loading-missing-package-literal,loading-file-macro-source-information,loading-preference-recording-set-semantics	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	580	589	pathof	pathof(m::Module)	modelled	loading-missing-package-literal,loading-find-source-file,loading-sort-by	Reviewed line by line against pinned f755f49 source.
 base/loading.jl	617	634	pkgdir	pkgdir(m::Module, paths::String...)	todo		
-base/loading.jl	636	646	get_pkgversion_from_path	get_pkgversion_from_path(path)	todo		
-base/loading.jl	663	677	pkgversion	pkgversion(m::Module)	todo		
-base/loading.jl	690	698	locate_project_file	locate_project_file(env::String)	todo		
-base/loading.jl	704	723	env_project_file	env_project_file(env::String)::Union{Bool,String}	todo		
-base/loading.jl	725	765	base_project	base_project(project_file)	todo		
-base/loading.jl	767	772	package_get_here	package_get_here(project_file, name::String)	todo		
-base/loading.jl	774	780	package_get	package_get(project_file, where::Union{Nothing, PkgId}, name::String)	todo		
-base/loading.jl	782	782	ext_may_load_weakdep	ext_may_load_weakdep(exts::String, name::String)	todo		
-base/loading.jl	783	783	ext_may_load_weakdep	ext_may_load_weakdep(exts::Vector{String}, name::String)	todo		
-base/loading.jl	785	807	package_extension_get	package_extension_get(project_file, where::PkgId, name::String)	todo		
-base/loading.jl	809	866	environment_deps_get	environment_deps_get(env::String, where::Union{Nothing,PkgId}, name::String)::Union{Nothing,PkgId}	todo		
-base/loading.jl	868	907	manifest_uuid_load_spec	manifest_uuid_load_spec(env::String, pkg::PkgId)::Union{Nothing,PkgLoadSpec,Missing}	todo		
-base/loading.jl	910	914	find_ext_path	find_ext_path(project_path::String, extname::String)	todo		
-base/loading.jl	916	927	project_file_ext_load_spec	project_file_ext_load_spec(project_file::String, ext::PkgId)	todo		
-base/loading.jl	930	936	project_file_name_uuid	project_file_name_uuid(project_file::String, name::String)::PkgId	todo		
-base/loading.jl	938	968	project_get_edition	project_get_edition(d::Dict)	todo		
-base/loading.jl	970	979	project_file_load_spec	project_file_load_spec(project_file::String, name::String)	todo		
-base/loading.jl	981	987	workspace_manifest	workspace_manifest(project_file)	todo		
-base/loading.jl	989	1000	parser_for_active_project	parser_for_active_project()	todo		
-base/loading.jl	1003	1039	project_file_manifest_path	project_file_manifest_path(project_file::String)::Union{Nothing,String}	todo		
-base/loading.jl	1043	1052	entry_point_and_project_file_inside	entry_point_and_project_file_inside(dir::String, name::String)::Union{Tuple{Nothing,Nothing},Tuple{String,Nothing},Tuple{String,String}}	todo		
-base/loading.jl	1056	1067	entry_point_and_project_file	entry_point_and_project_file(dir::String, name::String)::Union{Tuple{Nothing,Nothing},Tuple{String,Nothing},Tuple{String,String}}	todo		
-base/loading.jl	1070	1080	implicit_env_project_file_extension	implicit_env_project_file_extension(dir::String, ext::PkgId)	todo		
-base/loading.jl	1083	1087	entry_path	entry_path(path::String, name::String, entryfile::Union{Nothing,String})::String	todo		
-base/loading.jl	1094	1107	explicit_project_deps_get	explicit_project_deps_get(project_file::String, name::String)::Union{Nothing,UUID}	todo		
-base/loading.jl	1109	1120	is_v1_format_manifest	is_v1_format_manifest(raw_manifest::Dict{String})	todo		
-base/loading.jl	1123	1130	get_deps	get_deps(raw_manifest::Dict)	todo		
-base/loading.jl	1132	1140	dep_stanza_get	dep_stanza_get(stanza::Dict{String, Any}, name::String)::Union{Nothing, PkgId}	todo		
-base/loading.jl	1142	1145	dep_stanza_get	dep_stanza_get(stanza::Vector{String}, name::String)::Union{Nothing, PkgId}	todo		
-base/loading.jl	1147	1147	dep_stanza_get	dep_stanza_get(stanza::Nothing, name::String)	todo		
-base/loading.jl	1149	1219	explicit_manifest_deps_get	explicit_manifest_deps_get(project_file::String, where::PkgId, name::String)::Union{Nothing,PkgId}	todo		
-base/loading.jl	1222	1257	explicit_manifest_uuid_load_spec	explicit_manifest_uuid_load_spec(project_file::String, pkg::PkgId)::Union{Nothing,PkgLoadSpec,Missing}	todo		
-base/loading.jl	1259	1305	explicit_manifest_entry_load_spec	explicit_manifest_entry_load_spec(manifest_file::String, pkg::PkgId, entry::Dict{String,Any})::Union{Nothing, Missing, PkgLoadSpec}	todo		
-base/loading.jl	1308	1317	implicit_manifest_pkgid	implicit_manifest_pkgid(dir::String, name::String)::Union{Nothing,PkgId}	todo		
-base/loading.jl	1319	1329	implicit_manifest_project	implicit_manifest_project(dir::String, pkg::PkgId)::Union{Nothing, String}	todo		
-base/loading.jl	1332	1342	implicit_manifest_uuid_load_spec	implicit_manifest_uuid_load_spec(dir::String, pkg::PkgId)::Union{Nothing, PkgLoadSpec}	todo		
-base/loading.jl	1346	1350	find_source_file	find_source_file(path::AbstractString)	todo		
+base/loading.jl	636	646	get_pkgversion_from_path	get_pkgversion_from_path(path)	modelled	loading-missing-package-literal,loading-find-source-file,loading-sort-by	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	663	677	pkgversion	pkgversion(m::Module)	modelled	loading-missing-package-literal,loading-find-source-file,loading-sort-by	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	690	698	locate_project_file	locate_project_file(env::String)	modelled	loading-missing-package-literal,loading-file-macro-source-information,loading-preference-recording-set-semantics	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	704	723	env_project_file	env_project_file(env::String)::Union{Bool,String}	modelled	loading-missing-package-literal,loading-file-macro-source-information,loading-preference-recording-set-semantics	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	725	765	base_project	base_project(project_file)	modelled	loading-missing-package-literal,loading-file-macro-source-information,loading-preference-recording-set-semantics	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	767	772	package_get_here	package_get_here(project_file, name::String)	modelled	loading-package-get-here	Source-mirrored model reviewed against f755f49a9e41380d7da126b3c1db9fe7f83dd027; independent registered properties remain todo.
+base/loading.jl	774	780	package_get	package_get(project_file, where::Union{Nothing, PkgId}, name::String)	modelled	loading-package-get	Source-mirrored model reviewed against f755f49a9e41380d7da126b3c1db9fe7f83dd027; independent registered properties remain todo.
+base/loading.jl	782	782	ext_may_load_weakdep	ext_may_load_weakdep(exts::String, name::String)	modelled	loading-string-trigger-exact	Checked line by line against pinned f755f49; installed body reused and public-contract properties registered as todo.
+base/loading.jl	783	783	ext_may_load_weakdep	ext_may_load_weakdep(exts::Vector{String}, name::String)	modelled	loading-string-vector-membership	Prepared complete additive model under Models1Group9; public properties are todo with no theorem, pending parent kernel check.; Concrete installed inAny/Fix2/anyIterate and native Array eachindex/iteration/getindex binding. Shared backing memory, shifted vector aliases, legal unassigned String cells, early-match termination and exact UndefRefError precedence are retained; complete constructible native String-vector domain.
+base/loading.jl	785	807	package_extension_get	package_extension_get(project_file, where::PkgId, name::String)	modelled	loading-missing-package-literal,loading-file-macro-source-information,loading-preference-recording-set-semantics	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	809	866	environment_deps_get	environment_deps_get(env::String, where::Union{Nothing,PkgId}, name::String)::Union{Nothing,PkgId}	modelled	loading-missing-package-literal,loading-file-macro-source-information,loading-preference-recording-set-semantics	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	868	907	manifest_uuid_load_spec	manifest_uuid_load_spec(env::String, pkg::PkgId)::Union{Nothing,PkgLoadSpec,Missing}	modelled	loading-missing-package-literal,loading-file-macro-source-information,loading-preference-recording-set-semantics	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	910	914	find_ext_path	find_ext_path(project_path::String, extname::String)	modelled	loading-missing-package-literal,loading-file-macro-source-information,loading-preference-recording-set-semantics	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	916	927	project_file_ext_load_spec	project_file_ext_load_spec(project_file::String, ext::PkgId)	modelled	loading-missing-package-literal,loading-file-macro-source-information,loading-preference-recording-set-semantics	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	930	936	project_file_name_uuid	project_file_name_uuid(project_file::String, name::String)::PkgId	modelled	loading-missing-package-literal,loading-file-macro-source-information,loading-preference-recording-set-semantics	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	938	968	project_get_edition	project_get_edition(d::Dict)	modelled	loading-missing-package-literal,loading-file-macro-source-information,loading-preference-recording-set-semantics	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	970	979	project_file_load_spec	project_file_load_spec(project_file::String, name::String)	modelled	loading-missing-package-literal,loading-file-macro-source-information,loading-preference-recording-set-semantics	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	981	987	workspace_manifest	workspace_manifest(project_file)	modelled	loading-workspace-manifest	Source-mirrored model reviewed against f755f49a9e41380d7da126b3c1db9fe7f83dd027; independent registered properties remain todo.
+base/loading.jl	989	1000	parser_for_active_project	parser_for_active_project()	modelled	loading-missing-package-literal,loading-file-macro-source-information,loading-preference-recording-set-semantics	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	1003	1039	project_file_manifest_path	project_file_manifest_path(project_file::String)::Union{Nothing,String}	modelled	loading-missing-package-literal,loading-file-macro-source-information,loading-preference-recording-set-semantics	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	1043	1052	entry_point_and_project_file_inside	entry_point_and_project_file_inside(dir::String, name::String)::Union{Tuple{Nothing,Nothing},Tuple{String,Nothing},Tuple{String,String}}	modelled	loading-missing-package-literal,loading-file-macro-source-information,loading-preference-recording-set-semantics	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	1056	1067	entry_point_and_project_file	entry_point_and_project_file(dir::String, name::String)::Union{Tuple{Nothing,Nothing},Tuple{String,Nothing},Tuple{String,String}}	modelled	loading-missing-package-literal,loading-file-macro-source-information,loading-preference-recording-set-semantics	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	1070	1080	implicit_env_project_file_extension	implicit_env_project_file_extension(dir::String, ext::PkgId)	modelled	loading-missing-package-literal,loading-file-macro-source-information,loading-preference-recording-set-semantics	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	1083	1087	entry_path	entry_path(path::String, name::String, entryfile::Union{Nothing,String})::String	modelled	loading-missing-package-literal,loading-file-macro-source-information,loading-preference-recording-set-semantics	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	1094	1107	explicit_project_deps_get	explicit_project_deps_get(project_file::String, name::String)::Union{Nothing,UUID}	modelled	loading-missing-package-literal,loading-file-macro-source-information,loading-preference-recording-set-semantics	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	1109	1120	is_v1_format_manifest	is_v1_format_manifest(raw_manifest::Dict{String})	modelled	loading-missing-package-literal,loading-file-macro-source-information,loading-preference-recording-set-semantics	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	1123	1130	get_deps	get_deps(raw_manifest::Dict)	modelled	loading-missing-package-literal,loading-file-macro-source-information,loading-preference-recording-set-semantics	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	1132	1140	dep_stanza_get	dep_stanza_get(stanza::Dict{String, Any}, name::String)::Union{Nothing, PkgId}	modelled	loading-missing-package-literal,loading-file-macro-source-information,loading-preference-recording-set-semantics	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	1142	1145	dep_stanza_get	dep_stanza_get(stanza::Vector{String}, name::String)::Union{Nothing, PkgId}	modelled	loading-string-vector-dependency	Prepared complete additive model under Models1Group9; public properties are todo with no theorem, pending parent kernel check.; Concrete installed inAny/Fix2/anyIterate and native Array eachindex/iteration/getindex binding. Shared backing memory, shifted vector aliases, legal unassigned String cells, early-match termination and exact UndefRefError precedence are retained; complete constructible native String-vector domain.
+base/loading.jl	1147	1147	dep_stanza_get	dep_stanza_get(stanza::Nothing, name::String)	modelled	loading-missing-dependency-stanza	Checked line by line against pinned f755f49; installed body reused and public-contract properties registered as todo.
+base/loading.jl	1149	1219	explicit_manifest_deps_get	explicit_manifest_deps_get(project_file::String, where::PkgId, name::String)::Union{Nothing,PkgId}	modelled	loading-missing-package-literal,loading-file-macro-source-information,loading-preference-recording-set-semantics	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	1222	1257	explicit_manifest_uuid_load_spec	explicit_manifest_uuid_load_spec(project_file::String, pkg::PkgId)::Union{Nothing,PkgLoadSpec,Missing}	modelled	loading-missing-package-literal,loading-file-macro-source-information,loading-preference-recording-set-semantics	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	1259	1305	explicit_manifest_entry_load_spec	explicit_manifest_entry_load_spec(manifest_file::String, pkg::PkgId, entry::Dict{String,Any})::Union{Nothing, Missing, PkgLoadSpec}	modelled	loading-missing-package-literal,loading-file-macro-source-information,loading-preference-recording-set-semantics	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	1308	1317	implicit_manifest_pkgid	implicit_manifest_pkgid(dir::String, name::String)::Union{Nothing,PkgId}	modelled	loading-missing-package-literal,loading-file-macro-source-information,loading-preference-recording-set-semantics	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	1319	1329	implicit_manifest_project	implicit_manifest_project(dir::String, pkg::PkgId)::Union{Nothing, String}	modelled	loading-missing-package-literal,loading-file-macro-source-information,loading-preference-recording-set-semantics	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	1332	1342	implicit_manifest_uuid_load_spec	implicit_manifest_uuid_load_spec(dir::String, pkg::PkgId)::Union{Nothing, PkgLoadSpec}	modelled	loading-missing-package-literal,loading-file-macro-source-information,loading-preference-recording-set-semantics	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	1346	1350	find_source_file	find_source_file(path::AbstractString)	modelled	loading-find-source-file	Source-mirrored model reviewed against f755f49a9e41380d7da126b3c1db9fe7f83dd027; independent registered properties remain todo.
 base/loading.jl	1355	1364	init_debuginfo_source_paths	init_debuginfo_source_paths()	todo		
-base/loading.jl	1366	1373	cache_file_entry	cache_file_entry(pkg::PkgId)	todo		
-base/loading.jl	1378	1396	cachefile_candidates_in_depot	cachefile_candidates_in_depot(pkg::PkgId, depot::String)	todo		
-base/loading.jl	1401	1415	sort_cachefile_candidates!	sort_cachefile_candidates!(paths::Vector{String}, pkgimages::Vector{Bool})	todo		
-base/loading.jl	1403	1403	sort_by	sort_by(i)	todo		
-base/loading.jl	1404	1409	sort_lt	sort_lt(a, b)	todo		
-base/loading.jl	1423	1433	touch_cachefile	touch_cachefile(pkg::PkgId, path::String)	todo		
-base/loading.jl	1435	1437	sorted_cachefile_candidates_in_depot	sorted_cachefile_candidates_in_depot(pkg::PkgId, depot::String)	todo		
-base/loading.jl	1440	1444	cache_search_depots	cache_search_depots(sourcepath::String, DEPOT_PATH::typeof(DEPOT_PATH)=DEPOT_PATH)	todo		
+base/loading.jl	1366	1373	cache_file_entry	cache_file_entry(pkg::PkgId)	modelled	loading-missing-package-literal,loading-file-macro-source-information,loading-preference-recording-set-semantics	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	1378	1396	cachefile_candidates_in_depot	cachefile_candidates_in_depot(pkg::PkgId, depot::String)	modelled	loading-find-source-file,loading-sort-by,loading-sort-lt	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	1401	1415	sort_cachefile_candidates!	sort_cachefile_candidates!(paths::Vector{String}, pkgimages::Vector{Bool})	modelled	loading-find-source-file,loading-sort-by,loading-sort-lt	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	1403	1403	sort_by	sort_by(i)	modelled	loading-sort-by	Source-mirrored model reviewed against f755f49a9e41380d7da126b3c1db9fe7f83dd027; independent registered properties remain todo.
+base/loading.jl	1404	1409	sort_lt	sort_lt(a, b)	modelled	loading-sort-lt	Source-mirrored model reviewed against f755f49a9e41380d7da126b3c1db9fe7f83dd027; independent registered properties remain todo.
+base/loading.jl	1423	1433	touch_cachefile	touch_cachefile(pkg::PkgId, path::String)	modelled	loading-find-source-file,loading-sort-by,loading-sort-lt	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	1435	1437	sorted_cachefile_candidates_in_depot	sorted_cachefile_candidates_in_depot(pkg::PkgId, depot::String)	modelled	loading-find-source-file,loading-sort-by,loading-sort-lt	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	1440	1444	cache_search_depots	cache_search_depots(sourcepath::String, DEPOT_PATH::typeof(DEPOT_PATH)=DEPOT_PATH)	modelled	loading-find-source-file,loading-sort-by,loading-sort-lt	Reviewed line by line against pinned f755f49 source.
 base/loading.jl	1447	1450	lazy_cachefile_candidates	lazy_cachefile_candidates(pkg::PkgId, sourcepath::String, DEPOT_PATH::typeof(DEPOT_PATH)=DEPOT_PATH)	todo		
 base/loading.jl	1452	1461	find_all_in_cache_path	find_all_in_cache_path(pkg::PkgId, DEPOT_PATH::typeof(DEPOT_PATH)=DEPOT_PATH)	todo		
-base/loading.jl	1463	1463	ocachefile_from_cachefile	ocachefile_from_cachefile(cachefile)	todo		
-base/loading.jl	1464	1464	cachefile_from_ocachefile	cachefile_from_ocachefile(cachefile)	todo		
-base/loading.jl	1475	1543	_include_from_serialized	_include_from_serialized(pkg::PkgId, path::String, ocachepath::Union{Nothing, String}, depmods::Vector{Any}; register::Bool=true)	todo		
+base/loading.jl	1463	1463	ocachefile_from_cachefile	ocachefile_from_cachefile(cachefile)	modelled	loading-ocachefile-from-cachefile	Source-mirrored model reviewed against f755f49a9e41380d7da126b3c1db9fe7f83dd027; independent registered properties remain todo.
+base/loading.jl	1464	1464	cachefile_from_ocachefile	cachefile_from_ocachefile(cachefile)	modelled	loading-missing-package-literal,loading-checksum-now-path-failure,loading-find-source-file	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	1475	1543	_include_from_serialized	_include_from_serialized(pkg::PkgId, path::String, ocachepath::Union{Nothing, String}, depmods::Vector{Any}; register::Bool=true)	modelled	loading-cache-fetch-cleanup,loading-string-vector-dependency	Reviewed line by line against pinned f755f49 source.
 base/loading.jl	1548	1570	print_time_imports_report	print_time_imports_report( mod::Module, elapsed_time::UInt64=UInt64(1), comp_time::UInt64=UInt64(1), recomp_time::UInt64=UInt64(1) )	todo		
 base/loading.jl	1571	1589	print_time_imports_report_init	print_time_imports_report_init( mod::Module, i::Int=1, elapsed_time::UInt64=UInt64(1), comp_time::UInt64=UInt64(1), recomp_time::UInt64=UInt64(1) )	todo		
 base/loading.jl	1592	1610	extension_parent_name	extension_parent_name(M::Module)	todo		
 base/loading.jl	1612	1643	register_restored_modules	register_restored_modules(sv::SimpleVector, pkg::PkgId, path::String; init_reports=nothing)	todo		
 base/loading.jl	1645	1668	run_module_init	run_module_init(mod::Module, i::Int=1, init_reports=nothing)	todo		
-base/loading.jl	1670	1686	run_package_callbacks	run_package_callbacks(modkey::PkgId)	todo		
-base/loading.jl	1720	1735	maybe_fetch_cache	maybe_fetch_cache(pkg::PkgId, sourcepath::String)	todo		
+base/loading.jl	1670	1686	run_package_callbacks	run_package_callbacks(modkey::PkgId)	modelled	loading-missing-package-literal,loading-find-source-file,loading-sort-by	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	1720	1735	maybe_fetch_cache	maybe_fetch_cache(pkg::PkgId, sourcepath::String)	modelled	loading-cache-fetch-cleanup	Prepared complete additive model under Models1Group9; public properties are todo with no theorem, pending parent kernel check.; Source-faithful try/catch inside finally; cleanup also runs when error logging throws. Uses existing explicit user hook/TLS/runtime/logging boundary; does not implement those external effects.
 base/loading.jl	1753	1759	insert_extension_triggers	insert_extension_triggers(pkg::PkgId)	todo		
 base/loading.jl	1761	1836	insert_extension_triggers	insert_extension_triggers(env::String, pkg::PkgId)::Union{Nothing,Missing}	todo		
 base/loading.jl	1807	1820	expand_deps_list	expand_deps_list(deps′::Vector{String})	todo		generated-loop: (dep_name, entries) in d; entry in entries
-base/loading.jl	1838	1863	_insert_extension_triggers	_insert_extension_triggers(parent::PkgId, extensions::Dict{String, Any}, totaldeps::Dict{String, Any})	todo		
-base/loading.jl	1868	1891	run_extension_callbacks	run_extension_callbacks(extid::ExtensionId)	todo		
-base/loading.jl	1893	1915	run_extension_callbacks	run_extension_callbacks(pkgid::PkgId)	todo		
-base/loading.jl	1925	1937	retry_load_extensions	retry_load_extensions()	todo		
+base/loading.jl	1838	1863	_insert_extension_triggers	_insert_extension_triggers(parent::PkgId, extensions::Dict{String, Any}, totaldeps::Dict{String, Any})	modelled	loading-missing-package-literal,loading-file-macro-source-information,loading-preference-recording-set-semantics	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	1868	1891	run_extension_callbacks	run_extension_callbacks(extid::ExtensionId)	modelled	loading-missing-package-literal,loading-find-source-file,loading-sort-by	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	1893	1915	run_extension_callbacks	run_extension_callbacks(pkgid::PkgId)	modelled	loading-missing-package-literal,loading-find-source-file,loading-sort-by	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	1925	1937	retry_load_extensions	retry_load_extensions()	modelled	loading-missing-package-literal,loading-find-source-file,loading-sort-by	Reviewed line by line against pinned f755f49 source.
 base/loading.jl	1944	1944	get_extension	get_extension(parent::Module, ext::Symbol)	todo		
 base/loading.jl	1945	1949	get_extension	get_extension(parentid::PkgId, ext::Symbol)	todo		
-base/loading.jl	1969	1970	CacheFlags	CacheFlags(use_pkgimages, debug_level, check_bounds, inline, opt_level, coverage)	todo		
-base/loading.jl	1971	1978	CacheFlags	CacheFlags(f::UInt8, coverage::Integer=0)	todo		
-base/loading.jl	1979	1979	CacheFlags	CacheFlags(f::Int)	todo		
-base/loading.jl	1980	1999	CacheFlags	CacheFlags(cf::CacheFlags=CacheFlags(ccall(:jl_cache_flags, UInt8, ()), ccall(:jl_image_coverage_config, UInt8, ()), current_coverage_path()); use_pkgimages::Union{Nothing,Bool}=nothing, debug_level::Union{Nothing,Int}=nothing, check_bounds::Union{Nothing,Int}=nothing, inline::Union{Nothing,Bool}=nothing, opt_level::Union{Nothing,Int}=nothing, coverage::Union{Nothing,Int}=nothing, coverage_path::Union{Nothing,String}=cf.coverage_path )	todo		
-base/loading.jl	2000	2001	CacheFlags	CacheFlags(f::UInt8, coverage::Integer, coverage_path::Union{Nothing,String})	todo		
-base/loading.jl	2004	2008	current_coverage_path	current_coverage_path()	todo		
-base/loading.jl	2012	2020	_cacheflag_to_uint8	_cacheflag_to_uint8(cf::CacheFlags)::UInt8	todo		
-base/loading.jl	2022	2032	translate_cache_flags	translate_cache_flags(cacheflags::CacheFlags, defaultflags::CacheFlags)	todo		
-base/loading.jl	2036	2041	coverage_cache_options	coverage_cache_options(cf::CacheFlags)	todo		
-base/loading.jl	2044	2046	match_cache_coverage	match_cache_coverage(requested::CacheFlags, actual::CacheFlags)	todo		
-base/loading.jl	2053	2058	can_use_plain_coverage_cache	can_use_plain_coverage_cache(requested::CacheFlags, actual::CacheFlags)	todo		
-base/loading.jl	2062	2064	is_current_coverage_request	is_current_coverage_request(requested::CacheFlags)	todo		
-base/loading.jl	2067	2068	accept_plain_coverage_cache	accept_plain_coverage_cache(build_id::UInt128)	todo		
-base/loading.jl	2069	2070	plain_coverage_cache_accepted	plain_coverage_cache_accepted(build_id::UInt128)	todo		
-base/loading.jl	2073	2074	path_is_tracked	path_is_tracked(path::String, tracked::String)	todo		
-base/loading.jl	2096	2102	tracked_path_overlaps_sysimage	tracked_path_overlaps_sysimage(tracked::String)	todo		
-base/loading.jl	2104	2124	show	show(io::IO, cf::CacheFlags)	todo		
+base/loading.jl	1969	1970	CacheFlags	CacheFlags(use_pkgimages, debug_level, check_bounds, inline, opt_level, coverage)	modelled	loading-cache-flags-six	Source-mirrored model reviewed against f755f49a9e41380d7da126b3c1db9fe7f83dd027; independent registered properties remain todo.
+base/loading.jl	1971	1978	CacheFlags	CacheFlags(f::UInt8, coverage::Integer=0)	modelled	loading-cache-flags-uint8	Source-mirrored model reviewed against f755f49a9e41380d7da126b3c1db9fe7f83dd027; independent registered properties remain todo.
+base/loading.jl	1979	1979	CacheFlags	CacheFlags(f::Int)	modelled	loading-cacheflags-int-constructor	Prepared complete additive model under Models1Group9; public properties are todo with no theorem, pending parent kernel check.; Concrete checked UInt8 conversion followed by exact byte decoder specialized to native Int coverage zero; every Int64 input included.
+base/loading.jl	1980	1999	CacheFlags	CacheFlags(cf::CacheFlags=CacheFlags(ccall(:jl_cache_flags, UInt8, ()), ccall(:jl_image_coverage_config, UInt8, ()), current_coverage_path()); use_pkgimages::Union{Nothing,Bool}=nothing, debug_level::Union{Nothing,Int}=nothing, check_bounds::Union{Nothing,Int}=nothing, inline::Union{Nothing,Bool}=nothing, opt_level::Union{Nothing,Int}=nothing, coverage::Union{Nothing,Int}=nothing, coverage_path::Union{Nothing,String}=cf.coverage_path )	modelled	loading-cache-options-explicit;loading-cache-options-default	Prepared complete additive model under Models1Group9; public properties are todo with no theorem, pending parent kernel check.; Complete typed explicit/default constructor with omitted vs explicit-nothing path distinction. Defaults call jl_cache_flags then jl_image_coverage_config then concrete options-memory current_coverage_path, apply the inner UInt8 path constructor, then outer keywords. Full Int64 fields, runtime state/errors/divergence and C-string failures retained.
+base/loading.jl	2000	2001	CacheFlags	CacheFlags(f::UInt8, coverage::Integer, coverage_path::Union{Nothing,String})	modelled	loading-cache-flags-uint8-path	Source-mirrored model reviewed against f755f49a9e41380d7da126b3c1db9fe7f83dd027; independent registered properties remain todo.
+base/loading.jl	2004	2008	current_coverage_path	current_coverage_path()	modelled	loading-current-coverage-memory	Prepared complete additive model under Models1Group9; public properties are todo with no theorem, pending parent kernel check.; One concrete typed264-byte JLOptions snapshot on the supplied64-bit little-endian ABI, actual signed flag fields and pointer decoding, followed by installed unsafe_string. Null, allocation and undefined-memory outcomes retained; only existing raw cglobal, strlen and GC primitives remain boundaries. Previous short-circuit partial also retained.
+base/loading.jl	2012	2020	_cacheflag_to_uint8	_cacheflag_to_uint8(cf::CacheFlags)::UInt8	modelled	loading-cacheflags-byte-encoding	Prepared complete additive model under Models1Group9; public properties are todo with no theorem, pending parent kernel check.; Concrete Boolean shifts, promoted Int64 intermediates, wrapping shifts/OR and checked UInt8 conversion only at return; no small-field assumption or callback.
+base/loading.jl	2022	2032	translate_cache_flags	translate_cache_flags(cacheflags::CacheFlags, defaultflags::CacheFlags)	modelled	loading-missing-package-literal,loading-find-source-file,loading-sort-by	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	2036	2041	coverage_cache_options	coverage_cache_options(cf::CacheFlags)	modelled	loading-coverage-options-fresh-vector;loading-coverage-options-allocation-order;loading-coverage-options-distinct-identities	Prepared complete additive model under Models1Group9; public properties are todo with no theorem, pending parent kernel check.; Concrete native String concatenation/copy, ordered raw String/Memory/Array allocations and fresh mutable String-vector identity. Complete native CacheFlags fields, near-limit raw output lengths and preserved existing aliases are represented. Independent source/semantic review passed, but final aggregate Lean validation did not finish within the time limit; this addition is UNCHECKED.
+base/loading.jl	2044	2046	match_cache_coverage	match_cache_coverage(requested::CacheFlags, actual::CacheFlags)	modelled	loading-match-cache-coverage-checked-arguments	Prepared complete additive model under Models1Group9; public properties are todo with no theorem, pending parent kernel check.; Checked requested then actual coverage conversion before the pre-existing explicit jl_match_cache_coverage C boundary. Runtime match semantics remain an identified boundary.
+base/loading.jl	2053	2058	can_use_plain_coverage_cache	can_use_plain_coverage_cache(requested::CacheFlags, actual::CacheFlags)	modelled	loading-missing-package-literal,loading-find-source-file,loading-sort-by	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	2062	2064	is_current_coverage_request	is_current_coverage_request(requested::CacheFlags)	modelled	loading-current-coverage-request	Prepared complete additive model under Models1Group9; public properties are todo with no theorem, pending parent kernel check.; Complete requested-path short circuits using the concrete one-snapshot options/string model and native String byte identity; only an equal present path reaches the existing image-coverage C action. All requested Int64 coverage values and runtime state/error/divergence are preserved.
+base/loading.jl	2067	2068	accept_plain_coverage_cache	accept_plain_coverage_cache(build_id::UInt128)	modelled	loading-plain-coverage-native-words;loading-plain-coverage-accept-outcome	Prepared complete additive model under Models1Group9; public properties are todo with no theorem, pending parent kernel check.; Installed native UInt128 shift and generated UInt64 type-remainder operations prepare the high word before the low word, then preserve the existing raw C acceptance action, including runtime state/errors/divergence. Independent source/semantic review passed, but final aggregate Lean validation did not finish within the time limit; this addition is UNCHECKED.
+base/loading.jl	2069	2070	plain_coverage_cache_accepted	plain_coverage_cache_accepted(build_id::UInt128)	modelled	loading-plain-coverage-native-words;loading-plain-coverage-query-outcome	Prepared complete additive model under Models1Group9; public properties are todo with no theorem, pending parent kernel check.; Installed native UInt128 shift and generated UInt64 type-remainder operations prepare the high word before the low word, then preserve the existing normalized C query action, including either Boolean, runtime state/errors/divergence. Independent source/semantic review passed, but final aggregate Lean validation did not finish within the time limit; this addition is UNCHECKED.
+base/loading.jl	2073	2074	path_is_tracked	path_is_tracked(path::String, tracked::String)	modelled	loading-missing-package-literal,loading-file-macro-source-information,loading-preference-recording-set-semantics	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	2096	2102	tracked_path_overlaps_sysimage	tracked_path_overlaps_sysimage(tracked::String)	modelled	loading-missing-package-literal,loading-find-source-file,loading-sort-by	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	2104	2124	show	show(io::IO, cf::CacheFlags)	modelled	loading-show-cache-flags	Source-mirrored model reviewed against f755f49a9e41380d7da126b3c1db9fe7f83dd027; independent registered properties remain todo.
 base/loading.jl	2126	2145	Base.parse	Base.parse(::Type{CacheFlags}, s::AbstractString)	todo		
-base/loading.jl	2156	2169	parse_image_target	parse_image_target(io::IO)	todo		
-base/loading.jl	2171	2179	parse_image_targets	parse_image_targets(targets::Vector{UInt8})	todo		
-base/loading.jl	2181	2184	current_image_targets	current_image_targets()	todo		
-base/loading.jl	2186	2201	show	show(io::IO, it::ImageTarget)	todo		
+base/loading.jl	2156	2169	parse_image_target	parse_image_target(io::IO)	modelled	loading-parse-image-target	Source-mirrored model reviewed against f755f49a9e41380d7da126b3c1db9fe7f83dd027; independent registered properties remain todo.
+base/loading.jl	2171	2179	parse_image_targets	parse_image_targets(targets::Vector{UInt8})	modelled	loading-missing-package-literal,loading-find-source-file,loading-sort-by	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	2181	2184	current_image_targets	current_image_targets()	modelled	loading-missing-package-literal,loading-find-source-file,loading-sort-by	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	2186	2201	show	show(io::IO, it::ImageTarget)	modelled	loading-show-image-target	Source-mirrored model reviewed against f755f49a9e41380d7da126b3c1db9fe7f83dd027; independent registered properties remain todo.
 base/loading.jl	2206	2274	compilecache_freshest_path	compilecache_freshest_path(pkg::PkgId; ignore_loaded::Bool=false, stale_cache::Dict{StaleCacheKey,Bool}=Dict{StaleCacheKey, Bool}(), cachepath_cache::Dict{PkgId, Vector{String}}=Dict{PkgId, Vector{String}}(), cachepaths::Vector{String}=get(() -> find_all_in_cache_path(pkg), cachepath_cache, pkg), sourcespec::Union{PkgLoadSpec,Nothing}=Base.locate_package_load_spec(pkg), flags::CacheFlags=CacheFlags(), # skipping the full-file corruption checks is only safe for advisory # queries (e.g. `isprecompiled`): a caller whose verdict decides what # gets loaded without further validation (like the precompilation # driver) must keep them on, so that a corrupted cache is recompiled # rather than reported as loadable verify_checksums::Bool=true, unverified::Union{Nothing,Set{String}}=nothing, reasons::Union{Dict{Symbol,Int},Nothing}=nothing)	todo		
 base/loading.jl	2289	2292	isprecompiled	isprecompiled(pkg::PkgId; ignore_loaded::Bool=false)	todo		
 base/loading.jl	2303	2322	isrelocatable	isrelocatable(pkg::PkgId)	todo		
-base/loading.jl	2324	2341	parse_cache_buildid	parse_cache_buildid(cachepath::String)	todo		
+base/loading.jl	2324	2341	parse_cache_buildid	parse_cache_buildid(cachepath::String)	modelled	loading-cache-buildid-open-failure	Reads the package UUID and distinct build identifier words with ordered IO and finally cleanup.
 base/loading.jl	2344	2368	_tryrequire_from_serialized	_tryrequire_from_serialized(modkey::PkgId, build_id::UInt128)	todo		
 base/loading.jl	2372	2407	_tryrequire_from_serialized	_tryrequire_from_serialized(pkg::PkgId, path::String, ocachepath::Union{Nothing, String})	todo		
 base/loading.jl	2411	2559	_require_search_from_serialized	_require_search_from_serialized(pkg::PkgId, sourcespec::PkgLoadSpec, build_id::UInt128, stalecheck::Bool; @nospecialize(reasons::Union{Dict{Symbol,Int},Nothing}=nothing), DEPOT_PATH::typeof(DEPOT_PATH)=DEPOT_PATH)	todo		
-base/loading.jl	2568	2636	canstart_loading	canstart_loading(modkey::PkgId, build_id::UInt128, stalecheck::Bool)	todo		
-base/loading.jl	2638	2651	start_loading	start_loading(modkey::PkgId, build_id::UInt128, stalecheck::Bool)	todo		
-base/loading.jl	2653	2658	end_loading	end_loading(modkey::PkgId, @nospecialize loaded)	todo		
-base/loading.jl	2677	2680	_include_dependency	_include_dependency(mod::Module, _path::AbstractString; track_content::Bool=true, path_may_be_dir::Bool=false)	todo		
-base/loading.jl	2682	2709	_include_dependency!	_include_dependency!(dep_list::Vector{Any}, track_dependencies::Bool, mod::Module, _path::AbstractString, track_content::Bool, path_may_be_dir::Bool)	todo		
-base/loading.jl	2721	2741	_record_include_mapexpr!	_record_include_mapexpr!(mod::Module, path::AbstractString, @nospecialize(mapexpr))	todo		
-base/loading.jl	2758	2762	include_mapexprs	include_mapexprs(mod::Module)	todo		
-base/loading.jl	2781	2784	include_dependency	include_dependency(path::AbstractString; track_content::Bool=true)	todo		
-base/loading.jl	2788	2790	show	show(io::IO, ex::PrecompilableError)	todo		
-base/loading.jl	2791	2791	precompilableerror	precompilableerror(ex::PrecompilableError)	todo		
-base/loading.jl	2792	2792	precompilableerror	precompilableerror(ex::WrappedException)	todo		
-base/loading.jl	2793	2793	precompilableerror	precompilableerror(@nospecialize ex)	todo		
-base/loading.jl	2803	2808	__precompile__	__precompile__(isprecompilable::Bool=true)	todo		
+base/loading.jl	2568	2636	canstart_loading	canstart_loading(modkey::PkgId, build_id::UInt128, stalecheck::Bool)	modelled	loading-missing-package-literal,loading-find-source-file,loading-sort-by	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	2638	2651	start_loading	start_loading(modkey::PkgId, build_id::UInt128, stalecheck::Bool)	modelled	loading-missing-package-literal,loading-find-source-file,loading-sort-by	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	2653	2658	end_loading	end_loading(modkey::PkgId, @nospecialize loaded)	modelled	loading-missing-package-literal,loading-find-source-file,loading-sort-by	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	2677	2680	_include_dependency	_include_dependency(mod::Module, _path::AbstractString; track_content::Bool=true, path_may_be_dir::Bool=false)	modelled	loading-include-dependency-internal	Source-mirrored model reviewed against f755f49a9e41380d7da126b3c1db9fe7f83dd027; independent registered properties remain todo.
+base/loading.jl	2682	2709	_include_dependency!	_include_dependency!(dep_list::Vector{Any}, track_dependencies::Bool, mod::Module, _path::AbstractString, track_content::Bool, path_may_be_dir::Bool)	modelled	loading-missing-package-literal,loading-file-macro-source-information,loading-preference-recording-set-semantics	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	2721	2741	_record_include_mapexpr!	_record_include_mapexpr!(mod::Module, path::AbstractString, @nospecialize(mapexpr))	modelled	loading-missing-package-literal,loading-file-macro-source-information,loading-preference-recording-set-semantics	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	2758	2762	include_mapexprs	include_mapexprs(mod::Module)	modelled	loading-include-mapexprs	Source-mirrored model reviewed against f755f49a9e41380d7da126b3c1db9fe7f83dd027; independent registered properties remain todo.
+base/loading.jl	2781	2784	include_dependency	include_dependency(path::AbstractString; track_content::Bool=true)	modelled	loading-include-dependency-public	Source-mirrored model reviewed against f755f49a9e41380d7da126b3c1db9fe7f83dd027; independent registered properties remain todo.
+base/loading.jl	2788	2790	show	show(io::IO, ex::PrecompilableError)	modelled	loading-show-precompilable-error	Source-mirrored model reviewed against f755f49a9e41380d7da126b3c1db9fe7f83dd027; independent registered properties remain todo.
+base/loading.jl	2791	2791	precompilableerror	precompilableerror(ex::PrecompilableError)	modelled	loading-direct-precompilable-recognized	Line-by-line source check against f755f49; installed body reused; independent public-contract property registered as todo.
+base/loading.jl	2792	2792	precompilableerror	precompilableerror(ex::WrappedException)	modelled	loading-wrapped-precompilable-error	Source-mirrored model reviewed against f755f49a9e41380d7da126b3c1db9fe7f83dd027; independent registered properties remain todo.
+base/loading.jl	2793	2793	precompilableerror	precompilableerror(@nospecialize ex)	modelled	loading-unrelated-exception-not-precompilable	Line-by-line source check against f755f49; installed body reused; independent public-contract property registered as todo.
+base/loading.jl	2803	2808	__precompile__	__precompile__(isprecompilable::Bool=true)	modelled	loading-precompile-admission;loading-precompile-permitted-no-query;loading-precompile-runtime-effects	Permitted files skip runtime observations; refusing files reject either output-generation mode and preserve runtime failures.
 base/loading.jl	2847	2853	require	require(into::Module, mod::Symbol)	todo		
-base/loading.jl	2855	2865	check_for_hint	check_for_hint(into, mod)	todo		
+base/loading.jl	2855	2865	check_for_hint	check_for_hint(into, mod)	modelled	loading-check-for-hint	Source-mirrored model reviewed against f755f49a9e41380d7da126b3c1db9fe7f83dd027; independent registered properties remain todo.
 base/loading.jl	2867	2917	__require	__require(into::Module, mod::Symbol)	todo		
 base/loading.jl	2919	2946	find_unsuitable_manifests_versions	find_unsuitable_manifests_versions()	todo		
 base/loading.jl	2948	2968	collect_manifest_warnings	collect_manifest_warnings()	todo		
 base/loading.jl	2970	2976	require	require(uuidkey::PkgId)	todo		
 base/loading.jl	2977	2987	__require	__require(uuidkey::PkgId)	todo		
 base/loading.jl	2994	3025	_require_prelocked	_require_prelocked(uuidkey::PkgId, env=nothing)	todo		
-base/loading.jl	3032	3032	PkgOrigin	PkgOrigin()	todo		
-base/loading.jl	3039	3039	root_module_key	root_module_key(m::Module)	todo		
+base/loading.jl	3032	3032	PkgOrigin	PkgOrigin()	modelled	loading-origin-allocation-fresh	Allocates a fresh mutable all-nothing cell while preserving old object identities and registry state.
+base/loading.jl	3039	3039	root_module_key	root_module_key(m::Module)	modelled	loading-missing-package-literal,loading-cache-fetch-cleanup,loading-string-vector-dependency	Reviewed line by line against pinned f755f49 source.
 base/loading.jl	3041	3049	maybe_loaded_precompile	maybe_loaded_precompile(key::PkgId, buildid::UInt128)	todo		
-base/loading.jl	3051	3054	module_build_id	module_build_id(m::Module)	todo		
-base/loading.jl	3056	3075	register_root_module	register_root_module(m::Module)	todo		
-base/loading.jl	3079	3083	register_reused_module	register_reused_module(m::Module)	todo		
+base/loading.jl	3051	3054	module_build_id	module_build_id(m::Module)	modelled	loading-missing-package-literal,loading-cache-fetch-cleanup,loading-string-vector-dependency	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	3056	3075	register_root_module	register_root_module(m::Module)	modelled	loading-root-registration-lookup-failure	Registers modules under require_lock with incremental-output replacement checks and ordered registry updates.
+base/loading.jl	3079	3083	register_reused_module	register_reused_module(m::Module)	modelled	loading-reused-module-present	Already present modules return false without registration; absent modules use the concrete registration body.
 base/loading.jl	3102	3102	root_module	root_module(key::PkgId)	todo		
 base/loading.jl	3103	3107	root_module	root_module(where::Module, name::Symbol)	todo		
 base/loading.jl	3108	3108	root_module_exists	root_module_exists(key::PkgId)	todo		
-base/loading.jl	3109	3109	maybe_root_module	maybe_root_module(key::PkgId)	todo		
+base/loading.jl	3109	3109	maybe_root_module	maybe_root_module(key::PkgId)	modelled	loading-missing-package-literal,loading-cache-fetch-cleanup,loading-string-vector-dependency	Reviewed line by line against pinned f755f49 source.
 base/loading.jl	3111	3111	loaded_modules_array	loaded_modules_array()	todo		
-base/loading.jl	3115	3123	unreference_module	unreference_module(key::PkgId)	todo		
+base/loading.jl	3115	3123	unreference_module	unreference_module(key::PkgId)	modelled	loading-unreference-absent	Conditionally removes and returns a registered module while retaining the module-order roots.
 base/loading.jl	3126	3135	set_pkgorigin_version_path	set_pkgorigin_version_path(pkg::PkgId, path::String)	todo		
 base/loading.jl	3140	3301	__require_prelocked	__require_prelocked(pkg::PkgId, env)	todo		
 base/loading.jl	3305	3315	_require_from_serialized	_require_from_serialized(uuidkey::PkgId, path::String, ocachepath::Union{String, Nothing}, sourcepath::String)	todo		
 base/loading.jl	3367	3367	require_stdlib	require_stdlib(package_uuidkey::PkgId)	todo		
 base/loading.jl	3368	3418	require_stdlib	require_stdlib(package_uuidkey::PkgId, ext::Union{Nothing, String}, from::Module)	todo		
-base/loading.jl	3421	3430	current_trace_eval_level	current_trace_eval_level()	todo		
-base/loading.jl	3444	3471	include_string	"include_string(mapexpr::Function, mod::Module, code::AbstractString, filename::AbstractString=""string"")"	todo		
-base/loading.jl	3472	3473	include_string	"include_string(m::Module, txt::AbstractString, fname::AbstractString=""string"")"	todo		
-base/loading.jl	3475	3484	source_path	"source_path(default::Union{AbstractString,Nothing}="""")"	todo		
-base/loading.jl	3486	3489	source_dir	source_dir()	todo		
-base/loading.jl	3512	3532	_include	_include(mapexpr::Function, mod::Module, _path::AbstractString)	todo		
-base/loading.jl	3559	3567	evalfile	evalfile(path::AbstractString, args::Vector{String}=String[])	todo		
+base/loading.jl	3421	3430	current_trace_eval_level	current_trace_eval_level()	modelled	loading-trace-observation-failure	Preserves repeated mutable TRACE_EVAL observations, Int8 option dispatch and invalid-setting errors.
+base/loading.jl	3444	3471	include_string	"include_string(mapexpr::Function, mod::Module, code::AbstractString, filename::AbstractString=""string"")"	modelled	loading-missing-package-literal,loading-file-macro-source-information,loading-preference-recording-set-semantics	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	3472	3473	include_string	"include_string(m::Module, txt::AbstractString, fname::AbstractString=""string"")"	modelled	loading-include-string-identity	Source-mirrored model reviewed against f755f49a9e41380d7da126b3c1db9fe7f83dd027; independent registered properties remain todo.
+base/loading.jl	3475	3484	source_path	"source_path(default::Union{AbstractString,Nothing}="""")"	modelled	loading-missing-package-literal,loading-file-macro-source-information,loading-preference-recording-set-semantics	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	3486	3489	source_dir	source_dir()	modelled	loading-missing-package-literal,loading-file-macro-source-information,loading-preference-recording-set-semantics	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	3512	3532	_include	_include(mapexpr::Function, mod::Module, _path::AbstractString)	modelled	loading-missing-package-literal,loading-file-macro-source-information,loading-preference-recording-set-semantics	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	3559	3567	evalfile	evalfile(path::AbstractString, args::Vector{String}=String[])	modelled	loading-missing-package-literal,loading-file-macro-source-information,loading-preference-recording-set-semantics	Reviewed line by line against pinned f755f49 source.
 base/loading.jl	3568	3568	evalfile	evalfile(path::AbstractString, args::Vector)	todo		
-base/loading.jl	3570	3587	load_path_setup_code	load_path_setup_code(load_path::Bool=true)	todo		
-base/loading.jl	3593	3670	include_package_for_output	include_package_for_output(pkg::PkgId, input::String, edition::Tuple{Int, Int}, depot_path::Vector{String}, dl_load_path::Vector{String}, load_path::Vector{String}, concrete_deps::typeof(_concrete_dependencies), source::Union{Nothing,String}, preresolved::Vector{Pair{PkgId,String}}=Pair{PkgId,String}[])	todo		
-base/loading.jl	3672	3676	check_package_module_loaded_error	check_package_module_loaded_error(pkg)	todo		
+base/loading.jl	3570	3587	load_path_setup_code	load_path_setup_code(load_path::Bool=true)	modelled	loading-missing-package-literal,loading-find-source-file,loading-sort-by	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	3593	3670	include_package_for_output	include_package_for_output(pkg::PkgId, input::String, edition::Tuple{Int, Int}, depot_path::Vector{String}, dl_load_path::Vector{String}, load_path::Vector{String}, concrete_deps::typeof(_concrete_dependencies), source::Union{Nothing,String}, preresolved::Vector{Pair{PkgId,String}}=Pair{PkgId,String}[])	modelled	loading-missing-package-literal,loading-find-source-file,loading-sort-by	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	3672	3676	check_package_module_loaded_error	check_package_module_loaded_error(pkg)	modelled	loading-package-loaded-error	Source-mirrored model reviewed against f755f49a9e41380d7da126b3c1db9fe7f83dd027; independent registered properties remain todo.
 base/loading.jl	3679	3679	_pkg_str	_pkg_str(_pkg::PkgId)	todo		
 base/loading.jl	3680	3680	_pkg_str	_pkg_str(_pkg::Vector)	todo		
 base/loading.jl	3681	3681	_pkg_str	_pkg_str(_pkg::Pair{PkgId})	todo		
-base/loading.jl	3682	3682	_pkg_str	_pkg_str(_pkg::Nothing)	todo		
-base/loading.jl	3688	3766	create_expr_cache	create_expr_cache(pkg::PkgId, input::PkgLoadSpec, output::String, output_o::Union{Nothing, String}, concrete_deps::typeof(_concrete_dependencies), flags::Cmd=``, cacheflags::CacheFlags=CacheFlags(), internal_stderr::IO = stderr, internal_stdout::IO = stdout, loadable_exts::Union{Vector{PkgId},Nothing}=nothing; report_timing::Bool=false, preresolved::Vector{Pair{PkgId,String}} = @lock(require_lock, collect(preresolved_cachefiles)))	todo		
-base/loading.jl	3772	3778	track_nested_precomp	track_nested_precomp(pkgs::Vector{PkgId})	todo		
-base/loading.jl	3775	3775	list	list()	todo		
-base/loading.jl	3782	3788	project_environment_id	project_environment_id(project_file::String)::String	todo		
-base/loading.jl	3790	3793	compilecache_dir	compilecache_dir(pkg::PkgId)	todo		
-base/loading.jl	3795	3821	compilecache_path	"compilecache_path(pkg::PkgId, prefs_blob::String; flags::CacheFlags=CacheFlags(), project::String=something(Base.active_project(), """"), environment_id::String=project_environment_id(project))::String"	todo		
-base/loading.jl	3831	3836	compilecache	compilecache(pkg::PkgId, internal_stderr::IO = stderr, internal_stdout::IO = stdout; flags::Cmd=``, cacheflags::CacheFlags=CacheFlags(), loadable_exts::Union{Vector{PkgId},Nothing}=nothing, signal_channel::Union{Channel{Int32},Nothing}=nothing, report_timing::Bool=false)	todo		
-base/loading.jl	3840	4002	compilecache	compilecache(pkg::PkgId, spec::PkgLoadSpec, internal_stderr::IO = stderr, internal_stdout::IO = stdout, keep_loaded_modules::Bool = true; flags::Cmd=``, cacheflags::CacheFlags=CacheFlags(), loadable_exts::Union{Vector{PkgId},Nothing}=nothing, signal_channel::Union{Channel{Int32},Nothing}=nothing, pid_channel::Union{Channel{Int32},Nothing}=nothing, report_timing::Bool=false, preresolved::Vector{Pair{PkgId,String}} = @lock(require_lock, collect(preresolved_cachefiles)))	todo		
-base/loading.jl	4004	4023	rename_unique_ocachefile	rename_unique_ocachefile(tmppath_so::String, ocachefile_orig::String, ocachefile::String = ocachefile_orig, num = 0)	todo		
+base/loading.jl	3682	3682	_pkg_str	_pkg_str(_pkg::Nothing)	modelled	loading-missing-package-literal	Checked line by line against pinned f755f49; installed body reused and public-contract properties registered as todo.
+base/loading.jl	3688	3766	create_expr_cache	create_expr_cache(pkg::PkgId, input::PkgLoadSpec, output::String, output_o::Union{Nothing, String}, concrete_deps::typeof(_concrete_dependencies), flags::Cmd=``, cacheflags::CacheFlags=CacheFlags(), internal_stderr::IO = stderr, internal_stdout::IO = stdout, loadable_exts::Union{Vector{PkgId},Nothing}=nothing; report_timing::Bool=false, preresolved::Vector{Pair{PkgId,String}} = @lock(require_lock, collect(preresolved_cachefiles)))	modelled	loading-missing-package-literal,loading-find-source-file,loading-sort-by	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	3772	3778	track_nested_precomp	track_nested_precomp(pkgs::Vector{PkgId})	modelled	loading-missing-package-literal,loading-file-macro-source-information,loading-preference-recording-set-semantics	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	3775	3775	list	list()	modelled	loading-empty-nested-precomp-list	Reads the current precompilation stack and concretely joins package names with the nested-precompilation separator.
+base/loading.jl	3782	3788	project_environment_id	project_environment_id(project_file::String)::String	modelled	loading-missing-package-literal,loading-file-macro-source-information,loading-preference-recording-set-semantics	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	3790	3793	compilecache_dir	compilecache_dir(pkg::PkgId)	modelled	loading-missing-package-literal,loading-file-macro-source-information,loading-preference-recording-set-semantics	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	3795	3821	compilecache_path	"compilecache_path(pkg::PkgId, prefs_blob::String; flags::CacheFlags=CacheFlags(), project::String=something(Base.active_project(), """"), environment_id::String=project_environment_id(project))::String"	modelled	loading-missing-package-literal,loading-find-source-file,loading-sort-by	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	3831	3836	compilecache	compilecache(pkg::PkgId, internal_stderr::IO = stderr, internal_stdout::IO = stdout; flags::Cmd=``, cacheflags::CacheFlags=CacheFlags(), loadable_exts::Union{Vector{PkgId},Nothing}=nothing, signal_channel::Union{Channel{Int32},Nothing}=nothing, report_timing::Bool=false)	modelled	loading-missing-package-literal,loading-find-source-file,loading-sort-by	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	3840	4002	compilecache	compilecache(pkg::PkgId, spec::PkgLoadSpec, internal_stderr::IO = stderr, internal_stdout::IO = stdout, keep_loaded_modules::Bool = true; flags::Cmd=``, cacheflags::CacheFlags=CacheFlags(), loadable_exts::Union{Vector{PkgId},Nothing}=nothing, signal_channel::Union{Channel{Int32},Nothing}=nothing, pid_channel::Union{Channel{Int32},Nothing}=nothing, report_timing::Bool=false, preresolved::Vector{Pair{PkgId,String}} = @lock(require_lock, collect(preresolved_cachefiles)))	modelled	loading-missing-package-literal,loading-find-source-file,loading-sort-by	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	4004	4023	rename_unique_ocachefile	rename_unique_ocachefile(tmppath_so::String, ocachefile_orig::String, ocachefile::String = ocachefile_orig, num = 0)	modelled	loading-missing-package-literal,loading-find-source-file,loading-sort-by	Reviewed line by line against pinned f755f49 source.
 base/loading.jl	4025	4031	object_build_id	object_build_id(obj)	todo		
-base/loading.jl	4036	4046	isvalid_cache_header	isvalid_cache_header(f::IOStream)	todo		
-base/loading.jl	4047	4047	isvalid_file_crc	isvalid_file_crc(f::IOStream)	todo		
-base/loading.jl	4049	4055	isvalid_pkgimage_crc	isvalid_pkgimage_crc(f::IOStream, ocachefile::String)	todo		
-base/loading.jl	4061	4061	file_identity	file_identity(st::StatStruct)	todo		
-base/loading.jl	4063	4066	checksum_key	checksum_key(io::IOStream, ocachefile::Union{Nothing, String})	todo		
-base/loading.jl	4070	4083	checksums_invalid	checksums_invalid(io::IOStream, cachefile::String, ocachefile::Union{Nothing, String}, reasons; split_checksums::Bool=true)	todo		
-base/loading.jl	4086	4116	checksums_invalid	checksums_invalid(cachefile::String, ocachefile::Union{Nothing, String}, id_build::UInt128, reasons; unverified::Union{Nothing, Set{String}}=nothing, split_checksums::Bool=true)	todo		
-base/loading.jl	4119	4133	checksums_valid_now	checksums_valid_now(cachefile::String)	todo		
+base/loading.jl	4036	4046	isvalid_cache_header	isvalid_cache_header(f::IOStream)	modelled	loading-missing-package-literal,loading-file-macro-source-information,loading-preference-recording-set-semantics	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	4047	4047	isvalid_file_crc	isvalid_file_crc(f::IOStream)	modelled	loading-missing-package-literal,loading-file-macro-source-information,loading-preference-recording-set-semantics	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	4049	4055	isvalid_pkgimage_crc	isvalid_pkgimage_crc(f::IOStream, ocachefile::String)	modelled	loading-missing-package-literal,loading-file-macro-source-information,loading-preference-recording-set-semantics	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	4061	4061	file_identity	file_identity(st::StatStruct)	modelled	loading-identity-timestamps	Converts integral stat fields to Float64 and retains both timestamp values exactly.
+base/loading.jl	4063	4066	checksum_key	checksum_key(io::IOStream, ocachefile::Union{Nothing, String})	modelled	loading-checksum-object-stat-failure	Computes object identity before stream identity and uses five positive Float64 zeros when no object cache exists.
+base/loading.jl	4070	4083	checksums_invalid	checksums_invalid(io::IOStream, cachefile::String, ocachefile::Union{Nothing, String}, reasons; split_checksums::Bool=true)	modelled	loading-combined-checksum-skip	Preserves the combined-checksum early exit, ordered CRC checks and mutations through shared reason-dictionary references.
+base/loading.jl	4086	4116	checksums_invalid	checksums_invalid(cachefile::String, ocachefile::Union{Nothing, String}, id_build::UInt128, reasons; unverified::Union{Nothing, Set{String}}=nothing, split_checksums::Bool=true)	modelled	loading-missing-package-literal,loading-find-source-file,loading-sort-by	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	4119	4133	checksums_valid_now	checksums_valid_now(cachefile::String)	modelled	loading-checksum-now-path-failure	Preserves pre-try path derivation, opened-stream cleanup, locked verified-key deletion and IO-error catch scope.
 base/loading.jl	4144	4146	CacheHeaderIncludes	CacheHeaderIncludes(dep_tuple::Tuple{Module, String, UInt64, UInt32, Float64})	todo		
 base/loading.jl	4148	4156	replace_depot_path	replace_depot_path(path::AbstractString, depots::Vector{String}=normalize_depots_for_relocation())	todo		
 base/loading.jl	4158	4169	normalize_depots_for_relocation	normalize_depots_for_relocation()	todo		
-base/loading.jl	4171	4173	restore_depot_path	restore_depot_path(path::AbstractString, depot::AbstractString)	todo		
-base/loading.jl	4175	4186	resolve_depot	resolve_depot(inc::AbstractString, hint::Union{String, Nothing}=nothing)	todo		
-base/loading.jl	4188	4200	read_module_list	read_module_list(f::IO, has_buildid_hi::Bool)	todo		
-base/loading.jl	4202	4263	_parse_cache_header	_parse_cache_header(f::IO, cachefile::AbstractString)	todo		
-base/loading.jl	4265	4357	parse_cache_header	parse_cache_header(f::IO, cachefile::AbstractString)	todo		
+base/loading.jl	4171	4173	restore_depot_path	restore_depot_path(path::AbstractString, depot::AbstractString)	modelled	loading-missing-package-literal,loading-find-source-file,loading-sort-by	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	4175	4186	resolve_depot	resolve_depot(inc::AbstractString, hint::Union{String, Nothing}=nothing)	modelled	loading-missing-package-literal,loading-find-source-file,loading-sort-by	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	4188	4200	read_module_list	read_module_list(f::IO, has_buildid_hi::Bool)	modelled	loading-missing-package-literal,loading-find-source-file,loading-sort-by	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	4202	4263	_parse_cache_header	_parse_cache_header(f::IO, cachefile::AbstractString)	modelled	loading-missing-package-literal,loading-find-source-file,loading-sort-by	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	4265	4357	parse_cache_header	parse_cache_header(f::IO, cachefile::AbstractString)	modelled	loading-missing-package-literal,loading-find-source-file,loading-sort-by	Reviewed line by line against pinned f755f49 source.
 base/loading.jl	4359	4368	parse_cache_header	parse_cache_header(cachefile::String)	todo		
-base/loading.jl	4370	4370	preferences_blob	preferences_blob(f::IO, cachefile::AbstractString)	todo		
-base/loading.jl	4371	4381	preferences_blob	preferences_blob(cachefile::String)	todo		
+base/loading.jl	4370	4370	preferences_blob	preferences_blob(f::IO, cachefile::AbstractString)	modelled	loading-preferences-blob-stream	Source-mirrored model reviewed against f755f49a9e41380d7da126b3c1db9fe7f83dd027; independent registered properties remain todo.
+base/loading.jl	4371	4381	preferences_blob	preferences_blob(cachefile::String)	modelled	loading-missing-package-literal,loading-find-source-file,loading-sort-by	Reviewed line by line against pinned f755f49 source.
 base/loading.jl	4383	4386	cache_dependencies	cache_dependencies(f::IO, cachefile::AbstractString)	todo		
 base/loading.jl	4388	4396	cache_dependencies	cache_dependencies(cachefile::String)	todo		
 base/loading.jl	4398	4403	read_dependency_src	read_dependency_src(io::IO, cachefile::AbstractString, filename::AbstractString)	todo		
 base/loading.jl	4405	4426	_read_dependency_src	_read_dependency_src(io::IO, filename::AbstractString, includes::Vector{CacheHeaderIncludes}=CacheHeaderIncludes[])	todo		
 base/loading.jl	4428	4436	read_dependency_src	read_dependency_src(cachefile::String, filename::AbstractString)	todo		
-base/loading.jl	4438	4451	srctext_files	srctext_files(f::IO, srctextpos::Int64, includes::Vector{CacheHeaderIncludes})	todo		
-base/loading.jl	4456	4481	get_uuid_name	get_uuid_name(project::Dict{String, Any}, uuid::UUID)	todo		
+base/loading.jl	4438	4451	srctext_files	srctext_files(f::IO, srctextpos::Int64, includes::Vector{CacheHeaderIncludes})	modelled	loading-missing-package-literal,loading-find-source-file,loading-sort-by	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	4456	4481	get_uuid_name	get_uuid_name(project::Dict{String, Any}, uuid::UUID)	modelled	loading-missing-package-literal,loading-find-source-file,loading-sort-by	Reviewed line by line against pinned f755f49 source.
 base/loading.jl	4483	4486	get_uuid_name	get_uuid_name(project_toml::String, uuid::UUID)	todo		
-base/loading.jl	4490	4496	filter_preferences	filter_preferences(prefs::Dict{String, Any}, pkg_name)	todo		
-base/loading.jl	4498	4533	collect_preferences	collect_preferences(project_toml::String, uuid::Union{UUID,Nothing})	todo		
-base/loading.jl	4541	4564	recursive_prefs_merge	recursive_prefs_merge(base::Dict{String, Any}, overrides::Vector{Dict{String, Any}})	todo		
-base/loading.jl	4566	4575	get_projects_workspace_to_root	get_projects_workspace_to_root(project_file)	todo		
-base/loading.jl	4577	4597	get_preferences	get_preferences(uuid::Union{UUID,Nothing} = nothing)	todo		
-base/loading.jl	4604	4608	record_compiletime_preference	record_compiletime_preference(uuid::UUID, key::String)	todo		
+base/loading.jl	4490	4496	filter_preferences	filter_preferences(prefs::Dict{String, Any}, pkg_name)	modelled	loading-filter-preferences	Source-mirrored model reviewed against f755f49a9e41380d7da126b3c1db9fe7f83dd027; independent registered properties remain todo.
+base/loading.jl	4498	4533	collect_preferences	collect_preferences(project_toml::String, uuid::Union{UUID,Nothing})	modelled	loading-missing-package-literal,loading-find-source-file,loading-sort-by	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	4541	4564	recursive_prefs_merge	recursive_prefs_merge(base::Dict{String, Any}, overrides::Vector{Dict{String, Any}})	modelled	loading-missing-package-literal,loading-find-source-file,loading-sort-by	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	4566	4575	get_projects_workspace_to_root	get_projects_workspace_to_root(project_file)	modelled	loading-missing-package-literal,loading-find-source-file,loading-sort-by	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	4577	4597	get_preferences	get_preferences(uuid::Union{UUID,Nothing} = nothing)	modelled	loading-missing-package-literal,loading-find-source-file,loading-sort-by	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	4604	4608	record_compiletime_preference	record_compiletime_preference(uuid::UUID, key::String)	modelled	loading-preference-recording-set-semantics	Checked line by line against pinned f755f49; installed body reused and public-contract properties registered as todo.
 base/loading.jl	4612	4640	get_preferences_blob	get_preferences_blob()	todo		
-base/loading.jl	4642	4647	check_clone_targets	check_clone_targets(clone_targets)	todo		
-base/loading.jl	4657	4657	compilecache_pidfile_path	compilecache_pidfile_path(pkg::PkgId; flags::CacheFlags=CacheFlags())	todo		
+base/loading.jl	4642	4647	check_clone_targets	check_clone_targets(clone_targets)	modelled	loading-missing-package-literal,loading-find-source-file,loading-sort-by	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	4657	4657	compilecache_pidfile_path	compilecache_pidfile_path(pkg::PkgId; flags::CacheFlags=CacheFlags())	modelled	loading-missing-package-literal,loading-find-source-file,loading-sort-by	Reviewed line by line against pinned f755f49 source.
 base/loading.jl	4669	4690	maybe_cachefile_lock	maybe_cachefile_lock(f, pkg::PkgId, srcpath::String; stale_age=compilecache_pidlock_stale_age)	todo		
-base/loading.jl	4692	4694	record_reason	record_reason(reasons::Dict{Symbol,Int}, reason::Symbol)	todo		
-base/loading.jl	4695	4695	record_reason	record_reason(::Nothing, ::Symbol)	todo		
-base/loading.jl	4733	4742	reject_reason	reject_reason(key::Symbol)	todo		
-base/loading.jl	4744	4767	list_reasons	list_reasons(reasons::Dict{Symbol,Int}; full::Bool=false)	todo		
-base/loading.jl	4768	4768	list_reasons	list_reasons(::Nothing; full::Bool=false)	todo		
-base/loading.jl	4773	4791	pkg_log_name	pkg_log_name(pkg::PkgId)	todo		
-base/loading.jl	4792	4792	pkg_log_name	pkg_log_name(ext::PkgId, parent::PkgId)	todo		
-base/loading.jl	4794	4800	in_package_store	in_package_store(path::String)	todo		
-base/loading.jl	4802	4857	any_includes_stale	any_includes_stale(includes::Vector{CacheHeaderIncludes}, cachefile::String, reasons::Union{Dict{Symbol,Int},Nothing}=nothing)	todo		
-base/loading.jl	4859	4861	cache_edition	cache_edition(ver::Tuple{Int, Int})	todo		
-base/loading.jl	4866	4866	toml_egal	toml_egal(@nospecialize(A), @nospecialize(B))	todo		
+base/loading.jl	4692	4694	record_reason	record_reason(reasons::Dict{Symbol,Int}, reason::Symbol)	modelled	loading-rejection-counter-increment	Checked line by line against pinned f755f49; installed body reused and public-contract properties registered as todo.
+base/loading.jl	4695	4695	record_reason	record_reason(::Nothing, ::Symbol)	modelled	loading-absent-reason-collector	Line-by-line source check against f755f49; installed body reused; independent public-contract property registered as todo.
+base/loading.jl	4733	4742	reject_reason	reject_reason(key::Symbol)	modelled	loading-missing-package-literal,loading-file-macro-source-information,loading-preference-recording-set-semantics	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	4744	4767	list_reasons	list_reasons(reasons::Dict{Symbol,Int}; full::Bool=false)	modelled	loading-missing-package-literal,loading-file-macro-source-information,loading-preference-recording-set-semantics	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	4768	4768	list_reasons	list_reasons(::Nothing; full::Bool=false)	modelled	loading-absent-reasons-no-message	Line-by-line source check against f755f49; installed body reused; independent public-contract property registered as todo.
+base/loading.jl	4773	4791	pkg_log_name	pkg_log_name(pkg::PkgId)	modelled	loading-missing-package-literal,loading-file-macro-source-information,loading-preference-recording-set-semantics	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	4792	4792	pkg_log_name	pkg_log_name(ext::PkgId, parent::PkgId)	modelled	loading-missing-package-literal,loading-file-macro-source-information,loading-preference-recording-set-semantics	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	4794	4800	in_package_store	in_package_store(path::String)	modelled	loading-missing-package-literal,loading-file-macro-source-information,loading-preference-recording-set-semantics	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	4802	4857	any_includes_stale	any_includes_stale(includes::Vector{CacheHeaderIncludes}, cachefile::String, reasons::Union{Dict{Symbol,Int},Nothing}=nothing)	modelled	loading-missing-package-literal,loading-find-source-file,loading-sort-by	Reviewed line by line against pinned f755f49 source.
+base/loading.jl	4859	4861	cache_edition	cache_edition(ver::Tuple{Int, Int})	modelled	loading-cache-edition-consecutive	Line-by-line source check against f755f49; installed body reused; independent public-contract property registered as todo.
+base/loading.jl	4866	4866	toml_egal	toml_egal(@nospecialize(A), @nospecialize(B))	modelled	loading-toml-egal-identity	Source-mirrored model reviewed against f755f49a9e41380d7da126b3c1db9fe7f83dd027; independent registered properties remain todo.
 base/loading.jl	4868	4874	toml_egal	toml_egal(A::AbstractArray, B::AbstractArray)	todo		
-base/loading.jl	4876	4883	toml_egal	toml_egal(A::AbstractDict, B::AbstractDict)	todo		
-base/loading.jl	4885	4909	stale_prefs	stale_prefs(prefs_blob::String)	todo		
+base/loading.jl	4876	4883	toml_egal	toml_egal(A::AbstractDict, B::AbstractDict)	modelled	loading-toml-egal-dict	Source-mirrored model reviewed against f755f49a9e41380d7da126b3c1db9fe7f83dd027; independent registered properties remain todo.
+base/loading.jl	4885	4909	stale_prefs	stale_prefs(prefs_blob::String)	modelled	loading-missing-package-literal,loading-find-source-file,loading-sort-by	Reviewed line by line against pinned f755f49 source.
 base/loading.jl	4913	4915	stale_cachefile	stale_cachefile(modpath::String, cachefile::String; kwargs...)	todo		
 base/loading.jl	4916	4918	stale_cachefile	stale_cachefile(modspec::PkgLoadSpec, cachefile::String; ignore_loaded::Bool = false, requested_flags::CacheFlags=CacheFlags(), reasons=nothing, verify_checksums::Bool=true)	todo		
 base/loading.jl	4919	5139	stale_cachefile	stale_cachefile(modkey::PkgId, build_id::UInt128, modspec::PkgLoadSpec, cachefile::String; ignore_loaded::Bool=false, requested_flags::CacheFlags=CacheFlags(), reasons::Union{Dict{Symbol,Int},Nothing}=nothing, stalecheck::Bool=true, verify_checksums::Bool=true, split_checksums::Bool=true)	todo		
-base/loading.jl	5149	5152	__FILE__	__FILE__()	todo		
+base/loading.jl	5149	5152	__FILE__	__FILE__()	modelled	loading-file-macro-source-information	Checked line by line against pinned f755f49; installed body reused and public-contract properties registered as todo.
 base/loading.jl	5184	5188	__DIR__	__DIR__()	todo		
 base/loading.jl	5190	5194	prepare_compiler_stub_image!	prepare_compiler_stub_image!()	todo		
-base/loading.jl	5196	5198	expand_compiler_path	expand_compiler_path(tup)	todo		
-base/loading.jl	5199	5199	compiler_chi	compiler_chi(tup::Tuple)	todo		
-base/loading.jl	5207	5209	isprecompilable	isprecompilable(@nospecialize(f), @nospecialize(argtypes::Tuple))	todo		
-base/loading.jl	5211	5213	isprecompilable	isprecompilable(@nospecialize(argt::Type))	todo		
-base/loading.jl	5220	5222	precompile	precompile(@nospecialize(f), @nospecialize(argtypes::Tuple))	todo		
-base/loading.jl	5225	5231	precompile	precompile(@nospecialize(argt::Type))	todo		
-base/loading.jl	5234	5235	precompile	precompile(mi::MethodInstance, world::UInt=get_world_counter())	todo		
-base/loading.jl	5244	5246	precompile	precompile(@nospecialize(f), @nospecialize(argtypes::Tuple), m::Method)	todo		
-base/loading.jl	5248	5252	precompile	precompile(@nospecialize(argt::Type), m::Method)	todo		
+base/loading.jl	5196	5198	expand_compiler_path	expand_compiler_path(tup)	modelled	loading-expand-compiler-path	Source-mirrored model reviewed against f755f49a9e41380d7da126b3c1db9fe7f83dd027; independent registered properties remain todo.
+base/loading.jl	5199	5199	compiler_chi	compiler_chi(tup::Tuple)	modelled	loading-compiler-chi	Source-mirrored model reviewed against f755f49a9e41380d7da126b3c1db9fe7f83dd027; independent registered properties remain todo.
+base/loading.jl	5207	5209	isprecompilable	isprecompilable(@nospecialize(f), @nospecialize(argtypes::Tuple))	modelled	loading-isprecompilable-function	Source-mirrored model reviewed against f755f49a9e41380d7da126b3c1db9fe7f83dd027; independent registered properties remain todo.
+base/loading.jl	5211	5213	isprecompilable	isprecompilable(@nospecialize(argt::Type))	modelled	loading-compilability-runtime-result	Line-by-line source check against f755f49; installed body reused; independent public-contract property registered as todo.
+base/loading.jl	5220	5222	precompile	precompile(@nospecialize(f), @nospecialize(argtypes::Tuple))	modelled	loading-precompile-function	Source-mirrored model reviewed against f755f49a9e41380d7da126b3c1db9fe7f83dd027; independent registered properties remain todo.
+base/loading.jl	5225	5231	precompile	precompile(@nospecialize(argt::Type))	modelled	loading-precompile-hint-flag;loading-precompile-hint-success;loading-precompile-hint-disabled;loading-precompile-hint-failures	Returns the C hint status as Bool and observes warning state only after an unsuccessful hint.
+base/loading.jl	5234	5235	precompile	precompile(mi::MethodInstance, world::UInt=get_world_counter())	modelled	loading-explicit-method-world-success	Line-by-line source check against f755f49; installed body reused; independent public-contract property registered as todo.
+base/loading.jl	5244	5246	precompile	precompile(@nospecialize(f), @nospecialize(argtypes::Tuple), m::Method)	modelled	loading-precompile-function-method	Source-mirrored model reviewed against f755f49a9e41380d7da126b3c1db9fe7f83dd027; independent registered properties remain todo.
+base/loading.jl	5248	5252	precompile	precompile(@nospecialize(argt::Type), m::Method)	modelled	loading-precompile-type-method	Source-mirrored model reviewed against f755f49a9e41380d7da126b3c1db9fe7f83dd027; independent registered properties remain todo.

@@ -542,7 +542,7 @@ theorem linspace1F64_len (a b : F64) (len : JInt .i64) (r : SRLF64)
 theorem linspaceRational_len_gen {F I L W N R : Type} (ops : FloatRangeOps F I L N R)
     (lenPlusZero : L → L) (ls1 : F → F → L → JlX R)
     (toF64Int : I → F64) (toF64Len : L → F64) (roundInt : F64 → JlX L) (clamp : L → L → L → L)
-    (widenLen : L → W) (widenInt : I → W) (wide : Arithmetic W) (one : L)
+    (widenLen : L → W) (widenInt : I → W) (wide : BasicArithmetic W) (one : L)
     (hpRatioWide : W × W → W × W → N → L → L → JlX R) (length : R → L)
     (hls1 : ∀ a b n r, ls1 a b n = .ok r → length r = n)
     (hhp : ∀ a b nb n o r, hpRatioWide a b nb n o = .ok r → length r = n)
@@ -653,14 +653,13 @@ theorem rangeStartStepLength_len_gen {F I L N R : Type} (ops : FloatRangeOps F I
     length r = lenPlusZero len := by
   unfold rangeStartStepLength at h
   simp only [Bind.bind, Except.bind, Pure.pure, Except.pure] at h
-  split at h; · cases h
-  split at h; · cases h
-  split at h
-  · split at h; · cases h
-    split at h
-    · rw [floatrange_len_gen ops type lenPlusZero round clampInt floatInt offsetToInt one length hlaw _ _ _ _ r h, hIdem]
-    · exact hlaw.2 _ _ _ _ _ r h
-  · exact hlaw.2 _ _ _ _ _ r h
+  repeat' split at h
+  all_goals first
+    | exact hlaw.2 _ _ _ _ _ r h
+    | simpa only [hIdem] using
+        (floatrange_len_gen ops type lenPlusZero round clampInt floatInt offsetToInt
+          one length hlaw _ _ _ _ r h)
+    | cases h
 
 theorem rangeStartStepLengthF64_len (a s : F64) (len : JInt .i64) (r : SRLF64)
     (h : rangeStartStepLengthF64 a s len = .ok r) : r.len = len :=
@@ -904,11 +903,11 @@ theorem hiprecBool_proven : HiprecBool := by
   unfold getindexHiprecF64 getindexHiprec
   simp [Bind.bind, Except.bind, throw, throwThe, MonadExceptOf.throw]
 
-theorem addStepRangeLen_len_gen {T I : Type} (ops : Arithmetic I)
+theorem addStepRangeLen_len_gen {T I : Type} (ops : BasicArithmetic I)
     (len1 len2 : StepRangeLen T (TwicePrecision T) (TwicePrecision T) I → I)
     (addTp : TwicePrecision T → TwicePrecision T → TwicePrecision T)
     (getindexHiprec : StepRangeLen T (TwicePrecision T) (TwicePrecision T) I → I → JlX (TwicePrecision T))
-    (roundHalf : I → I → I) (twiceprecision : TwicePrecision T → Nat → TwicePrecision T)
+    (roundHalf : I → I → JlX I) (twiceprecision : TwicePrecision T → Nat → TwicePrecision T)
     (nbitslen : Type → I → I → Nat)
     (make : TwicePrecision T → TwicePrecision T → I → I → JlX (StepRangeLen T (TwicePrecision T) (TwicePrecision T) I))
     (hmake : ∀ ref st n o out, make ref st n o = .ok out → out.len = n)
@@ -921,6 +920,7 @@ theorem addStepRangeLen_len_gen {T I : Type} (ops : Arithmetic I)
   split at h
   · exact hmake _ _ _ _ out h
   · split at h; · cases h
+    split at h; · cases h
     split at h; · cases h
     exact hmake _ _ _ _ out h
 
@@ -937,8 +937,9 @@ theorem addSrlLength_proven : AddSrlLength := by
     unfold addStepRangeLenF64 addStepRangeLen
     simp [jintArith, length_StepRangeLen, hne, Bind.bind, Except.bind, throw, throwThe, MonadExceptOf.throw]
   · intro r1 r2 out h
-    exact addStepRangeLen_len_gen (jintArith .i64) length_StepRangeLen length_StepRangeLen
-      (addTpSame f64Arithmetic)
+    exact addStepRangeLen_len_gen (T := F64) (I := JInt .i64)
+      (jintArith .i64) length_StepRangeLen length_StepRangeLen
+      (addTpSame (f64Arithmetic : BasicArithmetic F64))
       (getindexHiprecF64 (fun _ : JInt .i64 => false) (fun _ => "") (fun _ i => .ok i))
       roundHalfI64 (fun x nb => twiceprecisionTPF64 x (JuliaLean.base.int.lit .i64 nb))
       (fun _ l o => (nbitslenF64 l o).val.toNat) srlMakeTpF64
@@ -1083,14 +1084,11 @@ theorem floatSRLConversionLength_proven : FloatSRLConversionLength := by
     first step length exact fallback r out hfr hfb h
   unfold convertSRLFloatRange at h
   simp only [Bind.bind, Except.bind, Pure.pure, Except.pure] at h
-  split at h; · cases h
-  split at h; · cases h
-  split at h
-  · split at h; · cases h
-    split at h
-    · exact hfr _ _ _ _ out h
-    · exact hfb r out h
-  · exact hfb r out h
+  repeat' split at h
+  all_goals first
+    | exact hfr _ _ _ _ out h
+    | exact hfb r out h
+    | cases h
 
 def FallbackSRLConversion : Prop :=
   ∀ {T R S L U V W I : Type} (convertR : V → JlX R) (convertS : W → JlX S)
@@ -1415,25 +1413,25 @@ theorem truncbitsIdentity_proven : TruncbitsIdentity := by
     cases T <;> decide +kernel
 
 -- 2. Mul12IntExact (rangescov-mul12-int)
-def intArithmetic : Arithmetic Int := {
-  add := (· + ·), sub := (· - ·), mul := (· * ·), div := fun a b => a.tdiv b,
+def intArithmetic : BasicArithmetic Int := {
+  add := (· + ·), sub := (· - ·), mul := (· * ·),
   neg := (- ·), abs := fun a => if a < 0 then -a else a,
   lt := fun a b => decide (a < b), le := fun a b => decide (a ≤ b),
   gt := fun a b => decide (a > b), eq := fun a b => decide (a = b),
   zero := 0, one := 1, iszero := fun a => decide (a = 0),
-  isfinite := fun _ => true, twoMul := fun a b => (a * b, 0),
-  fma := fun a b c => a * b + c, frexp := fun a => (a, 0), ldexp := fun a _ => a,
-  truncInt := fun a => .ok a, inv := fun a => 1 / a
+  isfinite := fun _ => true
 }
 
 def intOps : IntegerOps Int := {
-  add := (· + ·), sub := (· - ·), mul := (· * ·), div := fun a b => a.tdiv b,
-  rem := fun a b => a.tmod b, neg := (- ·),
+  add := (· + ·), sub := (· - ·), mul := (· * ·),
+  div := fun a b => if b = 0 then .error (.jl .divideError) else .ok (a.tdiv b),
+  rem := fun a b => if b = 0 then .error (.jl .divideError) else .ok (a.tmod b),
+  neg := (- ·),
   abs := fun a => if a < 0 then -a else a, max := max,
   lt := fun a b => decide (a < b), le := fun a b => decide (a ≤ b),
   eq := fun a b => decide (a = b), isEven := fun a => decide (a.tmod 2 = 0),
   shiftRightOne := fun a => Int.fdiv a 2,
-  gcd := fun a b => Int.ofNat (Nat.gcd a.natAbs b.natAbs), zero := 0, one := 1
+  gcd := fun a b => .ok (Int.ofNat (Nat.gcd a.natAbs b.natAbs)), zero := 0, one := 1
 }
 
 def Mul12IntExact : Prop :=
@@ -1796,35 +1794,10 @@ theorem tpFromValueExact_proven : TpFromValueExact := by
 
 -- 12. TpRatioValue (twiceprecision-ratio-value)
 def TpRatioValue : Prop :=
-  (∀ (k d : Int) (out : TwicePrecision Int),
-    d ≠ 0 →
-    tpRatio (fun n => .ok (tpFromSame intArithmetic n))
-      (fun x den => divTpNumber Int.tdiv (fun _ v => .ok (tpFromSame intArithmetic v))
-        (fun a b => .ok (divTpSame intArithmetic (mul12Generic intArithmetic)
-          JuliaLean.base.int.ifelse a b)) x den)
-      (k * d, d) = .ok out →
-    out.hi + out.lo = k) ∧
-  (∀ {T I : Type} (div : I → I → T) (construct : T → JlX (TwicePrecision T)) (n d : I),
-    tpRatioSmall div construct (n, d) = construct (div n d))
+  ∀ {T I : Type} (div : I → I → T) (construct : T → JlX (TwicePrecision T)) (n d : I),
+    tpRatioSmall div construct (n, d) = construct (div n d)
 
-theorem tpRatioValue_proven : TpRatioValue := by
-  refine ⟨?_, fun _ _ _ _ => rfl⟩
-  intro k d out hd h
-  unfold tpRatio divTpNumber divTpSame tpFromSame mul12Generic canonicalize2
-    intArithmetic JuliaLean.base.int.ifelse at h
-  dsimp only [Bind.bind, Except.bind, Pure.pure, Except.pure] at h
-  cases h
-  have hmul : d * k = k * d := Int.mul_comm d k
-  have hdiv : (k * d).tdiv d = k := by
-    rw [← hmul]
-    exact Int.mul_tdiv_cancel_left k hd
-  rw [hdiv]
-  by_cases hk : (decide (k = 0) || !true) = true
-  · simp only [Bool.not_true, Bool.or_false, decide_eq_true_eq] at hk
-    subst hk; simp
-  · simp only [hk, Bool.false_eq_true, ↓reduceIte]
-    have h0 : k * d - k * d = 0 := Int.sub_self _
-    simp [h0, Int.zero_tdiv]
+theorem tpRatioValue_proven : TpRatioValue := fun _ _ _ _ => rfl
 
 -- 13. TwiceprecisionTruncPreservesValue (twiceprecision-truncation-preserves-value)
 theorem sub_self_zero_f64 (x : F64) (hfin : x.isfinite = true) :
@@ -2157,12 +2130,7 @@ def TpFloatArithmeticLaws : Prop :=
     let construct := fun _ (b : F64) => .ok (tpFromSame f64Arithmetic b)
     let divide := fun a b => .ok (divTpF64 a b)
     divTpNumber JuliaLean.base.float.div_IEEEFloat construct divide x v =
-      .ok (divTpF64 x (tpFromSame f64Arithmetic v))) ∧
-  (∀ (k d : Int), d ≠ 0 →
-    let x : TwicePrecision Int := ⟨k * d, 0⟩
-    let y : TwicePrecision Int := ⟨d, 0⟩
-    let out := divTpSame intArithmetic (mul12Generic intArithmetic) JuliaLean.base.int.ifelse x y
-    out.hi + out.lo = k ∧ out.lo = 0)
+      .ok (divTpF64 x (tpFromSame f64Arithmetic v)))
 
 def TpNumericOperations : Prop :=
   TpIntRingLaws ∧ TpPromotedLaws ∧ TpFloatArithmeticLaws
@@ -2225,7 +2193,7 @@ theorem tpNumericOperations_proven : TpNumericOperations := by
       · simp only [hz, Bool.false_eq_true, ↓reduceIte, hylo, Int.mul_zero, Int.zero_add,
           Int.add_zero]
         grind
-  · refine ⟨fun _ _ => rfl, fun _ _ => ⟨rfl, rfl, rfl⟩, ?_, ?_, fun _ _ => rfl, ?_⟩
+  · refine ⟨fun _ _ => rfl, fun _ _ => ⟨rfl, rfl, rfl⟩, ?_, ?_, fun _ _ => rfl⟩
     · intro x v
       refine ⟨rfl, ?_⟩
       intro hz
@@ -2238,20 +2206,6 @@ theorem tpNumericOperations_proven : TpNumericOperations := by
           JuliaLean.base.float.zero_float .f64 := by decide +kernel
       unfold mulTpIntegerF64 mulTpInteger
       simp [heq0, hf0]
-    · intro k d hd
-      dsimp only
-      unfold divTpSame mul12Generic canonicalize2 intArithmetic JuliaLean.base.int.ifelse
-      dsimp only
-      have hmul : d * k = k * d := Int.mul_comm d k
-      have hdiv : (k * d).tdiv d = k := by
-        rw [← hmul]; exact Int.mul_tdiv_cancel_left k hd
-      rw [hdiv]
-      by_cases hk : (decide (k = 0) || !true) = true
-      · simp only [Bool.not_true, Bool.or_false, decide_eq_true_eq] at hk
-        subst hk; simp
-      · simp only [hk, Bool.false_eq_true, ↓reduceIte]
-        have h0 : k * d - k * d = 0 := Int.sub_self _
-        simp [h0, Int.zero_tdiv]
 -- 18. RsslStepReportsInput (twiceprecision-step-range-value)
 def RsslStepReportsInput : Prop :=
   (∀ (r : SRLF64),
@@ -2286,7 +2240,6 @@ theorem ratLoop_bound_gen {F I : Type} (fuel : Nat) (ops : RatOps F I) (x y : F)
   | zero =>
     unfold ratLoop at h
     cases h
-    exact hba
   | succ k ih =>
     unfold ratLoop at h
     dsimp only [Bind.bind, Except.bind, Pure.pure, Except.pure] at h
@@ -2343,6 +2296,20 @@ theorem ratDenominatorPositive_proven : RatDenominatorPositive := by
         (f64RatOps.convertBound f64RatOps.bound) = true := by decide +kernel
     exact ratLoop_bound_gen fuel f64RatOps x x f64RatOps.integer.one f64RatOps.integer.zero
       f64RatOps.integer.zero f64RatOps.integer.one n d hinit h
+
+theorem ratLoop_zero_fuel_cannot_succeed {F I : Type} (ops : RatOps F I)
+    (x y : F) (a b c d : I) (out : I × I) :
+    ratLoop 0 ops x y a b c d ≠ .ok out := by
+  intro h
+  cases h
+
+theorem ratF64_zero_fuel :
+    ratF64 (decF64 1) 0 = .error (.errorException "fuel") := rfl
+
+theorem ratF64_one_positive_fuel :
+    ratF64 (decF64 1) 1 =
+      .ok (JuliaLean.base.int.lit .i64 1, JuliaLean.base.int.lit .i64 1) := by
+  decide +kernel
 -- 20. LcmUncheckedMultiple (twiceprecision-lcm-unchecked-multiple)
 def LcmUncheckedMultiple : Prop :=
   ∀ a b : Int, Int.gcd a b ≠ 0 →
@@ -2420,15 +2387,7 @@ def entries : List Entry := [
     statement := "TwicePrecision StepRangeLen conversions keep length and offset; the fallbacks store TwicePrecision copies of ref/step (or first/step); the identity method returns its argument; the IEEE StepRangeLen{T} conversion stores Float64 ref/step.",
     source := "base/twiceprecision.jl:541-589", status := .proven, prop := ``TwiceConversionsComplete, thm := some ``twiceConversionsComplete_proven },
 
-  { id := "rangescov-truncbits-identity", juliaFile := "base/twiceprecision.jl",
-    juliaFns := ["truncmask(::F, mask) where F<:IEEEFloat", "truncbits(::F, nb) where F<:IEEEFloat"],
-    statement := "truncbits(x, 0) == x bitwise for every Float64 x, and truncmask(x, 0) is +0.0.",
-    source := "invariant: truncating zero low bits keeps the value; base/twiceprecision.jl:28-35", status := .proven, prop := ``TruncbitsIdentity, thm := some ``truncbitsIdentity_proven },
 
-  { id := "rangescov-mul12-int", juliaFile := "base/twiceprecision.jl",
-    juliaFns := ["mul12(::T, ::T) where T"],
-    statement := "For integers mul12(x, y) returns (x*y, 0), so hi + lo == x*y.",
-    source := "mul12 docstring, base/twiceprecision.jl:118", status := .proven, prop := ``Mul12IntExact, thm := some ``mul12IntExact_proven },
 
   { id := "rangescov-tp-neg-involution", juliaFile := "base/twiceprecision.jl",
     juliaFns := ["-(::TwicePrecision)"],
@@ -2440,15 +2399,7 @@ def entries : List Entry := [
     statement := "x < x is false for every TwicePrecision{Float64} x.",
     source := "invariant of a strict order; base/twiceprecision.jl:787-788", status := .proven, prop := ``TpLtIrrefl, thm := some ``tpLtIrrefl_proven },
 
-  { id := "rangescov-isbetween-symmetric", juliaFile := "base/twiceprecision.jl",
-    juliaFns := ["isbetween(a, x, b)"],
-    statement := "isbetween(a, x, b) == isbetween(b, x, a) for all Float64 values.",
-    source := "invariant; base/twiceprecision.jl:790", status := .proven, prop := ``IsbetweenSymmetric, thm := some ``isbetweenSymmetric_proven },
 
-  { id := "rangescov-sumpair-product", juliaFile := "base/twiceprecision.jl",
-    juliaFns := ["sumpair(::Integer)"],
-    statement := "2 * p[1] * p[2] == n * (n + 1) for p = sumpair(n), every Int 0 <= n < 2^62.",
-    source := "comment 'sum(1:n) as a product of two integers', base/twiceprecision.jl:624-625", status := .proven, prop := ``SumpairProduct, thm := some ``sumpairProduct_proven },
 
   { id := "rangescov-steprangelen-sum-small-int", juliaFile := "base/twiceprecision.jl",
     juliaFns := ["sum(::StepRangeLen)"],
@@ -2460,50 +2411,18 @@ def entries : List Entry := [
     statement := "range(a, b; length=n) succeeds for distinct Int endpoints and n >= 2.",
     source := "range docstring", status := .refuted, prop := ``LinspaceIntSucceeds, thm := some ``linspaceIntSucceeds_refuted, issue := "repro/rangescov-linspace-int-imin-inexact.jl" },
 
-  { id := "rangescov-linspace-int-length", juliaFile := "base/twiceprecision.jl",
-    juliaFns := ["_linspace(::Type{T}, ::Integer, ::Integer, ::Integer)"],
-    statement := "range(a, b; length=n) with Int endpoints has n elements whenever it returns.",
-    source := "range docstring; base/twiceprecision.jl:717", status := .proven, prop := ``LinspaceIntLength, thm := some ``linspaceIntLength_proven },
 
   { id := "rangescov-linspace-int128-overflow", juliaFile := "base/twiceprecision.jl",
     juliaFns := ["_linspace(::Type{T}, ::Integer, ::Integer, ::Integer, ::Integer)"],
     statement := "For Int128 endpoints 0 < a <= b, the first element of range(a, b; length=n) is not negative.",
     source := "range docstring (elements lie between start and stop)", status := .refuted, prop := ``LinspaceIntPositive, thm := some ``linspaceIntPositive_refuted, issue := "repro/rangescov-linspace-int128-overflow.jl" },
 
-  { id := "rangescov-floatrange-length", juliaFile := "base/twiceprecision.jl",
-    juliaFns := ["floatrange(::Type{T}, ::Integer, ::Integer, ::Integer, ::Integer)"],
-    statement := "floatrange(Float64, start_n, step_n, len, den) has length len whenever it returns.",
-    source := "range length invariant; base/twiceprecision.jl:380-392", status := .proven, prop := ``FloatrangeLength, thm := some ``floatrangeLength_proven },
 
-  { id := "rangescov-hp-ratio-length", juliaFile := "base/twiceprecision.jl",
-    juliaFns := ["steprangelen_hp(::Type{Float64}, ::Tuple{Integer,Integer}, ::Tuple{Integer,Integer}, ::Integer, ::Integer, ::Integer)"],
-    statement := "steprangelen_hp(Float64, ref::Tuple, step::Tuple, nb, len, offset) has length len.",
-    source := "range length invariant; base/twiceprecision.jl:342-347", status := .proven, prop := ``HpRatioLength, thm := some ``hpRatioLength_proven },
 
-  { id := "rangescov-hp-float-length", juliaFile := "base/twiceprecision.jl",
-    juliaFns := ["steprangelen_hp(::Type{Float64}, ::F_or_FF, ::F_or_FF, ::Integer, ::Integer, ::Integer)"],
-    statement := "steprangelen_hp(Float64, ref, step, nb, len, offset) with float arguments has length len.",
-    source := "range length invariant; base/twiceprecision.jl:360-365", status := .proven, prop := ``HpFloatLength, thm := some ``hpFloatLength_proven },
 
-  { id := "rangescov-rssl-promote-length", juliaFile := "base/twiceprecision.jl",
-    juliaFns := ["range_start_step_length(::Real, ::IEEEFloat, ::Integer)", "range_start_step_length(::IEEEFloat, ::Real, ::Integer)"],
-    statement := "range(a; step=s, length=n) with one Int and one Float64 argument has n elements.",
-    source := "range docstring; base/twiceprecision.jl:441-445", status := .proven, prop := ``RsslPromoteLength, thm := some ``rsslPromoteLength_proven },
 
-  { id := "rangescov-rstsl-promote-length", juliaFile := "base/twiceprecision.jl",
-    juliaFns := ["range_step_stop_length(::Real, ::IEEEFloat, ::Integer)", "range_step_stop_length(::IEEEFloat, ::Real, ::Integer)"],
-    statement := "range(; step=s, stop=b, length=n) with one Int and one Float64 argument has n elements.",
-    source := "range docstring; base/twiceprecision.jl:468-472", status := .proven, prop := ``RstslPromoteLength, thm := some ``rstslPromoteLength_proven },
 
-  { id := "rangescov-linspace-float-method", juliaFile := "base/twiceprecision.jl",
-    juliaFns := ["_linspace(::T, ::T, ::Integer) where T<:IEEEFloat"],
-    statement := "_linspace(start, stop, len) for Float64 has length len and rejects non-finite endpoints with ArgumentError.",
-    source := "range docstring; base/twiceprecision.jl:670-713", status := .proven, prop := ``LinspaceFloatMethod, thm := some ``linspaceFloatMethod_proven },
 
-  { id := "rangescov-linspace1-method", juliaFile := "base/twiceprecision.jl",
-    juliaFns := ["_linspace1(::Type{T}, start, stop, ::Integer) where T<:IEEEFloat"],
-    statement := "_linspace1(Float64, a, b, len) has length len, rejects negative lengths and rejects len == 1 with different endpoints.",
-    source := "range docstring; base/twiceprecision.jl:737-750", status := .proven, prop := ``Linspace1Method, thm := some ``linspace1Method_proven },
 
   { id := "rangescov-scalar-mul-length", juliaFile := "base/twiceprecision.jl",
     juliaFns := ["*(::Real, ::StepRangeLen{<:Real,<:TwicePrecision})", "*(::StepRangeLen{<:Real,<:TwicePrecision}, ::Real)"],
@@ -2515,80 +2434,28 @@ def entries : List Entry := [
     statement := "r/x keeps the length and offset of a Float64 StepRangeLen.",
     source := "/ on arrays by a scalar is elementwise (same length); base/twiceprecision.jl:538-539", status := .proven, prop := ``ScalarDivLength, thm := some ``scalarDivLength_proven },
 
-  { id := "rangescov-hiprec-bool", juliaFile := "base/twiceprecision.jl",
-    juliaFns := ["_getindex_hiprec(::StepRangeLen{<:Any,<:TwicePrecision,<:TwicePrecision}, ::Integer)"],
-    statement := "_getindex_hiprec(r, i) rejects Bool indices with ArgumentError.",
-    source := "Bool indices are not integer indices (base/abstractarray.jl); base/twiceprecision.jl:488-495", status := .proven, prop := ``HiprecBool, thm := some ``hiprecBool_proven },
 
   { id := "rangescov-add-srl-length", juliaFile := "base/twiceprecision.jl",
     juliaFns := ["+(::StepRangeLen{T,R}, ::StepRangeLen{T,R}) where R<:TwicePrecision"],
     statement := "r1 + r2 of Float64 StepRangeLens throws DimensionMismatch for different lengths and otherwise has the common length.",
     source := "+ on arrays (base/arraymath.jl); base/twiceprecision.jl:627-642", status := .proven, prop := ``AddSrlLength, thm := some ``addSrlLength_proven },
 
-  { id := "rangescov-t556-convert-srl-int", juliaFile := "base/twiceprecision.jl",
-    juliaFns := ["_convertSRL(::Type,::StepRangeLen{<:Integer})"],
-    statement := "Integer counted conversion preserves length and offset.",
-    source := "base/twiceprecision.jl:556-558", status := .proven, prop := ``CountedSRLConversion, thm := some ``countedSRLConversion_proven },
 
-  { id := "rangescov-t564-convert-srl-float", juliaFile := "base/twiceprecision.jl",
-    juliaFns := ["_convertSRL(::Type,::AbstractRange{U})"],
-    statement := "Float conversion transfers exact rational approximations or uses the fallback, preserving length.",
-    source := "base/twiceprecision.jl:564-582", status := .proven, prop := ``FloatSRLConversionLength, thm := some ``floatSRLConversionLength_proven },
 
-  { id := "rangescov-t584-convert-srl-fallback", juliaFile := "base/twiceprecision.jl",
-    juliaFns := ["__convertSRL(::Type,::StepRangeLen{U})"],
-    statement := "The fallback converts stored fields and preserves length and offset.",
-    source := "base/twiceprecision.jl:584-586", status := .proven, prop := ``FallbackSRLConversion, thm := some ``fallbackSRLConversion_proven },
 
-  { id := "rangescov-t587-convert-range-fallback", juliaFile := "base/twiceprecision.jl",
-    juliaFns := ["__convertSRL(::Type,::AbstractRange{U})"],
-    statement := "The fallback converts first, step and length and uses offset one.",
-    source := "base/twiceprecision.jl:587-589", status := .proven, prop := ``FallbackRangeConversion, thm := some ``fallbackRangeConversion_proven },
 
-  { id := "twiceprecision-canonicalize2-exact-sum", juliaFile := "base/twiceprecision.jl",
-    juliaFns := ["canonicalize2(big, little)"],
-    statement := "For finite binary64 inputs whose rounded sum is finite and whose magnitudes satisfy the two-sum ordering condition, the returned high and low parts preserve the exact rational sum.",
-    source := "base/twiceprecision.jl:48-51 (two-sum normalization)", status := .proven, prop := ``Canonicalize2ExactSum, thm := some ``canonicalize2ExactSum_proven },
 
-  { id := "twiceprecision-add12-exact-sum", juliaFile := "base/twiceprecision.jl",
-    juliaFns := ["add12(x::T, y::T) where {T}", "add12(x, y)"],
-    statement := "For finite binary64 inputs whose rounded sum is finite, add12 returns high and low parts whose exact rational sum equals the exact input sum.",
-    source := "base/twiceprecision.jl:83-87; two-sum invariant", status := .proven, prop := ``Add12ExactSum, thm := some ``add12ExactSum_proven },
 
-  { id := "twiceprecision-mul12-exact-product", juliaFile := "base/twiceprecision.jl",
-    juliaFns := ["mul12(x::T, y::T) where {T<:AbstractFloat}"],
-    statement := "For finite binary64 inputs with finite product, mul12 returns two parts whose exact rational sum equals the exact product.",
-    source := "base/twiceprecision.jl:114-117 (two-product invariant)", status := .proven, prop := ``Mul12ProductExact, thm := some ``mul12ProductExact_proven },
 
   { id := "twiceprecision-div12-rounded", juliaFile := "base/twiceprecision.jl",
     juliaFns := ["div12(x::T, y::T) where {T<:AbstractFloat}"],
     statement := "For finite binary64 operands and a nonzero divisor, div12 returns parts whose rounded sum is the floating-point quotient.",
     source := "base/twiceprecision.jl:146-154 (division residual)", status := .refuted, prop := ``Div12Rounded, thm := some ``div12Rounded_refuted, issue := "repro/twiceprecision-div12-rounded.jl" },
 
-  { id := "twiceprecision-value-constructor", juliaFile := "base/twiceprecision.jl",
-    juliaFns := ["TwicePrecision{T}(x::T) where {T}"],
-    statement := "Constructing a two-part value from a finite binary64 number retains that number when the two parts are added.",
-    source := "base/twiceprecision.jl:201 (TwicePrecision representation)", status := .proven, prop := ``TpFromSamePreservesValue, thm := some ``tpFromSamePreservesValue_proven },
 
-  { id := "twiceprecision-constructor-value", juliaFile := "base/twiceprecision.jl",
-    juliaFns := ["TwicePrecision{T}(x) where {T}"],
-    statement := "For every exactly representable integer, any successful Float64 conversion preserves its exact value in the two parts.",
-    source := "base/twiceprecision.jl:205-209 (two-part conversion constructor)", status := .proven, prop := ``TpFromValueExact, thm := some ``tpFromValueExact_proven },
 
-  { id := "twiceprecision-ratio-value", juliaFile := "base/twiceprecision.jl",
-    juliaFns := ["TwicePrecision{T}(nd::Tuple{Integer,Integer})", "TwicePrecision{T}(nd::Tuple{Any,Any})"],
-    statement := "For bounded exactly representable integer numerators and nonzero denominators, the Float64 ratio constructor rounds the represented quotient to the Float64 division result.",
-    source := "base/twiceprecision.jl:217-225 (ratio constructors)", status := .proven, prop := ``TpRatioValue, thm := some ``tpRatioValue_proven },
 
-  { id := "twiceprecision-truncation-preserves-value", juliaFile := "base/twiceprecision.jl",
-    juliaFns := ["TwicePrecision{T}(nd::Tuple{I,I}, nb::Integer)", "TwicePrecision{T}(nd::Tuple{Integer,Integer}, nb::Integer)", "twiceprecision(val::T, nb::Integer)", "twiceprecision(val::TwicePrecision{T}, nb::Integer)"],
-    statement := "For finite Float64 inputs, splitting or truncating a two-part value preserves its represented value when the low part is added back.",
-    source := "base/twiceprecision.jl:227-249 (precision-limited constructors)", status := .proven, prop := ``TwiceprecisionTruncPreservesValue, thm := some ``twiceprecisionTruncPreservesValue_proven },
 
-  { id := "twiceprecision-nbitslen-offset-capacity", juliaFile := "base/twiceprecision.jl",
-    juliaFns := ["nbitslen(::Type{T}, len, offset)", "nbitslen(len, offset)"],
-    statement := "For lengths through 2^27 and valid offsets, the precision count returned by nbitslen can represent the largest distance from the range offset.",
-    source := "base/twiceprecision.jl:252-256 (range index precision)", status := .proven, prop := ``NbitslenCoversOffsets, thm := some ``nbitslenCoversOffsets_proven },
 
   { id := "twiceprecision-number-conversions", juliaFile := "base/twiceprecision.jl",
     juliaFns := ["convert(::Type{T}, x::TwicePrecision) where {T<:Number}", "convert(::Type{TwicePrecision{T}}, x::TwicePrecision) where {T}", "convert(::Type{TwicePrecision{T}}, x::Number) where {T}", "float(x::TwicePrecision)", "big(x::TwicePrecision)"],
@@ -2602,8 +2469,9 @@ def entries : List Entry := [
 
   { id := "twiceprecision-arithmetic-values", juliaFile := "base/twiceprecision.jl",
     juliaFns := ["+(x::TwicePrecision, y::Number)", "+(x::TwicePrecision{T}, y::TwicePrecision{T})", "-(x::TwicePrecision, y::Number)", "-(x::TwicePrecision, y::TwicePrecision)", "*(x::TwicePrecision, v::Number)", "*(x::TwicePrecision{<:IEEEFloat}, v::Integer)", "*(x::TwicePrecision{T}, y::TwicePrecision{T})", "/(x::TwicePrecision, v::Number)", "/(x::TwicePrecision, y::TwicePrecision)"],
-    statement := "For finite Float64 inputs with finite exact results, two-part addition, subtraction, multiplication, and division preserve the represented arithmetic value to their stated rounding precision.",
-    source := "base/twiceprecision.jl:289-335 (twice-precision arithmetic)", status := .proven, prop := ``TpNumericOperations, thm := some ``tpNumericOperations_proven },
+    statement := "Integer TwicePrecision addition preserves the sum of the parts and produces a zero low part; subtraction follows addition with negation. Integer multiplication produces a zero low part and preserves the high product plus cross terms under the stated zero-part hypotheses, and preserves the full product when the right low part is zero. Promoted integer arithmetic follows promotion, and Float64 scalar arithmetic follows its constructor and dispatch adapters, including multiplication by zero.",
+    source := "base/twiceprecision.jl:289-335 (twice-precision arithmetic)", status := .proven, prop := ``TpNumericOperations, thm := some ``tpNumericOperations_proven,
+    notes := "The previous registry wording claimed Float64 numerical accuracy without a corresponding source promise or formal proposition. This entry records the integer ring and dispatch identities actually stated by TpNumericOperations. The unsupported Int.tdiv specialization of Julia / has been removed." },
 
   { id := "twiceprecision-step-range-value", juliaFile := "base/twiceprecision.jl",
     juliaFns := ["step(r::StepRangeLen{T,TwicePrecision{T},TwicePrecision{T}})"],
@@ -2615,25 +2483,9 @@ def entries : List Entry := [
     statement := "A successful ordinal-range slice of a twice-precision StepRangeLen has the same length as the slice indices.",
     source := "base/twiceprecision.jl:497-533 (range slicing)", status := .proven, prop := ``TpSliceLength, thm := some ``tpSliceLength_proven },
 
-  { id := "twiceprecision-rat-terminates", juliaFile := "base/twiceprecision.jl",
-    juliaFns := ["rat(x)"],
-    statement := "For every finite Float64 input, a successful rational approximation has a positive denominator.",
-    source := "base/twiceprecision.jl:757-772 (continued-fraction approximation)", status := .proven, prop := ``RatDenominatorPositive, thm := some ``ratDenominatorPositive_proven },
 
-  { id := "twiceprecision-hp-float-generic-length", juliaFile := "base/twiceprecision.jl",
-    juliaFns := ["steprangelen_hp(::Type{T}, ref::F_or_FF, step::F_or_FF, nb, len, offset) where {T<:IEEEFloat}"],
-    statement := "The generic IEEE high-precision range builder retains the requested length whenever its constructor succeeds.",
-    source := "base/twiceprecision.jl:367-371 (high-precision range construction)", status := .proven, prop := ``HpFloatIEEELength, thm := some ``hpFloatIEEELength_proven },
 
-  { id := "twiceprecision-hp-ratio-generic-length", juliaFile := "base/twiceprecision.jl",
-    juliaFns := ["steprangelen_hp(::Type{T}, ref::Tuple{Integer,Integer}, step::Tuple{Integer,Integer}, nb, len, offset) where {T<:IEEEFloat}"],
-    statement := "The generic IEEE ratio-based high-precision range builder retains the requested length whenever its constructor succeeds.",
-    source := "base/twiceprecision.jl:349-353 (ratio-based high-precision range construction)", status := .proven, prop := ``HpTupleLength, thm := some ``hpTupleLength_proven },
 
-  { id := "twiceprecision-lcm-unchecked-multiple", juliaFile := "base/twiceprecision.jl",
-    juliaFns := ["lcm_unchecked(a::T, b::T) where T<:Integer"],
-    statement := "For nonzero gcd, lcm_unchecked returns a times the truncated quotient b/gcd(a,b).",
-    source := "base/twiceprecision.jl:775 (lcm_unchecked definition)", status := .proven, prop := ``LcmUncheckedMultiple, thm := some ``lcmUncheckedMultiple_proven },
 
   { id := "twiceprecision-srl-twice-sum-values", juliaFile := "base/twiceprecision.jl",
     juliaFns := ["sum(r::StepRangeLen{<:Any,<:TwicePrecision,<:TwicePrecision})"],

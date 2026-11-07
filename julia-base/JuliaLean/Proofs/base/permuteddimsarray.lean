@@ -1,3 +1,4 @@
+import JuliaLean.Proofs.base.permuteddimsarray.permutation
 import JuliaLean.base.permuteddimsarray
 import JuliaLean.base.array
 import JuliaLean.base.multidimensional

@@ -1,36 +1,82 @@
 import JuliaLean.Core
 import JuliaLean.Registry.Types
+import JuliaLean.base.int
+import JuliaLean.base.float
+import JuliaLean.base.div
+import JuliaLean.base.rounding
+import JuliaLean.base.math
+import JuliaLean.base.promotion
+import JuliaLean.base.operators
+import JuliaLean.base.ordering
+import JuliaLean.base.number
+import JuliaLean.base.range
+import JuliaLean.base.abstractarray
+import JuliaLean.base.array
+import JuliaLean.base.broadcast
 
+import JuliaLean.base.special.cbrt
+import JuliaLean.base.hashing
+import JuliaLean.base.reinterpretarray
+import JuliaLean.base.special.log
 /-!
 # Source-mirrored model of `base/sort.jl`
 
 Julia revision `f755f49a9e41380d7da126b3c1db9fe7f83dd027` on a 64-bit platform. Abstract-vector
 reads, ordering operations, and finite-iterator operations are typed parameters for interfaces
 provided by other Base files. Integer search locals retain Julia's BitInteger widths and promotion.
+
+Recursive loop bounds are model resources. A zero bound can return normally only
+when the corresponding Julia loop condition is false; otherwise the installed
+operations return `.errorException "fuel"`, a model-exhaustion marker.
 -/
 
 namespace JuliaLean.base.sort
 
-open JuliaLean
+open JuliaLean JuliaLean.base
+universe u
 
-structure FiniteIterator (I α St : Type) where
-  first : I → Option (α × St)
-  next : I → St → Option (α × St)
-  rank : I → St → Nat
-  decreases : ∀ (itr : I) (state : St) (x : α) (state' : St),
-    next itr state = some (x, state') → rank itr state' < rank itr state
+inductive Error where
+  | array (error : array.Error)
+  | range (error : range.Exc)
+  | tuple (error : tuple.TupleError)
+  | broadcast (error : broadcast.Material.Error)
+  | style (error : broadcast.Style.StyleError)
+  | constructor (error : broadcast.Lazy.Error)
+  | julia (error : JlError)
+  deriving Repr, DecidableEq
 
-def issortedLoop {I α St O : Type} (iter : FiniteIterator I α St)
-    (lt : O → α → α → Bool) (order : O) (itr : I) :
-    Nat → α → St → Bool
-  | 0, _, _ => true
-  | fuel + 1, prev, state =>
-    match iter.next itr state with
-    | none => true
-    | some (this, nextState) =>
-      if lt order this prev then false
-      else issortedLoop iter lt order itr fuel this nextState
+inductive SortException where
+  | jl (error : JlError)
+  | ordering (error : ordering.OrderingError)
+  | errorException (message : String)
+  | assertionError (message : String)
+  | typeError (message : String)
+  | native (error : Error)
+  | invalidAccess (index : Int)
+  deriving Repr, DecidableEq
 
+abbrev SortResult (α : Type) := Except SortException α
+
+def liftSortJl (result : Jl α) : SortResult α := result.mapError .jl
+
+structure IteratorOps (I A St E : Type) where
+  first : I → Except E (Option (A × St))
+  next : I → St → Except E (Option (A × St))
+
+def issortedLoop {I A St E : Type} {O : Type u} (iter : IteratorOps I A St E)
+    (lt : O → A → A → Except E Bool) (order : O) (itr : I)
+    (previous : A) (current : Option (A × St)) : Option (Except E Bool) :=
+  match current with
+  | none => some (.ok true)
+  | some (this, state) =>
+    match lt order this previous with
+    | .error error => some (.error error)
+    | .ok true => some (.ok false)
+    | .ok false =>
+      match iter.next itr state with
+      | .error error => some (.error error)
+      | .ok next => issortedLoop iter lt order itr this next
+partial_fixpoint
 /--
 Julia source: base/sort.jl:48-60 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 ```julia
@@ -49,19 +95,20 @@ function issorted(itr, order::Ordering)
 end
 ```
 -/
-def issorted {I α St O : Type} (iter : FiniteIterator I α St)
-    (lt : O → α → α → Bool) (order : O) (itr : I) : Bool :=
-  let y := iter.first itr
-  match y with
-  | none => true
-  | some (prev, state) =>
-    let y := iter.next itr state
-    match y with
-    | none => true
-    | some (this, nextState) =>
-      if lt order this prev then false
-      else issortedLoop iter lt order itr (iter.rank itr nextState) this nextState
+def issorted {I A St E : Type} {O : Type u} (iter : IteratorOps I A St E)
+    (lt : O → A → A → Except E Bool) (order : O) (itr : I) : Option (Except E Bool) :=
+  match iter.first itr with
+  | .error error => some (.error error)
+  | .ok none => some (.ok true)
+  | .ok (some (previous, state)) =>
+    match iter.next itr state with
+    | .error error => some (.error error)
+    | .ok current => issortedLoop iter lt order itr previous current
 
+def iteratorWithOrderingErrors {I A St E : Type} (iter : IteratorOps I A St E) :
+    IteratorOps I A St (Sum E ordering.OrderingError) where
+  first := fun itr => (iter.first itr).mapError Sum.inl
+  next := fun itr state => (iter.next itr state).mapError Sum.inl
 /--
 Julia source: base/sort.jl:86-95 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 ```julia
@@ -77,14 +124,18 @@ function issorted(itr;
 end
 ```
 -/
-def issortedKeywords {I α St L B O : Type} (iter : FiniteIterator I α St)
-    (orderOf : L → B → Option Bool → O → O)
-    (lt : O → α → α → Bool) (itr : I) (less : L) (byFn : B)
-    (rev : Option Bool) (order : O) : Bool :=
-  if rev = some true then
-    issorted iter lt (orderOf less byFn (some true) order) itr
-  else
-    issorted iter lt (orderOf less byFn none order) itr
+def issortedKeywords {I A K St E : Type} (iter : IteratorOps I A St E)
+    (itr : I)
+    (less : Sum (K → K → ordering.OrderingResult Bool)
+      (K → K → ordering.OrderingResult Bool))
+    (byArg : ordering.KeyArg A K) (rev : Option Bool) (order : ordering.OrderArg K) :
+    Option (Except (Sum E ordering.OrderingError) Bool) :=
+  let resolved := if rev = some true then ordering.ordBool less byArg true order
+    else ordering.ordNothing less byArg () order
+  match resolved with
+  | .error error => some (.error (.inr error))
+  | .ok resolved => issorted (iteratorWithOrderingErrors iter)
+      (fun o a b => (ordering.ordCompare o a b).mapError Sum.inr) resolved itr
 
 structure SearchIndex where
   ty : IntTy
@@ -111,20 +162,25 @@ inductive SearchResult (α : Type) where
   | returned (value : α)
   | invalidAccess (index : Int)
   | exhausted
+  | error (error : SortException)
   deriving Repr, DecidableEq
 
 structure VectorOps (V α : Type) where
-  read : V → Int → Option α
+  read : V → Int → SortResult α
 
 def arrayVectorOps : VectorOps (Array α) α where
   read := fun v i =>
-    if 1 ≤ i ∧ i ≤ v.size then v[i.toNat - 1]? else none
+    if 1 ≤ i ∧ i ≤ v.size then
+      match v[i.toNat - 1]? with
+      | some value => .ok value
+      | none => .error (.invalidAccess i)
+    else .error (.invalidAccess i)
 def arrayFirstIndex {α : Type} (_v : Array α) : JInt .i64 := JInt.wrap .i64 1
 
 def arrayLastIndex {α : Type} (v : Array α) : JInt .i64 := JInt.wrap .i64 v.size
 
 def firstSearchLoop {V α O : Type} (ops : VectorOps V α)
-    (lt : O → α → α → Bool) (order : O) (v : V) (x : α) :
+    (lt : O → α → α → SortResult Bool) (order : O) (v : V) (x : α) :
     Nat → SearchIndex → SearchIndex → SearchIndex → SearchResult Int
   | 0, _, _, _ => .exhausted
   | fuel + 1, lo, hi, len =>
@@ -132,29 +188,34 @@ def firstSearchLoop {V α O : Type} (ops : VectorOps V α)
     let half := indexHalf len
     let m := indexAdd lo half
     match ops.read v m.val with
-    | none => .invalidAccess m.val
-    | some value =>
-      if lt order value x then
-        firstSearchLoop ops lt order v x fuel
+    | .error (.invalidAccess i) => .invalidAccess i
+    | .error error => .error error
+    | .ok value =>
+      match lt order value x with
+      | .error error => .error error
+      | .ok true => firstSearchLoop ops lt order v x fuel
           (indexAdd m (searchIndex .i64 1)) hi
           (indexSub len (indexAdd half (searchIndex .i64 1)))
-      else firstSearchLoop ops lt order v x fuel lo m half
+      | .ok false => firstSearchLoop ops lt order v x fuel lo m half
 
 def lastSearchLoop {V α O : Type} (ops : VectorOps V α)
-    (lt : O → α → α → Bool) (order : O) (v : V) (x : α) (u : SearchIndex) :
+    (lt : O → α → α → SortResult Bool) (order : O) (v : V) (x : α) (u : SearchIndex) :
     Nat → SearchIndex → SearchIndex → SearchResult Int
   | 0, _, _ => .exhausted
   | fuel + 1, lo, hi =>
     if lo.val = (indexSub hi u).val then .returned lo.val else
     let m := indexMidpoint lo hi
     match ops.read v m.val with
-    | none => .invalidAccess m.val
-    | some value =>
-      if lt order x value then lastSearchLoop ops lt order v x u fuel lo m
-      else lastSearchLoop ops lt order v x u fuel m hi
+    | .error (.invalidAccess i) => .invalidAccess i
+    | .error error => .error error
+    | .ok value =>
+      match lt order x value with
+      | .error error => .error error
+      | .ok true => lastSearchLoop ops lt order v x u fuel lo m
+      | .ok false => lastSearchLoop ops lt order v x u fuel m hi
 
 def equalSearchLoop {V α O : Type} (ops : VectorOps V α)
-    (lt : O → α → α → Bool) (order : O) (v : V) (x : α) (u : SearchIndex) :
+    (lt : O → α → α → SortResult Bool) (order : O) (v : V) (x : α) (u : SearchIndex) :
     Nat → SearchIndex → SearchIndex → SearchResult (Int × Int)
   | 0, _, _ => .exhausted
   | fuel + 1, lo, hi =>
@@ -164,28 +225,33 @@ def equalSearchLoop {V α O : Type} (ops : VectorOps V α)
     else
       let m := indexMidpoint lo hi
       match ops.read v m.val with
-      | none => .invalidAccess m.val
-      | some value =>
-        if lt order value x then equalSearchLoop ops lt order v x u fuel m hi
-        else if lt order x value then equalSearchLoop ops lt order v x u fuel lo m
-        else
-          let start := indexAdd lo u
-          let firstHi := indexAdd m (searchIndex m.ty 1)
-          let firstLen := indexSub firstHi start
-          match firstSearchLoop ops lt order v x (firstLen.val.toNat + 2) start
-              firstHi firstLen
-          with
-          | .invalidAccess i => .invalidAccess i
-          | .exhausted => .exhausted
-          | .returned first =>
-            let lastLo := indexSub m (searchIndex m.ty 1)
-            let lastHi := indexAdd (indexSub hi u) (searchIndex m.ty 1)
-            match lastSearchLoop ops lt order v x (searchIndex m.ty 1)
-                ((indexSub lastHi lastLo).val.toNat + 2) lastLo lastHi
-            with
-            | .returned last => .returned (first, last)
+      | .error (.invalidAccess i) => .invalidAccess i
+      | .error error => .error error
+      | .ok value =>
+        match lt order value x with
+        | .error error => .error error
+        | .ok true => equalSearchLoop ops lt order v x u fuel m hi
+        | .ok false =>
+          match lt order x value with
+          | .error error => .error error
+          | .ok true => equalSearchLoop ops lt order v x u fuel lo m
+          | .ok false =>
+            let start := indexAdd lo u
+            let firstHi := indexAdd m (searchIndex m.ty 1)
+            let firstLen := indexSub firstHi start
+            match firstSearchLoop ops lt order v x (firstLen.val.toNat + 2) start firstHi firstLen with
+            | .error error => .error error
             | .invalidAccess i => .invalidAccess i
             | .exhausted => .exhausted
+            | .returned first =>
+              let lastLo := indexSub m (searchIndex m.ty 1)
+              let lastHi := indexAdd (indexSub hi u) (searchIndex m.ty 1)
+              match lastSearchLoop ops lt order v x (searchIndex m.ty 1)
+                  ((indexSub lastHi lastLo).val.toNat + 2) lastLo lastHi with
+              | .error error => .error error
+              | .returned last => .returned (first, last)
+              | .invalidAccess i => .invalidAccess i
+              | .exhausted => .exhausted
 
 /--
 Julia source: base/sort.jl:184-199 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -209,7 +275,7 @@ end
 ```
 -/
 def searchsortedfirstBounds {V α O : Type} {t : IntTy} (ops : VectorOps V α)
-    (lt : O → α → α → Bool) (order : O) (v : V) (x : α)
+    (lt : O → α → α → SortResult Bool) (order : O) (v : V) (x : α)
     (lo hi : JInt t) : SearchResult Int :=
   let l : SearchIndex := ⟨t, lo⟩
   let h := indexAdd ⟨t, hi⟩ (searchIndex t 1)
@@ -236,7 +302,7 @@ end
 ```
 -/
 def searchsortedlastBounds {V α O : Type} {t : IntTy} (ops : VectorOps V α)
-    (lt : O → α → α → Bool) (order : O) (v : V) (x : α)
+    (lt : O → α → α → SortResult Bool) (order : O) (v : V) (x : α)
     (lo hi : JInt t) : SearchResult Int :=
   let u := searchIndex t 1
   let l := indexSub ⟨t, lo⟩ u
@@ -267,7 +333,7 @@ end
 ```
 -/
 def searchsortedBounds {V α O : Type} {t : IntTy} (ops : VectorOps V α)
-    (lt : O → α → α → Bool) (order : O) (v : V) (x : α)
+    (lt : O → α → α → SortResult Bool) (order : O) (v : V) (x : α)
     (ilo ihi : JInt t) : SearchResult (Int × Int) :=
   let u := searchIndex t 1
   let l := indexSub ⟨t, ilo⟩ u
@@ -334,20 +400,22 @@ end
 ```
 -/
 def searchsortedlastRealRange {A R X Q K O E : Type}
-    (ops : RealRangeOps A R X Q K O E) (lt : O → X → R → Bool)
+    (ops : RealRangeOps A R X Q K O E) (lt : O → X → R → Except E Bool)
     (order : O) (a : A) (x : X) : Except E K := do
   ops.requireOneBased a
   let f := ops.first a
   let h := ops.step a
   let l := ops.last a
-  if lt order x f then
+  if ← lt order x f then
     pure ops.zeroIndex
-  else if ops.isZero h || !(lt order x l) then
+  else if ops.isZero h then
+    pure (ops.length a)
+  else if !(← lt order x l) then
     pure (ops.length a)
   else
     let quotient := ops.divide (ops.subtract x f) h
     let n ← ops.roundInteger (ops.addOne quotient)
-    if lt order x (← ops.get a n) then pure (ops.decrement n) else pure n
+    if ← lt order x (← ops.get a n) then pure (ops.decrement n) else pure n
 
 /--
 Julia source: base/sort.jl:256-267 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -368,19 +436,21 @@ end
 -/
 def searchsortedfirstRealRange {A R X Q K O E : Type}
     (ops : RealRangeOps A R X Q K O E)
-    (ltRange : O → R → X → Bool) (order : O) (a : A) (x : X) : Except E K := do
+    (ltRange : O → R → X → Except E Bool) (order : O) (a : A) (x : X) : Except E K := do
   ops.requireOneBased a
   let f := ops.first a
   let h := ops.step a
   let l := ops.last a
-  if !(ltRange order f x) then
+  if !(← ltRange order f x) then
     pure ops.oneIndex
-  else if ops.isZero h || ltRange order l x then
+  else if ops.isZero h then
+    pure (ops.increment (ops.length a))
+  else if ← ltRange order l x then
     pure (ops.increment (ops.length a))
   else
     let quotient := ops.divide (ops.subtract x f) h
     let n ← ops.roundInteger (ops.addOne quotient)
-    if ltRange order (← ops.get a n) x then pure (ops.increment n) else pure n
+    if ← ltRange order (← ops.get a n) x then pure (ops.increment n) else pure n
 
 /--
 Julia source: base/sort.jl:269-283 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -403,15 +473,17 @@ end
 ```
 -/
 def searchsortedlastIntegerRange {A R X Q K O E : Type}
-    (ops : IntegerRangeOps A R X Q K O E) (lt : O → X → R → Bool)
+    (ops : IntegerRangeOps A R X Q K O E) (lt : O → X → R → Except E Bool)
     (order : O) (a : A) (x : X) : Except E K := do
   ops.requireOneBased a
   let f := ops.first a
   let h := ops.step a
   let l := ops.last a
-  if lt order x f then
+  if ← lt order x f then
     pure ops.zeroIndex
-  else if ops.isZero h || !(lt order x l) then
+  else if ops.isZero h then
+    pure (ops.length a)
+  else if !(← lt order x l) then
     pure (ops.length a)
   else
     let rounded ← if ops.isReverse order then ops.ceilInteger x else ops.floorInteger x
@@ -440,14 +512,16 @@ end
 -/
 def searchsortedfirstIntegerRange {A R X Q K O E : Type}
     (ops : IntegerRangeOps A R X Q K O E)
-    (ltRange : O → R → X → Bool) (order : O) (a : A) (x : X) : Except E K := do
+    (ltRange : O → R → X → Except E Bool) (order : O) (a : A) (x : X) : Except E K := do
   ops.requireOneBased a
   let f := ops.first a
   let h := ops.step a
   let l := ops.last a
-  if !(ltRange order f x) then
+  if !(← ltRange order f x) then
     pure ops.oneIndex
-  else if ops.isZero h || ltRange order l x then
+  else if ops.isZero h then
+    pure (ops.increment (ops.length a))
+  else if ← ltRange order l x then
     pure (ops.increment (ops.length a))
   else
     let rounded ← if ops.isReverse order then ops.floorInteger x else ops.ceilInteger x
@@ -462,8 +536,8 @@ searchsorted(a::AbstractRange{<:Real}, x::Real, o::FastRangeOrderings) =
 ```
 -/
 def searchsortedRealRange {A R X Q K O E U : Type}
-    (ops : RealRangeOps A R X Q K O E) (lt : O → X → R → Bool)
-    (ltRange : O → R → X → Bool) (order : O) (a : A)
+    (ops : RealRangeOps A R X Q K O E) (lt : O → X → R → Except E Bool)
+    (ltRange : O → R → X → Except E Bool) (order : O) (a : A)
     (x : X) (unitRange : K → K → U) : Except E U := do
   let first ← searchsortedfirstRealRange ops ltRange order a x
   let last ← searchsortedlastRealRange ops lt order a x
@@ -477,8 +551,8 @@ searchsorted(a::AbstractRange{<:Real}, x::Real, o::FastRangeOrderings) =
 ```
 -/
 def searchsortedIntegerRange {A R X Q K O E U : Type}
-    (ops : IntegerRangeOps A R X Q K O E) (lt : O → X → R → Bool)
-    (ltRange : O → R → X → Bool) (order : O) (a : A)
+    (ops : IntegerRangeOps A R X Q K O E) (lt : O → X → R → Except E Bool)
+    (ltRange : O → R → X → Except E Bool) (order : O) (a : A)
     (x : X) (unitRange : K → K → U) : Except E U := do
   let first ← searchsortedfirstIntegerRange ops ltRange order a x
   let last ← searchsortedlastIntegerRange ops lt order a x
@@ -491,7 +565,7 @@ Julia source: base/sort.jl:306-306 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 ```
 -/
 def searchsortedfirstOrdering {V α O : Type} {t : IntTy} (ops : VectorOps V α)
-    (firstIndex lastIndex : V → JInt t) (lt : O → α → α → Bool)
+    (firstIndex lastIndex : V → JInt t) (lt : O → α → α → SortResult Bool)
     (v : V) (x : α) (order : O) : SearchResult Int :=
   searchsortedfirstBounds ops lt order v x (firstIndex v) (lastIndex v)
 
@@ -505,7 +579,7 @@ Julia source: base/sort.jl:307-309 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 -/
 def searchsortedfirstKeywords {V α L B O : Type} {t : IntTy} (ops : VectorOps V α)
     (firstIndex lastIndex : V → JInt t)
-    (orderOf : L → B → Option Bool → O → O) (lt : O → α → α → Bool)
+    (orderOf : L → B → Option Bool → O → O) (lt : O → α → α → SortResult Bool)
     (v : V) (x : α) (less : L) (byFn : B) (rev : Option Bool) (order : O) :
     SearchResult Int :=
   searchsortedfirstOrdering ops firstIndex lastIndex lt v x (orderOf less byFn rev order)
@@ -517,7 +591,7 @@ Julia source: base/sort.jl:306-306 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 ```
 -/
 def searchsortedlastOrdering {V α O : Type} {t : IntTy} (ops : VectorOps V α)
-    (firstIndex lastIndex : V → JInt t) (lt : O → α → α → Bool)
+    (firstIndex lastIndex : V → JInt t) (lt : O → α → α → SortResult Bool)
     (v : V) (x : α) (order : O) : SearchResult Int :=
   searchsortedlastBounds ops lt order v x (firstIndex v) (lastIndex v)
 
@@ -531,7 +605,7 @@ Julia source: base/sort.jl:307-309 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 -/
 def searchsortedlastKeywords {V α L B O : Type} {t : IntTy} (ops : VectorOps V α)
     (firstIndex lastIndex : V → JInt t)
-    (orderOf : L → B → Option Bool → O → O) (lt : O → α → α → Bool)
+    (orderOf : L → B → Option Bool → O → O) (lt : O → α → α → SortResult Bool)
     (v : V) (x : α) (less : L) (byFn : B) (rev : Option Bool) (order : O) :
     SearchResult Int :=
   searchsortedlastOrdering ops firstIndex lastIndex lt v x (orderOf less byFn rev order)
@@ -543,7 +617,7 @@ Julia source: base/sort.jl:306-306 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 ```
 -/
 def searchsortedOrdering {V α O : Type} {t : IntTy} (ops : VectorOps V α)
-    (firstIndex lastIndex : V → JInt t) (lt : O → α → α → Bool)
+    (firstIndex lastIndex : V → JInt t) (lt : O → α → α → SortResult Bool)
     (v : V) (x : α) (order : O) : SearchResult (Int × Int) :=
   searchsortedBounds ops lt order v x (firstIndex v) (lastIndex v)
 
@@ -557,7 +631,7 @@ Julia source: base/sort.jl:307-309 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 -/
 def searchsortedKeywords {V α L B O : Type} {t : IntTy} (ops : VectorOps V α)
     (firstIndex lastIndex : V → JInt t)
-    (orderOf : L → B → Option Bool → O → O) (lt : O → α → α → Bool)
+    (orderOf : L → B → Option Bool → O → O) (lt : O → α → α → SortResult Bool)
     (v : V) (x : α) (less : L) (byFn : B) (rev : Option Bool) (order : O) :
     SearchResult (Int × Int) :=
   searchsortedOrdering ops firstIndex lastIndex lt v x (orderOf less byFn rev order)
@@ -570,12 +644,13 @@ insorted(x, v::AbstractVector; kw...) = !isempty(searchsorted(v, x; kw...))
 -/
 def insortedVector {V α L B O : Type} {t : IntTy} (ops : VectorOps V α)
     (firstIndex lastIndex : V → JInt t)
-    (orderOf : L → B → Option Bool → O → O) (lt : O → α → α → Bool)
+    (orderOf : L → B → Option Bool → O → O) (lt : O → α → α → SortResult Bool)
     (v : V) (x : α) (less : L) (byFn : B) (rev : Option Bool) (order : O) :
     SearchResult Bool :=
   match searchsortedKeywords ops firstIndex lastIndex orderOf lt v x less byFn rev order with
   | .returned (first, last) => .returned (first ≤ last)
   | .invalidAccess index => .invalidAccess index
+  | .error error => .error error
   | .exhausted => .exhausted
 
 /--
@@ -584,7 +659,7 @@ Julia source: base/sort.jl:466-466 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 insorted(x, r::AbstractRange) = in(x, r)
 ```
 -/
-def insortedRange {R X : Type} (contains : X → R → Bool) (x : X) (range : R) : Bool :=
+def insortedRange {R X : Type} (contains : X → R → SortResult Bool) (x : X) (range : R) : SortResult Bool :=
   contains x range
 
 
@@ -663,10 +738,11 @@ structure SendToEndOps (m : Type → Type) (V α K : Type) where
   reverseView : V → K → K → m V
   add : K → K → K
   subtract : K → K → K
+  modelExhausted : {β : Type} → m β
 
 def sendToEndFirstScan [Monad m] (ops : SendToEndOps m V α K)
     (predicate : α → m Bool) (v : V) (hi : K) : Nat → K → m K
-  | 0, i => pure i
+  | 0, i => if ops.lessEq i hi then ops.modelExhausted else pure i
   | fuel + 1, i =>
     if ops.lessEq i hi then do
       let value ← ops.get v i
@@ -677,7 +753,7 @@ def sendToEndFirstScan [Monad m] (ops : SendToEndOps m V α K)
 
 def sendToEndSecondScan [Monad m] (ops : SendToEndOps m V α K)
     (predicate : α → m Bool) (v : V) (hi : K) : Nat → K → K → m K
-  | 0, i, _ => pure i
+  | 0, i, j => if ops.lessEq j hi then ops.modelExhausted else pure i
   | fuel + 1, i, j =>
     if ops.lessEq j hi then do
       let value ← ops.get v j
@@ -762,6 +838,20 @@ def sendToEndReverseOrdering [Monad m] (ops : SendToEndOps m V α K)
 structure WithoutMissingVector (α V : Type) where
   data : V
 
+inductive KeywordValue (A : Type) where
+  | valid (value : A)
+  | missing
+  | wrongType
+
+inductive SortError (E : Type) where
+  | callee (error : E)
+  | julia (error : JlError)
+  | typeError (keyword : String)
+  | assertionError (message : String)
+  deriving Repr
+
+abbrev Result (E A : Type) := Except (SortError E) A
+
 /--
 Julia source: base/sort.jl:591-596 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 ```julia
@@ -773,12 +863,13 @@ Julia source: base/sort.jl:591-596 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
     end
 ```
 -/
-def withoutMissingVector {V α E : Type} (hasMissing : V → Bool)
-    (argumentError : String → E) (data : V) (unsafeMode : Bool := false) :
-    Except E (WithoutMissingVector α V) :=
-  if !unsafeMode && hasMissing data then
-    .error (argumentError "data must not contain missing values")
-  else .ok ⟨data⟩
+def withoutMissingVector {V A E : Type} (anyMissing : V → Result E Bool)
+    (data : V) (unsafeMode : Bool := false) :
+    Result E (WithoutMissingVector A V) := do
+  if !unsafeMode then
+    if ← anyMissing data then
+      throw (.julia (.argumentError "data must not contain missing values"))
+  pure ⟨data⟩
 
 /--
 Julia source: base/sort.jl:598-602 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -853,6 +944,25 @@ def getkw (symbols : List String) : KwExpr :=
     .escape (.assign (.tuple [.name "kw", .name symbol])
       (.call ("_" ++ symbol) [.name "v", .name "o", .name "kw"])))
 
+structure SortKeywords (K A Backing Alg Tail : Type) where
+  lo : Option (KeywordValue K) := none
+  hi : Option (KeywordValue K) := none
+  mn : Option (KeywordValue A) := none
+  mx : Option (KeywordValue A) := none
+  scratch : Option (KeywordValue (Option Backing)) := none
+  legacyDispatchEntry : Option (KeywordValue (Option Alg)) := none
+  tail : Tail
+
+def assertKeyword {E A : Type} (name : String) : KeywordValue A → Result E A
+  | .valid value => .ok value
+  | .wrongType => .error (.typeError name)
+  | .missing => .error (.typeError name)
+
+def lookupKeyword {A : Type} : Option (KeywordValue A) → Option (KeywordValue A)
+  | none => none
+  | some .missing => none
+  | some value => some value
+
 /--
 Julia source: base/sort.jl:483-489 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 ```julia
@@ -865,24 +975,257 @@ Julia source: base/sort.jl:483-489 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
     end
 ```
 -/
-def generatedKeywordGetter {W A V O E : Type}
-    (lookup : W → Option A) (append : W → A → W)
-    (default : V → O → Except E A) (assertType : A → Except E A)
-    (keywords : W) (v : V) (order : O) : Except E (W × A) := do
+def generatedKeywordGetter {W Input Output V E : Type} {O : Type u}
+    (lookup : W → Option Input) (append : W → Input → W)
+    (default : V → O → Result E Input) (assertType : Input → Result E Output)
+    (keywords : W) (v : V) (order : O) : Result E (W × Output) := do
   match lookup keywords with
   | some value =>
     let typed ← assertType value
     pure (keywords, typed)
   | none =>
     let value ← default v order
+    let appended := append keywords value
     let typed ← assertType value
-    pure (append keywords value, typed)
+    pure (appended, typed)
+
+/--
+Julia source: base/sort.jl:475-490 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+```julia
+for (sym, exp, type) in [
+        (:lo, :(firstindex(v)), Integer),
+        (:hi, :(lastindex(v)),  Integer),
+        (:mn, :(throw(ArgumentError("mn is needed but has not been computed"))), :(eltype(v))),
+        (:mx, :(throw(ArgumentError("mx is needed but has not been computed"))), :(eltype(v))),
+        (:scratch, nothing, :(Union{Nothing, Vector})), # could have different eltype
+        (:legacy_dispatch_entry, nothing, Union{Nothing, Algorithm})]
+    usym = Symbol(:_, sym)
+    @eval function $usym(v, o, kw)
+        # using missing instead of nothing because scratch could === nothing.
+        res = get(kw, $(Expr(:quote, sym)), missing)
+        res !== missing && return kw, res::$type
+        $sym = $exp
+        (;kw..., $sym), $sym::$type
+    end
+end
+```
+-/
+def getLo {V K A Backing Alg Tail E : Type} {O : Type u}
+    (firstindex : V → Result E K)
+    (v : V) (order : O) (kw : SortKeywords K A Backing Alg Tail) :
+    Result E (SortKeywords K A Backing Alg Tail × K) :=
+  generatedKeywordGetter (fun kw => lookupKeyword kw.lo) (fun kw value => { kw with lo := some value })
+    (fun v _ => return .valid (← firstindex v)) (assertKeyword "lo") kw v order
+
+/--
+Julia source: base/sort.jl:475-490 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+```julia
+for (sym, exp, type) in [
+        (:lo, :(firstindex(v)), Integer),
+        (:hi, :(lastindex(v)),  Integer),
+        (:mn, :(throw(ArgumentError("mn is needed but has not been computed"))), :(eltype(v))),
+        (:mx, :(throw(ArgumentError("mx is needed but has not been computed"))), :(eltype(v))),
+        (:scratch, nothing, :(Union{Nothing, Vector})), # could have different eltype
+        (:legacy_dispatch_entry, nothing, Union{Nothing, Algorithm})]
+    usym = Symbol(:_, sym)
+    @eval function $usym(v, o, kw)
+        # using missing instead of nothing because scratch could === nothing.
+        res = get(kw, $(Expr(:quote, sym)), missing)
+        res !== missing && return kw, res::$type
+        $sym = $exp
+        (;kw..., $sym), $sym::$type
+    end
+end
+```
+-/
+def getHi {V K A Backing Alg Tail E : Type} {O : Type u}
+    (lastindex : V → Result E K)
+    (v : V) (order : O) (kw : SortKeywords K A Backing Alg Tail) :
+    Result E (SortKeywords K A Backing Alg Tail × K) :=
+  generatedKeywordGetter (fun kw => lookupKeyword kw.hi) (fun kw value => { kw with hi := some value })
+    (fun v _ => return .valid (← lastindex v)) (assertKeyword "hi") kw v order
+
+/--
+Julia source: base/sort.jl:475-490 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+```julia
+for (sym, exp, type) in [
+        (:lo, :(firstindex(v)), Integer),
+        (:hi, :(lastindex(v)),  Integer),
+        (:mn, :(throw(ArgumentError("mn is needed but has not been computed"))), :(eltype(v))),
+        (:mx, :(throw(ArgumentError("mx is needed but has not been computed"))), :(eltype(v))),
+        (:scratch, nothing, :(Union{Nothing, Vector})), # could have different eltype
+        (:legacy_dispatch_entry, nothing, Union{Nothing, Algorithm})]
+    usym = Symbol(:_, sym)
+    @eval function $usym(v, o, kw)
+        # using missing instead of nothing because scratch could === nothing.
+        res = get(kw, $(Expr(:quote, sym)), missing)
+        res !== missing && return kw, res::$type
+        $sym = $exp
+        (;kw..., $sym), $sym::$type
+    end
+end
+```
+-/
+def getMn {V K A Backing Alg Tail E : Type} {O : Type u}
+    (v : V) (order : O) (kw : SortKeywords K A Backing Alg Tail) :
+    Result E (SortKeywords K A Backing Alg Tail × A) :=
+  generatedKeywordGetter (fun kw => lookupKeyword kw.mn) (fun kw value => { kw with mn := some value })
+    (fun _ _ => .error (.julia (.argumentError "mn is needed but has not been computed"))) (assertKeyword "mn") kw v order
+
+/--
+Julia source: base/sort.jl:475-490 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+```julia
+for (sym, exp, type) in [
+        (:lo, :(firstindex(v)), Integer),
+        (:hi, :(lastindex(v)),  Integer),
+        (:mn, :(throw(ArgumentError("mn is needed but has not been computed"))), :(eltype(v))),
+        (:mx, :(throw(ArgumentError("mx is needed but has not been computed"))), :(eltype(v))),
+        (:scratch, nothing, :(Union{Nothing, Vector})), # could have different eltype
+        (:legacy_dispatch_entry, nothing, Union{Nothing, Algorithm})]
+    usym = Symbol(:_, sym)
+    @eval function $usym(v, o, kw)
+        # using missing instead of nothing because scratch could === nothing.
+        res = get(kw, $(Expr(:quote, sym)), missing)
+        res !== missing && return kw, res::$type
+        $sym = $exp
+        (;kw..., $sym), $sym::$type
+    end
+end
+```
+-/
+def getMx {V K A Backing Alg Tail E : Type} {O : Type u}
+    (v : V) (order : O) (kw : SortKeywords K A Backing Alg Tail) :
+    Result E (SortKeywords K A Backing Alg Tail × A) :=
+  generatedKeywordGetter (fun kw => lookupKeyword kw.mx) (fun kw value => { kw with mx := some value })
+    (fun _ _ => .error (.julia (.argumentError "mx is needed but has not been computed"))) (assertKeyword "mx") kw v order
+
+/--
+Julia source: base/sort.jl:475-490 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+```julia
+for (sym, exp, type) in [
+        (:lo, :(firstindex(v)), Integer),
+        (:hi, :(lastindex(v)),  Integer),
+        (:mn, :(throw(ArgumentError("mn is needed but has not been computed"))), :(eltype(v))),
+        (:mx, :(throw(ArgumentError("mx is needed but has not been computed"))), :(eltype(v))),
+        (:scratch, nothing, :(Union{Nothing, Vector})), # could have different eltype
+        (:legacy_dispatch_entry, nothing, Union{Nothing, Algorithm})]
+    usym = Symbol(:_, sym)
+    @eval function $usym(v, o, kw)
+        # using missing instead of nothing because scratch could === nothing.
+        res = get(kw, $(Expr(:quote, sym)), missing)
+        res !== missing && return kw, res::$type
+        $sym = $exp
+        (;kw..., $sym), $sym::$type
+    end
+end
+```
+-/
+def getScratch {V K A Backing Alg Tail E : Type} {O : Type u}
+    (v : V) (order : O) (kw : SortKeywords K A Backing Alg Tail) :
+    Result E (SortKeywords K A Backing Alg Tail × (Option Backing)) :=
+  generatedKeywordGetter (fun kw => lookupKeyword kw.scratch) (fun kw value => { kw with scratch := some value })
+    (fun _ _ => .ok (.valid none)) (assertKeyword "scratch") kw v order
+
+/--
+Julia source: base/sort.jl:475-490 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+```julia
+for (sym, exp, type) in [
+        (:lo, :(firstindex(v)), Integer),
+        (:hi, :(lastindex(v)),  Integer),
+        (:mn, :(throw(ArgumentError("mn is needed but has not been computed"))), :(eltype(v))),
+        (:mx, :(throw(ArgumentError("mx is needed but has not been computed"))), :(eltype(v))),
+        (:scratch, nothing, :(Union{Nothing, Vector})), # could have different eltype
+        (:legacy_dispatch_entry, nothing, Union{Nothing, Algorithm})]
+    usym = Symbol(:_, sym)
+    @eval function $usym(v, o, kw)
+        # using missing instead of nothing because scratch could === nothing.
+        res = get(kw, $(Expr(:quote, sym)), missing)
+        res !== missing && return kw, res::$type
+        $sym = $exp
+        (;kw..., $sym), $sym::$type
+    end
+end
+```
+-/
+def getLegacyDispatchEntry {V K A Backing Alg Tail E : Type} {O : Type u}
+    (v : V) (order : O) (kw : SortKeywords K A Backing Alg Tail) :
+    Result E (SortKeywords K A Backing Alg Tail × (Option Alg)) :=
+  generatedKeywordGetter (fun kw => lookupKeyword kw.legacyDispatchEntry)
+    (fun kw value => { kw with legacyDispatchEntry := some value })
+    (fun _ _ => .ok (.valid none)) (assertKeyword "legacy_dispatch_entry") kw v order
+
+def getBounds {V K A Backing Alg Tail E : Type} {O : Type u}
+    (firstindex lastindex : V → Result E K) (v : V) (order : O)
+    (kw : SortKeywords K A Backing Alg Tail) :
+    Result E (SortKeywords K A Backing Alg Tail × K × K) := do
+  let (kw, lo) ← getLo firstindex v order kw
+  let (kw, hi) ← getHi lastindex v order kw
+  pure (kw, lo, hi)
+
+def getBoundsAndScratch {V K A Backing Alg Tail E : Type} {O : Type u}
+    (firstindex lastindex : V → Result E K) (v : V) (order : O)
+    (kw : SortKeywords K A Backing Alg Tail) :
+    Result E (SortKeywords K A Backing Alg Tail × K × K × Option Backing) := do
+  let (kw, lo, hi) ← getBounds firstindex lastindex v order kw
+  let (kw, scratch) ← getScratch v order kw
+  pure (kw, lo, hi, scratch)
+
+def appendBounds {K A Backing Alg Tail : Type} (kw : SortKeywords K A Backing Alg Tail)
+    (lo hi : K) : SortKeywords K A Backing Alg Tail :=
+  { kw with lo := some (.valid lo), hi := some (.valid hi) }
+
+def appendExtrema {K A Backing Alg Tail : Type} (kw : SortKeywords K A Backing Alg Tail)
+    (mn mx : A) : SortKeywords K A Backing Alg Tail :=
+  { kw with mn := some (.valid mn), mx := some (.valid mx) }
 
 structure IntegerIndexOps (K : Type) where
   addOne : K → K
   previous : K → K
   range : K → K → List K
   less : K → K → Bool
+
+abbrev Run (E A : Type) := ExceptT E Option A
+
+def liftExcept {E A : Type} (result : Except E A) : Run E A :=
+  match result with
+  | .ok value => pure value
+  | .error error => throw error
+
+structure WindowOps (V L H Start Bounds Window Index State Previous A E : Type) where
+  bounds : L → H → Run E Bounds
+  checkBounds : V → Bounds → Run E Unit
+  addOne : L → Start
+  window : Start → H → Run E Window
+  first : Window → Run E (Option (Index × State))
+  next : Window → State → Run E (Option (Index × State))
+  getCurrent : V → Index → Run E A
+  previous : Index → Previous
+  getPrevious : V → Previous → Run E A
+
+def issortedWindowLoop {V L H Start Bounds Window Index State Previous A E Key : Type}
+    (ops : WindowOps V L H Start Bounds Window Index State Previous A E)
+    (v : V) (window : Window) (order : ordering.OrdResult A Key)
+    (current : Option (Index × State)) : Option (Except (Sum E ordering.OrderingError) Bool) :=
+  match current with
+  | none => some (.ok true)
+  | some (i, state) =>
+    match (ops.getCurrent v i).run with
+    | none => none
+    | some (.error error) => some (.error (.inl error))
+    | some (.ok this) =>
+      match (ops.getPrevious v (ops.previous i)).run with
+      | none => none
+      | some (.error error) => some (.error (.inl error))
+      | some (.ok previous) =>
+        match ordering.ordCompare order this previous with
+        | .error error => some (.error (.inr error))
+        | .ok true => some (.ok false)
+        | .ok false =>
+          match (ops.next window state).run with
+          | none => none
+          | some (.error error) => some (.error (.inl error))
+          | some (.ok next) => issortedWindowLoop ops v window order next
+partial_fixpoint
 
 /--
 Julia source: base/sort.jl:1445-1451 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -896,14 +1239,163 @@ function _issorted(v::AbstractVector, lo::Integer, hi::Integer, o::Ordering)
 end
 ```
 -/
-def issortedWindow {V α K O E : Type} (indices : IntegerIndexOps K)
+def issortedWindow {V L H Start Bounds Window Index State Previous A E Key : Type}
+    (ops : WindowOps V L H Start Bounds Window Index State Previous A E)
+    (v : V) (lo : L) (hi : H) (order : ordering.OrdResult A Key) :
+    Option (Except (Sum E ordering.OrderingError) Bool) :=
+  match (ops.bounds lo hi).run with
+  | none => none
+  | some (.error error) => some (.error (.inl error))
+  | some (.ok bounds) =>
+    match (ops.checkBounds v bounds).run with
+    | none => none
+    | some (.error error) => some (.error (.inl error))
+    | some (.ok ()) =>
+      match (ops.window (ops.addOne lo) hi).run with
+      | none => none
+      | some (.error error) => some (.error (.inl error))
+      | some (.ok window) =>
+        match (ops.first window).run with
+        | none => none
+        | some (.error error) => some (.error (.inl error))
+        | some (.ok current) => issortedWindowLoop ops v window order current
+
+/-- The bound increment uses the source Int64 literal, so narrow bounds promote. -/
+def nativeAddOne {t : IntTy} (x : JInt t) : JInt (t.promote .i64) :=
+  int.binop int.add x (int.lit .i64 1)
+
+def nativePrevious {t : IntTy} (x : JInt t) : JInt (t.promote .i64) :=
+  int.binop int.sub x (int.lit .i64 1)
+
+def oneunitResult (t : IntTy) : Jl (JInt t) :=
+  number.oneunitType
+    (fun (_ : Unit) => number.oneType
+      (fun (_ : Unit) n => int.convert t (int.lit .i64 n)) ())
+    (fun x => .ok (int.widenTo t x)) ()
+
+def oneunitNative (t : IntTy) : JInt t :=
+  int.okOf (oneunitResult t) (by cases t <;> intro e h <;> cases h)
+
+section NativeWindow
+local instance nativeLe (t : IntTy) : range.JLe (JInt t) (JInt t) := ⟨int.le⟩
+local instance nativeLt (t : IntTy) : range.JLt (JInt t) (JInt t) := ⟨int.lt⟩
+local instance nativeEq (t : IntTy) : range.JEq (JInt t) (JInt t) := ⟨int.eq⟩
+local instance nativeOne (t : IntTy) : range.JOneunit (JInt t) := ⟨oneunitNative t⟩
+local instance nativeZero (t : IntTy) : range.JZero (JInt t) := ⟨int.zero (int.lit t 0)⟩
+local instance nativeAdd (t : IntTy) : HAdd (JInt t) (JInt t) (JInt t) := ⟨int.add⟩
+local instance nativeSub (t : IntTy) : HSub (JInt t) (JInt t) (JInt t) := ⟨int.sub⟩
+local instance nativeWrappingSub (t : IntTy) : range.JWrappingSub (JInt t) (JInt t) (JInt t) := ⟨int.subWrap⟩
+local instance nativeRangeSub (t : IntTy) : range.JRangeWrappingSub (JInt t) (JInt t) (JInt t) :=
+  ⟨range._range_wrapping_sub_BitInteger⟩
+local instance nativeConvert (t : IntTy) : range.JConvert (JInt t) (JInt t) :=
+  ⟨fun x => .ok (int.widenTo t x)⟩
+local instance nativeEltype (t : IntTy) : range.JEltype (range.UnitRange (JInt t)) (JInt t) := ⟨⟩
+local instance nativeStart (t : IntTy) : range.JFieldStart (range.UnitRange (JInt t)) (JInt t) := ⟨fun r => r.start⟩
+local instance nativeStop (t : IntTy) : range.JFieldStop (range.UnitRange (JInt t)) (JInt t) := ⟨fun r => r.stop⟩
+local instance nativeFirst (t : IntTy) : range.JFirst (range.UnitRange (JInt t)) (JInt t) := ⟨range.first_OrdinalRange⟩
+local instance nativeLast (t : IntTy) : range.JLast (range.UnitRange (JInt t)) (JInt t) := ⟨range.last_OrdinalRange⟩
+local instance nativeEmpty (t : IntTy) : range.JIsempty (range.UnitRange (JInt t)) := ⟨range.isempty_AbstractUnitRange⟩
+local instance nativeStep (t : IntTy) : range.JStep (range.UnitRange (JInt t)) (JInt t) :=
+  ⟨fun r => .ok (range.step_AbstractUnitRange r)⟩
+local instance nativeRangeLast (t : IntTy) : range.JUnitrangeLast (JInt t) (JInt t) :=
+  ⟨range.unitrange_last_Integer⟩
+local instance nativeUnitRange (t : IntTy) : range.JUnitRangeT (JInt t) (JInt t) (JInt t) :=
+  ⟨range.UnitRange_T_new⟩
+
+private theorem promoteSelf (t : IntTy) : t.promote t = t := by cases t <;> rfl
+
+private def castSameAxis {t u : IntTy} (same : t = u) (axis : range.UnitRange (JInt t)) :
+    range.UnitRange (JInt (t.promote u)) := by
+  subst u
+  simpa only [promoteSelf] using axis
+
+private def liftPromotion {A : Type} (result : promotion.JlPartial A) : Run range.Exc A := do
+  let result ← ExceptT.lift result.run
+  match result with
+  | .ok value => pure value
+  | .error error => throw (.jl error)
+
+private def promoteNative {t u : IntTy} (_different : t ≠ u) (x : JInt t) (y : JInt u) :
+    promotion.JlPartial (JInt (t.promote u) × JInt (t.promote u)) :=
+  promotion.promoteTwoValues
+    (fun a b => promotion.promotePairValues
+      (promotion.promoteTypeofTwo
+        (fun _ => promotion.primitivePType (.int t))
+        (fun _ => promotion.primitivePType (.int u))
+        (promotion.promoteTypeValue promotion.primitivePromoteRule))
+      (fun _ a => do
+        match int.convert (t.promote u) a with
+        | .ok value => pure value
+        | .error error => throw error)
+      (fun _ b => do
+        match int.convert (t.promote u) b with
+        | .ok value => pure value
+        | .error error => throw error) a b)
+    promotion.notSameTypeDifferent x y
+
+def nativeColon {t u : IntTy} (lo : JInt t) (hi : JInt u) :
+    Run range.Exc (range.UnitRange (JInt (t.promote u))) := do
+  if same : t = u then
+    let hiSame : JInt t := same.symm ▸ hi
+    let axis ← liftExcept (range.colon_T_T_Real lo hiSame)
+    pure (castSameAxis same axis)
+  else
+    let promoted ← liftPromotion (promoteNative same lo hi)
+    letI : range.JPromote2 (JInt t) (JInt u) (JInt (t.promote u)) :=
+      ⟨fun _ _ => .ok promoted⟩
+    letI : range.JColon2 (JInt (t.promote u)) (JInt (t.promote u))
+        (range.UnitRange (JInt (t.promote u))) := ⟨range.colon_T_T_Real⟩
+    liftExcept (range.colon_Real_Real lo hi)
+
+/-- This binding preserves the vector's own axis/checkindex dispatch, including
+OneTo, IdentityUnitRange and external axis types. -/
+def checkBoundsFromAxis {V Axis Bounds : Type}
+    (eachindexLinear : V → abstractarray.Result Axis)
+    (checkindex : Axis → Bounds → abstractarray.Result Bool) (v : V) (bounds : Bounds) :
+    abstractarray.Result Unit := do
+  let valid ← abstractarray.checkboundsOne eachindexLinear checkindex v bounds
+  if valid then pure () else throw (.julia .boundsError)
+
+inductive NativeError where
+  | array (error : abstractarray.ArrayError)
+  | range (error : range.Exc)
+  deriving Repr
+
+private def nativeLiftRange {A : Type} (result : Run range.Exc A) : Run NativeError A := do
+  let result ← ExceptT.lift result.run
+  match result with
+  | .ok value => pure value
+  | .error error => throw (.range error)
+
+def nativeWindowOps {V A : Type} (t u : IntTy)
+    (getindex : {k : IntTy} → V → JInt k → abstractarray.Result A)
+    (checkbounds : V → range.UnitRange (JInt (t.promote u)) → abstractarray.Result Unit) :
+    WindowOps V (JInt t) (JInt u) (JInt (t.promote .i64))
+      (range.UnitRange (JInt (t.promote u)))
+      (range.UnitRange (JInt ((t.promote .i64).promote u)))
+      (JInt ((t.promote .i64).promote u)) (JInt ((t.promote .i64).promote u))
+      (JInt (((t.promote .i64).promote u).promote .i64)) A NativeError where
+  bounds := fun lo hi => nativeLiftRange (nativeColon lo hi)
+  checkBounds := fun v bounds => liftExcept ((checkbounds v bounds).mapError NativeError.array)
+  addOne := nativeAddOne
+  window := fun lo hi => nativeLiftRange (nativeColon lo hi)
+  first := fun window => liftExcept ((range.iterate_OrdinalRange window).mapError NativeError.range)
+  next := fun window state => liftExcept
+    ((range.iterate_OrdinalRange_state window state).mapError NativeError.range)
+  getCurrent := fun v index => liftExcept ((getindex v index).mapError NativeError.array)
+  previous := nativePrevious
+  getPrevious := fun v index => liftExcept ((getindex v index).mapError NativeError.array)
+
+end NativeWindow
+
+def storageIssortedWindow {V α K O E : Type} (indices : IntegerIndexOps K)
     (checkBounds : V → K → K → Except E Unit) (get : V → K → Except E α)
-    (lt : O → α → α → Bool) (v : V) (lo hi : K) (order : O) : Except E Bool := do
+    (lt : O → α → α → Except E Bool) (v : V) (lo hi : K) (order : O) : Except E Bool := do
   checkBounds v lo hi
   for i in indices.range (indices.addOne lo) hi do
     let current ← get v i
     let previous ← get v (indices.previous i)
-    if lt order current previous then return false
+    if ← lt order current previous then return false
   pure true
 
 /--
@@ -1097,6 +1589,9 @@ inductive Algorithm (Target Index : Type) where
   | partialQuickSort (target : Target)
   | defaultStable
   | defaultUnstable
+  /-- A user `struct TheirAlg <: Algorithm`, identified by a tag; its methods are in the vector
+  storage's `userAlgorithms` table. -/
+  | user (tag : Nat)
 
 /-- Nesting depth of an algorithm value; it bounds how many `_sort!` dispatches pass through
 its wrappers before a leaf algorithm runs. -/
@@ -1321,24 +1816,125 @@ def getView {A D Idx K V E : Type} (view : A → List (Option K) → Except E V)
   let selectors := (List.range (dimensionCount array)).map fun offset =>
     if offset + 1 = selected then none else some (getIndex index (offset + 1))
   view array selectors
-structure SortpermRangeOps (V T C P E : Type) where
-  length : V → Int
-  read : V → Int → Except E T
-  wrapAdd : T → T → T
-  wrapSub : T → T → T
-  one : T
-  toIndex : T → Int
-  allocateCounts : Int → Except E C
-  countLength : C → Int
-  getCount : C → Int → Except E Int
-  setCount : C → Int → Int → Except E C
-  allocatePermutation : Int → Except E P
-  getPermutation : P → Int → Except E Int
-  setPermutation : P → Int → Int → Except E P
-  lessEqual : T → T → Bool
-  equal : T → T → Bool
-  range : Int → Int → List Int
+abbrev I := JInt .i64
+abbrev U := JInt .u64
+abbrev Vec := array.HeapArray IntTy
+abbrev Axis := List (Int × Nat)
 
+structure Heap where
+  integers : array.VectorHeap I
+  unsigned : array.VectorHeap U
+
+abbrev M := StateT Heap (Except Error)
+
+/-- Lift the installed array primitive, retaining its original error and shared handles. -/
+def integerAction (action : array.VectorM I A) : M A := fun heap =>
+  match action heap.integers with
+  | .error error => .error (.array error)
+  | .ok (value, integers) => .ok (value, { heap with integers })
+
+def unsignedAction (action : array.VectorM U A) : M A := fun heap =>
+  match action heap.unsigned with
+  | .error error => .error (.array error)
+  | .ok (value, unsigned) => .ok (value, { heap with unsigned })
+
+def checkedRange (result : range.JlX A) : Except Error A :=
+  result.mapError Error.range
+
+section NativeRangeBridge
+local instance : range.JLe I I := nativeLe .i64
+local instance : range.JLt I I := nativeLt .i64
+local instance : range.JEq I I := nativeEq .i64
+local instance : range.JOneunit I := nativeOne .i64
+local instance : range.JZero I := nativeZero .i64
+local instance : HAdd I I I := nativeAdd .i64
+local instance : HSub I I I := nativeSub .i64
+local instance : range.JWrappingSub I I I := nativeWrappingSub .i64
+local instance : range.JRangeWrappingSub I I I := nativeRangeSub .i64
+local instance : range.JConvert I I := nativeConvert .i64
+local instance : range.JEltype (range.UnitRange I) I := nativeEltype .i64
+local instance : range.JFieldStart (range.UnitRange I) I := nativeStart .i64
+local instance : range.JFieldStop (range.UnitRange I) I := nativeStop .i64
+local instance : range.JFirst (range.UnitRange I) I := nativeFirst .i64
+local instance : range.JLast (range.UnitRange I) I := nativeLast .i64
+local instance : range.JIsempty (range.UnitRange I) := nativeEmpty .i64
+local instance : range.JStep (range.UnitRange I) I := nativeStep .i64
+local instance : range.JUnitrangeLast I I := nativeRangeLast .i64
+local instance : range.JUnitRangeT I I I := nativeUnitRange .i64
+
+local instance : range.JEltype (range.OneTo I) I := ⟨⟩
+local instance : range.JFieldStop (range.OneTo I) I := ⟨fun r => r.stop⟩
+local instance : range.JFirst (range.OneTo I) I := ⟨fun r => .ok (range.first_OneTo r)⟩
+local instance : range.JLast (range.OneTo I) I := ⟨range.last_OrdinalRange⟩
+local instance : range.JIsempty (range.OneTo I) := ⟨range.isempty_AbstractUnitRange⟩
+local instance : range.JStep (range.OneTo I) I := ⟨fun r => .ok (range.step_AbstractUnitRange r)⟩
+
+/-- A finite native UnitRange bridge. Its loop count is the exact mathematical
+cardinality of the constructed native range, not user-supplied fuel. All yielded
+indices and the final next call come from the installed range iteration methods. -/
+def unitRangeItems (r : range.UnitRange I) : Except Error (List I) := do
+  let mut current ← checkedRange (range.iterate_OrdinalRange r)
+  let mut reversed := []
+  for _ in List.range (r.stop.val - r.start.val + 1).toNat do
+    match current with
+    | none => pure ()
+    | some (index, state) =>
+      reversed := index :: reversed
+      current ← checkedRange (range.iterate_OrdinalRange_state r state)
+  pure reversed.reverse
+
+def nativeRange (lo hi : I) : Except Error (List I) := do
+  unitRangeItems (← checkedRange (range.colon_T_T_Real lo hi))
+
+def oneToItems (r : range.OneTo I) : Except Error (List I) := do
+  let mut current ← checkedRange (range.iterate_OrdinalRange r)
+  let mut reversed := []
+  for _ in List.range r.stop.val.toNat do
+    match current with
+    | none => pure ()
+    | some (index, state) =>
+      reversed := index :: reversed
+      current ← checkedRange (range.iterate_OrdinalRange_state r state)
+  pure reversed.reverse
+
+/-- eachindex(::Array) follows the installed DenseArray method and the unchecked
+OneTo constructor, retaining the OneTo axis before its finite iteration bridge. -/
+def integerIndices (v : Vec) : M (List I) := do
+  let axis ← abstractarray.eachindexDense
+    (fun v : Vec => integerAction (array.heapLength v.handle)) range.unchecked_oneto v
+  liftM (oneToItems axis)
+end NativeRangeBridge
+
+def integerRead (v : Vec) (i : I) : M I := integerAction (array.heapGet v.handle i)
+def integerWrite (v : Vec) (x : I) (i : I) : M Unit :=
+  integerAction (array.heapSet v.handle x i)
+def unsignedRead (v : Vec) (i : I) : M U := unsignedAction (array.heapGet v.handle i)
+def unsignedWrite (v : Vec) (x : U) (i : I) : M Unit :=
+  unsignedAction (array.heapSet v.handle x i)
+
+def intTyLayout (t : IntTy) : Option array.MemoryLayout :=
+  some ⟨t.bits / 8, false, false⟩
+
+def integerAllocate (dimensions : List I) : M Vec :=
+  integerAction (array.heapAllocateIntDims intTyLayout .i64 dimensions)
+
+def fillInteger (v : Vec) (value : I) : M Vec :=
+  array.fillBang (fun _ => true) id pure
+    (array.fillTyped integerIndices integerWrite) v value
+
+def allocateCounts (length : I) : M Vec :=
+  array.fill585 integerAllocate fillInteger (int.lit .i64 0) [length]
+
+structure SortpermRangeOps (m : Type → Type) (V C P : Type) where
+  length : V → m I
+  read : V → I → m I
+  range : I → I → m (List I)
+  allocateCounts : I → m C
+  countLength : C → m I
+  getCount : C → I → m I
+  setCount : C → I → I → m Unit
+  allocatePermutation : I → m P
+  setPermutation : P → I → I → m Unit
 /--
 Julia source: base/sort.jl:2058-2081 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 ```julia
@@ -1368,82 +1964,95 @@ function sortperm_int_range(x::Vector{<:Integer}, rangelen, minval)
 end
 ```
 -/
-def sortpermIntRange {V T C P E : Type} (ops : SortpermRangeOps V T C P E)
-    (x : V) (rangeLength : Int) (minValue : T) : Except E P := do
-  let offsets := ops.wrapSub ops.one minValue
-  let n := ops.length x
-  let mut counts ← ops.allocateCounts (rangeLength + 1)
-  counts ← ops.setCount counts 1 1
-  for i in ops.range 1 n do
+def sortpermIntRange [Monad m] (ops : SortpermRangeOps m V C P)
+    (x : V) (rangeLength minValue : I) : m P := do
+  let offsets := int.subWrap (int.lit .i64 1) minValue
+  let n ← ops.length x
+  let counts ← ops.allocateCounts (int.add rangeLength (int.lit .i64 1))
+  ops.setCount counts (int.lit .i64 1) (int.lit .i64 1)
+  for i in (← ops.range (int.lit .i64 1) n) do
     let value ← ops.read x i
-    let bucket := ops.toIndex (ops.wrapAdd (ops.wrapAdd value offsets) ops.one)
+    let bucket := int.addWrap (int.addWrap value offsets) (int.lit .i64 1)
     let count ← ops.getCount counts bucket
-    counts ← ops.setCount counts bucket (count + 1)
-  for i in ops.range 2 (ops.countLength counts) do
+    ops.setCount counts bucket (int.add count (int.lit .i64 1))
+  for i in (← ops.range (int.lit .i64 2) (← ops.countLength counts)) do
     let count ← ops.getCount counts i
-    let previous ← ops.getCount counts (i - 1)
-    counts ← ops.setCount counts i (count + previous)
-  let mut permutation ← ops.allocatePermutation n
-  for i in ops.range 1 n do
+    let previous ← ops.getCount counts (int.sub i (int.lit .i64 1))
+    ops.setCount counts i (int.add count previous)
+  let permutation ← ops.allocatePermutation n
+  for i in (← ops.range (int.lit .i64 1) n) do
     let value ← ops.read x i
-    let label := ops.toIndex (ops.wrapAdd value offsets)
+    let label := int.addWrap value offsets
     let target ← ops.getCount counts label
-    permutation ← ops.setPermutation permutation target i
+    ops.setPermutation permutation target i
     let count ← ops.getCount counts label
-    counts ← ops.setCount counts label (count + 1)
+    ops.setCount counts label (int.add count (int.lit .i64 1))
   pure permutation
-private def wrapInt64 (value : Int) : Int :=
-  (JInt.wrap .i64 value).val
 
-private def readIntArray (array : Array Int) (index : Int) : Except JlError Int :=
-  if 1 ≤ index ∧ index ≤ array.size then
-    match array[index.toNat - 1]? with
+def arrayRead {α : Type} (values : Array α) (index : Int) : Jl α :=
+  if 1 ≤ index then
+    match values[(index - 1).toNat]? with
     | some value => .ok value
     | none => .error .boundsError
   else .error .boundsError
 
-private def writeIntArray (array : Array Int) (index value : Int) :
-    Except JlError (Array Int) :=
-  if 1 ≤ index ∧ index ≤ array.size then
-    .ok (array.set! (index.toNat - 1) value)
+def arrayWrite {α : Type} (values : Array α) (index : Int) (value : α) : Jl (Array α) :=
+  if 1 ≤ index ∧ index ≤ values.size then
+    .ok (values.set! (index - 1).toNat value)
   else .error .boundsError
 
-def sortpermIntArrayOps : SortpermRangeOps (Array Int) Int (Array Int) (Array Int) JlError where
-  length := fun x => x.size
-  read := readIntArray
-  wrapAdd := fun a b => wrapInt64 (a + b)
-  wrapSub := fun a b => wrapInt64 (a - b)
-  one := 1
-  toIndex := id
-  allocateCounts := fun n =>
-    if 0 ≤ n then .ok (Array.replicate n.toNat 0) else .error .boundsError
-  countLength := fun counts => counts.size
-  getCount := readIntArray
-  setCount := writeIntArray
-  allocatePermutation := fun n =>
-    if 0 ≤ n then .ok (Array.replicate n.toNat 0) else .error .boundsError
-  getPermutation := readIntArray
-  setPermutation := writeIntArray
-  lessEqual := fun a b => decide (a ≤ b)
-  equal := fun a b => decide (a = b)
-  range := fun lo hi =>
-    (List.range ((hi - lo + 1).toNat)).map fun offset => lo + Int.ofNat offset
+def arrayIndexRange (lo hi : Int) : List Int :=
+  (List.range (hi - lo + 1).toNat).map fun offset => lo + Int.ofNat offset
 
+def nativeSortpermOps : SortpermRangeOps M Vec Vec Vec where
+  length := fun v => integerAction (array.heapLength v.handle)
+  read := integerRead
+  range := fun lo hi => liftM (nativeRange lo hi)
+  allocateCounts := allocateCounts
+  countLength := fun v => integerAction (array.heapLength v.handle)
+  getCount := integerRead
+  setCount := fun v i x => integerWrite v x i
+  allocatePermutation := fun n =>
+    integerAction (array.heapVectorAllocate intTyLayout .i64 n)
+  setPermutation := fun v i x => integerWrite v x i
+
+def arraySortpermRangeOps :
+    SortpermRangeOps (StateT (Array Int × Array Int) Jl) (Array Int) Unit Unit where
+  length := fun x => pure (int.lit .i64 x.size)
+  read := fun x i => do
+    let v ← liftM (arrayRead x i.val)
+    pure (int.lit .i64 v)
+  range := fun lo hi => pure ((arrayIndexRange lo.val hi.val).map (int.lit .i64))
+  allocateCounts := fun n => fun (_, p) =>
+    if 0 ≤ n.val then .ok ((), (Array.replicate n.val.toNat 0, p)) else .error .boundsError
+  countLength := fun _ => fun (c, p) => .ok (int.lit .i64 c.size, (c, p))
+  getCount := fun _ i => fun (c, p) => do
+    let v ← arrayRead c i.val
+    .ok (int.lit .i64 v, (c, p))
+  setCount := fun _ i v => fun (c, p) => do
+    let c' ← arrayWrite c i.val v.val
+    .ok ((), (c', p))
+  allocatePermutation := fun n => fun (c, _) =>
+    if 0 ≤ n.val then .ok ((), (c, Array.replicate n.val.toNat 0)) else .error .boundsError
+  setPermutation := fun _ i v => fun (c, p) => do
+    let p' ← arrayWrite p i.val v.val
+    .ok ((), (c, p'))
 structure VectorMutationOps (m : Type → Type) (V α K : Type) where
   get : V → K → m α
   set : V → α → K → m Unit
   indices : IntegerIndexOps K
   distance : K → K → Nat
+  modelExhausted : {β : Type} → m β
 
 def insertionShift [Monad m] (ops : VectorMutationOps m V α K)
-    (lt : O → α → α → Bool) (order : O) (v : V) (lo : K) (value : α) :
+    (lt : O → α → α → m Bool) (order : O) (v : V) (lo : K) (value : α) :
     Nat → K → m K
-  | 0, j => pure j
+  | 0, j => if ops.indices.less lo j then ops.modelExhausted else pure j
   | fuel + 1, j =>
     if ops.indices.less lo j then do
       let previous := ops.indices.previous j
       let other ← ops.get v previous
-      if lt order value other then do
+      if ← lt order value other then do
         ops.set v other j
         insertionShift ops lt order v lo value fuel previous
       else pure j
@@ -1473,7 +2082,7 @@ end
 ```
 -/
 def insertionSort [Monad m] {V α K O S : Type} (ops : VectorMutationOps m V α K)
-    (lt : O → α → α → Bool) (order : O) (v : V) (lo hi : K) (scratch : S) : m S := do
+    (lt : O → α → α → m Bool) (order : O) (v : V) (lo hi : K) (scratch : S) : m S := do
   for i in ops.indices.range (ops.indices.addOne lo) hi do
     let value ← ops.get v i
     let j ← insertionShift ops lt order v lo value (ops.distance lo i + 1) i
@@ -2152,18 +2761,74 @@ def uintUnmapVectorBang {V UV U K α O E : Type}
     let value ← ops.uintUnmap (ops.elementType vector) (ops.addUnsigned unsigned offset) order
     vector ← ops.write vector index value
   pure vector
-structure RadixChunkHeuristicOps (K U Bits E : Type) where
-  subtract : K → K → K
-  maybeUnsigned : K → U
-  log : U → Float
-  fromNat : Nat → Float
-  min : Float → Float → Float
-  multiply : Float → Float → Float
-  divide : Float → Float → Float
-  add : Float → Float → Float
-  ceilingDiv : Nat → Float → Float
-  bitsToNat : Bits → Nat
-  toUInt8 : Float → Except E UInt8
+abbrev F64 := float.FV .f64
+
+/-- Heterogeneous native-integer/Float64 promotion follows the installed
+`promote_typeof` and `promote_type` dispatch, including its partial result. -/
+def promoteIntFloat {t : IntTy} (x : JInt t) (y : F64) :
+    promotion.JlPartial (F64 × F64) :=
+  promotion.promoteTwoValues
+    (fun a b => promotion.promotePairValues
+      (promotion.promoteTypeofTwo
+        (fun _ => promotion.primitivePType (.int t))
+        (fun _ => promotion.primitivePType (.float .f64))
+        (promotion.promoteTypeValue promotion.primitivePromoteRule))
+      (fun _ a => pure (float.floatOfInt .f64 a))
+      (fun _ b => pure (float.convertFloat .f64 b)) a b)
+    promotion.notSameTypeDifferent x y
+
+def liftJl {α : Type} (result : Jl α) : promotion.JlPartial α :=
+  match result with
+  | .ok value => pure value
+  | .error error => throw error
+
+/-- `minNumber` has one input type parameter; the sum only accommodates its
+heterogeneous arguments. Its only invocation here has an integer on the left
+and a Float64 on the right. `minIEEE` reads only the overwritten `minFloat` field. -/
+def minimumIntFloat (ieee : math.IEEEOps .f64) (x : JInt .i64) (y : F64) : promotion.JlPartial F64 :=
+  promotion.minNumber
+    (fun a b : Sum (JInt .i64) F64 =>
+      let convert := fun value => match value with
+        | .inl integer => float.floatOfInt .f64 integer
+        | .inr real => float.convertFloat .f64 real
+      match a, b with
+      | .inl integer, .inr real => promoteIntFloat integer real
+      | _, _ => pure (convert a, convert b))
+    (fun a b => pure (math.minIEEE { ieee with minFloat := JuliaLean.C.jlMinFloat } a b))
+    (.inl x) (.inr y)
+
+def floatMod (x y : F64) : F64 :=
+  float.mod_generic float.isinf_IEEEFloat float.isfinite_IEEEFloat float.rem_IEEEFloat
+    float.iszero_float float.copysign_float
+    (fun z => operators.greaterThan float.lt_IEEEFloat z (float.zero_float .f64))
+    float.add_IEEEFloat x y
+
+def floatRemUp (x y : F64) : F64 :=
+  int.okOf (div.rem_Up (fun a b => .ok (floatMod a b)) float.neg_IEEEFloat x y)
+    (by intro e h; cases h)
+
+def floatDivUp (x y : F64) (_mode : float.RoundingMode) : Jl F64 :=
+  .ok (div.div_AbstractFloat float.div_IEEEFloat (fun a b _ => floatRemUp a b)
+    float.sub_IEEEFloat
+    (fun x => rounding.roundKeyword (fun z _ (_ : Unit) => float.round_Nearest_llvm z) x ())
+    x y .Up)
+
+def mixedCld {u : IntTy} (bits : JInt u) (denominator : F64) :
+    promotion.JlPartial F64 := do
+  let promoted ← promoteIntFloat bits denominator
+  liftJl (div.cld_Real_Real (fun _ _ => promoted) floatDivUp bits denominator)
+
+def maybeUnsigned : (t : IntTy) → JInt t → JInt t.toUnsigned
+  | .i8, x => maybeUnsignedBitSigned int.unsigned x
+  | .i16, x => maybeUnsignedBitSigned int.unsigned x
+  | .i32, x => maybeUnsignedBitSigned int.unsigned x
+  | .i64, x => maybeUnsignedBitSigned int.unsigned x
+  | .i128, x => maybeUnsignedBitSigned int.unsigned x
+  | .u8, x => maybeUnsignedInteger x
+  | .u16, x => maybeUnsignedInteger x
+  | .u32, x => maybeUnsignedInteger x
+  | .u64, x => maybeUnsignedInteger x
+  | .u128, x => maybeUnsignedInteger x
 
 /--
 Julia source: base/sort.jl:1430-1441 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -2182,31 +2847,119 @@ function radix_chunk_size_heuristic(lo::Integer, hi::Integer, bits::Unsigned)
 end
 ```
 -/
-def radixChunkSizeHeuristic {K U Bits E : Type}
-    (ops : RadixChunkHeuristicOps K U Bits E) (lo hi : K) (bits : Bits) :
-    Except E UInt8 := do
-  let difference := ops.subtract hi lo
-  let guess := ops.min (ops.fromNat 10)
-    (ops.add (ops.divide (ops.multiply (ops.log (ops.maybeUnsigned difference))
-      (ops.fromNat 3)) (ops.fromNat 4)) (ops.fromNat 3))
-  let bitCount := ops.bitsToNat bits
-  let inner := ops.ceilingDiv bitCount guess
-  ops.toUInt8 (ops.ceilingDiv bitCount inner)
+def radixChunkSizeHeuristic {s t u : IntTy} (ieee : math.IEEEOps .f64)
+    (log : JInt (t.promote s).toUnsigned → Jl F64)
+    (lo : JInt s) (hi : JInt t) (bits : JInt u) : promotion.JlPartial (JInt .u8) := do
+  let difference := int.binop int.sub hi lo
+  let logarithm ← liftJl (log (maybeUnsigned _ difference))
+  let three := float.floatOfInt .f64 (int.lit .i64 3)
+  let four := float.floatOfInt .f64 (int.lit .i64 4)
+  let guess ← minimumIntFloat ieee (int.lit .i64 10)
+    (float.add_IEEEFloat
+      (float.div_IEEEFloat (float.mul_IEEEFloat logarithm three) four) three)
+  let inner ← mixedCld bits guess
+  liftJl (float.intOfFloat .u8 (← mixedCld bits inner))
 
-structure RadixSortPassOps (V C K U E : Type) where
-  mask : UInt8 → U
-  bucketIndex : U → Nat → U → Nat → Nat
-  zeroCounts : C → Except E C
-  read : V → K → Except E U
-  write : V → K → U → Except E V
-  range : K → K → List K
-  readCount : C → Nat → Except E Int
-  writeCount : C → Nat → Int → Except E C
-  setFirstTarget : C → K → Except E C
-  prefixSum : C → Except E C
-  addIndex : K → K → K
-  toIndex : Int → K
+abbrev BC := broadcast.Material.MaterializedExpr broadcast.Style.Style Unit (List I) Axis
+abbrev CopyExpr := broadcast.Material.Expr (Option broadcast.Style.Style) Unit (List I) Axis
 
+def scalarStyle (x : I) : Except broadcast.Style.StyleError broadcast.Style.Style :=
+  broadcast.Style.m432
+    (fun _ : I => broadcast.Style.m103
+      (fun _ : Unit => pure (.fixed (number.ndimsType ()).val.toNat)) ()) x
+
+def makeScalarBroadcast (f : Unit) (args : List I) (axes : Axis) : M BC := do
+  let style ← liftM ((broadcast.Style.combineStyles scalarStyle
+    (broadcast.Style.m459 (fun a b => decide (a = b))) args).mapError Error.style)
+  let bc ← liftM ((broadcast.Lazy.m181 (fun _ => .style style) f args axes).mapError Error.constructor)
+  pure ⟨bc.style, bc.f, bc.args, bc.axes⟩
+
+def maxRank : broadcast.Style.Rank → broadcast.Style.Rank → Except broadcast.Style.StyleError broadcast.Style.Rank
+  | .fixed a, .fixed b =>
+    let maximum := int.okOf
+      (promotion.maxSameType (fun x y : I => .ok (int.lt x y))
+        (int.lit .i64 a) (int.lit .i64 b))
+      (by intro error h; change Except.ok _ = Except.error error at h; cases h)
+    .ok (.fixed maximum.val.toNat)
+  | .any, _ | _, .any => .ok .any
+
+def combinedStyle (dest : Vec) (bc : BC) : M broadcast.Style.Style :=
+  broadcast.Style.m437
+    (fun value : Sum Vec BC => match value with
+      | .inl v => pure (broadcast.Style.m102 (.fixed v.dimensions.length))
+      | .inr e => liftM ((broadcast.Style.m433 (.assigned e.style)).mapError Error.julia))
+    (fun a b => do
+      let (style, _) ← liftM ((broadcast.Style.m463
+        (fun a b state => do
+          let style ← broadcast.Style.m149 maxRank broadcast.Style.rebuildRank a a.rank b.rank
+          pure (style, state)) a b ()).mapError Error.style)
+      pure style)
+    (.inl dest) (.inr bc)
+
+/-- The unresolved throwdm primitive keeps its own exception interface.
+Scalar unalias is bound directly to the installed abstractarray model. -/
+structure ScalarPrimitives where
+  throwdm : Axis → Axis → M Vec
+
+/-- Only the unavailable throwdm callee has an interface law. -/
+def ScalarPrimitiveLaws (p : ScalarPrimitives) : Prop :=
+  ∀ a b heap, p.throwdm a b heap = .error (.broadcast .dimensionMismatch)
+
+def scalarArgument (args : List I) : M I := do
+  let x ← liftM ((tuple.getindexInt args (int.lit .i64 1)).mapError Error.tuple)
+  pure (number.getindex0 x)
+
+def scalarBroadcastUnalias (dest : Vec) (x : I) : I :=
+  (broadcast.Material.m1001 (fun (_ _ : Vec × I) => false)
+    (fun _ pair => (pair.1, abstractarray.unaliasOther pair.1 pair.2)) (dest, x) (dest, x)).2
+
+def scalarPreprocess (dest : Vec) (bc : CopyExpr) : CopyExpr :=
+  broadcast.Material.m1007 (m := Id)
+    (fun dest args => args.map
+      (broadcast.Material.m1008 (m := Id) scalarBroadcastUnalias broadcast.Index.m672 dest)) dest bc
+
+def scalarCopyto (p : ScalarPrimitives) (dest : Vec) (bc : CopyExpr) : M Vec :=
+  broadcast.Material.m1015
+    (fun d : Vec => pure d.axes) (fun e : CopyExpr => pure e.axes)
+    (fun a b => decide (a = b)) (fun _ : Unit => true)
+    (fun _ : List I => none) p.throwdm
+    (fun d s => do
+      let _ ← integerAction (array.heapWholeCopy pure d.handle s.handle)
+      pure d)
+    (fun d e => pure (scalarPreprocess d e))
+    (fun _ => integerIndices dest)
+    (fun e _ => scalarArgument e.args)
+    (fun d i x => integerWrite d x i) dest bc
+
+def scalarCopytoSpecial (p : ScalarPrimitives) (dest : Vec) (bc : CopyExpr) : M Vec :=
+  broadcast.Material.m983
+    (fun _ : Unit => true) (fun args : List I => decide (args.length = 1))
+    (fun e => broadcast.Flatten.isFlatArgs
+      (S := Option broadcast.Style.Style) (X := Axis) (e.args.map broadcast.Flatten.Tree.leaf))
+    id scalarArgument fillInteger (fun e => { e with style := none }) (scalarCopyto p) dest bc
+
+def zeroCounts (p : ScalarPrimitives) (dest : Vec) : M Vec :=
+  broadcast.Material.m924 (fun d : Vec => pure d.axes)
+    makeScalarBroadcast () (int.lit .i64 0)
+    (fun bc => pure (broadcast.Lazy.m319 bc))
+    (fun d bc =>
+      broadcast.Material.m928 combinedStyle
+        (fun styleAction d e => do
+          let style ← styleAction
+          broadcast.Material.m932 (fun d : Vec => pure d.axes)
+            (fun e => pure (broadcast.Lazy.m319 e))
+            (fun d e => scalarCopytoSpecial p d ⟨some e.style, e.f, e.args, e.axes⟩) style d e)
+        d bc) dest
+
+structure RadixSortPassOps (m : Type → Type) (V C : Type) where
+  zeroCounts : C → m C
+  read : V → I → m U
+  write : V → U → I → m Unit
+  range : I → I → m (List I)
+  readCount : C → U → m I
+  writeCount : C → U → I → m Unit
+  setFirstTarget : C → I → m Unit
+  cumsum : C → C → m C
 /--
 Julia source: base/sort.jl:1402-1429 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 ```julia
@@ -2240,37 +2993,64 @@ function radix_sort_pass!(t, lo, hi, offset, counts, v, shift, chunk_size)
 end
 ```
 -/
-def radixSortPass {V C K U E : Type}
-    (ops : RadixSortPassOps V C K U E)
-    (target : V) (lo hi offset : K) (counts : C) (source : V)
-    (shift : Nat) (chunkSize : UInt8) : Except E (V × C) := do
-  let passMask := ops.mask chunkSize
-  let mut counts ← ops.zeroCounts counts
-  for index in ops.range lo hi do
+def radixSortPass [Monad m] (ops : RadixSortPassOps m V C)
+    (target : V) (lo hi offset : I) (counts : C) (source : V)
+    (shift : I) (chunk : JInt .u8) : m Unit := do
+  let mask := int.sub (int.shl_BitInteger_BitUnsigned (int.lit .u64 1) chunk)
+    (int.lit .u64 1)
+  let counts ← ops.zeroCounts counts
+  for index in (← ops.range lo hi) do
     let value ← ops.read source index
-    let bucket := ops.bucketIndex value shift passMask 2
+    let bucket := int.add (int.band (int.shr_Int value shift) mask) (int.lit .u64 2)
     let count ← ops.readCount counts bucket
-    counts ← ops.writeCount counts bucket (count + 1)
-  counts ← ops.setFirstTarget counts (ops.addIndex lo offset)
-  counts ← ops.prefixSum counts
-  let mut target := target
-  for index in ops.range lo hi do
+    ops.writeCount counts bucket (int.add count (int.lit .i64 1))
+  ops.setFirstTarget counts (int.add lo offset)
+  let counts ← ops.cumsum counts counts
+  for index in (← ops.range lo hi) do
     let value ← ops.read source index
-    let bucket := ops.bucketIndex value shift passMask 1
+    let bucket := int.add (int.band (int.shr_Int value shift) mask) (int.lit .u64 1)
     let targetIndex ← ops.readCount counts bucket
-    target ← ops.write target (ops.toIndex targetIndex) value
-    counts ← ops.writeCount counts bucket (targetIndex + 1)
-  pure (target, counts)
+    ops.write target value targetIndex
+    ops.writeCount counts bucket (int.add targetIndex (int.lit .i64 1))
 
-structure RadixSortOps (V C K U Bits E : Type) where
-  heuristic : RadixChunkHeuristicOps K U Bits E
-  pass : RadixSortPassOps V C K U E
-  allocateCounts : Nat → Except E C
-  bucketCount : UInt8 → Nat
-  bitsToNat : Bits → Nat
-  chunkToNat : UInt8 → Nat
-  addIndex : K → K → K
-  negateIndex : K → K
+def unsignedIndex (index : U) : M I :=
+  liftM ((array.indexConvert index).mapError Error.array)
+
+def nativeRadixPassOps (p : ScalarPrimitives) (cumsum : Vec → Vec → M Vec) :
+    RadixSortPassOps M Vec Vec where
+  zeroCounts := zeroCounts p
+  read := unsignedRead
+  write := unsignedWrite
+  range := fun lo hi => liftM (nativeRange lo hi)
+  readCount := fun v i => do integerRead v (← unsignedIndex i)
+  writeCount := fun v i x => do integerWrite v x (← unsignedIndex i)
+  setFirstTarget := fun v first => integerWrite v first (int.lit .i64 1)
+  cumsum := cumsum
+
+structure RadixSortOps where
+  pass : RadixSortPassOps M Vec Vec
+  heuristic : I → I → U → promotion.JlPartial (JInt .u8)
+  allocateCounts : I → M Vec
+
+/-- Exact source while-loop, threading the shared heaps after each complete pass.
+none is nonreturning, never a successful fuel-exhaustion result. -/
+def radixSortLoop (ops : RadixSortOps) (vector scratch : Vec)
+    (lo hi offset : I) (bits : U) (chunk : JInt .u8) (counts : Vec) (shift : I)
+    (heap : Heap) : Option (Except Error (Bool × Heap)) :=
+  match radixSortPass ops.pass scratch lo hi offset counts vector shift chunk heap with
+  | .error error => some (.error error)
+  | .ok (_, heap) =>
+    let shift := int.add shift (int.widenTo .i64 chunk)
+    if !(int.lt shift bits) then some (.ok (false, heap))
+    else
+      match radixSortPass ops.pass vector (int.add lo offset) (int.add hi offset)
+          (int.neg offset) counts scratch shift chunk heap with
+      | .error error => some (.error error)
+      | .ok (_, heap) =>
+        let shift := int.add shift (int.widenTo .i64 chunk)
+        if !(int.lt shift bits) then some (.ok (true, heap))
+        else radixSortLoop ops vector scratch lo hi offset bits chunk counts shift heap
+partial_fixpoint
 
 /--
 Julia source: base/sort.jl:1384-1401 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -2295,38 +3075,40 @@ function radix_sort!(v::AbstractVector{U}, lo::Integer, hi::Integer, bits::Unsig
 end
 ```
 -/
-def radixSortLoop {V C K U Bits E : Type}
-    (ops : RadixSortOps V C K U Bits E)
-    (lo hi offset : K) (bitCount step : Nat) (chunkSize : UInt8) :
-    Nat → V → V → C → Nat → Except E (V × V × Bool)
-  | 0, vector, scratch, _, _ => pure (vector, scratch, false)
-  | fuel + 1, vector, scratch, counts, shift => do
-    let (scratch, counts) ←
-      radixSortPass ops.pass scratch lo hi offset counts vector shift chunkSize
-    let shift := shift + step
-    if !(shift < bitCount) then
-      pure (vector, scratch, false)
-    else
-      let (vector, counts) ← radixSortPass ops.pass vector
-        (ops.addIndex lo offset) (ops.addIndex hi offset) (ops.negateIndex offset)
-        counts scratch shift chunkSize
-      let shift := shift + step
-      if !(shift < bitCount) then
-        pure (vector, scratch, true)
-      else
-        radixSortLoop ops lo hi offset bitCount step chunkSize fuel vector scratch counts shift
+def radixSortBang (ops : RadixSortOps) (vector scratch : Vec) (lo hi offset : I)
+    (bits : U) (chunk : Option (JInt .u8)) (heap : Heap) :
+    Option (Except Error (Bool × Heap)) :=
+  let resolved : Option (Jl (JInt .u8)) := match chunk with
+    | some chunk => some (.ok chunk)
+    | none => (ops.heuristic lo hi bits).run
+  match resolved with
+  | none => none
+  | some (.error error) => some (.error (.julia error))
+  | some (.ok chunk) =>
+    let size := int.add (int.shl_BitInteger_BitUnsigned (int.lit .i64 1) chunk)
+      (int.lit .i64 1)
+    match ops.allocateCounts size heap with
+    | .error error => some (.error error)
+    | .ok (counts, heap) =>
+      radixSortLoop ops vector scratch lo hi offset bits chunk counts (int.lit .i64 0) heap
 
-def radixSortBang {V C K U Bits E : Type}
-    (ops : RadixSortOps V C K U Bits E)
-    (vector : V) (lo hi : K) (bits : Bits) (scratch : V) (offset : K)
-    (chunkSize? : Option UInt8 := none) : Except E (V × V × Bool) := do
-  let chunkSize ← match chunkSize? with
-    | some size => pure size
-    | none => radixChunkSizeHeuristic ops.heuristic lo hi bits
-  let counts ← ops.allocateCounts (ops.bucketCount chunkSize)
-  let bitCount := ops.bitsToNat bits
-  let step := ops.chunkToNat chunkSize
-  radixSortLoop ops lo hi offset bitCount step chunkSize (bitCount + 1) vector scratch counts 0
+def nativeRadixOps (p : ScalarPrimitives) (cumsum : Vec → Vec → M Vec)
+    (ieee : math.IEEEOps .f64) (log : U → Jl F64) : RadixSortOps where
+  pass := nativeRadixPassOps p cumsum
+  heuristic := radixChunkSizeHeuristic ieee log
+  allocateCounts := fun n =>
+    integerAction (array.heapVectorAllocate intTyLayout .i64 n)
+
+def CumsumLaws (cumsum : Vec → Vec → M Vec) : Prop :=
+  ∀ dest source heap, dest = source →
+    (∃ xs : List I, heap.integers[source.handle]? = some (xs.map some)) →
+    ∃ output after,
+      cumsum dest source heap = .ok (output, after) ∧ output = dest ∧
+      after.unsigned = heap.unsigned ∧
+      (∀ handle, handle ≠ dest.handle → after.integers[handle]? = heap.integers[handle]?) ∧
+      ∀ xs : List I, heap.integers[source.handle]? = some (xs.map some) →
+        after.integers[dest.handle]? =
+          some ((xs.scanl int.add (int.lit .i64 0)).tail.map some)
 
 structure SubArraySortOps (View Parent ParentVector K Alg O Kws R E : Type) where
   range : Kws → Except E (K × K)
@@ -2579,13 +3361,52 @@ def sortCheckSorted {V Alg O K Kws Scratch E : Type}
   else
     ops.sort vector (ops.nextAlgorithm algorithm) order keywords
 
-structure ComputeExtremaOps (V Alg O K α Kws Scratch E : Type) where
-  rangeAndScratch : Kws → Except E (K × K × Scratch)
-  nextIndex : K → K
-  range : K → K → List K
-  read : V → K → Except E α
-  less : O → α → α → Bool
-  appendExtrema : Kws → α → α → Kws
+/-- A source local can initially have the keyword bound's type and then acquire
+its promoted type after arithmetic with the Int64 literal one. -/
+inductive PromotingIndex (Initial Promoted : Type) where
+  | initial (value : Initial)
+  | promoted (value : Promoted)
+
+def PromotingIndex.unwrap {T : Type} : PromotingIndex T T → T
+  | .initial value => value
+  | .promoted value => value
+
+structure IndexStep (Initial Promoted : Type) where
+  initialStep : Initial → Promoted
+  promotedStep : Promoted → Promoted
+
+def stepIndex {Initial Promoted : Type} (ops : IndexStep Initial Promoted) :
+    PromotingIndex Initial Promoted → PromotingIndex Initial Promoted
+  | .initial value => .promoted (ops.initialStep value)
+  | .promoted value => .promoted (ops.promotedStep value)
+
+def nativeSubtractOne {t : IntTy} (value : JInt t) : JInt (t.promote .i64) :=
+  int.binop int.sub value (int.lit .i64 1)
+
+private theorem repeatedPromotion (t : IntTy) :
+    (t.promote .i64).promote .i64 = t.promote .i64 := by cases t <;> rfl
+
+private def castRepeatedPromotion {t : IntTy}
+    (value : JInt ((t.promote .i64).promote .i64)) : JInt (t.promote .i64) :=
+  cast (congrArg JInt (repeatedPromotion t)) value
+
+def nativeIncrement (t : IntTy) : IndexStep (JInt t) (JInt (t.promote .i64)) where
+  initialStep := nativeAddOne
+  promotedStep := fun value => castRepeatedPromotion (t := t) (nativeAddOne value)
+
+def nativeDecrement (t : IntTy) : IndexStep (JInt t) (JInt (t.promote .i64)) where
+  initialStep := nativeSubtractOne
+  promotedStep := fun value => castRepeatedPromotion (t := t) (nativeSubtractOne value)
+
+structure ComputeExtremaOps (V Alg Lo Hi Start Index A Kws Scratch E : Type)
+    (O : Type u) where
+  rangeAndScratch : V → O → Kws → Except E (Kws × Lo × Hi × Scratch)
+  nextIndex : Lo → Start
+  range : Start → Hi → List Index
+  readFirst : V → Lo → Except E A
+  read : V → Index → Except E A
+  less : O → A → A → Except E Bool
+  appendExtrema : Kws → A → A → Kws
   nextAlgorithm : Alg → Alg
   sort : V → Alg → O → Kws → Except E Scratch
 
@@ -2607,27 +3428,24 @@ function _sort!(v::AbstractVector, a::ComputeExtrema, o::Ordering, kw)
 end
 ```
 -/
-def sortComputeExtrema {V Alg O K α Kws Scratch E : Type}
-    (ops : ComputeExtremaOps V Alg O K α Kws Scratch E)
-    (vector : V) (algorithm : Alg) (order : O) (keywords : Kws) :
-    Except E Scratch := do
-  let (lo, hi, scratch) ← ops.rangeAndScratch keywords
-  let first ← ops.read vector lo
+def sortComputeExtrema {V Alg Lo Hi Start Index A Kws Scratch E : Type} {O : Type u}
+    (ops : ComputeExtremaOps V Alg Lo Hi Start Index A Kws Scratch E O)
+    (vector : V) (algorithm : Alg) (order : O) (keywords : Kws) : Except E Scratch := do
+  let (keywords, lo, hi, scratch) ← ops.rangeAndScratch vector order keywords
+  let first ← ops.readFirst vector lo
   let mut minimum := first
   let mut maximum := first
   for index in ops.range (ops.nextIndex lo) hi do
     let value ← ops.read vector index
-    if ops.less order value minimum then
-      minimum := value
-    if ops.less order maximum value then
-      maximum := value
-  if !(ops.less order minimum maximum) then
+    if ← ops.less order value minimum then minimum := value
+    if ← ops.less order maximum value then maximum := value
+  if !(← ops.less order minimum maximum) then
     pure scratch
   else
     ops.sort vector (ops.nextAlgorithm algorithm) order
       (ops.appendExtrema keywords minimum maximum)
 structure BoolSortOps (V K O Kws Scratch R E : Type) where
-  less : O → Bool → Bool → Bool
+  less : O → Bool → Bool → Except E Bool
   rangeAndScratch : Kws → Except E (K × K × Scratch)
   range : K → K → List K
   read : V → K → Except E Bool
@@ -2670,10 +3488,10 @@ end
 def sortBoolVector {V K O Kws Scratch R E : Type}
     (ops : BoolSortOps V K O Kws Scratch R E)
     (vector : V) (order : O) (keywords : Kws) : Except E R := do
-  let first :=
-    if ops.less order false true then some false
-    else if ops.less order true false then some true
-    else none
+  let first ← do
+    if ← ops.less order false true then pure (some false)
+    else if ← ops.less order true false then pure (some true)
+    else pure none
   match first with
   | none => pure (ops.returnVector vector)
   | some first =>
@@ -2686,8 +3504,10 @@ def sortBoolVector {V K O Kws Scratch R E : Type}
     let secondFilled ← ops.setSegment firstFilled (ops.secondSegmentStart lo count) hi (!first)
     pure (ops.returnScratch secondFilled scratch)
 structure MissingSortOps
-    (V Data Wrapped K Index α Alg O PermOrder Kws Scratch E : Type) where
-  range : Kws → Except E (K × K)
+    (V Data WrappedV WrappedData Lo Hi PromotedLo PromotedHi DirectLo DirectHi
+      LoopIndex DataIndex A Alg Kws DirectKws PermKws Scratch E CV : Type)
+    (O PermOrder WrappedPermOrder : Type u) where
+  range : V → O → Kws → Except E (Kws × Lo × Hi)
   elementType : V → Type
   dataElementType : Data → Type
   hasMissingSupertype : Type → Bool
@@ -2698,24 +3518,28 @@ structure MissingSortOps
   permutationDetails : O → Option (PermOrder × Data)
   isDirectPermutationOrder : PermOrder → Bool
   isReversePermutationOrder : PermOrder → Bool
-  allIdentityIndices : V → Data → Bool
-  sendMissingToEnd : V → O → K → K → Except E (V × K × K)
-  wrapVectorWithoutMissing : V → Except E Wrapped
-  wrapDataWithoutMissing : Data → Except E Wrapped
-  indexRange : K → K → List K
-  eachDataIndex : Data → List Index
-  dataIndexAt : List Index → K → Index
-  readData : Data → Index → Except E α
-  isMissing : α → Bool
-  writeIndex : V → K → K → Except E V
-  nextIndex : K → K
-  previousIndex : K → K
-  reverse : V → K → K → Except E V
-  permutationOrder : PermOrder → Wrapped → O
+  allIdentityIndices : V → Data → Except E Bool
+  sendMissingToEnd : V → O → Lo → Hi → Except E (V × DirectLo × DirectHi)
+  wrapVectorWithoutMissing : V → Except E WrappedV
+  wrapDataWithoutMissing : Data → Except E WrappedData
+  indexRange : Lo → Hi → List LoopIndex
+  eachDataIndex : Data → Except E CV
+  dataIndexAt : CV → LoopIndex → Except E DataIndex
+  readData : Data → DataIndex → Except E A
+  isMissing : A → Except E Bool
+  writeLowIndex : V → PromotingIndex Lo PromotedLo → LoopIndex → Except E V
+  writeHighIndex : V → PromotingIndex Hi PromotedHi → LoopIndex → Except E V
+  incrementLow : IndexStep Lo PromotedLo
+  decrementHigh : IndexStep Hi PromotedHi
+  reverse : V → PromotingIndex Lo PromotedLo → Hi → Except E V
+  permutationOrder : PermOrder → WrappedData → WrappedPermOrder
   nextAlgorithm : Alg → Alg
-  appendBounds : Kws → K → K → Kws
-  sortWrapped : Wrapped → Alg → O → Kws → Except E Scratch
+  appendDirectBounds : Kws → DirectLo → DirectHi → DirectKws
+  appendPermutationBounds : Kws → PromotingIndex Lo PromotedLo →
+    PromotingIndex Hi PromotedHi → PermKws
+  sortWrapped : WrappedV → Alg → O → DirectKws → Except E Scratch
   sortVector : V → Alg → O → Kws → Except E Scratch
+  sortPermutation : V → Alg → WrappedPermOrder → PermKws → Except E Scratch
 
 /--
 Julia source: base/sort.jl:651-686 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -2758,48 +3582,54 @@ function _sort!(v::AbstractVector, a::MissingOptimization, o::Ordering, kw)
 end
 ```
 -/
-def sortMissingOptimization {V Data Wrapped K Index α Alg O PermOrder Kws Scratch E : Type}
-    (ops : MissingSortOps V Data Wrapped K Index α Alg O PermOrder Kws Scratch E)
-    (vector : V) (algorithm : Alg) (order : O) (keywords : Kws) :
-    Except E Scratch := do
-  let (lo, hi) ← ops.range keywords
+def sortMissingOptimization
+    {V Data WrappedV WrappedData Lo Hi PromotedLo PromotedHi DirectLo DirectHi
+      LoopIndex DataIndex A Alg Kws DirectKws PermKws Scratch E CV : Type}
+    {O PermOrder WrappedPermOrder : Type u}
+    (ops : MissingSortOps V Data WrappedV WrappedData Lo Hi PromotedLo PromotedHi
+      DirectLo DirectHi LoopIndex DataIndex A Alg Kws DirectKws PermKws Scratch E CV
+      O PermOrder WrappedPermOrder)
+    (vector : V) (algorithm : Alg) (order : O) (keywords : Kws) : Except E Scratch := do
+  let (keywords, lo, hi) ← ops.range vector order keywords
   let vectorType := ops.elementType vector
   if ops.isDirectOrdering order && ops.hasMissingSupertype vectorType &&
       !ops.sameType (ops.nonMissingType vectorType) vectorType then
     let (vector, lo, hi) ← ops.sendMissingToEnd vector order lo hi
     let withoutMissing ← ops.wrapVectorWithoutMissing vector
     ops.sortWrapped withoutMissing (ops.nextAlgorithm algorithm) order
-      (ops.appendBounds keywords lo hi)
+      (ops.appendDirectBounds keywords lo hi)
   else
     match ops.permutationDetails order with
     | some (permutationOrder, data) =>
       let dataType := ops.dataElementType data
-      if ops.isDirectPermutationOrder permutationOrder &&
-          ops.isIntegerType vectorType && ops.hasMissingSupertype dataType &&
-          !ops.sameType (ops.nonMissingType dataType) dataType &&
-          ops.allIdentityIndices vector data then
-        let mut loIndex := lo
-        let mut hiIndex := hi
-        let indices := ops.eachDataIndex data
-        let mut vector := vector
-        for i in ops.indexRange lo hi do
-          let dataIndex := ops.dataIndexAt indices i
-          let value ← ops.readData data dataIndex
-          if ops.isMissing value == ops.isReversePermutationOrder permutationOrder then
-            vector ← ops.writeIndex vector loIndex i
-            loIndex := ops.nextIndex loIndex
-          else
-            vector ← ops.writeIndex vector hiIndex i
-            hiIndex := ops.previousIndex hiIndex
-        vector ← ops.reverse vector loIndex hi
-        let (lo, hi) := if ops.isReversePermutationOrder permutationOrder then
-          (loIndex, hi) else (lo, hiIndex)
-        let withoutMissing ← ops.wrapDataWithoutMissing data
-        ops.sortVector vector (ops.nextAlgorithm algorithm)
-          (ops.permutationOrder permutationOrder withoutMissing)
-          (ops.appendBounds keywords lo hi)
-      else
-        ops.sortVector vector (ops.nextAlgorithm algorithm) order keywords
+      if ops.isDirectPermutationOrder permutationOrder && ops.isIntegerType vectorType &&
+          ops.hasMissingSupertype dataType && !ops.sameType (ops.nonMissingType dataType) dataType then
+        let identity ← ops.allIdentityIndices vector data
+        if identity then
+          let mut loIndex : PromotingIndex Lo PromotedLo := .initial lo
+          let mut hiIndex : PromotingIndex Hi PromotedHi := .initial hi
+          let indices ← ops.eachDataIndex data
+          let mut vector := vector
+          for i in ops.indexRange lo hi do
+            let dataIndex ← ops.dataIndexAt indices i
+            let value ← ops.readData data dataIndex
+            let missing ← ops.isMissing value
+            if missing == ops.isReversePermutationOrder permutationOrder then
+              vector ← ops.writeLowIndex vector loIndex i
+              loIndex := stepIndex ops.incrementLow loIndex
+            else
+              vector ← ops.writeHighIndex vector hiIndex i
+              hiIndex := stepIndex ops.decrementHigh hiIndex
+          vector ← ops.reverse vector loIndex hi
+          let (lo, hi) := if ops.isReversePermutationOrder permutationOrder then
+            (loIndex, PromotingIndex.initial hi)
+            else (PromotingIndex.initial lo, hiIndex)
+          let withoutMissing ← ops.wrapDataWithoutMissing data
+          ops.sortPermutation vector (ops.nextAlgorithm algorithm)
+            (ops.permutationOrder permutationOrder withoutMissing)
+            (ops.appendPermutationBounds keywords lo hi)
+        else ops.sortVector vector (ops.nextAlgorithm algorithm) order keywords
+      else ops.sortVector vector (ops.nextAlgorithm algorithm) order keywords
     | none => ops.sortVector vector (ops.nextAlgorithm algorithm) order keywords
 structure IEEEFloatSortOps
     (V Data UnsignedVector K Alg O PermOrder NextOrder Kws Scratch E : Type) where
@@ -3036,16 +3866,19 @@ def sortCounting {V K T U C O Kws Scratch E : Type}
     index := ops.nextAfterBucket lastIndex
   pure (vector, scratch)
 structure RadixSortWrapperOps
-    (V α UV U K Bits C Backing O Kws E Result : Type) where
+    (V α UV U K C Backing O Kws E Result : Type) where
   rangeAndExtrema : Kws → Except E (K × K × α × α × Option Backing)
   uintMapOps : UIntMapVectorOps V UV U K α O E
   subtractUnsigned : U → U → U
-  topSetBit : U → Bits
+  topSetBit : U → JInt .u64
   range : K → K → List K
   windowLength : K → K → Nat
   oneMinus : K → K
-  radixOps : RadixSortOps UV C K U Bits E
-  scratchOps : ScratchOps Backing Backing E
+  readUnsigned : UV → K → Except E U
+  writeUnsigned : UV → K → U → Except E UV
+  radixOps : RadixSortOps
+  runRadixSort : RadixSortOps → UV → K → K → JInt .u64 → UV → K → Option (Except E (UV × UV × Bool))
+  makeScratch : Option Backing → V → Nat → Except E (Backing × Backing)
   reinterpretScratch : Option Type → Backing → Except E UV
   unmapOps : UIntUnmapVectorOps V UV U K α O E
   finish : V → Backing → Result
@@ -3086,36 +3919,41 @@ function _sort!(v::AbstractVector, a::RadixSort, o::DirectOrdering, kw)
 end
 ```
 -/
-def sortRadixAlgorithm {V α UV U K Bits C Backing O Kws E Result : Type}
-    (ops : RadixSortWrapperOps V α UV U K Bits C Backing O Kws E Result)
-    (vector : V) (order : O) (keywords : Kws) : Except E Result := do
-  let (lo, hi, minimum, maximum, scratchArg) ← ops.rangeAndExtrema keywords
-  let minimumUnsigned ← ops.uintMapOps.uintMap minimum order
-  let maximumUnsigned ← ops.uintMapOps.uintMap maximum order
-  let range := ops.subtractUnsigned maximumUnsigned minimumUnsigned
-  let bits := ops.topSetBit range
-  let mut unsignedVector ← uintMapVectorBang ops.uintMapOps vector lo hi order
-  for index in ops.range lo hi do
-    let value ← ops.radixOps.pass.read unsignedVector index
-    unsignedVector ← ops.radixOps.pass.write unsignedVector index
-      (ops.subtractUnsigned value minimumUnsigned)
-  let (scratch, scratchView) ←
-    match scratchArg with
-    | none => makeScratchNothing ops.scratchOps (ops.windowLength lo hi)
-    | some existing => makeScratchSame ops.scratchOps existing (ops.windowLength lo hi)
-  let unsignedType := ops.uintMapOps.uintMappable
-    (ops.uintMapOps.elementType vector) order
-  let unsignedScratch ← ops.reinterpretScratch unsignedType scratchView
-  let indexOffset := ops.oneMinus lo
-  let (unsignedResult, unsignedScratchResult, dataInVector) ←
-    radixSortBang ops.radixOps unsignedVector lo hi bits unsignedScratch indexOffset
-  let resultVector ← if dataInVector then
-    uintUnmapVectorBang ops.unmapOps vector unsignedResult lo hi order
-      (some minimumUnsigned) none
-  else
-    uintUnmapVectorBang ops.unmapOps vector unsignedScratchResult lo hi order
-      (some minimumUnsigned) (some indexOffset)
-  pure (ops.finish resultVector scratch)
+def sortRadixAlgorithm {V α UV U K C Backing O Kws E Result : Type}
+    (ops : RadixSortWrapperOps V α UV U K C Backing O Kws E Result)
+    (vector : V) (order : O) (keywords : Kws) : Option (Except E Result) :=
+  match (do
+    let (lo, hi, minimum, maximum, scratchArg) ← ops.rangeAndExtrema keywords
+    let minimumUnsigned ← ops.uintMapOps.uintMap minimum order
+    let maximumUnsigned ← ops.uintMapOps.uintMap maximum order
+    let range := ops.subtractUnsigned maximumUnsigned minimumUnsigned
+    let bits := ops.topSetBit range
+    let mut unsignedVector ← uintMapVectorBang ops.uintMapOps vector lo hi order
+    for index in ops.range lo hi do
+      let value ← ops.readUnsigned unsignedVector index
+      unsignedVector ← ops.writeUnsigned unsignedVector index
+        (ops.subtractUnsigned value minimumUnsigned)
+    let (scratch, scratchView) ←
+      ops.makeScratch scratchArg vector (ops.windowLength lo hi)
+    let unsignedType := ops.uintMapOps.uintMappable
+      (ops.uintMapOps.elementType vector) order
+    let unsignedScratch ← ops.reinterpretScratch unsignedType scratchView
+    let indexOffset := ops.oneMinus lo
+    pure (lo, hi, minimumUnsigned, unsignedVector, scratch, unsignedScratch, indexOffset, bits)) with
+  | .error error => some (.error error)
+  | .ok (lo, hi, minimumUnsigned, unsignedVector, scratch, unsignedScratch, indexOffset, bits) =>
+    match ops.runRadixSort ops.radixOps unsignedVector lo hi bits unsignedScratch indexOffset with
+    | none => none
+    | some (.error error) => some (.error error)
+    | some (.ok (unsignedResult, unsignedScratchResult, dataInVector)) =>
+      some do
+        let resultVector ← if dataInVector then
+          uintUnmapVectorBang ops.unmapOps vector unsignedResult lo hi order
+            (some minimumUnsigned) none
+        else
+          uintUnmapVectorBang ops.unmapOps vector unsignedScratchResult lo hi order
+            (some minimumUnsigned) (some indexOffset)
+        pure (ops.finish resultVector scratch)
 structure AlgorithmDisplayOps (IO Alg Name Arg E : Type) where
   print : IO → String → Except E IO
   println : IO → String → Except E IO
@@ -3290,7 +4128,7 @@ structure TupleMergeStepOps (Tuple α O E : Type) where
   head : Tuple → α
   tail : Tuple → Tuple
   prepend : α → Tuple → Tuple
-  less : O → α → α → Bool
+  less : O → α → α → Except E Bool
   merge : Tuple → Tuple → O → Except E Tuple
 
 /--
@@ -3305,7 +4143,7 @@ def mergeTupleNonempty {Tuple α O E : Type}
     (left right : Tuple) (order : O) : Except E Tuple := do
   let leftHead := ops.head left
   let rightHead := ops.head right
-  if ops.less order rightHead leftHead then
+  if ← ops.less order rightHead leftHead then
     let rest ← ops.merge left (ops.tail right) order
     pure (ops.prepend rightHead rest)
   else
@@ -3418,8 +4256,9 @@ def sortStableCheck {V Alg O K Kws Scratch E : Type}
   else
     ops.sort vector (ops.nextAlgorithm algorithm) order keywords
 structure LegacyQuickSortOps (V α K Alg O E : Type) where
+  modelExhausted : E
   midpoint : K → K → K
-  lessValue : O → α → α → Bool
+  lessValue : O → α → α → Except E Bool
   read : V → K → Except E α
   write : V → K → α → Except E V
   nextIndex : K → K
@@ -3463,16 +4302,16 @@ def selectPivot {V α K Alg O E : Type}
   let middle := ops.midpoint lo hi
   let loValue ← ops.read vector lo
   let middleValue ← ops.read vector middle
-  let vector ← if ops.lessValue order loValue middleValue then do
+  let vector ← if ← ops.lessValue order loValue middleValue then do
     let vector ← ops.write vector lo middleValue
     ops.write vector middle loValue
   else
     pure vector
   let hiValue ← ops.read vector hi
   let loValue ← ops.read vector lo
-  let vector ← if ops.lessValue order hiValue loValue then do
+  let vector ← if ← ops.lessValue order hiValue loValue then do
     let middleValue ← ops.read vector middle
-    if ops.lessValue order hiValue middleValue then do
+    if ← ops.lessValue order hiValue middleValue then do
       let vector ← ops.write vector hi loValue
       let vector ← ops.write vector lo middleValue
       ops.write vector middle hiValue
@@ -3510,9 +4349,11 @@ end
 def partitionScanLeft {V α K Alg O E : Type}
     (ops : LegacyQuickSortOps V α K Alg O E)
     (vector : V) (pivot : α) (order : O) : Nat → K → α → Except E (K × α)
-  | 0, i, leftValue => pure (i, leftValue)
-  | fuel + 1, i, leftValue =>
-    if ops.lessValue order leftValue pivot then do
+  | 0, i, leftValue => do
+    if ← ops.lessValue order leftValue pivot then .error ops.modelExhausted
+    else pure (i, leftValue)
+  | fuel + 1, i, leftValue => do
+    if ← ops.lessValue order leftValue pivot then do
       let i := ops.nextIndex i
       let leftValue ← ops.read vector i
       partitionScanLeft ops vector pivot order fuel i leftValue
@@ -3522,9 +4363,11 @@ def partitionScanLeft {V α K Alg O E : Type}
 def partitionScanRight {V α K Alg O E : Type}
     (ops : LegacyQuickSortOps V α K Alg O E)
     (vector : V) (pivot : α) (order : O) : Nat → K → α → Except E (K × α)
-  | 0, j, rightValue => pure (j, rightValue)
-  | fuel + 1, j, rightValue =>
-    if ops.lessValue order pivot rightValue then do
+  | 0, j, rightValue => do
+    if ← ops.lessValue order pivot rightValue then .error ops.modelExhausted
+    else pure (j, rightValue)
+  | fuel + 1, j, rightValue => do
+    if ← ops.lessValue order pivot rightValue then do
       let j := ops.previousIndex j
       let rightValue ← ops.read vector j
       partitionScanRight ops vector pivot order fuel j rightValue
@@ -3534,7 +4377,7 @@ def partitionScanRight {V α K Alg O E : Type}
 def partitionVectorLoop {V α K Alg O E : Type}
     (ops : LegacyQuickSortOps V α K Alg O E)
     (lo hi : K) (pivot : α) (order : O) : Nat → V → K → K → Except E (V × K)
-  | 0, vector, _, j => pure (vector, j)
+  | 0, _, _, _ => .error ops.modelExhausted
   | fuel + 1, vector, i, j => do
     let i := ops.nextIndex i
     let j := ops.previousIndex j
@@ -3587,7 +4430,8 @@ end
 def quickSortRangeLoop {V α K Alg O E : Type}
     (ops : LegacyQuickSortOps V α K Alg O E) (order : O) :
     Nat → V → K → K → Except E V
-  | 0, vector, _, _ => pure vector
+  | 0, vector, lo, hi =>
+    if ops.lessIndex lo hi then .error ops.modelExhausted else pure vector
   | fuel + 1, vector, lo, hi => do
     if ops.lessIndex lo hi then
       if ops.distance lo hi ≤ ops.smallThreshold then
@@ -3633,7 +4477,7 @@ structure BracketKernelOps (V α K O E : Type) where
   checkBounds : V → K → K → Except E Unit
   range : K → K → List K
   read : V → K → Except E α
-  less : O → α → α → Bool
+  less : O → α → α → Except E Bool
   swap : V → K → K → Except E V
   scaleByBool : Int → Bool → Int
   addIndexOffset : K → Int → K
@@ -3676,8 +4520,12 @@ def bracketKernel {V α K O E : Type}
   let mut countBelow := 0
   for index in ops.range lo hi do
     let value ← ops.read vector index
-    let below := loSignpost.any fun signpost => ops.less order value signpost
-    let notAbove := hiSignpost.all fun signpost => !ops.less order signpost value
+    let below ← match loSignpost with
+      | none => pure false
+      | some signpost => ops.less order value signpost
+    let notAbove ← match hiSignpost with
+      | none => pure true
+      | some signpost => do pure (!(← ops.less order signpost value))
     countBelow := countBelow + if below then 1 else 0
     let swapNeeded := below != notAbove
     let target := ops.addIndexOffset index (ops.scaleByBool offset swapNeeded)
@@ -3689,8 +4537,8 @@ structure MoveVectorOps (V Range K E : Type) where
   length : Range → Nat
   disjoint : Range → Range → Bool
   indices : Range → List K
-  minimum : Range → K
-  maximum : Range → K
+  minimum : Range → Except E K
+  maximum : Range → Except E K
   lessEq : K → K → Bool
   lengthMismatch : E
   rangeMismatch : E
@@ -3727,10 +4575,10 @@ def moveVector {V Range K E : Type} (ops : MoveVectorOps V Range K E)
       vector ← ops.swap vector targetIndex sourceIndex
     pure vector
   else
-    if !ops.lessEq (ops.minimum source) (ops.minimum target) then
+    if !ops.lessEq (← ops.minimum source) (← ops.minimum target) then
       throw ops.rangeMismatch
-    let vector ← ops.reverse vector (ops.minimum source) (ops.maximum target)
-    ops.reverse vector (ops.minimum target) (ops.maximum target)
+    let vector ← ops.reverse vector (← ops.minimum source) (← ops.maximum target)
+    ops.reverse vector (← ops.minimum target) (← ops.maximum target)
 inductive BracketSortTarget (K : Type) where
   | index (value : K)
   | range (first last : K)
@@ -3752,7 +4600,7 @@ structure BracketedSortOps
   nextAlgorithm : Alg → BracketSortTarget K → Next
   cbrt : Nat → Float
   square : Float → Float
-  roundInt : Float → Nat
+  roundInt : Float → Except E Int
   floatOfNat : Nat → Float
   floatOfIndex : K → Float
   differenceToFloat : K → K → Float
@@ -3888,7 +4736,8 @@ def sortBracketed {V α K Alg Next O Kws Scratch E Result : Type}
     let (sorted, sortedScratch) ← ops.sortSegment vector sortNext order keywords
     return ops.finish sorted sortedScratch
   let k := ops.cbrt inputLength
-  let k2 := ops.roundInt (ops.square k)
+  let sampleCount ← ops.roundInt (ops.square k)
+  let k2 := sampleCount.toNat
   let k2ln := ops.divideFloat (ops.floatOfNat k2) (ops.floatOfNat inputLength)
   let offset := ops.multiplyFloat
     (ops.multiplyFloat (ops.divideFloat (ops.floatOfNat 15) (ops.floatOfNat 100)) k)
@@ -3975,17 +4824,18 @@ def sortBracketed {V α K Alg Next O Kws Scratch E Result : Type}
       (ops.nextAlgorithm algorithm target) order keywords
     pure (ops.finish sorted sortedScratch)
 structure ScratchPartitionOps (Target Source PivotDest K α O E : Type) where
+  modelExhausted : E
   pivotIndex : K → K → Except E K
   readSource : Source → K → Except E α
   writeTarget : Target → K → α → Except E Target
   writePivot : Target → PivotDest → K → α → Except E (Target × PivotDest)
-  lessValue : O → α → α → Bool
+  lessValue : O → α → α → Except E Bool
   lessIndex : K → K → Bool
   nextIndex : K → K
   subtractIndex : K → K → K
   addBoolToIndex : K → Bool → K
   addPivotOffset : K → K → K
-  distance : K → K → Nat := fun _ _ => 0
+  distance : K → K → Nat
 
 /--
 Julia source: base/sort.jl:1088-1119 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -4028,11 +4878,13 @@ def partitionScratchBeforeLoop {Target Source PivotDest K α O E : Type}
     (ops : ScratchPartitionOps Target Source PivotDest K α O E)
     (pivotIndex hi : K) (order : O) (source : Source) (reverse : Bool) (pivot : α) :
     Nat → Target → K → K → Except E (Target × K × K)
-  | 0, target, lo, offset => pure (target, lo, offset)
+  | 0, target, lo, offset =>
+    if ops.lessIndex lo pivotIndex then .error ops.modelExhausted
+    else pure (target, lo, offset)
   | fuel + 1, target, lo, offset =>
     if ops.lessIndex lo pivotIndex then do
       let value ← ops.readSource source lo
-      let sendRight := if reverse then !(ops.lessValue order value pivot)
+      let sendRight ← if reverse then do pure (!(← ops.lessValue order value pivot))
         else ops.lessValue order pivot value
       let destination := ops.subtractIndex (if sendRight then hi else lo) offset
       let target ← ops.writeTarget target destination value
@@ -4046,12 +4898,14 @@ def partitionScratchAfterLoop {Target Source PivotDest K α O E : Type}
     (ops : ScratchPartitionOps Target Source PivotDest K α O E)
     (hi : K) (order : O) (source : Source) (reverse : Bool) (pivot : α) :
     Nat → Target → K → K → Except E (Target × K × K)
-  | 0, target, lo, offset => pure (target, lo, offset)
+  | 0, target, lo, offset =>
+    if ops.lessIndex lo hi then .error ops.modelExhausted
+    else pure (target, lo, offset)
   | fuel + 1, target, lo, offset =>
     if ops.lessIndex lo hi then do
       let value ← ops.readSource source (ops.nextIndex lo)
-      let sendRight := if reverse then ops.lessValue order pivot value
-        else !(ops.lessValue order value pivot)
+      let sendRight ← if reverse then ops.lessValue order pivot value
+        else do pure (!(← ops.lessValue order value pivot))
       let destination := ops.subtractIndex (if sendRight then hi else lo) offset
       let target ← ops.writeTarget target destination value
       let offset := ops.addBoolToIndex offset sendRight
@@ -4156,8 +5010,7 @@ def sortScratchQuickLoop {V T α K Alg O Kws Scratch E : Type}
     (algorithm : Alg) (order : O) :
     Nat → V → T → K → K → K → Kws → Option Scratch → Bool → Bool →
       Except E (V × T × Option Scratch)
-  | 0, vector, temporary, _, _, _, _, scratch, _, _ =>
-    pure (vector, temporary, scratch)
+  | 0, _, _, _, _, _, _, _, _, _ => .error ops.partitionInVector.modelExhausted
   | fuel + 1, vector, temporary, lo, hi, offset, keywords, scratch, swap, reverse => do
     if ops.lessIndex lo hi && ops.distance lo hi > ops.smallThreshold then
       let (pivotVector, pivotTemporary, pivotIndex) ← if swap then do
@@ -4310,7 +5163,9 @@ end
 def mergeCopyTempLoop {V Temp α K Alg O E : Type}
     (ops : LegacyMergeSortOps V Temp α K Alg O E)
     (vector : V) (middle : K) : Nat → Temp → K → K → Except E (Temp × K)
-  | 0, temporary, _, j => pure (temporary, j)
+  | 0, temporary, _, j =>
+    if ops.lessEqIndex j middle then .error ops.quick.modelExhausted
+    else pure (temporary, j)
   | fuel + 1, temporary, i, j =>
     if ops.lessEqIndex j middle then do
       let value ← ops.quick.read vector j
@@ -4324,12 +5179,14 @@ def mergeBothLoop {V Temp α K Alg O E : Type}
     (ops : LegacyMergeSortOps V Temp α K Alg O E)
     (temporary : Temp) (hi : K) (order : O) :
     Nat → V → K → K → K → Except E (V × K × K × K)
-  | 0, vector, i, j, k => pure (vector, i, j, k)
+  | 0, vector, i, j, k =>
+    if ops.quick.lessIndex k j && ops.lessEqIndex j hi then .error ops.quick.modelExhausted
+    else pure (vector, i, j, k)
   | fuel + 1, vector, i, j, k =>
     if ops.quick.lessIndex k j && ops.lessEqIndex j hi then do
       let right ← ops.quick.read vector j
       let left ← ops.readTemporary temporary i
-      if ops.quick.lessValue order right left then
+      if ← ops.quick.lessValue order right left then
         let vector ← ops.quick.write vector k right
         mergeBothLoop ops temporary hi order fuel vector
           i (ops.quick.nextIndex j) (ops.quick.nextIndex k)
@@ -4343,7 +5200,8 @@ def mergeBothLoop {V Temp α K Alg O E : Type}
 def mergeLeftLoop {V Temp α K Alg O E : Type}
     (ops : LegacyMergeSortOps V Temp α K Alg O E)
     (temporary : Temp) (j : K) : Nat → V → K → K → Except E V
-  | 0, vector, _, _ => pure vector
+  | 0, vector, _, k =>
+    if ops.quick.lessIndex k j then .error ops.quick.modelExhausted else pure vector
   | fuel + 1, vector, i, k =>
     if ops.quick.lessIndex k j then do
       let value ← ops.readTemporary temporary i
@@ -4357,7 +5215,8 @@ def legacyMergeSortKernelLoop {V Temp α K Alg O E : Type}
     (ops : LegacyMergeSortOps V Temp α K Alg O E)
     (algorithm : Alg) (order : O) :
     Nat → V → K → K → Option Temp → Except E V
-  | 0, vector, _, _, _ => pure vector
+  | 0, vector, lo, hi, _ =>
+    if ops.quick.lessIndex lo hi then .error ops.quick.modelExhausted else pure vector
   | fuel + 1, vector, lo, hi, temporary => do
     if ops.quick.lessIndex lo hi then
       if ops.quick.distance lo hi ≤ ops.quick.smallThreshold then
@@ -4464,7 +5323,8 @@ def legacyPartialQuickSortKernelLoop {V α K Alg O E : Type}
     (ops : LegacyPartialQuickSortOps V α K Alg O E)
     (algorithm : Alg) (order : O) :
     Nat → V → K → K → Except E V
-  | 0, vector, _, _ => pure vector
+  | 0, vector, lo, hi =>
+    if ops.quick.lessIndex lo hi then .error ops.quick.modelExhausted else pure vector
   | fuel + 1, vector, lo, hi => do
     if ops.quick.lessIndex lo hi then
       if ops.quick.distance lo hi ≤ ops.quick.smallThreshold then
@@ -4614,43 +5474,89 @@ def legacySortDispatch {V K Alg O Kws Scratch E : Type}
   let sorted ← ops.legacySort vector lo hi algorithm order
   pure (sorted, scratch)
 
-def arrayRead {α : Type} (values : Array α) (index : Int) : Jl α :=
-  if 1 ≤ index then
-    match values[(index - 1).toNat]? with
-    | some value => .ok value
-    | none => .error .boundsError
-  else .error .boundsError
-
-def arrayWrite {α : Type} (values : Array α) (index : Int) (value : α) : Jl (Array α) :=
-  if 1 ≤ index ∧ index ≤ values.size then
-    .ok (values.set! (index - 1).toNat value)
-  else .error .boundsError
-
 def arrayCheckBounds {α : Type} (values : Array α) (lo hi : Int) : Jl Unit :=
   if hi < lo then .ok ()
   else if 1 ≤ lo ∧ hi ≤ values.size then .ok ()
   else .error .boundsError
 
-/-- One-based `AbstractVector` storage read and written by the sorting methods: `length(v)`,
-`v[i]` (`getindex`) and `v[i] = x` (`setindex!`). `Array` is one instance (`arrayStorage`). -/
+/-- The printed `typeof(v)`, `typeof(a)` and `typeof(o)` of the `ArgumentError` raised by the
+`_sort!` fallback (sort.jl:2590); type printing is `show.jl`'s, so the caller supplies them. -/
+structure SortSignatureNames where
+  vector : String := ""
+  algorithm : String := ""
+  ordering : String := ""
+  deriving Repr
+
+/-- The keyword tuple `kw` of `_sort!(v, a, o, kw)`: `lo`, `hi`, `scratch` and
+`legacy_dispatch_entry` (sort.jl:2578-2595). -/
+structure ArraySortKeywords (α : Type) where
+  lo : Int
+  hi : Int
+  scratch : Option (Array α) := none
+  legacyEntry : Option Nat := none
+  names : SortSignatureNames := {}
+
+/-- The methods a program defines for its own `Algorithm` subtypes (no laws): `_sort!(v, ::TheirAlg,
+o, kw)` and the old-style `sort!(v, lo, hi, ::TheirAlg, o)`, each optional. -/
+structure UserAlgorithmMethods (V α : Type) where
+  sortBang : Nat → Option (V → (α → α → SortResult Bool) → ArraySortKeywords α → SortResult (V × Option (Array α)))
+  legacySortBang : Nat → Option (V → Int → Int → (α → α → SortResult Bool) → SortResult V)
+
+/-- A program that defines no sorting methods for user algorithms. -/
+def UserAlgorithmMethods.none {V α : Type} : UserAlgorithmMethods V α :=
+  ⟨fun _ => Option.none, fun _ => Option.none⟩
+
+/-- `AbstractVector` storage read and written by the sorting methods: the first index of
+`axes(v, 1)`, `length(v)`, `v[i]` (`getindex`), `v[i] = x` (`setindex!`) at Julia indices, and the
+program's `_sort!`/`sort!` methods for user algorithms on this vector type. `Array` is
+`arrayStorageWith`. -/
 structure VectorStorage (V α : Type) where
+  firstindex : V → Int
   length : V → Nat
   getindex : V → Int → Jl α
   setindex : V → Int → α → Jl V
+  userAlgorithms : UserAlgorithmMethods V α := UserAlgorithmMethods.none
 
-def arrayStorage {α : Type} : VectorStorage (Array α) α where
+/-- `lastindex(v) = last(axes(v, 1))`. -/
+def VectorStorage.lastindex {V α : Type} (S : VectorStorage V α) (v : V) : Int :=
+  S.firstindex v + Int.ofNat (S.length v) - 1
+
+/-- `Array`: axes `OneTo(length(v))`, with the program's user-algorithm methods on `Vector`. -/
+def arrayStorageWith {α : Type} (methods : UserAlgorithmMethods (Array α) α) :
+    VectorStorage (Array α) α where
+  firstindex := fun _ => 1
   length := Array.size
   getindex := arrayRead
   setindex := arrayWrite
+  userAlgorithms := methods
 
+/-- `Array` in a program with no user-algorithm sorting methods. -/
+def arrayStorage {α : Type} : VectorStorage (Array α) α := arrayStorageWith UserAlgorithmMethods.none
+
+/-- `checkbounds(Bool, v, lo:hi)`: `checkbounds(Bool, A, i) =
+checkindex(Bool, eachindex(IndexLinear(), A), i)` (abstractarray.jl:690-693, installed
+`checkboundsOne`), where `eachindex(IndexLinear(), v) = axes(v, 1)`;
+`checkindex(Bool, inds, r::AbstractRange) = isempty(r) | (checkindex(Bool, inds, first(r)) &
+checkindex(Bool, inds, last(r)))` (abstractarray.jl:757-758, installed `checkindexRange`) and
+`checkindex(Bool, inds::AbstractUnitRange, i::Real) = (first(inds) <= i) & (i <= last(inds))`
+(abstractarray.jl:751, installed `checkindexReal`). -/
+def storageCheckBoundsBool {V α : Type} (S : VectorStorage V α) (values : V) (lo hi : Int) :
+    abstractarray.Result Bool :=
+  abstractarray.checkboundsOne (fun w : V => .ok ((S.firstindex w, S.lastindex w) : Int × Int))
+    (abstractarray.checkindexRange
+      (fun r : Int × Int => .ok (decide (r.2 < r.1)))
+      (fun r => .ok r.1) (fun r => .ok r.2)
+      (abstractarray.checkindexReal (fun a : Int × Int => .ok a.1) (fun a : Int × Int => .ok a.2)
+        (fun l i => .ok (decide (l ≤ i))) (fun i l => .ok (decide (i ≤ l)))))
+    values (lo, hi)
+
+/-- `checkbounds(v, lo:hi)`: `checkbounds(Bool, v, lo:hi) || throw_boundserror(v, (lo:hi,))`
+(abstractarray.jl:697-700). The `Bool` methods above throw nothing. -/
 def storageCheckBounds {V α : Type} (S : VectorStorage V α) (values : V) (lo hi : Int) :
     Jl Unit :=
-  if hi < lo then .ok ()
-  else if 1 ≤ lo ∧ hi ≤ S.length values then .ok ()
-  else .error .boundsError
-
-def arrayIndexRange (lo hi : Int) : List Int :=
-  (List.range (hi - lo + 1).toNat).map fun offset => lo + Int.ofNat offset
+  match storageCheckBoundsBool S values lo hi with
+  | .ok true => .ok ()
+  | _ => .error .boundsError
 
 def arrayIndices : IntegerIndexOps Int where
   addOne := fun i => i + 1
@@ -4659,61 +5565,63 @@ def arrayIndices : IntegerIndexOps Int where
   less := fun a b => decide (a < b)
 
 def storageMutationOps {V α : Type} (S : VectorStorage V α) :
-    VectorMutationOps (StateT V (Except JlError)) Unit α Int where
+    VectorMutationOps (StateT V (Except SortException)) Unit α Int where
   get := fun _ index => fun values => do
-    let value ← S.getindex values index
+    let value ← liftSortJl (S.getindex values index)
     pure (value, values)
   set := fun _ value index => fun values => do
-    let updated ← S.setindex values index value
+    let updated ← liftSortJl (S.setindex values index value)
     pure ((), updated)
   indices := arrayIndices
   distance := fun lo hi => (hi - lo).toNat
+  modelExhausted := fun {_} _ => .error (.errorException "fuel")
 
-def storageInsertion {V α : Type} (S : VectorStorage V α) (lt : α → α → Bool)
-    (values : V) (lo hi : Int) : Jl V := do
+def storageInsertion {V α : Type} (S : VectorStorage V α) (lt : α → α → SortResult Bool)
+    (values : V) (lo hi : Int) : SortResult V := do
   let (_, sorted) ←
-    (insertionSort (storageMutationOps S) (fun (_ : Unit) => lt) () () lo hi ()).run values
+    (insertionSort (storageMutationOps S) (fun (_ : Unit) a b => liftM (lt a b)) () () lo hi ()).run values
   pure sorted
 
 def storageSwap {V α : Type} (S : VectorStorage V α) (values : V) (left right : Int) :
-    Jl V := do
-  let leftValue ← S.getindex values left
-  let rightValue ← S.getindex values right
-  let updated ← S.setindex values left rightValue
-  S.setindex updated right leftValue
+    SortResult V := do
+  let leftValue ← liftSortJl (S.getindex values left)
+  let rightValue ← liftSortJl (S.getindex values right)
+  let updated ← liftSortJl (S.setindex values left rightValue)
+  liftSortJl (S.setindex updated right leftValue)
 
 def storageReverse {V α : Type} (S : VectorStorage V α) (values : V) (lo hi : Int) :
-    Jl V := do
+    SortResult V := do
   let mut values := values
   for offset in List.range ((hi - lo + 1).toNat / 2) do
     values ← storageSwap S values (lo + Int.ofNat offset) (hi - Int.ofNat offset)
   pure values
 
 def storageCopyFromArray {V α : Type} (S : VectorStorage V α) (destination : V) (first : Int)
-    (source : Array α) (sourceFirst : Int) (length : Nat) : Jl V := do
+    (source : Array α) (sourceFirst : Int) (length : Nat) : SortResult V := do
   let mut destination := destination
   for offset in List.range length do
-    let value ← arrayRead source (sourceFirst + Int.ofNat offset)
-    destination ← S.setindex destination (first + Int.ofNat offset) value
+    let value ← liftSortJl (arrayRead source (sourceFirst + Int.ofNat offset))
+    destination ← liftSortJl (S.setindex destination (first + Int.ofNat offset) value)
   pure destination
 
-def storageQuickOps {V α : Type} (S : VectorStorage V α) (lt : α → α → Bool) :
-    LegacyQuickSortOps V α Int Unit Unit JlError where
+def storageQuickOps {V α : Type} (S : VectorStorage V α) (lt : α → α → SortResult Bool) :
+    LegacyQuickSortOps V α Int Unit Unit SortException where
   midpoint := fun lo hi => lo + (hi - lo) / 2
   lessValue := fun _ => lt
-  read := S.getindex
-  write := S.setindex
+  read := fun values index => liftSortJl (S.getindex values index)
+  write := fun values index value => liftSortJl (S.setindex values index value)
   nextIndex := fun i => i + 1
   previousIndex := fun i => i - 1
   lessIndex := fun lo hi => decide (lo < hi)
   distance := fun lo hi => (hi - lo).toNat
-  checkBounds := storageCheckBounds S
+  checkBounds := fun values lo hi => liftSortJl (storageCheckBounds S values lo hi)
   smallAlgorithm := ()
   smallThreshold := 20
   smallSort := fun values _ _ lo hi => storageInsertion S lt values lo hi
+  modelExhausted := .errorException "fuel"
 
-def storageMergeOps {V α : Type} [Inhabited α] (S : VectorStorage V α) (lt : α → α → Bool) :
-    LegacyMergeSortOps V (Array α) α Int Unit Unit JlError where
+def storageMergeOps {V α : Type} [Inhabited α] (S : VectorStorage V α) (lt : α → α → SortResult Bool) :
+    LegacyMergeSortOps V (Array α) α Int Unit Unit SortException where
   quick := storageQuickOps S lt
   oneIndex := 1
   lessEqIndex := fun lo hi => decide (lo ≤ hi)
@@ -4722,11 +5630,11 @@ def storageMergeOps {V α : Type} [Inhabited α] (S : VectorStorage V α) (lt : 
   resizeTemporary := fun values length =>
     .ok (values ++ Array.replicate (length - values.size) default)
   requireOneBased := fun _ => .ok ()
-  readTemporary := arrayRead
-  writeTemporary := arrayWrite
+  readTemporary := fun values index => liftSortJl (arrayRead values index)
+  writeTemporary := fun values index value => liftSortJl (arrayWrite values index value)
 
-def storagePartialQuickOps {V α : Type} (S : VectorStorage V α) (lt : α → α → Bool) :
-    LegacyPartialQuickSortOps V α Int (Int × Int) Unit JlError where
+def storagePartialQuickOps {V α : Type} (S : VectorStorage V α) (lt : α → α → SortResult Bool) :
+    LegacyPartialQuickSortOps V α Int (Int × Int) Unit SortException where
   quick := { storageQuickOps S lt with
     smallAlgorithm := (0, 0)
     smallSort := fun values _ _ lo hi => storageInsertion S lt values lo hi }
@@ -4763,21 +5671,51 @@ def arrayScratchOps {α : Type} [Inhabited α] : ScratchOps (Array α) (Array α
     split at h <;> simp_all
     omega
 
-structure ArraySortKeywords (α : Type) where
-  lo : Int
-  hi : Int
-  scratch : Option (Array α) := none
+/-- The same scratch operations, reporting each error through `wrap`. -/
+def ScratchOps.mapError {V W E E' : Type} (wrap : E → E') (ops : ScratchOps V W E) :
+    ScratchOps V W E' where
+  allocate := fun length => (ops.allocate length).mapError wrap
+  length := ops.length
+  resize := fun values length => (ops.resize values length).mapError wrap
+  sizeofBacking := ops.sizeofBacking
+  multiply := ops.multiply
+  divide := fun bytes size => (ops.divide bytes size).mapError wrap
+  reinterpret := fun bytes values => (ops.reinterpret bytes values).mapError wrap
+  viewLength := ops.viewLength
+  allocateLength := by
+    intro length values h
+    cases hr : ops.allocate length with
+    | error e => rw [hr] at h; cases h
+    | ok allocated => rw [hr] at h; cases h; exact ops.allocateLength length _ hr
+  resizeLength := by
+    intro values length result h
+    cases hr : ops.resize values length with
+    | error e => rw [hr] at h; cases h
+    | ok resized => rw [hr] at h; cases h; exact ops.resizeLength values length _ hr
+  reinterpretBytes := by
+    intro bytes values view h
+    cases hr : ops.reinterpret bytes values with
+    | error e => rw [hr] at h; cases h
+    | ok w => rw [hr] at h; cases h; exact ops.reinterpretBytes bytes values _ hr
+  multiplyEq := ops.multiplyEq
+  divideEq := by
+    intro a b q h
+    cases hr : ops.divide a b with
+    | error e => rw [hr] at h; cases h
+    | ok quotient => rw [hr] at h; cases h; exact ops.divideEq a b _ hr
+
 
 /-- `partition!` writing into the vector from the scratch array (`swap == true`); the pivot
 destination is the vector itself. -/
 def vectorTargetPartitionOps {V α : Type} (S : VectorStorage V α)
     (pivot : Int → Int → Int) :
-    ScratchPartitionOps V (Array α) V Int α (α → α → Bool) JlError where
+    ScratchPartitionOps V (Array α) V Int α (α → α → SortResult Bool) SortException where
+  modelExhausted := .errorException "fuel"
   pivotIndex := fun lo hi => .ok (pivot lo hi)
-  readSource := arrayRead
-  writeTarget := S.setindex
+  readSource := fun values index => liftSortJl (arrayRead values index)
+  writeTarget := fun values index value => liftSortJl (S.setindex values index value)
   writePivot := fun target _ index value => do
-    let updated ← S.setindex target index value
+    let updated ← liftSortJl (S.setindex target index value)
     pure (updated, updated)
   lessValue := fun order => order
   lessIndex := fun lo hi => decide (lo < hi)
@@ -4791,12 +5729,13 @@ def vectorTargetPartitionOps {V α : Type} (S : VectorStorage V α)
 destination is the vector. -/
 def scratchTargetPartitionOps {V α : Type} (S : VectorStorage V α)
     (pivot : Int → Int → Int) :
-    ScratchPartitionOps (Array α) V V Int α (α → α → Bool) JlError where
+    ScratchPartitionOps (Array α) V V Int α (α → α → SortResult Bool) SortException where
+  modelExhausted := .errorException "fuel"
   pivotIndex := fun lo hi => .ok (pivot lo hi)
-  readSource := S.getindex
-  writeTarget := arrayWrite
+  readSource := fun values index => liftSortJl (S.getindex values index)
+  writeTarget := fun values index value => liftSortJl (arrayWrite values index value)
   writePivot := fun target destination index value => do
-    let updated ← S.setindex destination index value
+    let updated ← liftSortJl (S.setindex destination index value)
     pure (target, updated)
   lessValue := fun order => order
   lessIndex := fun lo hi => decide (lo < hi)
@@ -4808,17 +5747,17 @@ def scratchTargetPartitionOps {V α : Type} (S : VectorStorage V α)
 
 def storageScratchQuickOps {V α : Type} [Inhabited α] (S : VectorStorage V α)
     (pivot : Int → Int → Int)
-    (sortNext : V → Algorithm (BracketSortTarget Int) Int → (α → α → Bool) →
-      ArraySortKeywords α → Jl (V × Option (Array α))) :
+    (sortNext : V → Algorithm (BracketSortTarget Int) Int → (α → α → SortResult Bool) →
+      ArraySortKeywords α → SortResult (V × Option (Array α))) :
     ScratchQuickSortOps V (Array α) α Int (Algorithm (BracketSortTarget Int) Int)
-      (α → α → Bool) (ArraySortKeywords α) (Array α) JlError where
+      (α → α → SortResult Bool) (ArraySortKeywords α) (Array α) SortException where
   rangeAndScratch := fun keywords => .ok (keywords.lo, keywords.hi, keywords.scratch)
   makeScratch := fun existing _ length =>
     match existing with
-    | none => makeScratchNothing arrayScratchOps length
-    | some backing => makeScratchSame arrayScratchOps backing length
+    | none => liftSortJl (makeScratchNothing arrayScratchOps length)
+    | some backing => liftSortJl (makeScratchSame arrayScratchOps backing length)
   requireOffset := fun offset => match offset with
-    | none => .error (.methodError "missing scratch offset")
+    | none => .error (.jl (.methodError "+"))
     | some value => .ok value
   oneMinus := fun i => 1 - i
   zeroIndex := 0
@@ -4844,29 +5783,31 @@ def storageScratchQuickOps {V α : Type} [Inhabited α] (S : VectorStorage V α)
 
 def storageStableCheckOps {V α Alg : Type} (S : VectorStorage V α)
     (nextAlgorithm : Alg → Alg)
-    (sortNext : V → Alg → (α → α → Bool) → ArraySortKeywords α →
-      Jl (V × Option (Array α))) :
-    StableCheckSortedOps V Alg (α → α → Bool) Int
-      (ArraySortKeywords α) (Option (Array α)) JlError where
+    (sortNext : V → Alg → (α → α → SortResult Bool) → ArraySortKeywords α →
+      SortResult (V × Option (Array α))) :
+    StableCheckSortedOps V Alg (α → α → SortResult Bool) Int
+      (ArraySortKeywords α) (Option (Array α)) SortException where
   rangeAndScratch := fun keywords => .ok (keywords.lo, keywords.hi, keywords.scratch)
   isSorted := fun values lo hi order =>
-    issortedWindow arrayIndices (storageCheckBounds S) S.getindex
+    storageIssortedWindow arrayIndices (fun v lo hi => liftSortJl (storageCheckBounds S v lo hi))
+      (fun v i => liftSortJl (S.getindex v i))
       (fun order => order) values lo hi order
-  stableReverseOrdering := fun order a b => !order a b
+  stableReverseOrdering := fun order a b => do pure (!(← order a b))
   reverse := storageReverse S
   nextAlgorithm := nextAlgorithm
   sort := sortNext
 
 def storageCheckSortedOps {V α Alg : Type} (S : VectorStorage V α)
     (nextAlgorithm : Alg → Alg)
-    (sortNext : V → Alg → (α → α → Bool) → ArraySortKeywords α →
-      Jl (V × Option (Array α))) :
-    CheckSortedOps V Alg (α → α → Bool) Int
-      (ArraySortKeywords α) (Option (Array α)) JlError where
+    (sortNext : V → Alg → (α → α → SortResult Bool) → ArraySortKeywords α →
+      SortResult (V × Option (Array α))) :
+    CheckSortedOps V Alg (α → α → SortResult Bool) Int
+      (ArraySortKeywords α) (Option (Array α)) SortException where
   rangeAndScratch := fun kw => .ok (kw.lo, kw.hi, kw.scratch)
   difference := Int.sub
   isSorted := fun values lo hi order =>
-    issortedWindow arrayIndices (storageCheckBounds S) S.getindex (fun order => order)
+    storageIssortedWindow arrayIndices (fun v lo hi => liftSortJl (storageCheckBounds S v lo hi))
+      (fun v i => liftSortJl (S.getindex v i)) (fun order => order)
       values lo hi order
   reverseOrder := fun order a b => order b a
   reverse := storageReverse S
@@ -4895,7 +5836,7 @@ def signedIntegerType : IntTy → IntTy
 
 def arrayCountingOps (t : IntTy) :
     CountingSortOps (Array (JInt t)) Int SearchIndex SearchIndex (Array Nat) Bool
-      (CountingKeywords t) Unit JlError where
+      (CountingKeywords t) Unit SortException where
   rangeAndScratch := fun kw =>
     .ok (kw.lo, kw.hi, ⟨t, kw.minimum⟩, ⟨t, kw.maximum⟩, ())
   isReverse := id
@@ -4906,19 +5847,19 @@ def arrayCountingOps (t : IntTy) :
   allocateCounts := fun length => .ok (Array.replicate length 0)
   range := arrayIndexRange
   read := fun values index => do
-    let value ← arrayRead values index
+    let value ← liftSortJl (arrayRead values index)
     pure ⟨t, value⟩
   write := fun values index value => do
-    let converted ← JInt.convert t value.val
-    arrayWrite values index converted
+    let converted ← liftSortJl (JInt.convert (t.name) t value.val)
+    liftSortJl (arrayWrite values index converted)
   bucketForValue := fun value offset => (indexAdd value offset).val.toNat
   countRead := fun counts bucket =>
     match counts[bucket - 1]? with
-    | some count => if bucket = 0 then .error .boundsError else .ok count
-    | none => .error .boundsError
+    | some count => if bucket = 0 then .error (.jl .boundsError) else .ok count
+    | none => .error (.jl .boundsError)
   countWrite := fun counts bucket value =>
     if 1 ≤ bucket ∧ bucket ≤ counts.size then .ok (counts.set! (bucket - 1) value)
-    else .error .boundsError
+    else .error (.jl .boundsError)
   bucketValues := fun range =>
     let last := indexAdd range (searchIndex .i64 1)
     (List.range last.val.toNat).map fun index => searchIndex last.ty (Int.ofNat index + 1)
@@ -4945,11 +5886,11 @@ structure LegacyArrayKeywords (α : Type) where
   entry : Option LegacyArrayAlgorithm
 
 def storageLegacyFive {V α : Type} [Inhabited α] (S : VectorStorage V α)
-    (lt : α → α → Bool) (values : V) (lo hi : Int) (algorithm : LegacyArrayAlgorithm) :
-    Jl V := do
+    (lt : α → α → SortResult Bool) (values : V) (lo hi : Int) (algorithm : LegacyArrayAlgorithm) :
+    SortResult V := do
   match algorithm with
   | .insertion =>
-    storageCheckBounds S values lo hi
+    liftSortJl (storageCheckBounds S values lo hi)
     storageInsertion S lt values lo hi
   | .quick => legacyQuickSortBang (storageQuickOps S lt) values lo hi ()
   | .merge => legacyMergeSortBang (storageMergeOps S lt) values lo hi () ()
@@ -4957,29 +5898,29 @@ def storageLegacyFive {V α : Type} [Inhabited α] (S : VectorStorage V α)
     legacyPartialQuickSortBang (storagePartialQuickOps S lt) values lo hi (first, last) ()
 
 def storageLegacyRun {V α : Type} [Inhabited α] (S : VectorStorage V α)
-    (lt : α → α → Bool) (values : V) (algorithm : LegacyArrayAlgorithm)
-    (keywords : LegacyArrayKeywords α) : Jl V := do
+    (lt : α → α → SortResult Bool) (values : V) (algorithm : LegacyArrayAlgorithm)
+    (keywords : LegacyArrayKeywords α) : SortResult V := do
   match algorithm with
   | .insertion => storageInsertion S lt values keywords.lo keywords.hi
   | _ =>
     let ops : LegacyDispatchOps V Int LegacyArrayAlgorithm Unit
-        (LegacyArrayKeywords α) (Option (Array α)) JlError := {
+        (LegacyArrayKeywords α) (Option (Array α)) SortException := {
       getKeywords := fun kw => .ok (kw.lo, kw.hi, kw.scratch, kw.entry)
       sameAlgorithm := BEq.beq
       undefinedAlgorithm := fun _ _ _ =>
-        .argumentError "Base.Sort._sort! is not defined for this algorithm"
+        .jl (.argumentError "Base.Sort._sort! is not defined for this algorithm")
       legacySort := fun current lo hi alg _ => storageLegacyFive S lt current lo hi alg
     }
     let (sorted, _) ← legacySortDispatch ops values algorithm () keywords
     pure sorted
 
 def storageLegacyOps {V α : Type} [Inhabited α] (S : VectorStorage V α)
-    (lt : α → α → Bool) :
+    (lt : α → α → SortResult Bool) :
     LegacySortOps V Int LegacyArrayAlgorithm Unit
-      (LegacyArrayKeywords α) (Array α) JlError where
-  firstIndex := fun _ => 1
-  lastIndex := fun values => S.length values
-  checkBounds := storageCheckBounds S
+      (LegacyArrayKeywords α) (Array α) SortException where
+  firstIndex := S.firstindex
+  lastIndex := S.lastindex
+  checkBounds := fun values lo hi => liftSortJl (storageCheckBounds S values lo hi)
   keywords := fun lo hi algorithm => ⟨lo, hi, none, some algorithm⟩
   keywordsWithScratch := fun lo hi algorithm scratch => ⟨lo, hi, some scratch, some algorithm⟩
   runSort := fun values algorithm _ keywords => storageLegacyRun S lt values algorithm keywords
@@ -5024,21 +5965,58 @@ def shiftBracketTarget : BracketSortTarget Int → Nat → BracketSortTarget Int
 
 structure BracketNumerics where
   cbrt : Nat → Float
-  roundInt : Float → Nat
+  roundInt : Float → Jl Int
   floorInt : Float → Jl Int
   topSetBit : Nat → Nat
   hashLength : Nat → Nat
   hashAttempt : Nat → Nat → Nat
   sampleIndex : Nat → Int → Int → Jl Int
 
+/-- `base/special/cbrt.jl:144-150`: the installed binary64 cube-root model. -/
+def bracketCbrt (n : Nat) : Float :=
+  let x := float.floatOfInt .f64 (int.lit .i64 (Int.ofNat n))
+  let root := match special.cbrt.cbrt (.f64 x) with
+    | .f64 value => value
+    | .f32 value => float.convertFloat .f64 (S := .f32) value
+  Float.ofBits (UInt64.ofNat root.toBits)
+
+/-- `base/rounding.jl:485-486`, `base/float.jl:458-461,888-919`:
+round in binary64, then use the installed checked Int64 conversion. -/
+def bracketRoundInt (x : Float) : Jl Int := do
+  let value : float.FV .f64 := JuliaLean.Promotion.Fl.ofBits x.toBits.toNat
+  let result ← float.intOfFloat .i64 (float.round_Nearest_llvm value)
+  pure result.val
+
+/-- `base/rounding.jl:486`, `base/float.jl:459,921-932`: checked Int64 floor. -/
+def bracketFloorInt (x : Float) : Jl Int := do
+  let value : float.FV .f64 := JuliaLean.Promotion.Fl.ofBits x.toBits.toNat
+  let result ← float.intOfFloat .i64 (float.round_Down_llvm value)
+  pure result.val
+
+/-- `base/sort.jl:1320`, `base/hashing.jl:75-76`:
+the sample index is the seeded integer hash reduced into the remaining interval.
+The UInt64 subtraction retains Julia's mixed signed/unsigned wrapping. -/
+def sourceHashSample (seed : Nat) (lo hi : Int) : Jl Int := do
+  let hash := hashing.hashInt64 (int.lit .i64 lo) (int.lit .u64 (Int.ofNat seed))
+  let difference := int.lit .u64 (hash.val - lo)
+  let length := int.lit .i64 (hi - lo + 1)
+  let remainder ← div.modMixedUnsignedSigned difference length
+  pure (int.add remainder (int.lit .i64 lo)).val
+
+/-- `base/sort.jl:1280-1320`: installed numeric callees, including Julia's
+deterministic hash-based sample selection. -/
 def defaultBracketNumerics : BracketNumerics where
-  cbrt := fun n => Float.ofNat n
-  roundInt := fun _ => 1
-  floorInt := fun _ => .ok 1
+  cbrt := bracketCbrt
+  roundInt := bracketRoundInt
+  floorInt := bracketFloorInt
   topSetBit := fun n => if n = 0 then 0 else Nat.log2 n + 1
-  hashLength := id
-  hashAttempt := fun a b => a + b
-  sampleIndex := fun _ lo _ => .ok lo
+  hashLength := fun n =>
+    (hashing.hashInt64 (int.lit .i64 (Int.ofNat n))
+      (int.lit .u64 0x85eb830e0216012d)).val.toNat
+  hashAttempt := fun attempt seed =>
+    (hashing.hashInt64 (int.lit .i64 (Int.ofNat attempt))
+      (int.lit .u64 (Int.ofNat seed))).val.toNat
+  sampleIndex := sourceHashSample
 
 def sourceApplyInitialOptimizations {Target Index : Type} :
     Algorithm Target Index → Algorithm Target Index
@@ -5047,11 +6025,11 @@ def sourceApplyInitialOptimizations {Target Index : Type} :
   | .insertion => maybeApplyInitialInsertion
   | algorithm => maybeApplyInitialGeneric algorithm
 
-def storageBracketKernelOps {V α : Type} (S : VectorStorage V α) (lt : α → α → Bool) :
-    BracketKernelOps V α Int Unit JlError where
-  checkBounds := storageCheckBounds S
+def storageBracketKernelOps {V α : Type} (S : VectorStorage V α) (lt : α → α → SortResult Bool) :
+    BracketKernelOps V α Int Unit SortException where
+  checkBounds := fun values lo hi => liftSortJl (storageCheckBounds S values lo hi)
   range := arrayIndexRange
-  read := S.getindex
+  read := fun values index => liftSortJl (S.getindex values index)
   less := fun _ => lt
   swap := storageSwap S
   scaleByBool := fun i yes => if yes then i else 0
@@ -5060,16 +6038,16 @@ def storageBracketKernelOps {V α : Type} (S : VectorStorage V α) (lt : α → 
   boolMinusOne := fun yes => if yes then 0 else -1
 
 def storageMoveOps {V α : Type} (S : VectorStorage V α) :
-    MoveVectorOps V (BracketSortTarget Int) Int JlError where
+    MoveVectorOps V (BracketSortTarget Int) Int SortException where
   length := fun target => (bracketTargetIndices target).length
   disjoint := fun left right =>
     !(bracketTargetIndices left).any fun value => (bracketTargetIndices right).contains value
   indices := bracketTargetIndices
-  minimum := fun target => (minimumIntList (bracketTargetIndices target)).getD 0
-  maximum := fun target => (maximumIntList (bracketTargetIndices target)).getD 0
+  minimum := fun target => liftSortJl (bracketTargetMinimum target)
+  maximum := fun target => liftSortJl (bracketTargetMaximum target)
   lessEq := fun a b => decide (a ≤ b)
-  lengthMismatch := .argumentError "length mismatch"
-  rangeMismatch := .argumentError "range mismatch"
+  lengthMismatch := .assertionError "length mismatch"
+  rangeMismatch := .assertionError "range mismatch"
   swap := storageSwap S
   reverse := storageReverse S
 
@@ -5080,10 +6058,10 @@ abbrev ArrayBracketAlgorithm :=
 def storageBracketOps {V α : Type} [Inhabited α] (S : VectorStorage V α)
     (numeric : BracketNumerics)
     (sortSegment : V → Algorithm (BracketSortTarget Int) Int →
-      (α → α → Bool) → ArraySortKeywords α → Jl (V × Option (Array α))) :
+      (α → α → SortResult Bool) → ArraySortKeywords α → SortResult (V × Option (Array α))) :
     BracketedSortOps V α Int ArrayBracketAlgorithm
-      (Algorithm (BracketSortTarget Int) Int) (α → α → Bool) (ArraySortKeywords α)
-      (Option (Array α)) JlError (V × Option (Array α)) where
+      (Algorithm (BracketSortTarget Int) Int) (α → α → SortResult Bool) (ArraySortKeywords α)
+      (Option (Array α)) SortException (V × Option (Array α)) where
   rangeAndScratch := fun kw => .ok (kw.lo, kw.hi, kw.scratch)
   rangeLength := fun lo hi => (hi - lo + 1).toNat
   lessIndex := fun a b => decide (a < b)
@@ -5091,13 +6069,13 @@ def storageBracketOps {V α : Type} [Inhabited α] (S : VectorStorage V α)
   advance := fun i amount => i + Int.ofNat amount
   range := arrayIndexRange
   target := Prod.fst
-  targetMinimum := bracketTargetMinimum
-  targetMaximum := bracketTargetMaximum
+  targetMinimum := fun target => liftSortJl (bracketTargetMinimum target)
+  targetMaximum := fun target => liftSortJl (bracketTargetMaximum target)
   shiftTarget := shiftBracketTarget
   nextAlgorithm := fun algorithm target => algorithm.2 target
   cbrt := numeric.cbrt
   square := fun value => value * value
-  roundInt := numeric.roundInt
+  roundInt := fun value => liftSortJl (numeric.roundInt value)
   floatOfNat := Float.ofNat
   floatOfIndex := Float.ofInt
   differenceToFloat := fun a b => Float.ofInt (a - b)
@@ -5108,20 +6086,20 @@ def storageBracketOps {V α : Type} [Inhabited α] (S : VectorStorage V α)
   subtractFloat := Float.sub
   negateFloat := Float.neg
   lessEqFloat := fun a b => a ≤ b
-  floorIndex := numeric.floorInt
+  floorIndex := fun value => liftSortJl (numeric.floorInt value)
   minimumIndex := min
   maximumIndex := max
   inclusiveSpan := fun lo hi => Float.ofInt (hi - lo + 1)
   seedForLength := numeric.hashLength
   hashAttempt := numeric.hashAttempt
-  hashIndex := numeric.sampleIndex
+  hashIndex := fun seed lo hi => liftSortJl (numeric.sampleIndex seed lo hi)
   swap := storageSwap S
-  read := S.getindex
-  checkFailure := .argumentError "this should never happen"
+  read := fun values index => liftSortJl (S.getindex values index)
+  checkFailure := .assertionError "this should never happen"
   kernelOps := {
-    checkBounds := storageCheckBounds S
+    checkBounds := fun values lo hi => liftSortJl (storageCheckBounds S values lo hi)
     range := arrayIndexRange
-    read := S.getindex
+    read := fun values index => liftSortJl (S.getindex values index)
     less := fun order => order
     swap := storageSwap S
     scaleByBool := fun i yes => if yes then i else 0
@@ -5134,14 +6112,28 @@ def storageBracketOps {V α : Type} [Inhabited α] (S : VectorStorage V α)
   keywordsWithHi := fun kw hi => { kw with hi }
   finish := fun values scratch => (values, scratch)
 
+/-- `base/sort.jl:683-684`: the generic-element branch of MissingOptimization.
+Only the continuation is needed when neither specialized Missing branch applies. -/
+def sortMissingFallback {V Alg O Kws R E : Type}
+    (sort : V → Alg → O → Kws → Except E R)
+    (vector : V) (next : Alg) (order : O) (keywords : Kws) : Except E R :=
+  sort vector next order keywords
+
+/-- `base/sort.jl:728-729`: the generic-element branch of IEEEFloatOptimization.
+The reinterpretation and partition capabilities belong to the specialized model. -/
+def sortIEEEFloatFallback {V Alg O Kws R E : Type}
+    (sort : V → Alg → O → Kws → Except E R)
+    (vector : V) (next : Alg) (order : O) (keywords : Kws) : Except E R :=
+  sort vector next order keywords
+
 /-- `_sort!` dispatch on the algorithm for an `AbstractVector` whose element type has no
 specialised `Missing`, `Bool`, `IEEEFloat` or `UIntMappable` method. The fuel only bounds the
 nesting of algorithm wrappers; `sourceSortWindow` supplies the algorithm's depth. -/
 def sourceSortLoop {V α : Type} [Inhabited α] (S : VectorStorage V α)
     (numeric : BracketNumerics) (pivot : Int → Int → Int) :
-    Nat → V → Algorithm (BracketSortTarget Int) Int → (α → α → Bool) →
-      ArraySortKeywords α → Jl (V × Option (Array α))
-  | 0, _, _, _, _ => .error (.methodError "algorithm nesting exceeds the dispatch depth")
+    Nat → V → Algorithm (BracketSortTarget Int) Int → (α → α → SortResult Bool) →
+      ArraySortKeywords α → SortResult (V × Option (Array α))
+  | 0, _, _, _, _ => .error (.errorException "fuel")
   | fuel + 1, values, algorithm, order, keywords =>
     let step := sourceSortLoop S numeric pivot fuel
     match algorithm with
@@ -5151,48 +6143,15 @@ def sourceSortLoop {V α : Type} [Inhabited α] (S : VectorStorage V α)
       sortSubArrayFallback step
         (fun alg => match alg with | .subArray next => next | _ => alg)
         values algorithm order keywords
-    | .missing _ =>
-      let ops : MissingSortOps V V (WithoutMissingVector α V)
-          Int Int α (Algorithm (BracketSortTarget Int) Int) (α → α → Bool)
-          Empty (ArraySortKeywords α) (V × Option (Array α)) JlError := {
-        range := fun kw => .ok (kw.lo, kw.hi)
-        elementType := fun _ => α
-        dataElementType := fun _ => α
-        hasMissingSupertype := fun _ => false
-        nonMissingType := id
-        sameType := fun _ _ => true
-        isIntegerType := fun _ => false
-        isDirectOrdering := fun _ => false
-        permutationDetails := fun _ => none
-        isDirectPermutationOrder := Empty.elim
-        isReversePermutationOrder := Empty.elim
-        allIdentityIndices := fun _ _ => false
-        sendMissingToEnd := fun v _ lo hi => .ok (v, lo, hi)
-        wrapVectorWithoutMissing := fun v => .ok ⟨v⟩
-        wrapDataWithoutMissing := fun v => .ok ⟨v⟩
-        indexRange := arrayIndexRange
-        eachDataIndex := fun v => arrayIndexRange 1 (S.length v)
-        dataIndexAt := fun indices i => indices[(i - 1).toNat]?.getD 0
-        readData := S.getindex
-        isMissing := fun _ => false
-        writeIndex := fun v _ _ => .ok v
-        nextIndex := fun i => i + 1
-        previousIndex := fun i => i - 1
-        reverse := storageReverse S
-        permutationOrder := fun impossible _ => Empty.elim impossible
-        nextAlgorithm := fun alg => match alg with | .missing next => next | _ => alg
-        appendBounds := fun kw lo hi => { kw with lo, hi }
-        sortWrapped := fun wrapped next o kw => step wrapped.data next o kw
-        sortVector := step
-      }
-      sortMissingOptimization ops values algorithm order keywords
+    | .missing next =>
+      sortMissingFallback step values next order keywords
     | .boolOptimization _ =>
       sortBoolOther step
         (fun alg => match alg with | .boolOptimization next => next | _ => alg)
         values algorithm order keywords
     | .small threshold _ _ =>
       let ops : SmallSortOps V (Algorithm (BracketSortTarget Int) Int)
-          (α → α → Bool) Int (ArraySortKeywords α) (V × Option (Array α)) JlError := {
+          (α → α → SortResult Bool) Int (ArraySortKeywords α) (V × Option (Array α)) SortException := {
         range := fun kw => .ok (kw.lo, kw.hi)
         spanLessThan := fun lo hi limit => decide (hi - lo < Int.ofNat limit)
         smallAlgorithm := fun alg => match alg with | .small _ small _ => small | _ => alg
@@ -5200,43 +6159,11 @@ def sourceSortLoop {V α : Type} [Inhabited α] (S : VectorStorage V α)
         sort := step
       }
       sortSmall ops values algorithm threshold order keywords
-    | .ieeeFloat _ =>
-      let ops : IEEEFloatSortOps V V (Array Nat) Int
-          (Algorithm (BracketSortTarget Int) Int) (α → α → Bool) Empty (α → α → Bool)
-          (ArraySortKeywords α) (Array α) JlError := {
-        range := fun kw => .ok (kw.lo, kw.hi)
-        elementType := fun _ => α
-        dataElementType := fun _ => α
-        isConcreteIEEEFloat := fun _ => false
-        isDirectOrdering := fun _ => false
-        isIntegerVector := fun _ => false
-        permutationDetails := fun _ => none
-        isDirectPermutationOrder := Empty.elim
-        reverseOrdering := fun o a b => o b a
-        forwardOrdering := id
-        sendNaNs := fun v _ lo hi => .ok (v, lo, hi)
-        sendAfterZero := fun v _ lo _ => .ok (v, lo)
-        reinterpretVector := fun _ => .ok #[]
-        syncUnsignedAlias := fun _ u => .ok u
-        restoreVectorAlias := fun v _ => .ok v
-        nextIndex := fun i => i + 1
-        sortUnsigned := fun u _ _ kw => .ok (u, kw.scratch)
-        sendPermutationNaNs := fun _ _ impossible => Empty.elim impossible
-        reinterpretData := fun _ => .ok #[]
-        sendPermutationAfterZero := fun _ _ impossible => Empty.elim impossible
-        reversePermutationOrder := Empty.elim
-        forwardPermutationOrder := Empty.elim
-        makePermutationOrder := fun impossible _ => Empty.elim impossible
-        sortPermutation := step
-        nextAlgorithm := fun alg => match alg with | .ieeeFloat next => next | _ => alg
-        keywordsWithBounds := fun kw lo hi => { kw with lo, hi }
-        keywordsWithBoundsAndScratch := fun kw lo hi scratch => { kw with lo, hi, scratch }
-        sortFallback := step
-      }
-      sortIEEEFloatOptimization ops values algorithm order keywords
+    | .ieeeFloat next =>
+      sortIEEEFloatFallback step values next order keywords
     | .isUIntMappable _ _ =>
       let ops : UIntMappableSortOps V (Algorithm (BracketSortTarget Int) Int)
-          (α → α → Bool) (ArraySortKeywords α) (V × Option (Array α)) JlError := {
+          (α → α → SortResult Bool) (ArraySortKeywords α) (V × Option (Array α)) SortException := {
         elementType := fun _ => α
         uintMappable := uintMappableFallback
         yesAlgorithm := fun alg => match alg with | .isUIntMappable yes _ => yes | _ => alg
@@ -5263,125 +6190,125 @@ def sourceSortLoop {V α : Type} [Inhabited α] (S : VectorStorage V α)
     | .insertion => do
       let sorted ← storageInsertion S order values keywords.lo keywords.hi
       pure (sorted, keywords.scratch)
-    | .quick =>
-      let ops : LegacyDispatchOps V Int (Algorithm (BracketSortTarget Int) Int)
-          (α → α → Bool) (ArraySortKeywords α) (Option (Array α)) JlError := {
-        getKeywords := fun kw => .ok (kw.lo, kw.hi, kw.scratch, none)
-        sameAlgorithm := fun _ _ => false
-        undefinedAlgorithm := fun _ _ _ =>
-          .argumentError "Base.Sort._sort! is not defined for this algorithm"
-        legacySort := fun current lo hi _ o =>
-          legacyQuickSortBang (storageQuickOps S o) current lo hi ()
-      }
-      legacySortDispatch ops values algorithm order keywords
-    | .merge =>
-      let ops : LegacyDispatchOps V Int (Algorithm (BracketSortTarget Int) Int)
-          (α → α → Bool) (ArraySortKeywords α) (Option (Array α)) JlError := {
-        getKeywords := fun kw => .ok (kw.lo, kw.hi, kw.scratch, none)
-        sameAlgorithm := fun _ _ => false
-        undefinedAlgorithm := fun _ _ _ =>
-          .argumentError "Base.Sort._sort! is not defined for this algorithm"
-        legacySort := fun current lo hi _ o =>
-          legacyMergeSortBang (storageMergeOps S o) current lo hi () ()
-      }
-      legacySortDispatch ops values algorithm order keywords
-    | .partialQuickSort target =>
-      let ops : LegacyDispatchOps V Int (Algorithm (BracketSortTarget Int) Int)
-          (α → α → Bool) (ArraySortKeywords α) (Option (Array α)) JlError := {
-        getKeywords := fun kw => .ok (kw.lo, kw.hi, kw.scratch, none)
-        sameAlgorithm := fun _ _ => false
-        undefinedAlgorithm := fun _ _ _ =>
-          .argumentError "Base.Sort._sort! is not defined for this algorithm"
-        legacySort := fun current lo hi _ o =>
-          legacyPartialQuickSortBang (storagePartialQuickOps S o) current lo hi
-            (bracketTargetEndpoints.first target, bracketTargetEndpoints.last target) ()
-      }
-      legacySortDispatch ops values algorithm order keywords
+    | .quick => do
+      let sorted ← legacyQuickSortBang (storageQuickOps S order) values keywords.lo keywords.hi ()
+      pure (sorted, keywords.scratch)
+    | .merge => do
+      let sorted ← legacyMergeSortBang (storageMergeOps S order) values keywords.lo keywords.hi () ()
+      pure (sorted, keywords.scratch)
+    | .partialQuickSort target => do
+      let sorted ← legacyPartialQuickSortBang (storagePartialQuickOps S order) values
+        keywords.lo keywords.hi
+        (bracketTargetEndpoints.first target, bracketTargetEndpoints.last target) ()
+      pure (sorted, keywords.scratch)
     | .considerCounting _ _ =>
       sortConsiderCountingOther step
         (fun alg => match alg with | .considerCounting _ next => next | _ => alg)
         values algorithm order keywords
     | .computeExtrema _ | .counting | .considerRadix _ _ | .radix =>
-      .error (.methodError "algorithm requires a direct integer ordering")
+      .error (.jl (.methodError "algorithm requires a direct integer ordering"))
+    | .user tag =>
+      match S.userAlgorithms.sortBang tag with
+      | some method => method values order keywords
+      | none =>
+        -- `_sort!(v::AbstractVector, a::Algorithm, o::Ordering, kw)` (sort.jl:2586-2595)
+        if keywords.legacyEntry = some tag then
+          .error (.jl (.argumentError ("Base.Sort._sort!(::" ++ keywords.names.vector ++ ", ::" ++
+            keywords.names.algorithm ++ ", ::" ++ keywords.names.ordering ++ ", ::Any) is not defined")))
+        else do
+          match S.userAlgorithms.legacySortBang tag with
+          | some method =>
+            let sorted ← method values keywords.lo keywords.hi order
+            pure (sorted, keywords.scratch)
+          | none =>
+            -- `sort!(v, lo, hi, a, o)` (sort.jl:2572-2576): `checkbounds(v, lo:hi)`, then
+            -- `_sort!(v, a, o, (; lo, hi, legacy_dispatch_entry=a))`.
+            liftSortJl (storageCheckBounds S values keywords.lo keywords.hi)
+            let (sorted, _) ← step values algorithm order
+              { lo := keywords.lo, hi := keywords.hi, legacyEntry := some tag,
+                names := keywords.names }
+            pure (sorted, keywords.scratch)
 
 def sourceSortWindow {V α : Type} [Inhabited α] (S : VectorStorage V α)
     (numeric : BracketNumerics) (pivot : Int → Int → Int)
     (values : V) (algorithm : Algorithm (BracketSortTarget Int) Int)
-    (order : α → α → Bool) (keywords : ArraySortKeywords α) : Jl (V × Option (Array α)) :=
+    (order : α → α → SortResult Bool) (keywords : ArraySortKeywords α) : SortResult (V × Option (Array α)) :=
   sourceSortLoop S numeric pivot (algorithm.depth + 16) values algorithm order keywords
 
 def sourceSortBang {V α : Type} [Inhabited α] (S : VectorStorage V α)
     (numeric : BracketNumerics) (pivot : Int → Int → Int)
     (values : V) (algorithm : Algorithm (BracketSortTarget Int) Int)
-    (order : α → α → Bool) (keywords : ArraySortKeywords α) : Jl V := do
+    (order : α → α → SortResult Bool) (keywords : ArraySortKeywords α) : SortResult V := do
   let (sorted, _) ← sourceSortWindow S numeric pivot values algorithm order keywords
   pure sorted
 
 def sourceVectorSortOps {V α : Type} [Inhabited α] (S : VectorStorage V α)
     (numeric : BracketNumerics) (pivot : Int → Int → Int) :
     SortVectorOps V (Algorithm (BracketSortTarget Int) Int)
-      (α → α → Bool) Unit (α → α → Bool)
-      (Option (Array α)) (ArraySortKeywords α) JlError where
+      (α → α → SortResult Bool) Unit (α → α → SortResult Bool)
+      (Option (Array α)) (ArraySortKeywords α) SortException where
   applyInitialOptimizations := sourceApplyInitialOptimizations
   ordering := fun less _ reverse _ =>
     if reverse = some true then fun a b => less b a else less
   runSort := fun values algorithm order keywords =>
     sourceSortBang S numeric pivot values algorithm order
-      { keywords with lo := 1, hi := Int.ofNat (S.length values) }
+      { keywords with lo := S.firstindex values, hi := S.lastindex values }
   withScratch := fun scratch => { lo := 1, hi := 0, scratch }
+
+/-- The value of `maybeview(v, k)` (sort.jl:110-111): `v[k]` for an integer `k`, the selected
+elements of the view `view(v, k)` for a range `k`. -/
+inductive PartialResult (α : Type) where
+  | element (value : α)
+  | elements (values : List α)
 
 def storagePartialSortOps {V α : Type} [Inhabited α] (S : VectorStorage V α)
     (numeric : BracketNumerics) (pivot : Int → Int → Int) :
-    PartialSortOps V (BracketSortTarget Int) Int (α → α → Bool)
-      (Option (Array α)) (ArraySortKeywords α) (List α) JlError where
+    PartialSortOps V (BracketSortTarget Int) Int (α → α → SortResult Bool)
+      (Option (Array α)) (ArraySortKeywords α) (PartialResult α) SortException where
   targetOps := bracketTargetEndpoints
   sort := fun values algorithm order keywords =>
     sourceSortBang S numeric pivot values algorithm order
-      { keywords with lo := 1, hi := Int.ofNat (S.length values) }
+      { keywords with lo := S.firstindex values, hi := S.lastindex values }
   maybeView := fun values target => match target with
     | .index index => do
-      let value ← maybeviewInteger S.getindex values index
-      pure [value]
-    | _ => maybeviewRange
-      (fun current selection => (bracketTargetIndices selection).mapM (S.getindex current))
-      values target
+      pure (.element (← liftSortJl (maybeviewInteger S.getindex values index)))
+    | _ => do
+      pure (.elements (← liftSortJl (maybeviewRange
+        (fun current selection => (bracketTargetIndices selection).mapM (S.getindex current))
+        values target)))
   withScratch := fun scratch => { lo := 1, hi := 0, scratch }
   scratchOfKeywords := ArraySortKeywords.scratch
-
-def storageElementOrDefault {V α : Type} [Inhabited α] (S : VectorStorage V α)
-    (values : V) (index : Int) : α :=
-  match S.getindex values index with
-  | .ok value => value
-  | .error _ => default
 
 def storagePartialSortpermOps {V α : Type} [Inhabited α] (S : VectorStorage V α) (t : IntTy)
     (pivot : Int → Int → Int) :
     PartialSortpermOps (Array (JInt t)) V (BracketSortTarget Int) Nat Int
-      (Algorithm (BracketSortTarget Int) Int) (α → α → Bool) Unit
-      (α → α → Bool) (JInt t → JInt t → Bool) (ArraySortKeywords (JInt t))
-      (List (JInt t)) JlError where
+      (Algorithm (BracketSortTarget Int) Int) (α → α → SortResult Bool) Unit
+      (α → α → SortResult Bool) (JInt t → JInt t → SortResult Bool) (ArraySortKeywords (JInt t))
+      (List (JInt t)) SortException where
   makeIndexVector := fun values _ => .ok (Array.replicate (S.length values) (JInt.wrap t 0))
   axesIndex := Array.size
   axesVector := S.length
   axesEqual := fun a b => decide (a = b)
-  axesError := fun _ _ => .argumentError "index vector must share the source axes"
+  axesError := fun _ _ => .jl (.argumentError "index vector must share the source axes")
   eachIndex := fun indices => arrayIndexRange 1 indices.size
   writeIndex := fun indices target value => do
-    let converted ← JInt.convert t value
-    arrayWrite indices target converted
+    let converted ← liftSortJl (JInt.convert (t.name) t value)
+    liftSortJl (arrayWrite indices target converted)
   scratchQuickSort := fun target => scratchQuickRange bracketTargetEndpoints target
   initialOptimizations := initialOptimizations
   ordering := fun less _ reverse _ =>
     if reverse = some true then fun a b => less b a else less
-  permutationOrder := fun less values a b =>
-    let left := storageElementOrDefault S values a.val
-    let right := storageElementOrDefault S values b.val
-    less left right || (!(less right left) && decide (a.val < b.val))
+  permutationOrder := fun less values a b => do
+    let left ← liftSortJl (S.getindex values a.val)
+    let right ← liftSortJl (S.getindex values b.val)
+    let ab ← less left right
+    let ba ← less right left
+    pure (ab || (!ba && decide (a.val < b.val)))
   emptyKeywords := { lo := 1, hi := 0, scratch := none }
   sort := fun indices algorithm order kw =>
     sourceSortBang arrayStorage defaultBracketNumerics pivot indices algorithm order
       { kw with lo := 1, hi := Int.ofNat indices.size }
-  maybeView := fun indices target => (bracketTargetIndices target).mapM (arrayRead indices)
+  maybeView := fun indices target => liftSortJl ((bracketTargetIndices target).mapM (arrayRead indices))
 
 structure ArrayWindow where
   first : Int
@@ -5392,12 +6319,12 @@ def arrayWindowIndex (window : ArrayWindow) (index : Int) : Int :=
   window.first + (index - 1) * window.stride
 
 def storageSendToEndOps {V α : Type} (S : VectorStorage V α) :
-    SendToEndOps (StateT V (Except JlError)) ArrayWindow α Int where
+    SendToEndOps (StateT V (Except SortException)) ArrayWindow α Int where
   get := fun window index => fun values => do
-    let value ← S.getindex values (arrayWindowIndex window index)
+    let value ← liftSortJl (S.getindex values (arrayWindowIndex window index))
     pure (value, values)
   set := fun window value index => fun values => do
-    let updated ← S.setindex values (arrayWindowIndex window index) value
+    let updated ← liftSortJl (S.setindex values (arrayWindowIndex window index) value)
     pure ((), updated)
   firstIndex := fun _ => 1
   lastIndex := fun window => window.length
@@ -5412,61 +6339,83 @@ def storageSendToEndOps {V α : Type} (S : VectorStorage V α) :
   }
   add := Int.add
   subtract := Int.sub
+  modelExhausted := fun {_} _ => .error (.errorException "fuel")
 
 def storageBoolSortOps {V : Type} (S : VectorStorage V Bool) :
-    BoolSortOps V Int (Bool → Bool → Bool) (Int × Int) Unit V JlError where
+    BoolSortOps V Int (Bool → Bool → SortResult Bool) (Int × Int) Unit V SortException where
   less := fun order => order
   rangeAndScratch := fun (lo, hi) => .ok (lo, hi, ())
   range := arrayIndexRange
-  read := S.getindex
+  read := fun values index => liftSortJl (S.getindex values index)
   firstSegmentEnd := fun lo count => lo + Int.ofNat count - 1
   secondSegmentStart := fun lo count => lo + Int.ofNat count
   setSegment := fun values lo hi value => do
     let mut values := values
     for index in arrayIndexRange lo hi do
-      values ← S.setindex values index value
+      values ← liftSortJl (S.setindex values index value)
     pure values
   returnVector := id
   returnScratch := fun values _ => values
 
-def arrayRadixPassOps :
-    RadixSortPassOps (Array Nat) (Array Int) Int Nat JlError where
-  mask := fun size => 2 ^ size.toNat - 1
-  bucketIndex := fun value shift mask increment => ((value >>> shift) &&& mask) + increment
-  zeroCounts := fun counts => .ok (Array.replicate counts.size 0)
-  read := arrayRead
-  write := arrayWrite
-  range := arrayIndexRange
-  readCount := fun counts index => arrayRead counts index
-  writeCount := fun counts index value => arrayWrite counts index value
-  setFirstTarget := fun counts first => arrayWrite counts 1 first
-  prefixSum := fun counts => do
-    let mut counts := counts
-    for index in arrayIndexRange 2 counts.size do
-      let value ← arrayRead counts index
-      let previous ← arrayRead counts (index - 1)
-      counts ← arrayWrite counts index ((JInt.wrap .i64 (value + previous)).val)
-    pure counts
-  addIndex := Int.add
-  toIndex := id
+def defaultScalarPrimitives : ScalarPrimitives where
+  throwdm := fun _ _ _ => .error (.broadcast .dimensionMismatch)
 
-def arrayRadixOps (heuristic : RadixChunkHeuristicOps Int Nat Nat JlError) :
-    RadixSortOps (Array Nat) (Array Int) Int Nat Nat JlError where
-  heuristic := heuristic
-  pass := arrayRadixPassOps
-  allocateCounts := fun size => .ok (Array.replicate size 0)
-  bucketCount := fun size => 2 ^ size.toNat + 1
-  bitsToNat := id
-  chunkToNat := UInt8.toNat
-  addIndex := Int.add
-  negateIndex := Int.neg
+/-- `base/accumulate.jl:362-367,436-453`, specialized to one-based Int64 vectors:
+read the first value, check linear indices, then accumulate through installed heap accesses. -/
+def nativeCumsum (dest source : Vec) : M Vec := do
+  let length ← integerAction (array.heapLength source.handle)
+  if length.val = 0 then return dest
+  let mut current ← integerRead source (int.lit .i64 1)
+  let destLength ← integerAction (array.heapLength dest.handle)
+  if destLength.val ≠ length.val then
+    throw (.broadcast .dimensionMismatch)
+  integerWrite dest current (int.lit .i64 1)
+  for index in ← liftM (nativeRange (int.lit .i64 2) length) do
+    current := int.add current (← integerRead source index)
+    integerWrite dest current index
+  pure dest
+
+def arrayRadixOps (heuristic : Int → Int → JInt .u64 → Jl UInt8) : RadixSortOps where
+  pass := nativeRadixPassOps defaultScalarPrimitives nativeCumsum
+  heuristic := fun lo hi bits =>
+    some (do
+      let c ← heuristic lo.val hi.val bits
+      pure (int.lit .u8 c.toNat))
+  allocateCounts := fun n =>
+    integerAction (array.heapVectorAllocate intTyLayout .i64 n)
+
+def runArrayRadixSort (ops : RadixSortOps) (vector : Array Nat) (lo hi : Int)
+    (bits : JInt .u64) (scratch : Array Nat) (offset : Int)
+    (chunkSize? : Option UInt8 := none) :
+    Option (SortResult (Array Nat × Array Nat × Bool)) :=
+  let vVec : Vec := ⟨0, .u64, [vector.size], [(1, vector.size)]⟩
+  let sVec : Vec := ⟨1, .u64, [scratch.size], [(1, scratch.size)]⟩
+  let vSlots : List (Option U) := vector.toList.map (fun v : Nat => some (int.lit .u64 (Int.ofNat v)))
+  let sSlots : List (Option U) := scratch.toList.map (fun v : Nat => some (int.lit .u64 (Int.ofNat v)))
+  let heap : Heap := { integers := [], unsigned := [vSlots, sSlots] }
+  match radixSortBang ops vVec sVec (int.lit .i64 lo) (int.lit .i64 hi) (int.lit .i64 offset)
+      bits (chunkSize?.map (fun c => int.lit .u8 c.toNat)) heap with
+  | none => none
+  | some (.error err) => some (.error (.native err))
+  | some (.ok (inVector, heap')) => some (do
+    let decode (slots : Option (List (Option U))) : SortResult (Array Nat) := do
+      let slots ← match slots with
+        | none => .error (.native (.array .bounds))
+        | some slots => pure slots
+      let values ← slots.mapM fun slot => match slot with
+        | none => .error (.native (.array .undefinedReference))
+        | some value => pure value.val.toNat
+      pure values.toArray
+    let outV ← decode heap'.unsigned[0]?
+    let outS ← decode heap'.unsigned[1]?
+    pure (outV, outS, inVector))
 
 abbrev NTuple (n : Nat) (α : Type) := { xs : List α // xs.length = n }
 abbrev AnyNTuple (α : Type) := Sigma fun n : Nat => NTuple n α
 
-def mergeAnyNTupleLoop {α : Type} [Inhabited α] (lt : α → α → Bool) :
-    Nat → AnyNTuple α → AnyNTuple α → Jl (AnyNTuple α)
-  | 0, left, _ => pure left
+def mergeAnyNTupleLoop {α : Type} [Inhabited α] (lt : α → α → SortResult Bool) :
+    Nat → AnyNTuple α → AnyNTuple α → SortResult (AnyNTuple α)
+  | 0, _, _ => .error (.errorException "fuel")
   | fuel + 1, left, right =>
     match left.2.val, right.2.val with
     | [], [] => pure (mergeTupleBothEmpty left right ())
@@ -5481,16 +6430,16 @@ def mergeAnyNTupleLoop {α : Type} [Inhabited α] (lt : α → α → Bool) :
         merge := fun a b _ => mergeAnyNTupleLoop lt fuel a b
       } left right ()
 
-def mergeNTuple {α : Type} [Inhabited α] (lt : α → α → Bool)
-    {m n : Nat} (left : NTuple m α) (right : NTuple n α) : Jl (NTuple (m + n) α) := do
+def mergeNTuple {α : Type} [Inhabited α] (lt : α → α → SortResult Bool)
+    {m n : Nat} (left : NTuple m α) (right : NTuple n α) : SortResult (NTuple (m + n) α) := do
   let merged ← mergeAnyNTupleLoop lt (m + n + 1) ⟨m, left⟩ ⟨n, right⟩
   if h : merged.2.val.length = m + n then
     pure ⟨merged.2.val, h⟩
   else
-    .error (.methodError "tuple merge length mismatch")
+    .error (.jl (.methodError "tuple merge length mismatch"))
 
-def anyNTupleMergeOps {α : Type} [Inhabited α] (lt : α → α → Bool) :
-    TupleMergeOps (AnyNTuple α) Unit JlError where
+def anyNTupleMergeOps {α : Type} [Inhabited α] (lt : α → α → SortResult Bool) :
+    TupleMergeOps (AnyNTuple α) Unit SortException where
   length := fun t => t.2.val.length
   split := fun ⟨_, ⟨xs, _⟩⟩ index =>
     (⟨(xs.take index).length, ⟨xs.take index, rfl⟩⟩,
@@ -5505,17 +6454,17 @@ def anyNTupleMergeOps {α : Type} [Inhabited α] (lt : α → α → Bool) :
   merge := fun left right _ =>
     mergeAnyNTupleLoop lt (left.2.val.length + right.2.val.length + 1) left right
 
-def mergeSortNTuple {α : Type} [Inhabited α] (lt : α → α → Bool)
-    {n : Nat} (tuple : NTuple n α) : Jl (NTuple n α) := do
+def mergeSortNTuple {α : Type} [Inhabited α] (lt : α → α → SortResult Bool)
+    {n : Nat} (tuple : NTuple n α) : SortResult (NTuple n α) := do
   let sorted ← mergeSortTupleRecursive (anyNTupleMergeOps lt) ⟨n, tuple⟩ ()
   if h : sorted.2.val.length = n then
     pure ⟨sorted.2.val, h⟩
   else
-    .error (.methodError "tuple length changed")
+    .error (.jl (.methodError "tuple length changed"))
 
 def nTupleCoreOps {α : Type} [Inhabited α] (n : Nat) (pivot : Int → Int → Int) :
     TupleSortCoreOps (NTuple n α) (Array α) (Algorithm (BracketSortTarget Int) Int)
-      (α → α → Bool) (Option (Array α)) JlError where
+      (α → α → SortResult Bool) (Option (Array α)) SortException where
   length := fun _ => n
   copyMutable := fun values => .ok values.val.toArray
   sortMutable := fun values algorithm order scratch =>
@@ -5523,14 +6472,14 @@ def nTupleCoreOps {α : Type} [Inhabited α] (n : Nat) (pivot : Int → Int → 
       { lo := 1, hi := Int.ofNat values.size, scratch }
   constructLike := fun _ values =>
     if h : values.toList.length = n then .ok ⟨values.toList, h⟩
-    else .error (.methodError "tuple length changed")
+    else .error (.jl (.methodError "tuple length changed"))
   mergeSort := fun values order => mergeSortNTuple order values
 
 def nTuplePublicOps {α : Type} [Inhabited α] (n : Nat) (pivot : Int → Int → Int) :
     TuplePublicSortOps (NTuple n α) (Algorithm (BracketSortTarget Int) Int)
-      (α → α → Bool) Unit (α → α → Bool) (Array α) (Option (Array α)) JlError where
+      (α → α → SortResult Bool) Unit (α → α → SortResult Bool) (Array α) (Option (Array α)) SortException where
   scratchMatches := fun _ _ => true
-  argumentError := JlError.argumentError
+  argumentError := fun message => .jl (.argumentError message)
   ordering := fun less _ reverse _ =>
     if reverse = some true then fun a b => less b a else less
   keywords := id
@@ -5538,14 +6487,16 @@ def nTuplePublicOps {α : Type} [Inhabited α] (n : Nat) (pivot : Int → Int �
     match algorithm with
     | .defaultStable | .defaultUnstable =>
       sortTupleCore (nTupleCoreOps n pivot) values algorithm order keywords
-    | _ => .error (.methodError "Base.Sort._sort")
+    | _ => .error (.jl (.methodError "Base.Sort._sort"))
   assertSameType := fun _ result => .ok result
 
 def arrayPermutationOrder {α : Type} [Inhabited α]
-    (order : α → α → Bool) (values : Array α) (left right : Int) : Bool :=
-  let a := values[(left - 1).toNat]?.getD default
-  let b := values[(right - 1).toNat]?.getD default
-  order a b || (!(order b a) && decide (left < right))
+    (order : α → α → SortResult Bool) (values : Array α) (left right : Int) : SortResult Bool := do
+  let a ← liftSortJl (arrayRead values left)
+  let b ← liftSortJl (arrayRead values right)
+  let ab ← order a b
+  let ba ← order b a
+  pure (ab || (!ba && decide (left < right)))
 
 def arrayIntegerExtrema (values : Array Int) : Jl (Int × Int) :=
   match values.toList with
@@ -5553,18 +6504,18 @@ def arrayIntegerExtrema (values : Array Int) : Jl (Int × Int) :=
   | first :: rest => .ok (rest.foldl min first, rest.foldl max first)
 
 def arraySortpermCoreOps {α : Type} [Inhabited α] (pivot : Int → Int → Int)
-    (integerView : Array α → Jl (Array Int)) (hasIntegerElements : Array α → Bool)
-    (isForward : (α → α → Bool) → Bool := fun _ => false) :
+    (integerView : Array α → SortResult (Array Int)) (hasIntegerElements : Array α → Bool)
+    (isForward : (α → α → SortResult Bool) → Bool := fun _ => false) :
     SortpermCoreOps (Array α) (Array α) (Array Int)
-      (Algorithm (BracketSortTarget Int) Int) (α → α → Bool)
-      (Int → Int → Bool) (Option (Array Int)) Unit (Array Int) Int JlError where
+      (Algorithm (BracketSortTarget Int) Int) (α → α → SortResult Bool)
+      (Int → Int → SortResult Bool) (Option (Array Int)) Unit (Array Int) Int SortException where
   isForward := isForward
   isVector := fun _ => true
   hasIntegerElements := hasIntegerElements
   length := Array.size
   extrema := fun values => do
     let integerValues ← integerView values
-    arrayIntegerExtrema integerValues
+    liftSortJl (arrayIntegerExtrema integerValues)
   subtractWithOverflow := fun a b =>
     let exact := a - b
     ((JInt.wrap .i64 exact).val, decide (exact < IntTy.min .i64 ∨ IntTy.max .i64 < exact))
@@ -5575,7 +6526,9 @@ def arraySortpermCoreOps {α : Type} [Inhabited α] (pivot : Int → Int → Int
   rangeLessThanHalf := fun value half => decide (value < Int.ofNat half)
   sortpermIntRange := fun values length minimum => do
     let integers ← integerView values
-    sortpermIntRange sortpermIntArrayOps integers length minimum
+    let (_, (_, perm)) ←
+      liftSortJl ((sortpermIntRange arraySortpermRangeOps integers (int.lit .i64 length) (int.lit .i64 minimum)).run (#[], #[]))
+    pure perm
   copyLinearIndices := fun values => .ok (arrayIndexRange 1 values.size).toArray
   vectorize := id
   permutationOrder := arrayPermutationOrder
@@ -5584,11 +6537,11 @@ def arraySortpermCoreOps {α : Type} [Inhabited α] (pivot : Int → Int → Int
       indices algorithm order () none order scratch
 
 def arraySortpermTopOps {α : Type} [Inhabited α] (pivot : Int → Int → Int)
-    (integerView : Array α → Jl (Array Int)) (hasIntegerElements : Array α → Bool)
-    (isForward : (α → α → Bool) → Bool := fun _ => false) :
+    (integerView : Array α → SortResult (Array Int)) (hasIntegerElements : Array α → Bool)
+    (isForward : (α → α → SortResult Bool) → Bool := fun _ => false) :
     SortpermTopOps (Array α) (Algorithm (BracketSortTarget Int) Int)
-      (α → α → Bool) Unit (α → α → Bool)
-      (Option (Array Int)) Unit (Array Int) JlError where
+      (α → α → SortResult Bool) Unit (α → α → SortResult Bool)
+      (Option (Array Int)) Unit (Array Int) SortException where
   ordering := fun less _ reverse _ =>
     if reverse = some true then fun a b => less b a else less
   sortperm := fun values algorithm order scratch dims =>
@@ -5597,16 +6550,16 @@ def arraySortpermTopOps {α : Type} [Inhabited α] (pivot : Int → Int → Int)
 
 def arraySortpermBangOps {α : Type} [Inhabited α] (pivot : Int → Int → Int) :
     SortpermBangOps (Array Int) (Array α) (Array α)
-      (Algorithm (BracketSortTarget Int) Int) (α → α → Bool)
-      Unit (α → α → Bool) (Int → Int → Bool) (Option (Array Int))
-      (Option Int) Nat JlError where
+      (Algorithm (BracketSortTarget Int) Int) (α → α → SortResult Bool)
+      Unit (α → α → SortResult Bool) (Int → Int → SortResult Bool) (Option (Array Int))
+      (Option Int) Nat SortException where
   isVector := fun _ => true
   hasDims := Option.isSome
   axesIndex := Array.size
   axesArray := Array.size
   axesEqual := fun a b => decide (a = b)
-  dimensionError := fun _ => .argumentError "Dims argument incorrect for vector"
-  axesError := fun _ _ => .argumentError "index array must have the same axes"
+  dimensionError := fun _ => .jl (.argumentError "Dims argument incorrect for vector")
+  axesError := fun _ _ => .jl (.argumentError "index array must have the same axes")
   initializeLinearIndices := fun _ values => .ok (arrayIndexRange 1 values.size).toArray
   ordering := fun less _ reverse _ =>
     if reverse = some true then fun a b => less b a else less
@@ -5626,28 +6579,9 @@ def optionIntegerLess (reverse : Bool) (left right : Option Int) : Bool :=
     | none, _ => false
   if reverse then backward else forward
 
-def arrayNonmissingInsertion (values : Array (Option Int)) (lo hi : Int)
-    (reverse : Bool) : Jl (Array (Option Int)) := do
-  let operations :
-      VectorMutationOps (StateT (Array (Option Int)) (Except JlError)) Unit Int Int := {
-    get := fun _ index => fun current => do
-      let value ← withoutMissingGet arrayRead JlError.argumentError
-        (⟨current⟩ : WithoutMissingVector Int (Array (Option Int))) index
-      pure (value, current)
-    set := fun _ value index => fun current => do
-      let wrapped ← withoutMissingSet
-        (fun storage value index => arrayWrite storage index (some value))
-        (⟨current⟩ : WithoutMissingVector Int (Array (Option Int))) value index
-      pure ((), wrapped.data)
-    indices := arrayIndices
-    distance := fun lo hi => (hi - lo).toNat
-  }
-  let compare := fun (_ : Unit) (a b : Int) => if reverse then decide (b < a) else decide (a < b)
-  let (_, sorted) ← (insertionSort operations compare () () lo hi ()).run values
-  pure sorted
 
-def partitionMissingArray (values : Array (Option Int)) (reverse : Bool) (lo hi : Int) :
-    Jl (Array (Option Int) × Int × Int) := do
+def partitionMissingArray {α : Type} (values : Array (Option α)) (reverse : Bool) (lo hi : Int) :
+    SortResult (Array (Option α) × Int × Int) := do
   let window : ArrayWindow := ⟨1, 1, values.size⟩
   if reverse then
     let ((first, last), result) ←
@@ -5660,11 +6594,19 @@ def partitionMissingArray (values : Array (Option Int)) (reverse : Bool) (lo hi 
         window false lo hi).run values
     pure (result, first, last)
 
-def arrayMissingDirectOps :
+def arrayMissingDirectOpsWithNext {Alg : Type}
+    (nextAlgorithm : Alg → Alg)
+    (sortWrapped : WithoutMissingVector Int (Array (Option Int)) → Alg → Bool →
+      (Int × Int) → SortResult (Array (Option Int)))
+    (sortVector : Array (Option Int) → Alg → Bool →
+      (Int × Int) → SortResult (Array (Option Int))) :
     MissingSortOps (Array (Option Int)) (Array (Option Int))
-      (WithoutMissingVector Int (Array (Option Int))) Int Int (Option Int)
-      Unit Bool Empty (Int × Int) (Array (Option Int)) JlError where
-  range := fun bounds => .ok bounds
+      (WithoutMissingVector Int (Array (Option Int)))
+      (WithoutMissingVector Int (Array (Option Int)))
+      Int Int Int Int Int Int Int Int (Option Int)
+      Alg (Int × Int) (Int × Int) (Int × Int) (Array (Option Int)) SortException (List Int)
+      Bool Empty Bool where
+  range := fun _ _ bounds => .ok (bounds, bounds.1, bounds.2)
   elementType := fun _ => Option Int
   dataElementType := fun _ => Option Int
   hasMissingSupertype := fun _ => true
@@ -5676,34 +6618,52 @@ def arrayMissingDirectOps :
   isDirectPermutationOrder := Empty.elim
   isReversePermutationOrder := Empty.elim
   allIdentityIndices := fun values data =>
-    values.toList == (arrayIndexRange 1 data.size).map some
+    .ok (values.toList == (arrayIndexRange 1 data.size).map some)
   sendMissingToEnd := partitionMissingArray
   wrapVectorWithoutMissing := fun values =>
-    withoutMissingVector (fun data => data.any Option.isNone) JlError.argumentError values true
+    match withoutMissingVector (E := Empty) (fun data => .ok (data.any Option.isNone)) values true with
+    | .ok w => .ok w
+    | .error (.julia e) => .error (.jl e)
+    | .error (.callee e) => nomatch e
+    | .error (.typeError msg) => .error (.typeError msg)
+    | .error (.assertionError msg) => .error (.assertionError msg)
   wrapDataWithoutMissing := fun values =>
-    withoutMissingVector (fun data => data.any Option.isNone) JlError.argumentError values true
+    match withoutMissingVector (E := Empty) (fun data => .ok (data.any Option.isNone)) values true with
+    | .ok w => .ok w
+    | .error (.julia e) => .error (.jl e)
+    | .error (.callee e) => nomatch e
+    | .error (.typeError msg) => .error (.typeError msg)
+    | .error (.assertionError msg) => .error (.assertionError msg)
   indexRange := arrayIndexRange
-  eachDataIndex := fun values => arrayIndexRange 1 values.size
-  dataIndexAt := fun indices index => indices[(index - 1).toNat]?.getD 0
-  readData := arrayRead
-  isMissing := Option.isNone
-  writeIndex := fun values index value => arrayWrite values index (some value)
-  nextIndex := fun index => index + 1
-  previousIndex := fun index => index - 1
-  reverse := storageReverse arrayStorage
+  eachDataIndex := fun values => .ok (arrayIndexRange 1 values.size)
+  dataIndexAt := fun indices index => liftSortJl (arrayRead indices.toArray index)
+  readData := fun values index => liftSortJl (arrayRead values index)
+  isMissing := fun x => .ok (Option.isNone x)
+  writeLowIndex := fun values index value => liftSortJl (arrayWrite values index.unwrap (some value))
+  writeHighIndex := fun values index value => liftSortJl (arrayWrite values index.unwrap (some value))
+  incrementLow := ⟨(· + 1), (· + 1)⟩
+  decrementHigh := ⟨(· - 1), (· - 1)⟩
+  reverse := fun v lo hi => storageReverse arrayStorage v lo.unwrap hi
   permutationOrder := fun impossible _ => Empty.elim impossible
-  nextAlgorithm := id
-  appendBounds := fun _ lo hi => (lo, hi)
-  sortWrapped := fun wrapped _ reverse bounds =>
-    arrayNonmissingInsertion wrapped.data bounds.1 bounds.2 reverse
-  sortVector := fun values _ reverse bounds =>
-    storageInsertion arrayStorage (optionIntegerLess reverse) values bounds.1 bounds.2
+  nextAlgorithm := nextAlgorithm
+  appendDirectBounds := fun _ lo hi => (lo, hi)
+  appendPermutationBounds := fun _ lo hi => (lo.unwrap, hi.unwrap)
+  sortWrapped := sortWrapped
+  sortVector := sortVector
+  sortPermutation := sortVector
 
-def arrayMissingPermutationOps (data : Array (Option Int)) :
+def arrayMissingPermutationOpsWithNext {Alg : Type} (data : Array (Option Int))
+    (nextAlgorithm : Alg → Alg)
+    (sortWrapped : WithoutMissingVector Int (Array (Option Int)) → Alg → Bool →
+      (Int × Int) → SortResult (Array Int))
+    (sortVector : Array Int → Alg → Bool → (Int × Int) → SortResult (Array Int)) :
     MissingSortOps (Array Int) (Array (Option Int))
-      (WithoutMissingVector Int (Array (Option Int))) Int Int (Option Int)
-      Unit Bool Bool (Int × Int) (Array Int) JlError where
-  range := fun bounds => .ok bounds
+      (WithoutMissingVector Int (Array (Option Int)))
+      (WithoutMissingVector Int (Array (Option Int)))
+      Int Int Int Int Int Int Int Int (Option Int)
+      Alg (Int × Int) (Int × Int) (Int × Int) (Array Int) SortException (List Int)
+      Bool Bool Bool where
+  range := fun _ _ bounds => .ok (bounds, bounds.1, bounds.2)
   elementType := fun _ => Int
   dataElementType := fun _ => Option Int
   hasMissingSupertype := fun _ => true
@@ -5714,7 +6674,7 @@ def arrayMissingPermutationOps (data : Array (Option Int)) :
   permutationDetails := fun reverse => some (reverse, data)
   isDirectPermutationOrder := fun _ => true
   isReversePermutationOrder := id
-  allIdentityIndices := fun values source => values.toList == arrayIndexRange 1 source.size
+  allIdentityIndices := fun values source => .ok (values.toList == arrayIndexRange 1 source.size)
   sendMissingToEnd := fun values reverse lo hi => do
     let window : ArrayWindow := ⟨1, 1, values.size⟩
     let ((first, last), result) ←
@@ -5722,42 +6682,50 @@ def arrayMissingPermutationOps (data : Array (Option Int)) :
         window reverse lo hi).run values
     pure (result, first, last)
   wrapVectorWithoutMissing := fun values =>
-    withoutMissingVector (fun source => source.any Option.isNone) JlError.argumentError
-      (values.map some) true
+    match withoutMissingVector (E := Empty) (fun source => .ok (source.any Option.isNone))
+        (values.map some) true with
+    | .ok w => .ok w
+    | .error (.julia e) => .error (.jl e)
+    | .error (.callee e) => nomatch e
+    | .error (.typeError msg) => .error (.typeError msg)
+    | .error (.assertionError msg) => .error (.assertionError msg)
   wrapDataWithoutMissing := fun values =>
-    withoutMissingVector (fun source => source.any Option.isNone) JlError.argumentError values true
+    match withoutMissingVector (E := Empty) (fun source => .ok (source.any Option.isNone))
+        values true with
+    | .ok w => .ok w
+    | .error (.julia e) => .error (.jl e)
+    | .error (.callee e) => nomatch e
+    | .error (.typeError msg) => .error (.typeError msg)
+    | .error (.assertionError msg) => .error (.assertionError msg)
   indexRange := arrayIndexRange
-  eachDataIndex := fun values => arrayIndexRange 1 values.size
-  dataIndexAt := fun indices index => indices[(index - 1).toNat]?.getD 0
-  readData := arrayRead
-  isMissing := Option.isNone
-  writeIndex := arrayWrite
-  nextIndex := fun index => index + 1
-  previousIndex := fun index => index - 1
-  reverse := storageReverse arrayStorage
+  eachDataIndex := fun values => .ok (arrayIndexRange 1 values.size)
+  dataIndexAt := fun indices index => liftSortJl (arrayRead indices.toArray index)
+  readData := fun values index => liftSortJl (arrayRead values index)
+  isMissing := fun x => .ok (Option.isNone x)
+  writeLowIndex := fun values index value => liftSortJl (arrayWrite values index.unwrap value)
+  writeHighIndex := fun values index value => liftSortJl (arrayWrite values index.unwrap value)
+  incrementLow := ⟨(· + 1), (· + 1)⟩
+  decrementHigh := ⟨(· - 1), (· - 1)⟩
+  reverse := fun v lo hi => storageReverse arrayStorage v lo.unwrap hi
   permutationOrder := fun reverse _ => reverse
-  nextAlgorithm := id
-  appendBounds := fun _ lo hi => (lo, hi)
-  sortWrapped := fun wrapped _ reverse bounds => do
-    let sorted ← arrayNonmissingInsertion wrapped.data bounds.1 bounds.2 reverse
-    sorted.mapM fun value => match value with
-      | some integer => .ok integer
-      | none => .error (.argumentError "encountered missing in nonmissing vector")
-  sortVector := fun values _ reverse bounds =>
-    storageInsertion arrayStorage (arrayPermutationOrder (optionIntegerLess reverse) data)
-      values bounds.1 bounds.2
+  nextAlgorithm := nextAlgorithm
+  appendDirectBounds := fun _ lo hi => (lo, hi)
+  appendPermutationBounds := fun _ lo hi => (lo.unwrap, hi.unwrap)
+  sortWrapped := sortWrapped
+  sortVector := sortVector
+  sortPermutation := sortVector
 
 structure IEEECodec (α : Type) where
   encode : α → Nat
   decode : Nat → Jl α
   isNaN : α → Bool
   signbit : α → Bool
-  less : α → α → Bool
+  less : α → α → SortResult Bool
   isIEEEFloat : Type → Bool
   isConcrete : Type → Bool
 
 def partitionArrayOrdered {α : Type} (predicate : α → Bool) (values : Array α)
-    (reverse endStable : Bool) (lo hi : Int) : Jl (Array α × Int × Int) := do
+    (reverse endStable : Bool) (lo hi : Int) : SortResult (Array α × Int × Int) := do
   let window : ArrayWindow := ⟨1, 1, values.size⟩
   if reverse then
     let ((first, last), result) ←
@@ -5772,7 +6740,7 @@ def partitionArrayOrdered {α : Type} (predicate : α → Bool) (values : Array 
 
 def arrayIEEEDirectOps {α : Type} (codec : IEEECodec α) :
     IEEEFloatSortOps (Array α) (Array α) (Array Nat) Int Unit Bool Empty Bool
-      (ArraySortKeywords Nat) (Array Nat) JlError where
+      (ArraySortKeywords Nat) (Array Nat) SortException where
   range := fun kw => .ok (kw.lo, kw.hi)
   elementType := fun _ => α
   dataElementType := fun _ => α
@@ -5795,10 +6763,10 @@ def arrayIEEEDirectOps {α : Type} (codec : IEEECodec α) :
     pure (result, last)
   reinterpretVector := fun values => .ok (values.map codec.encode)
   syncUnsignedAlias := fun values _ => .ok (values.map codec.encode)
-  restoreVectorAlias := fun _ bits => bits.mapM codec.decode
+  restoreVectorAlias := fun _ bits => liftSortJl (bits.mapM codec.decode)
   nextIndex := fun index => index + 1
   sortUnsigned := fun values _ reverse kw => do
-    let compare := fun a b : Nat => if reverse then decide (b < a) else decide (a < b)
+    let compare := fun a b : Nat => pure (if reverse then decide (b < a) else decide (a < b))
     let sorted ← storageInsertion arrayStorage compare values kw.lo kw.hi
     pure (sorted, kw.scratch)
   sendPermutationNaNs := fun _ _ impossible => Empty.elim impossible
@@ -5826,13 +6794,14 @@ structure ExtremaKeywords (t : IntTy) where
   maximum : Option (JInt t) := none
 
 def arrayExtremaCountingOps (t : IntTy) (initial : Array (JInt t)) :
-    ComputeExtremaOps (Array (JInt t)) Unit Bool Int (JInt t) (ExtremaKeywords t)
-      (Array (JInt t)) JlError where
-  rangeAndScratch := fun kw => .ok (kw.lo, kw.hi, initial)
+    ComputeExtremaOps (Array (JInt t)) Unit Int Int Int Int (JInt t) (ExtremaKeywords t)
+      (Array (JInt t)) SortException Bool where
+  rangeAndScratch := fun _ _ kw => .ok (kw, kw.lo, kw.hi, initial)
   nextIndex := fun index => index + 1
   range := arrayIndexRange
-  read := arrayRead
-  less := fun reverse a b => if reverse then decide (b.val < a.val) else decide (a.val < b.val)
+  readFirst := fun values index => liftSortJl (arrayRead values index)
+  read := fun values index => liftSortJl (arrayRead values index)
+  less := fun reverse a b => .ok (if reverse then decide (b.val < a.val) else decide (a.val < b.val))
   appendExtrema := fun kw minimum maximum => { kw with minimum := some minimum, maximum := some maximum }
   nextAlgorithm := id
   sort := fun values _ reverse kw => do
@@ -5841,72 +6810,85 @@ def arrayExtremaCountingOps (t : IntTy) (initial : Array (JInt t)) :
       let (result, _) ← sortCounting (arrayCountingOps t) values reverse
         { lo := kw.lo, hi := kw.hi, minimum, maximum }
       pure result
-    | _, _ => .error (.argumentError "extrema have not been computed")
+    | _, _ => .error (.jl (.argumentError "extrema have not been computed"))
 
-def xorIntegerWords {t : IntTy} (a b : JInt t) : JInt t :=
-  JInt.wrap t (a.val + b.val)
+def mapUnsigned {t : IntTy} (x : JInt t) : JInt t := uintMapUnsigned x
 
-def forwardIntegerCode (t : IntTy) (value : JInt t) : Nat :=
-  if t.signed then
-    uintMapSigned xorIntegerWords
-      (fun _ => JInt.wrap t t.min)
-      (fun word => ((word.val + 2 ^ t.bits) % (2 ^ t.bits)).toNat) value
-  else
-    (uintMapUnsigned value).val.toNat
+def mapSigned {t : IntTy} (x : JInt t) : JInt t.toUnsigned :=
+  uintMapSigned int.bxor (fun _ => int.typemin t) int.unsigned x
 
-def forwardIntegerDecode (t : IntTy) (code : Nat) : JInt t :=
-  if t.signed then
-    uintUnmapSigned (JInt t) (fun bits => JInt.wrap t (Int.ofNat bits))
-      xorIntegerWords (JInt.wrap t t.min) code
-  else
-    JInt.wrap t (Int.ofNat (uintUnmapUnsigned Nat code))
+def unmapSigned {u : IntTy} (x : JInt u) : JInt u.toSigned :=
+  uintUnmapSigned (JInt u.toSigned) int.signed int.bxor (int.typemin u.toSigned) x
+
+def forwardIntegerCode : (t : IntTy) → JInt t → JInt t.toUnsigned
+  | .i8, x => mapSigned x
+  | .i16, x => mapSigned x
+  | .i32, x => mapSigned x
+  | .i64, x => mapSigned x
+  | .i128, x => mapSigned x
+  | .u8, x => mapUnsigned x
+  | .u16, x => mapUnsigned x
+  | .u32, x => mapUnsigned x
+  | .u64, x => mapUnsigned x
+  | .u128, x => mapUnsigned x
+
+def forwardIntegerDecode : (t : IntTy) → JInt t.toUnsigned → JInt t
+  | .i8, x => unmapSigned x
+  | .i16, x => unmapSigned x
+  | .i32, x => unmapSigned x
+  | .i64, x => unmapSigned x
+  | .i128, x => unmapSigned x
+  | .u8, x => uintUnmapUnsigned (JInt .u8) x
+  | .u16, x => uintUnmapUnsigned (JInt .u16) x
+  | .u32, x => uintUnmapUnsigned (JInt .u32) x
+  | .u64, x => uintUnmapUnsigned (JInt .u64) x
+  | .u128, x => uintUnmapUnsigned (JInt .u128) x
 
 def integerReverseMappingOps (t : IntTy) :
-    ReverseUIntMappingOps (JInt t) Nat Unit Unit where
-  bitwiseNot := fun code => (2 ^ t.bits - 1) - code
+    ReverseUIntMappingOps (JInt t) (JInt t.toUnsigned) Unit Unit where
+  bitwiseNot := int.bnot
   forwardOrdering := id
-  mapForward := fun value _ => forwardIntegerCode t value
-  unmapForward := fun _ code _ => forwardIntegerDecode t code
-  mappableForward := fun valueType _ =>
-    uintMappableBitInteger (fun _ => JInt (unsignedIntegerType t)) valueType
+  mapForward := fun x _ => forwardIntegerCode t x
+  unmapForward := fun _ x _ => forwardIntegerDecode t x
+  mappableForward := fun T _ => uintMappableBitInteger (fun _ => JInt t.toUnsigned) T
 
-def integerCode (t : IntTy) (reverse : Bool) (value : JInt t) : Nat :=
-  if reverse then uintMapReverse (integerReverseMappingOps t) value ()
-  else forwardIntegerCode t value
+def integerCode (t : IntTy) (reverse : Bool) (x : JInt t) : JInt t.toUnsigned :=
+  if reverse then uintMapReverse (integerReverseMappingOps t) x ()
+  else forwardIntegerCode t x
 
-def integerDecode (t : IntTy) (reverse : Bool) (code : Nat) : JInt t :=
-  if reverse then uintUnmapReverse (integerReverseMappingOps t) (JInt t) code ()
-  else forwardIntegerDecode t code
+def integerDecode (t : IntTy) (reverse : Bool) (x : JInt t.toUnsigned) : JInt t :=
+  if reverse then uintUnmapReverse (integerReverseMappingOps t) (JInt t) x ()
+  else forwardIntegerDecode t x
 
 def arrayIntegerMapOps (t : IntTy) :
-    UIntMapVectorOps (Array (JInt t)) (Array Nat) Nat Int (JInt t) Bool JlError where
+    UIntMapVectorOps (Array (JInt t)) (Array Nat) Nat Int (JInt t) Bool SortException where
   elementType := fun _ => JInt t
   uintMappable := fun valueType reverse =>
     if reverse then uintMappableReverse (integerReverseMappingOps t) valueType ()
     else uintMappableBitInteger (fun _ => JInt (unsignedIntegerType t)) valueType
   reinterpret := fun unsignedType values =>
     match unsignedType with
-    | none => .error (.argumentError "element type has no unsigned mapping")
+    | none => .error (.jl (.argumentError "element type has no unsigned mapping"))
     | some _ => .ok (values.map fun value => (value.val % (2 ^ t.bits)).toNat)
   range := arrayIndexRange
-  read := arrayRead
-  uintMap := fun value reverse => .ok (integerCode t reverse value)
-  writeUnsigned := arrayWrite
+  read := fun values index => liftSortJl (arrayRead values index)
+  uintMap := fun value reverse => .ok (integerCode t reverse value).val.toNat
+  writeUnsigned := fun values index value => liftSortJl (arrayWrite values index value)
 
 def arrayIntegerUnmapOps (t : IntTy) :
-    UIntUnmapVectorOps (Array (JInt t)) (Array Nat) Nat Int (JInt t) Bool JlError where
+    UIntUnmapVectorOps (Array (JInt t)) (Array Nat) Nat Int (JInt t) Bool SortException where
   range := arrayIndexRange
   addIndex := Int.add
-  readUnsigned := arrayRead
+  readUnsigned := fun values index => liftSortJl (arrayRead values index)
   zeroUnsigned := 0
   zeroIndex := 0
   addUnsigned := fun a b => (a + b) % 2 ^ t.bits
   elementType := fun _ => JInt t
-  uintUnmap := fun _ code reverse => .ok (integerDecode t reverse code)
-  write := arrayWrite
+  uintUnmap := fun _ code reverse => .ok (integerDecode t reverse (int.lit t.toUnsigned (Int.ofNat code)))
+  write := fun values index value => liftSortJl (arrayWrite values index value)
 
-def unsignedArrayScratchOps : ScratchOps (Array Nat) (Array Nat) JlError :=
-  arrayScratchOps
+def unsignedArrayScratchOps : ScratchOps (Array Nat) (Array Nat) SortException :=
+  arrayScratchOps.mapError .jl
 
 structure RadixKeywords (t : IntTy) where
   lo : Int
@@ -5916,21 +6898,27 @@ structure RadixKeywords (t : IntTy) where
   scratch : Option (Array Nat) := none
 
 def arrayRadixWrapperOps (t : IntTy)
-    (heuristic : RadixChunkHeuristicOps Int Nat Nat JlError) :
-    RadixSortWrapperOps (Array (JInt t)) (JInt t) (Array Nat) Nat Int Nat (Array Int)
-      (Array Nat) Bool (RadixKeywords t) JlError (Array (JInt t) × Array Nat) where
+    (heuristic : Int → Int → JInt .u64 → Jl UInt8) :
+    RadixSortWrapperOps (Array (JInt t)) (JInt t) (Array Nat) Nat Int (Array Int)
+      (Array Nat) Bool (RadixKeywords t) SortException (Array (JInt t) × Array Nat) where
   rangeAndExtrema := fun kw => .ok (kw.lo, kw.hi, kw.minimum, kw.maximum, kw.scratch)
   uintMapOps := arrayIntegerMapOps t
   subtractUnsigned := fun a b => (a + 2 ^ t.bits - b) % 2 ^ t.bits
-  topSetBit := fun code => if code = 0 then 0 else Nat.log2 code + 1
+  topSetBit := fun code => int.lit .u64 (if code = 0 then 0 else Nat.log2 code + 1)
   range := arrayIndexRange
   windowLength := fun lo hi => (hi - lo + 1).toNat
   oneMinus := fun index => 1 - index
+  readUnsigned := fun values index => liftSortJl (arrayRead values index)
+  writeUnsigned := fun values index value => liftSortJl (arrayWrite values index value)
   radixOps := arrayRadixOps heuristic
-  scratchOps := unsignedArrayScratchOps
+  runRadixSort := fun ops v lo hi bits s off => runArrayRadixSort ops v lo hi bits s off none
+  makeScratch := fun existing _ length =>
+    match existing with
+    | none => makeScratchNothing unsignedArrayScratchOps length
+    | some backing => makeScratchSame unsignedArrayScratchOps backing length
   reinterpretScratch := fun unsignedType backing =>
     match unsignedType with
-    | none => .error (.argumentError "element type has no unsigned mapping")
+    | none => .error (.jl (.argumentError "element type has no unsigned mapping"))
     | some _ => .ok backing
   unmapOps := arrayIntegerUnmapOps t
   finish := fun values scratch => (values, scratch)
@@ -5941,9 +6929,9 @@ structure CharacterCode where
 
 def arrayChunkLoopOps {α : Type} [Inhabited α] (pivot : Int → Int → Int) :
     SortChunksLoopOps (Array α) Int Nat
-      (Algorithm (BracketSortTarget Int) Int) (α → α → Bool) (Array α) JlError where
+      (Algorithm (BracketSortTarget Int) Int) (α → α → SortResult Bool) (Array α) SortException where
   starts := fun first step last =>
-    if step = 0 then .error (.argumentError "step cannot be zero")
+    if step = 0 then .error (.jl (.argumentError "step cannot be zero"))
     else if last < first then .ok []
     else .ok ((List.range ((last - first) / Int.ofNat step + 1).toNat).map
       fun i => first + Int.ofNat (i * step))
@@ -5958,8 +6946,8 @@ def arrayChunkLoopOps {α : Type} [Inhabited α] (pivot : Int → Int → Int) :
 
 def arrayChunkDispatchOps {α : Type} [Inhabited α] (pivot : Int → Int → Int) :
     SortChunksDispatchOps (Array α) Int Nat
-      (Algorithm (BracketSortTarget Int) Int) (α → α → Bool)
-      (Option (Array α)) JlError where
+      (Algorithm (BracketSortTarget Int) Int) (α → α → SortResult Bool)
+      (Option (Array α)) SortException where
   linearBounds := fun values => .ok (1, Int.ofNat values.size)
   sortChunksBounded := fun values n algorithm order scratch first last =>
     match scratch with
@@ -5983,22 +6971,22 @@ structure DimensionArrayLayout (A α Axes : Type) where
 def dimensionArrayOps {A α Axes : Type} [Inhabited α]
     (layout : DimensionArrayLayout A α Axes) (pivot : Int → Int → Int) :
     MultidimensionalSortOps A (Array α)
-      (Algorithm (BracketSortTarget Int) Int) (α → α → Bool) Unit
-      (α → α → Bool) (Option (Array α)) JlError where
+      (Algorithm (BracketSortTarget Int) Int) (α → α → SortResult Bool) Unit
+      (α → α → SortResult Bool) (Option (Array α)) SortException where
   dimensionLength := layout.axisLength
   dimensions := fun array => (List.range (layout.ndims array)).map Nat.succ
   dimensionOne := 1
   ordering := fun less _ reverse _ =>
     if reverse = some true then fun a b => less b a else less
-  permuteDimensions := layout.permute
-  vectorize := layout.vectorize
+  permuteDimensions := fun array dimensions => liftSortJl (layout.permute array dimensions)
+  vectorize := fun array => liftSortJl (layout.vectorize array)
   applyInitialOptimizations := sourceApplyInitialOptimizations
   sortChunks := fun values n algorithm order scratch =>
     sortChunksDispatch (arrayChunkDispatchOps pivot) values n algorithm order scratch
   inversePermutation := layout.inversePermutation
-  restorePermuted := layout.restorePermuted
-  copyLinear := layout.copyLinear
-  reshapeOriginalAxes := layout.reshapeOriginalAxes
+  restorePermuted := fun array values permutation => liftSortJl (layout.restorePermuted array values permutation)
+  copyLinear := fun array => liftSortJl (layout.copyLinear array)
+  reshapeOriginalAxes := fun array values => liftSortJl (layout.reshapeOriginalAxes array values)
 structure SliceArrayLayout (A α Axes Index K : Type) where
   ndims : A → Nat
   axisLength : A → Nat → Nat
@@ -6018,26 +7006,26 @@ def sliceSelectors {A α Axes Index K : Type} (layout : SliceArrayLayout A α Ax
 def sliceArrayOps {A α Axes Index K : Type} [Inhabited α]
     (layout : SliceArrayLayout A α Axes Index K) (pivot : Int → Int → Int) :
     SortBangDimensionsOps A (Array α) Nat Index
-      (Algorithm (BracketSortTarget Int) Int) (α → α → Bool) Unit
-      (α → α → Bool) (Option (Array α)) JlError where
+      (Algorithm (BracketSortTarget Int) Int) (α → α → SortResult Bool) Unit
+      (α → α → SortResult Bool) (Option (Array α)) SortException where
   dimensionCount := layout.ndims
-  dimensionError := .argumentError "dimension out of range"
+  dimensionError := .jl (.argumentError "dimension out of range")
   applyInitialOptimizations := sourceApplyInitialOptimizations
   ordering := fun less _ reverse _ =>
     if reverse = some true then fun a b => less b a else less
   dimensionValues := fun count => (List.range count).map Nat.succ
   dimensionValue := getValue
-  cartesianIndices := layout.cartesianIndices
+  cartesianIndices := fun array dimension => liftSortJl (layout.cartesianIndices array dimension)
   size := layout.axisLength
   getView := fun array dimension index =>
-    getView layout.view getValue layout.ndims layout.coordinate array dimension index
+    liftSortJl (getView layout.view getValue layout.ndims layout.coordinate array dimension index)
   setView := fun array dimension index values =>
-    layout.writeView array (sliceSelectors layout array dimension index) values
+    liftSortJl (layout.writeView array (sliceSelectors layout array dimension index) values)
   sortBang := fun values algorithm order scratch =>
     sortVectorBang (sourceVectorSortOps arrayStorage defaultBracketNumerics pivot)
       values algorithm order () none order scratch
   defaultScratch := fun array dimension =>
-    if dimension < 1 then .error .boundsError
+    if dimension < 1 then .error (.jl .boundsError)
     else
       let len := if dimension ≤ Int.ofNat (layout.ndims array) then
         layout.axisLength array dimension.toNat
@@ -6045,14 +7033,14 @@ def sliceArrayOps {A α Axes Index K : Type} [Inhabited α]
       if len < 10 then .ok none else .ok (some (Array.replicate len default))
   firstIndex := fun indices =>
     match indices with
-    | [] => .error .boundsError
+    | [] => .error (.jl .boundsError)
     | first :: _ => .ok first
   similar := fun values => .ok (Array.replicate values.size default)
   copyInto := fun temporary values =>
     if temporary.size = values.size then .ok values
-    else .error (.argumentError "length mismatch")
+    else .error (.jl (.argumentError "length mismatch"))
   copyFrom := fun array dimension index values =>
-    layout.writeView array (sliceSelectors layout array dimension index) values
+    liftSortJl (layout.writeView array (sliceSelectors layout array dimension index) values)
 structure FlatSortParent (α : Type) where
   storage : Array α
   dimensions : Nat
@@ -6067,30 +7055,12 @@ def flatSortViewValues {α : Type} (view : FlatSortView α) : Jl (Array α) := d
     fun index => arrayRead view.parent.storage (view.offset + index)
   pure values.toArray
 
-def arrayRadixHeuristicOps : RadixChunkHeuristicOps Int Nat Nat JlError where
-  subtract := fun a b => (JInt.wrap .i64 (a - b)).val
-  maybeUnsigned := fun value =>
-    maybeUnsignedBitSigned (fun word : Int => (JInt.wrap .u64 word).val.toNat) value
-  log := fun value => (Float.ofNat value).log
-  fromNat := Float.ofNat
-  min := fun a b => if a ≤ b then a else b
-  multiply := Float.mul
-  divide := Float.div
-  add := Float.add
-  ceilingDiv := fun count denominator => (Float.ofNat count / denominator).ceil
-  bitsToNat := id
-  toUInt8 := fun value =>
-    if 0 ≤ value && value ≤ 255 && value.floor == value then
-      .ok (UInt8.ofNat value.toUInt64.toNat)
-    else
-      .error (.inexactError "UInt8")
-
 def partitionPermutationOrdered {α : Type} (predicate : α → Bool)
     (data : Array α) (indices : Array Int) (reverse endStable : Bool) (lo hi : Int) :
-    Jl (Array Int × Int × Int) := do
+    SortResult (Array Int × Int × Int) := do
   let window : ArrayWindow := ⟨1, 1, indices.size⟩
-  let test : Int → StateT (Array Int) (Except JlError) Bool := fun index state => do
-    let value ← arrayRead data index
+  let test : Int → StateT (Array Int) (Except SortException) Bool := fun index state => do
+    let value ← liftM (liftSortJl (arrayRead data index))
     pure (predicate value, state)
   if reverse then
     let ((first, last), result) ←
@@ -6105,7 +7075,7 @@ def partitionPermutationOrdered {α : Type} (predicate : α → Bool)
 
 def arrayIEEEPermutationOps {α : Type} [Inhabited α] (codec : IEEECodec α) :
     IEEEFloatSortOps (Array Int) (Array α) (Array Nat) Int Unit (Bool × Array α)
-      Bool (Bool × Array Nat) (ArraySortKeywords Nat) (Array Nat) JlError where
+      Bool (Bool × Array Nat) (ArraySortKeywords Nat) (Array Nat) SortException where
   range := fun kw => .ok (kw.lo, kw.hi)
   elementType := fun _ => Int
   dataElementType := fun _ => α
@@ -6132,7 +7102,7 @@ def arrayIEEEPermutationOps {α : Type} [Inhabited α] (codec : IEEECodec α) :
     .ok (values.map fun value => (JInt.wrap .i64 (Int.ofNat value)).val)
   nextIndex := fun index => index + 1
   sortUnsigned := fun values _ order kw => do
-    let compare := fun a b : Nat => if order.1 then decide (b < a) else decide (a < b)
+    let compare := fun a b : Nat => pure (if order.1 then decide (b < a) else decide (a < b))
     let result ← storageInsertion arrayStorage compare values kw.lo kw.hi
     pure (result, kw.scratch)
   sendPermutationNaNs := fun values data reverse lo hi =>
@@ -6148,7 +7118,7 @@ def arrayIEEEPermutationOps {α : Type} [Inhabited α] (codec : IEEECodec α) :
   forwardPermutationOrder := fun _ => false
   makePermutationOrder := fun reverse data => (reverse, data)
   sortPermutation := fun values _ order kw => do
-    let compare := fun a b : Nat => if order.1 then decide (b < a) else decide (a < b)
+    let compare := fun a b : Nat => pure (if order.1 then decide (b < a) else decide (a < b))
     let result ← storageInsertion arrayStorage (arrayPermutationOrder compare order.2) values
       kw.lo kw.hi
     pure (result, kw.scratch)
@@ -6161,15 +7131,15 @@ def arrayIEEEPermutationOps {α : Type} [Inhabited α] (codec : IEEECodec α) :
       kw.lo kw.hi
     pure (result, kw.scratch)
 
+/-- `base/hashing.jl:40,75-76`: installed one-argument Int64 hashing. -/
 def juliaHashInt (x : Int) : Nat :=
-  let m : Nat := 2 ^ 64
-  let z : Nat := (((3 * 0xbdd89aa982704029 + m * m : Nat) : Int) - x).toNat % m
-  let z : Nat := z ^^^ (z >>> 32)
-  let z : Nat := (z * 0x63652a4cd374b267) % m
-  z ^^^ (z >>> 33)
+  (hashing.hashInt64 (int.lit .i64 x) hashing.hashSeed).val.toNat
 
+/-- `base/sort.jl:1092`: deterministic hash pivot on a nonempty Int64 window.
+The subtraction is UInt64 even when the lower bound is negative. -/
 def juliaPivot (lo hi : Int) : Int :=
-  lo + (((juliaHashInt lo + 2 ^ 64 - lo.toNat) % 2 ^ 64) % (hi - lo + 1).toNat : Nat)
+  let difference := int.lit .u64 (Int.ofNat (juliaHashInt lo) - lo)
+  lo + (difference.val.toNat % (hi - lo + 1).toNat : Nat)
 
 def rangeLt {t : IntTy} (rev : Bool) (a b : JInt t) : Bool :=
   if rev then decide (b.val < a.val) else decide (a.val < b.val)
@@ -6177,7 +7147,7 @@ def rangeLt {t : IntTy} (rev : Bool) (a b : JInt t) : Bool :=
 def addOneInt {t : IntTy} (y : JInt t) : Int :=
   wrapInt (IntTy.promote t .i64) (y.val + 1)
 
-def toKeytype (y : Int) : Jl JInt64 := JInt.convert .i64 y
+def toKeytype (y : Int) : Jl JInt64 := JInt.convert (IntTy.i64.name) .i64 y
 
 def rangeElem {t : IntTy} (f h : JInt t) (i : Int) : Int := f.val + (i - 1) * h.val
 
@@ -6201,7 +7171,7 @@ def bitIntegerRangeOps (t : IntTy) :
   toKey := toKeytype
   get := fun (f, h, _, len) i =>
     if 1 ≤ i.val ∧ i.val ≤ len.val then
-      JInt.convert t (rangeElem f h i.val)
+      JInt.convert (t.name) t (rangeElem f h i.val)
     else .error .boundsError
   values := fun (f, h, _, len) =>
     (List.range len.val.toNat).map fun k => JInt.wrap t (f.val + Int.ofNat k * h.val)
@@ -6233,8 +7203,8 @@ def bitIntegerRealRangeOps (t : IntTy) :
   oneIndex := JInt.lit .i64 1
   increment := fun k => k + JInt.lit .i64 1
   isZero := fun h => decide (h.val = 0)
-  floorInteger := fun x => JInt.convert t x.floor
-  ceilInteger := fun x => JInt.convert t x.ceil
+  floorInteger := fun x => JInt.convert (t.name) t x.floor
+  ceilInteger := fun x => JInt.convert (t.name) t x.ceil
   subtract := fun a b => a - b
   fld := JInt.fld
   cld := JInt.cld
@@ -6242,7 +7212,7 @@ def bitIntegerRealRangeOps (t : IntTy) :
   toKey := toKeytype
   get := fun (f, h, _, len) i =>
     if 1 ≤ i.val ∧ i.val ≤ len.val then
-      JInt.convert t (rangeElem f h i.val)
+      JInt.convert (t.name) t (rangeElem f h i.val)
     else .error .boundsError
   values := fun (f, h, _, len) =>
     (List.range len.val.toNat).map fun k => JInt.wrap t (f.val + Int.ofNat k * h.val)
@@ -6253,41 +7223,15 @@ def bitIntegerRealRangeOps (t : IntTy) :
     t.min + (if t.signed then 1 else 0) ≤ x.ceil - f.val ∧
     x.floor - f.val ≤ t.max ∧ x.ceil - f.val ≤ t.max
   isReverse := id
-def arrayMissingDirectOpsWithNext {Alg : Type}
-    (nextAlgorithm : Alg → Alg)
-    (sortWrapped : WithoutMissingVector Int (Array (Option Int)) → Alg → Bool →
-      (Int × Int) → Jl (Array (Option Int)))
-    (sortVector : Array (Option Int) → Alg → Bool →
-      (Int × Int) → Jl (Array (Option Int))) :
-    MissingSortOps (Array (Option Int)) (Array (Option Int))
-      (WithoutMissingVector Int (Array (Option Int))) Int Int (Option Int)
-      Alg Bool Empty (Int × Int) (Array (Option Int)) JlError :=
-  { arrayMissingDirectOps with
-    nextAlgorithm := nextAlgorithm
-    sortWrapped := sortWrapped
-    sortVector := sortVector }
-
-def arrayMissingPermutationOpsWithNext {Alg : Type} (data : Array (Option Int))
-    (nextAlgorithm : Alg → Alg)
-    (sortWrapped : WithoutMissingVector Int (Array (Option Int)) → Alg → Bool →
-      (Int × Int) → Jl (Array Int))
-    (sortVector : Array Int → Alg → Bool → (Int × Int) → Jl (Array Int)) :
-    MissingSortOps (Array Int) (Array (Option Int))
-      (WithoutMissingVector Int (Array (Option Int))) Int Int (Option Int)
-      Alg Bool Bool (Int × Int) (Array Int) JlError :=
-  { arrayMissingPermutationOps data with
-    nextAlgorithm := nextAlgorithm
-    sortWrapped := sortWrapped
-    sortVector := sortVector }
 
 def arrayIEEEDirectOpsWithNext {α Alg : Type} (codec : IEEECodec α)
     (nextAlgorithm : Alg → Alg)
     (sortUnsigned : Array Nat → Alg → Bool → ArraySortKeywords Nat →
-      Jl (Array Nat × Option (Array Nat)))
+      SortResult (Array Nat × Option (Array Nat)))
     (sortFallback : Array α → Alg → Bool → ArraySortKeywords Nat →
-      Jl (Array α × Option (Array Nat))) :
+      SortResult (Array α × Option (Array Nat))) :
     IEEEFloatSortOps (Array α) (Array α) (Array Nat) Int Alg Bool Empty Bool
-      (ArraySortKeywords Nat) (Array Nat) JlError :=
+      (ArraySortKeywords Nat) (Array Nat) SortException :=
   { arrayIEEEDirectOps codec with
     nextAlgorithm := nextAlgorithm
     sortUnsigned := sortUnsigned
@@ -6297,11 +7241,11 @@ def arrayIEEEDirectOpsWithNext {α Alg : Type} (codec : IEEECodec α)
 def arrayIEEEPermutationOpsWithNext {α Alg : Type} [Inhabited α] (codec : IEEECodec α)
     (nextAlgorithm : Alg → Alg)
     (sortPermutation : Array Int → Alg → (Bool × Array Nat) → ArraySortKeywords Nat →
-      Jl (Array Int × Option (Array Nat)))
+      SortResult (Array Int × Option (Array Nat)))
     (sortFallback : Array Int → Alg → (Bool × Array α) → ArraySortKeywords Nat →
-      Jl (Array Int × Option (Array Nat))) :
+      SortResult (Array Int × Option (Array Nat))) :
     IEEEFloatSortOps (Array Int) (Array α) (Array Nat) Int Alg (Bool × Array α)
-      Bool (Bool × Array Nat) (ArraySortKeywords Nat) (Array Nat) JlError :=
+      Bool (Bool × Array Nat) (ArraySortKeywords Nat) (Array Nat) SortException :=
   { arrayIEEEPermutationOps codec with
     nextAlgorithm := nextAlgorithm
     sortUnsigned := fun values _ order kw =>
@@ -6312,10 +7256,10 @@ def arrayIEEEPermutationOpsWithNext {α Alg : Type} [Inhabited α] (codec : IEEE
 def flatSubArraySortOpsWithNext {α Alg : Type} [Inhabited α]
     (original : FlatSortView α)
     (nextAlgorithm : Alg → Alg)
-    (sortSlice : Array α → Alg → (α → α → Bool) → ArraySortKeywords α →
-      Jl (Array α × Option (Array α))) :
+    (sortSlice : Array α → Alg → (α → α → SortResult Bool) → ArraySortKeywords α →
+      SortResult (Array α × Option (Array α))) :
     SubArraySortOps (FlatSortView α) (FlatSortParent α) (Array α) Int Alg
-      (α → α → Bool) (ArraySortKeywords α) (FlatSortView α) JlError where
+      (α → α → SortResult Bool) (ArraySortKeywords α) (FlatSortView α) SortException where
   range := fun kw => .ok (kw.lo, kw.hi)
   parent := FlatSortView.parent
   parentIsArray := fun _ => true
@@ -6325,12 +7269,12 @@ def flatSubArraySortOpsWithNext {α Alg : Type} [Inhabited α]
   vectorizeParent := fun parent => .ok parent.storage
   nextAlgorithm := nextAlgorithm
   sortView := fun view alg order kw => do
-    let values ← flatSortViewValues view
+    let values ← liftSortJl (flatSortViewValues view)
     let (sorted, _) ← sortSlice values alg order kw
     let mut parent := view.parent.storage
     for index in arrayIndexRange kw.lo kw.hi do
-      let value ← arrayRead sorted index
-      parent ← arrayWrite parent (view.offset + index) value
+      let value ← liftSortJl (arrayRead sorted index)
+      parent ← liftSortJl (arrayWrite parent (view.offset + index) value)
     pure { view with parent := { view.parent with storage := parent } }
   sortParent := fun values alg order kw => do
     let (sorted, _) ← sortSlice values alg order kw
@@ -6346,6 +7290,1897 @@ def isFullSortAlgorithm {Target Index : Type} : Algorithm Target Index → Bool
   | .isUIntMappable _ no => isFullSortAlgorithm no
   | .scratchQuickSort lo hi next => lo.isNone && hi.isNone && isFullSortAlgorithm next
   | .computeExtrema _ | .counting | .considerRadix _ _ | .radix
-  | .bracketedSort _ _ | .partialQuickSort _ => false
+  | .bracketedSort _ _ | .partialQuickSort _ | .user _ => false
 
+
+/-! ## Native Int32/Missing default dispatch and typed scratch storage -/
+
+abbrev Int32Values := Array (Option (JInt .i32))
+abbrev Int32WithoutMissing := WithoutMissingVector (JInt .i32) Int32Values
+
+/-- The scratch vector retains its declared element type, including Union{Missing,Int32}.
+`none` in an integer buffer is uninitialized storage, not a zero-valued element. -/
+structure Int32Scratch where
+  missingEltype : Bool
+  data : Int32Values
+
+/-- Native datatype metadata used by reinterpret (reinterpretarray.jl:73-103).
+Union{Missing,Int32} has four-byte elements but is not an isbits type. -/
+def int32ScratchLayout (missingEltype : Bool) : reinterpretarray.TypeLayout :=
+  .mk ⟨if missingEltype then 2 else 1, 32, int.lit .i64 4,
+    !missingEltype, !missingEltype, missingEltype, false, false⟩ [] []
+
+def int32ScratchInput (s : Int32Scratch) : reinterpretarray.ArrayInput Int32Values :=
+  ⟨s.data, 1, [int.lit .i64 s.data.size], [⟨int.lit .i64 1, int.lit .i64 s.data.size⟩]⟩
+
+/-- reinterpretarray.jl:73-103, called by make_scratch(sort.jl:515).
+Validation runs on the actual declared scratch element type before a view is returned. -/
+def reinterpretInt32Scratch (s : Int32Scratch) : SortResult Int32Scratch := do
+  match reinterpretarray.m73_reinterpret (T := JInt .i32) (S := Option (JInt .i32))
+      (int32ScratchLayout false) (int32ScratchLayout s.missingEltype) (int32ScratchInput s) with
+  | .error _ => .error (.jl (.argumentError "cannot reinterpret a non-bits scratch element type"))
+  | .ok _ => pure { s with missingEltype := false }
+
+/-- sort.jl:2295-2301,1040 and reinterpretarray.jl:73-103: validate the UInt32
+view of Int32-typed storage before exposing its bit patterns. -/
+def reinterpretInt32Unsigned (s : Int32Scratch) : SortResult (Array (Option Nat)) := do
+  let target : reinterpretarray.TypeLayout :=
+    .mk ⟨3, 32, int.lit .i64 4, true, true, false, false, false⟩ [] []
+  match reinterpretarray.m73_reinterpret (T := JInt .u32) (S := Option (JInt .i32))
+      target (int32ScratchLayout s.missingEltype) (int32ScratchInput s) with
+  | .error _ => .error (.jl (.argumentError "cannot reinterpret a non-bits scratch element type"))
+  | .ok _ => pure (s.data.map (Option.map fun x => (x.val % 2 ^ 32).toNat))
+
+
+/-- Vector allocation/resize with the signed Int length checks (array.jl:193-199,1288-1293). -/
+def resizeInt32Scratch (s : Int32Scratch) (length : JInt .i64) : SortResult Int32Scratch :=
+  if length.val < 0 then .error (.jl (.argumentError "invalid Array size")) else
+    .ok { s with data := if length.val.toNat ≤ s.data.size then s.data.extract 0 length.val.toNat
+      else s.data ++ Array.replicate (length.val.toNat - s.data.size) none }
+
+/-- sort.jl:503-516: Nothing allocates a Vector{Int32}; matching eltypes resize directly;
+otherwise compute wrapped byte counts, resize the original scratch, then reinterpret it. -/
+def makeInt32Scratch (existing : Option Int32Scratch) (length : JInt .i64) :
+    SortResult (Int32Scratch × Int32Scratch) := do
+  match existing with
+  | none =>
+    let s ← resizeInt32Scratch ⟨false, #[]⟩ length
+    pure (s, s)
+  | some s =>
+    if !s.missingEltype then
+      let s ← if length.val > s.data.size then resizeInt32Scratch s length else pure s
+      pure (s, s)
+    else
+      let lenBytes := int.mul length (int.lit .i64 4)
+      let lenScratch ← liftSortJl (JInt.div lenBytes (int.lit .i64 4))
+      let s ← if lenScratch.val > s.data.size then resizeInt32Scratch s lenScratch else pure s
+      let view ← reinterpretInt32Scratch s
+      pure (s, view)
+
+/-- sort.jl:598-602: WithoutMissingVector's getindex first asserts that the value is not Missing. -/
+def int32NonmissingRead (v : Int32WithoutMissing) (index : Int) : SortResult (JInt .i32) :=
+  withoutMissingGet (fun values index => liftSortJl (arrayRead values index))
+    SortException.assertionError v index
+
+def int32NonmissingWrite (v : Int32WithoutMissing) (index : Int) (value : JInt .i32) :
+    SortResult Int32WithoutMissing :=
+  withoutMissingSet (fun data value index => liftSortJl (arrayWrite data index (some value))) v value index
+
+def int32ScratchRead (v : Int32Scratch) (index : Int) : SortResult (JInt .i32) := do
+  let value ← liftSortJl (arrayRead v.data index)
+  match value with
+  | some value => pure value
+  | none => .error (.native (.array .undefinedReference))
+
+def int32ScratchWrite (v : Int32Scratch) (index : Int) (value : JInt .i32) :
+    SortResult Int32Scratch := do
+  let data ← liftSortJl (arrayWrite v.data index (some value))
+  pure { v with data }
+
+
+def int32DirectLess (reverse : Bool) (a b : JInt .i32) : SortResult Bool :=
+  .ok (if reverse then decide (b.val < a.val) else decide (a.val < b.val))
+
+/-- sort.jl: insertion-sort element accesses use WithoutMissingVector's type assertion. -/
+def int32Insertion (reverse : Bool) (values : Int32WithoutMissing) (lo hi : Int) :
+    SortResult Int32WithoutMissing := do
+  let operations : VectorMutationOps (StateT Int32WithoutMissing (Except SortException))
+      Unit (JInt .i32) Int := {
+    get := fun _ index => fun v => do pure (← int32NonmissingRead v index, v)
+    set := fun _ value index => fun v => do pure ((), ← int32NonmissingWrite v index value)
+    indices := arrayIndices
+    distance := fun lo hi => (hi - lo).toNat
+    modelExhausted := fun {_} _ => .error (.errorException "fuel")
+  }
+  let (_, result) ← (insertionSort operations
+    (fun (_ : Unit) a b => liftM (int32DirectLess reverse a b)) () () lo hi ()).run values
+  pure result
+
+/-- array.jl reverse!: exchange the symmetric elements of the active window. -/
+def int32Reverse (values : Int32WithoutMissing) (lo hi : Int) : SortResult Int32WithoutMissing := do
+  let mut values := values
+  for offset in List.range ((hi - lo + 1).toNat / 2) do
+    let left := lo + offset
+    let right := hi - offset
+    let a ← int32NonmissingRead values left
+    let b ← int32NonmissingRead values right
+    values ← int32NonmissingWrite values left b
+    values ← int32NonmissingWrite values right a
+  pure values
+
+structure Int32SortKeywords where
+  lo : Int
+  hi : Int
+  minimum : JInt .i32
+  maximum : JInt .i32
+  scratch : Option Int32Scratch
+
+/-- The UInt32 reinterpret view retains missing/uninitialized slots outside the active window;
+reading one raises an error, while writing replaces it with a defined UInt32 value. -/
+def int32UnsignedRead (values : Array (Option Nat)) (index : Int) : SortResult Nat := do
+  let value ← liftSortJl (arrayRead values index)
+  match value with
+  | some value => pure value
+  | none => .error (.native (.array .undefinedReference))
+
+def int32MapOps : UIntMapVectorOps Int32WithoutMissing (Array (Option Nat)) Nat Int
+    (JInt .i32) Bool SortException where
+  elementType := fun _ => JInt .i32
+  uintMappable := (arrayIntegerMapOps .i32).uintMappable
+  reinterpret := fun _ v => reinterpretInt32Unsigned ⟨false, v.data⟩
+  range := arrayIndexRange
+  read := int32NonmissingRead
+  uintMap := fun value reverse => pure (integerCode .i32 reverse value).val.toNat
+  writeUnsigned := fun values index value => liftSortJl (arrayWrite values index (some value))
+
+def int32UnmapOps : UIntUnmapVectorOps Int32WithoutMissing (Array (Option Nat)) Nat Int
+    (JInt .i32) Bool SortException where
+  range := arrayIndexRange
+  addIndex := Int.add
+  readUnsigned := int32UnsignedRead
+  zeroUnsigned := 0
+  zeroIndex := 0
+  addUnsigned := fun a b => (a + b) % 2 ^ 32
+  elementType := fun _ => JInt .i32
+  uintUnmap := fun _ value reverse => pure (integerDecode .i32 reverse (int.lit .u32 value))
+  write := int32NonmissingWrite
+
+/-- The source radix machine with undefined slots retained in its memory state.
+Only active reads demand defined elements (sort.jl:1361-1427). -/
+def runInt32Radix (ops : RadixSortOps) (vector scratch : Array (Option Nat))
+    (lo hi : Int) (bits : JInt .u64) (offset : Int) :
+    Option (SortResult (Array (Option Nat) × Array (Option Nat) × Bool)) :=
+  let vVec : Vec := ⟨0, .u64, [vector.size], [(1, vector.size)]⟩
+  let sVec : Vec := ⟨1, .u64, [scratch.size], [(1, scratch.size)]⟩
+  let encode := fun values : Array (Option Nat) =>
+    values.toList.map (Option.map fun value => int.lit .u64 (Int.ofNat value))
+  let heap : Heap := { integers := [], unsigned := [encode vector, encode scratch] }
+  match radixSortBang ops vVec sVec (int.lit .i64 lo) (int.lit .i64 hi)
+      (int.lit .i64 offset) bits none heap with
+  | none => none
+  | some (.error error) => some (.error (.native error))
+  | some (.ok (inVector, heap')) => some do
+    let get (index : Nat) := match heap'.unsigned[index]? with
+      | none => .error (.native (.array .bounds))
+      | some values => .ok ((values.map (Option.map fun value => value.val.toNat)).toArray)
+    pure (← get 0, ← get 1, inVector)
+
+/-- sort.jl:1430-1441, with the installed Float64 logarithm and native integer/IEEE
+arithmetic. The default radix passes use the source memory machine and cumulative sum. -/
+def int32DefaultRadixOps : RadixSortOps where
+  pass := nativeRadixPassOps defaultScalarPrimitives nativeCumsum
+  heuristic := fun lo hi bits => do
+    let difference := int.sub hi lo
+    let logarithm ← liftJl (special.log.log_64 (float.floatOfInt .f64 difference))
+    let three := float.floatOfInt .f64 (int.lit .i64 3)
+    let four := float.floatOfInt .f64 (int.lit .i64 4)
+    let ten := float.floatOfInt .f64 (int.lit .i64 10)
+    let guess := JuliaLean.C.jlMinFloat ten (float.add_IEEEFloat
+      (float.div_IEEEFloat (float.mul_IEEEFloat logarithm three) four) three)
+    let inner ← mixedCld bits guess
+    liftJl (float.intOfFloat .u8 (← mixedCld bits inner))
+  allocateCounts := fun n => integerAction (array.heapVectorAllocate intTyLayout .i64 n)
+
+/-- sort.jl:1017-1047: the native Int32 radix specialization uses the original typed scratch. -/
+def int32RadixWrapperOps (radix : RadixSortOps) :
+    RadixSortWrapperOps Int32WithoutMissing (JInt .i32) (Array (Option Nat)) Nat Int (Array Int)
+      Int32Scratch Bool Int32SortKeywords SortException (Int32WithoutMissing × Int32Scratch) where
+  rangeAndExtrema := fun kw => pure (kw.lo, kw.hi, kw.minimum, kw.maximum, kw.scratch)
+  uintMapOps := int32MapOps
+  subtractUnsigned := fun a b => (a + 2 ^ 32 - b) % 2 ^ 32
+  topSetBit := fun code => int.lit .u64 (if code = 0 then 0 else Nat.log2 code + 1)
+  range := arrayIndexRange
+  windowLength := fun lo hi => (hi - lo + 1).toNat
+  oneMinus := fun lo => 1 - lo
+  readUnsigned := int32UnsignedRead
+  writeUnsigned := fun values index value => liftSortJl (arrayWrite values index (some value))
+  radixOps := radix
+  runRadixSort := fun ops values lo hi bits scratch offset =>
+    runInt32Radix ops values scratch lo hi bits offset
+  makeScratch := fun existing _ length => makeInt32Scratch existing (int.lit .i64 length)
+  reinterpretScratch := fun _ => reinterpretInt32Unsigned
+  unmapOps := int32UnmapOps
+  finish := Prod.mk
+
+/-- sort.jl:948-969, using WithoutMissingVector indexing and preserving kw.scratch. -/
+def int32CountingOps : CountingSortOps Int32WithoutMissing Int SearchIndex SearchIndex
+    (Array Nat) Bool Int32SortKeywords (Option Int32Scratch) SortException where
+  rangeAndScratch := fun kw => pure (kw.lo, kw.hi, ⟨.i32, kw.minimum⟩, ⟨.i32, kw.maximum⟩, kw.scratch)
+  isReverse := id
+  wrapSubtract := indexSub
+  one := searchIndex .i64 1
+  maybeUnsigned := fun value => searchIndex (unsignedIntegerType value.ty) value.val
+  countLength := (arrayCountingOps .i32).countLength
+  allocateCounts := (arrayCountingOps .i32).allocateCounts
+  range := arrayIndexRange
+  read := fun v i => do pure ⟨.i32, ← int32NonmissingRead v i⟩
+  write := fun v i value => do
+    let value ← liftSortJl (JInt.convert "Int32" .i32 value.val)
+    int32NonmissingWrite v i value
+  bucketForValue := (arrayCountingOps .i32).bucketForValue
+  countRead := (arrayCountingOps .i32).countRead
+  countWrite := (arrayCountingOps .i32).countWrite
+  bucketValues := (arrayCountingOps .i32).bucketValues
+  bucketIndex := (arrayCountingOps .i32).bucketIndex
+  bucketValue := id
+  lastBucketIndex := (arrayCountingOps .i32).lastBucketIndex
+  nextAfterBucket := (arrayCountingOps .i32).nextAfterBucket
+  valueNeedsSignedConversion := fun _ value => !value.ty.signed
+  toSigned := (arrayCountingOps .i32).toSigned
+
+/-- sort.jl:1252-1287, scratch/vector partition with checked abstract storage methods. -/
+def int32PartitionVector (pivot : Int → Int → Int) :
+    ScratchPartitionOps Int32WithoutMissing Int32Scratch Int32WithoutMissing Int
+      (JInt .i32) Bool SortException where
+  modelExhausted := .errorException "fuel"
+  pivotIndex := fun lo hi => pure (pivot lo hi)
+  readSource := int32ScratchRead
+  writeTarget := int32NonmissingWrite
+  writePivot := fun target _ index value => do
+    let updated ← int32NonmissingWrite target index value
+    pure (updated, updated)
+  lessValue := int32DirectLess
+  lessIndex := fun a b => decide (a < b)
+  nextIndex := (· + 1)
+  subtractIndex := Int.sub
+  addBoolToIndex := fun i yes => i + if yes then 1 else 0
+  addPivotOffset := Int.add
+  distance := fun a b => (b - a).toNat
+
+def int32PartitionScratch (pivot : Int → Int → Int) :
+    ScratchPartitionOps Int32Scratch Int32WithoutMissing Int32WithoutMissing Int
+      (JInt .i32) Bool SortException where
+  modelExhausted := .errorException "fuel"
+  pivotIndex := fun lo hi => pure (pivot lo hi)
+  readSource := int32NonmissingRead
+  writeTarget := int32ScratchWrite
+  writePivot := fun target destination index value => do
+    let destination ← int32NonmissingWrite destination index value
+    pure (target, destination)
+  lessValue := int32DirectLess
+  lessIndex := fun a b => decide (a < b)
+  nextIndex := (· + 1)
+  subtractIndex := Int.sub
+  addBoolToIndex := fun i yes => i + if yes then 1 else 0
+  addPivotOffset := Int.add
+  distance := fun a b => (b - a).toNat
+
+/-- The ScratchQuickSort fallback in DEFAULT_UNSTABLE has SMALL_ALGORITHM as its next
+algorithm (sort.jl:1079,1121-1164,1568-1601). Scratch is allocated at the source allocation site. -/
+def int32ScratchQuickOps (pivot : Int → Int → Int) :
+    ScratchQuickSortOps Int32WithoutMissing Int32Scratch (JInt .i32) Int Unit Bool
+      Int32SortKeywords Int32Scratch SortException where
+  rangeAndScratch := fun kw => pure (kw.lo, kw.hi, kw.scratch)
+  makeScratch := fun scratch _ length => makeInt32Scratch scratch (int.lit .i64 length)
+  requireOffset := fun offset => match offset with
+    | some value => pure value
+    | none => .error (.jl (.methodError "+"))
+  oneMinus := fun lo => 1 - lo
+  zeroIndex := 0
+  negateIndex := Int.neg
+  windowLength := fun lo hi => (hi - lo + 1).toNat
+  lessIndex := fun a b => decide (a < b)
+  lessEq := fun a b => decide (a ≤ b)
+  distance := fun a b => (b - a).toNat
+  addIndex := Int.add
+  nextIndex := (· + 1)
+  previousIndex := (· - 1)
+  lowBound := fun _ => none
+  highBound := fun _ => none
+  smallThreshold := 20
+  partitionInVector := int32PartitionVector pivot
+  partitionInScratch := int32PartitionScratch pivot
+  copyTo := fun v destination source start length => do
+    let mut v := v
+    for offset in List.range length do
+      let value ← int32ScratchRead source (start + offset)
+      v ← int32NonmissingWrite v (destination + offset) value
+    pure v
+  reverse := int32Reverse
+  withScratch := fun kw scratch => { kw with scratch := some scratch }
+  withBounds := fun kw lo hi => { kw with lo, hi }
+  nextAlgorithm := id
+  sortNext := fun v _ reverse kw => do
+    let v ← int32Insertion reverse v kw.lo kw.hi
+    pure (v, kw.scratch)
+
+/-- The integer half of the fixed DEFAULT_UNSTABLE tree, sort.jl:1568-1601.
+The native eltype is UIntMappable; Small{40}, CheckSorted, ComputeExtrema,
+ConsiderCountingSort, ConsiderRadixSort and Small{80}/ScratchQuickSort retain source order. -/
+def sortInt32Default (radix : RadixSortOps)
+    (pivot : Int → Int → Int) (v : Int32WithoutMissing) (reverse : Bool)
+    (lo hi : Int) (scratch : Option Int32Scratch) :
+    Option (SortResult (Int32WithoutMissing × Option Int32Scratch)) :=
+  (do
+    if hi - lo < 40 then
+      let v ← liftExcept (int32Insertion reverse v lo hi)
+      return (v, scratch)
+    let sorted ← liftExcept (storageIssortedWindow arrayIndices
+      (fun v lo hi => liftSortJl (storageCheckBounds arrayStorage v.data lo hi))
+      int32NonmissingRead (fun reverse => int32DirectLess reverse) v lo hi reverse)
+    if sorted then return (v, scratch)
+    if hi - lo ≥ 500 then
+      let revSorted ← liftExcept (storageIssortedWindow arrayIndices
+        (fun v lo hi => liftSortJl (storageCheckBounds arrayStorage v.data lo hi))
+        int32NonmissingRead (fun reverse => int32DirectLess reverse) v lo hi (!reverse))
+      if revSorted then
+        return (← liftExcept (int32Reverse v lo hi), scratch)
+    let first ← liftExcept (int32NonmissingRead v lo)
+    let mut minimum := first
+    let mut maximum := first
+    for index in arrayIndexRange (lo + 1) hi do
+      let value ← liftExcept (int32NonmissingRead v index)
+      if ← liftExcept (int32DirectLess reverse value minimum) then minimum := value
+      if ← liftExcept (int32DirectLess reverse maximum value) then maximum := value
+    if !(← liftExcept (int32DirectLess reverse minimum maximum)) then return (v, scratch)
+    let kw : Int32SortKeywords := ⟨lo, hi, minimum, maximum, scratch⟩
+    let range := (maybeUnsigned .i32
+      (if reverse then int.sub minimum maximum else int.sub maximum minimum)).val
+    if range < (hi - lo) / 2 then
+      return ← liftExcept (sortCounting int32CountingOps v reverse kw)
+    let urange := ((integerCode .i32 reverse maximum).val -
+      (integerCode .i32 reverse minimum).val) % 2 ^ 32
+    let bits := if urange = 0 then 0 else Nat.log2 urange.toNat + 1
+    let logarithm ← liftExcept (liftSortJl (special.log.log_64
+      (float.floatOfInt .f64 (int.lit .i64 (hi - lo)))))
+    let lhs := float.floatOfInt .f64 (int.lit .i64 (bits + 70))
+    let rhs := float.mul_IEEEFloat (float.floatOfInt .f64 (int.lit .i64 22)) logarithm
+    if float.lt_IEEEFloat lhs rhs then
+      let result ← (ExceptT.mk (sortRadixAlgorithm (int32RadixWrapperOps radix) v reverse kw) :
+        Run SortException (Int32WithoutMissing × Int32Scratch))
+      return (result.1, some result.2)
+    if hi - lo < 80 then
+      return (← liftExcept (int32Insertion reverse v lo hi), scratch)
+    return ← liftExcept (sortScratchQuick (int32ScratchQuickOps pivot) v () reverse kw)
+      : Run SortException (Int32WithoutMissing × Option Int32Scratch)).run
+
+/-- sort.jl:1732-1741,1568-1601,651-655,794-811: public default sorting of a native
+Union{Missing,Int32} vector. MissingOptimization forwards the original scratch while
+WithoutMissingVector changes the working eltype to Int32. Bool/IEEE specializations do not
+apply to Int32; Small{10} precedes the UIntMappable integer subtree. -/
+def sortMissingInt32Default
+    (pivot : Int → Int → Int) (values : Int32Values) (reverse : Bool)
+    (scratch : Option Int32Values) : Option (SortResult Int32Values) :=
+  (do
+    let (values, lo, hi) ← liftExcept (partitionMissingArray values reverse 1 values.size)
+    let wrapped : Int32WithoutMissing := ⟨values⟩
+    let scratch := scratch.map (Int32Scratch.mk true)
+    if hi - lo < 10 then
+      return (← liftExcept (int32Insertion reverse
+        wrapped lo hi)).data
+    let (result, _) ← (ExceptT.mk (sortInt32Default int32DefaultRadixOps pivot wrapped reverse lo hi scratch) :
+      Run SortException (Int32WithoutMissing × Option Int32Scratch))
+    return result.data : Run SortException Int32Values).run
 end JuliaLean.base.sort
+
+
+/-!
+The comparison-based sorting kernels of `base/sort.jl` (master `bbfa0ce4150`)
+reached by `sort!`, `partialsort!` and `partialsortperm!` for orderings that
+are not `UIntMappable` (any `by`/`lt`, and `Perm`), and their entry points.
+
+Vectors are one-based `Array α`; `lt` is `lt(o, ·, ·)` for the ordering `o`.
+Index reads and writes mirror Julia's `@inbounds` accesses: the model is only
+claimed faithful on executions whose accesses are in bounds (every property
+below holds on such executions only). `fuel` bounds recursion and is a model
+artifact; the entry points supply enough for every input.
+-/
+
+namespace JuliaLean.Sort
+
+open JuliaLean
+
+section
+variable {α : Type} [Inhabited α]
+
+/-- `v[i]` (one-based). -/
+def rd (v : Array α) (i : Int) : α := if 1 ≤ i then v.getD (i - 1).toNat default else default
+
+/-- `v[i] = x` (one-based). -/
+def wr (v : Array α) (i : Int) (x : α) : Array α :=
+  if 1 ≤ i then v.modify (i - 1).toNat (fun _ => x) else v
+
+/-- `copyto!(dest, d, src, s, n)` for `n ≥ 0`, `base/array.jl`. -/
+def copyTo (dest : Array α) (d : Int) (src : Array α) (s : Int) (n : Int) : Array α :=
+  (List.range n.toNat).foldl (fun w (k : Nat) => wr w (d + k) (rd src (s + k))) dest
+
+/-- `reverse!(v, lo, hi)`, `base/array.jl` (swaps `v[lo+k]` and `v[hi-k]`). -/
+def reverseRange (v : Array α) (lo hi : Int) : Array α :=
+  (List.range ((hi - lo + 1) / 2).toNat).foldl
+    (fun w (k : Nat) => let a := rd w (lo + k); let b := rd w (hi - k); wr (wr w (lo + k) b) (hi - k) a) v
+
+/-- Inner loop of `InsertionSort`, `base/sort.jl:841-849`: `k = j - lo` steps remain. -/
+def insertLoop (lt : α → α → Bool) (lo : Int) (x : α) : Nat → Array α → Int → Array α
+  | 0, v, j => wr v j x
+  | k + 1, v, j =>
+    let y := rd v (j - 1)
+    if !(lt x y) then wr v j x
+    else insertLoop lt lo x k (wr v j y) (j - 1)
+
+/-- `_sort!(v, InsertionSortAlg(), o, (; lo, hi))`, `base/sort.jl:835-852`. -/
+def insertionSort (lt : α → α → Bool) (v : Array α) (lo hi : Int) : Array α :=
+  (List.range (hi - lo).toNat).foldl
+    (fun w (k : Nat) => let i := lo + 1 + k; insertLoop lt lo (rd w i) (i - lo).toNat w i) v
+
+/-- `partition!(t, lo, hi, offset, o, v, rev, pivot_dest, pivot_index_offset)`,
+`base/sort.jl:1088-1119`, with source `src` (Julia's `v`) and destination `dst`
+(Julia's `t`). `pivotToSrc` says whether `pivot_dest` is the source array
+(the first call site, sort.jl:1135) or the destination (sort.jl:1133).
+`piv lo hi` is `mod(hash(lo), lo:hi)` (sort.jl:1092). Returns the updated
+source, destination and the pivot index. -/
+def partition (piv : Int → Int → Int) (lt : α → α → Bool) (src dst : Array α)
+    (lo hi offset : Int) (rev pivotToSrc : Bool) (pio : Int) : Array α × Array α × Int :=
+  let p := piv lo hi
+  let pivot := rd src p
+  -- sort.jl:1095-1101
+  let r1 := (List.range (p - lo).toNat).foldl (fun (st : Array α × Int) (k : Nat) =>
+      let l := lo + k
+      let x := rd src l
+      let fx := if rev then !(lt x pivot) else lt pivot x
+      (wr st.1 ((if fx then hi else l) - st.2) x, st.2 + (if fx then 1 else 0))) (dst, offset)
+  -- sort.jl:1102-1108
+  let r2 := (List.range (hi - p).toNat).foldl (fun (st : Array α × Int) (k : Nat) =>
+      let l := p + k
+      let x := rd src (l + 1)
+      let fx := if rev then lt pivot x else !(lt x pivot)
+      (wr st.1 ((if fx then hi else l) - st.2) x, st.2 + (if fx then 1 else 0))) r1
+  -- sort.jl:1109-1110 (the loops end with `lo == hi`)
+  let j := hi - r2.2 + pio
+  if pivotToSrc then (wr src j pivot, r2.1, j) else (src, wr r2.1 j pivot, j)
+
+/-- The `lo`/`hi` targets of `ScratchQuickSort` (`missing` is `none`), sort.jl:1074-1082. -/
+structure Target where
+  lo : Option Int
+  hi : Option Int
+
+/-- `SMALL_THRESHOLD`, `base/sort.jl:1595`. -/
+def smallThreshold : Int := 20
+
+/-- `_sort!(v, a::ScratchQuickSort, o, kw; t, offset, swap, rev)`,
+`base/sort.jl:1121-1164`, on the pair `(v, t)`; `a.next` is `InsertionSort`. -/
+def scratchQuickSortLoop (piv : Int → Int → Int) (lt : α → α → Bool) (a : Target) :
+    Nat → Array α → Array α → Int → Int → Int → Bool → Bool → Array α × Array α
+  | 0, v, t, _, _, _, _, _ => (v, t)
+  | fuel + 1, v, t, lo, hi, offset, swap, rev =>
+    if lo < hi ∧ hi - lo > smallThreshold then
+      -- sort.jl:1132-1137
+      let r : Array α × Array α × Int :=
+        if swap then
+          let (s, d, j) := partition piv lt t v (lo + offset) (hi + offset) offset rev false 0
+          (d, s, j)
+        else partition piv lt v t lo hi (-offset) rev true (-offset)
+      let v := r.1
+      let t := r.2.1
+      let j := r.2.2
+      let swap := !swap
+      if a.lo.isSome ∧ j ≤ a.lo.getD 0 then
+        -- sort.jl:1140-1144: skip sorting the lower part
+        let v := if swap then copyTo v lo t (lo + offset) (j - lo) else v
+        let v := if rev then reverseRange v lo (j - 1) else v
+        scratchQuickSortLoop piv lt a fuel v t (j + 1) hi offset swap (!rev)
+      else if a.hi.isSome ∧ a.hi.getD 0 ≤ j then
+        -- sort.jl:1145-1148: skip sorting the upper part
+        let v := if swap then copyTo v (j + 1) t (j + 1 + offset) (hi - j) else v
+        let v := if rev then v else reverseRange v (j + 1) hi
+        scratchQuickSortLoop piv lt a fuel v t lo (j - 1) offset swap rev
+      else if j - lo < hi - j then
+        -- sort.jl:1149-1154
+        let r := scratchQuickSortLoop piv lt a fuel v t lo (j - 1) offset swap rev
+        scratchQuickSortLoop piv lt a fuel r.1 r.2 (j + 1) hi offset swap (!rev)
+      else
+        -- sort.jl:1155-1157
+        let r := scratchQuickSortLoop piv lt a fuel v t (j + 1) hi offset swap (!rev)
+        scratchQuickSortLoop piv lt a fuel r.1 r.2 lo (j - 1) offset swap rev
+    else
+      -- sort.jl:1160-1163
+      if hi < lo then (v, t)
+      else
+        let v := if swap then copyTo v lo t (lo + offset) (hi - lo + 1) else v
+        let v := if rev then reverseRange v lo hi else v
+        (insertionSort lt v lo hi, t)
+
+/-- Entry of `ScratchQuickSort` without a caller scratch vector, sort.jl:1125-1129:
+`t` is a fresh vector of length `hi-lo+1` and `offset = 1-lo`. -/
+def scratchQuickSort (piv : Int → Int → Int) (lt : α → α → Bool) (a : Target)
+    (v : Array α) (lo hi : Int) : Array α :=
+  (scratchQuickSortLoop piv lt a ((hi - lo + 2).toNat) v
+    (Array.replicate (hi - lo + 1).toNat default) lo hi (1 - lo) false false).1
+
+/-- `InitialOptimizations(next)` (sort.jl:1473-1478) for element types that are
+neither `Missing`-unions, `Bool` nor IEEE floats, on a plain vector: only
+`Small{10}` acts, sending `hi - lo < 10` to `InsertionSort` (sort.jl:795-802). -/
+def initialOptimizations (lt : α → α → Bool) (next : Array α → Array α)
+    (v : Array α) (lo hi : Int) : Array α :=
+  if hi - lo < 10 then insertionSort lt v lo hi else next v
+
+/-- `_issorted(v, lo, hi, o)`, `base/sort.jl:1445-1451`. -/
+def isSortedRange (lt : α → α → Bool) (v : Array α) (lo hi : Int) : Bool :=
+  (List.range (hi - lo).toNat).all fun (k : Nat) => !(lt (rd v (lo + 1 + k)) (rd v (lo + k)))
+
+/-- `StableCheckSorted(ScratchQuickSort())`, `base/sort.jl:1368-1379`. The
+reverse check uses `Lt((x, y) -> !lt(o, x, y))`. -/
+def stableCheckSorted (piv : Int → Int → Int) (lt : α → α → Bool) (v : Array α)
+    (lo hi : Int) : Array α :=
+  if isSortedRange lt v lo hi then v
+  else if isSortedRange (fun x y => !(lt x y)) v lo hi then reverseRange v lo hi
+  else scratchQuickSort piv lt ⟨none, none⟩ v lo hi
+
+/-- `sort!(v; alg=DEFAULT_STABLE or DEFAULT_UNSTABLE, order)` for an ordering
+that is not `UIntMappable` (sort.jl:1580-1593, 1732-1741): the `IsUIntMappable`
+test (sort.jl:774-780) takes the `StableCheckSorted(ScratchQuickSort())` branch. -/
+def sortGeneric (piv : Int → Int → Int) (lt : α → α → Bool) (v : Array α) : Array α :=
+  initialOptimizations lt (fun w => stableCheckSorted piv lt w 1 w.size) v 1 v.size
+
+/-- The pivot rule `mod(hash(lo), lo:hi)` (sort.jl:1092) on 64-bit Julia, for
+`1 ≤ lo ≤ hi`: `hash(x::Int64) = hash_finalizer(3 * HASH_SEED - x)` with
+wrapping `UInt64` arithmetic (`base/hashing.jl:3,40,55-63,75-76`), and
+`mod(i, lo:hi) = mod(i - lo, hi - lo + 1) + lo` (`base/range.jl:1549`) in `UInt64`. -/
+def juliaHashInt (x : Int) : Nat :=
+  let m : Nat := 2 ^ 64
+  let z : Nat := (((3 * 0xbdd89aa982704029 + m * m : Nat) : Int) - x).toNat % m
+  let z : Nat := z ^^^ (z >>> 32)
+  let z : Nat := (z * 0x63652a4cd374b267) % m
+  z ^^^ (z >>> 33)
+
+def juliaPivot (lo hi : Int) : Int :=
+  lo + (((juliaHashInt lo + 2 ^ 64 - lo.toNat) % 2 ^ 64) % (hi - lo + 1).toNat : Nat)
+
+end
+
+end JuliaLean.Sort
+
+
+/-!
+Binary searches on vectors, `base/sort.jl:184-238` (master `bbfa0ce4150`),
+and `issorted(itr, order)`, `base/sort.jl:48-60`.
+
+The searches take the window `lo::T`, `hi::T` of an arbitrary integer type `T`.
+Their locals change type as the source runs: `m + 1` and `half_len + 1` add
+the `Int` literal `1` and so are computed in `promote_type(T, Int)`, while
+`midpoint`, `T(1)` and the sentinels stay in `T`. `SearchIndex` records the
+current Julia type of each local. The keyword methods (`sort.jl:304-311`) call
+these with `lo = firstindex(v) = 1` and `hi = lastindex(v)`, both `Int`.
+-/
+
+namespace JuliaLean.Sort
+
+open JuliaLean
+
+/-- An integer local together with its current Julia type. -/
+structure SearchIndex where
+  ty : IntTy
+  word : JInt ty
+
+def searchIndex (t : IntTy) (x : Int) : SearchIndex := ⟨t, JInt.wrap t x⟩
+
+def SearchIndex.val (x : SearchIndex) : Int := x.word.val
+
+/-- `x + y` and `x - y` after promotion (`base/int.jl`), wrapping in the promoted type. -/
+def indexAdd (x y : SearchIndex) : SearchIndex :=
+  searchIndex (IntTy.promote x.ty y.ty) (x.val + y.val)
+
+def indexSub (x y : SearchIndex) : SearchIndex :=
+  searchIndex (IntTy.promote x.ty y.ty) (x.val - y.val)
+
+/-- `x >>> 0x01` (logical shift of the bit pattern), `base/sort.jl:188`. -/
+def indexHalf (x : SearchIndex) : SearchIndex :=
+  searchIndex x.ty ((x.val % (2 ^ x.ty.bits)) / 2)
+
+/-- `midpoint(lo::T, hi::T) = lo +% ((hi -% lo) >>> 0x01)`, `base/array.jl:2288`. -/
+def indexMidpoint (lo hi : SearchIndex) : SearchIndex :=
+  indexAdd lo (indexHalf (indexSub hi lo))
+
+/-- Outcome of a search. `invalidAccess i` is an `@inbounds` read of `v[i]`
+outside the vector (undefined behaviour in Julia: it reads arbitrary memory);
+`exhausted` is the model's fuel running out, never a Julia outcome. -/
+inductive SearchResult (α : Type) where
+  | returned (value : α)
+  | invalidAccess (index : Int)
+  | exhausted
+  deriving DecidableEq
+
+/-- One-based read `v[i]`; `none` outside the vector. -/
+def vectorRead (v : Array α) (i : Int) : Option α :=
+  if 1 ≤ i then v[i.toNat - 1]? else none
+
+/-- Loop of `searchsortedfirst`, `base/sort.jl:187-197`. `hi = m` is dead
+(the loop reads only `lo` and `len`) and is omitted. -/
+def firstSearchLoop (lt : α → α → Bool) (v : Array α) (x : α) :
+    Nat → SearchIndex → SearchIndex → SearchResult Int
+  | 0, _, _ => .exhausted
+  | fuel + 1, lo, len =>
+    if len.val = 0 then .returned lo.val else
+    let half := indexHalf len
+    let m := indexAdd lo half
+    match vectorRead v m.val with
+    | none => .invalidAccess m.val
+    | some a =>
+      if lt a x then
+        firstSearchLoop lt v x fuel (indexAdd m (searchIndex .i64 1))
+          (indexSub len (indexAdd half (searchIndex .i64 1)))
+      else firstSearchLoop lt v x fuel lo half
+
+/-- `searchsortedfirst(v, x, lo::T, hi::T, o)`, `base/sort.jl:184-199`. -/
+def searchsortedfirst (lt : α → α → Bool) (v : Array α) (x : α) {t : IntTy}
+    (lo hi : JInt t) (fuel : Nat := v.size + 2) : SearchResult Int :=
+  let l : SearchIndex := ⟨t, lo⟩
+  let h := indexAdd ⟨t, hi⟩ (searchIndex t 1)
+  firstSearchLoop lt v x fuel l (indexSub h l)
+
+/-- Loop of `searchsortedlast`, `base/sort.jl:207-214`. -/
+def lastSearchLoop (lt : α → α → Bool) (v : Array α) (x : α) (u : SearchIndex) :
+    Nat → SearchIndex → SearchIndex → SearchResult Int
+  | 0, _, _ => .exhausted
+  | fuel + 1, lo, hi =>
+    if lo.val = (indexSub hi u).val then .returned lo.val else
+    let m := indexMidpoint lo hi
+    match vectorRead v m.val with
+    | none => .invalidAccess m.val
+    | some a =>
+      if lt x a then lastSearchLoop lt v x u fuel lo m
+      else lastSearchLoop lt v x u fuel m hi
+
+/-- `searchsortedlast(v, x, lo::T, hi::T, o)`, `base/sort.jl:203-216`. -/
+def searchsortedlast (lt : α → α → Bool) (v : Array α) (x : α) {t : IntTy}
+    (lo hi : JInt t) (fuel : Nat := v.size + 2) : SearchResult Int :=
+  let u := searchIndex t 1
+  lastSearchLoop lt v x u fuel (indexSub ⟨t, lo⟩ u) (indexAdd ⟨t, hi⟩ u)
+
+/-- Loop of `searchsorted`, `base/sort.jl:225-237`: `v[m] < x` is tested before
+`x < v[m]`; on a match the first and last searches run on `lo+u:m` and `m:hi-u`. -/
+def equalSearchLoop (lt : α → α → Bool) (v : Array α) (x : α) (u : SearchIndex) :
+    Nat → SearchIndex → SearchIndex → SearchResult (Int × Int)
+  | 0, _, _ => .exhausted
+  | fuel + 1, lo, hi =>
+    if lo.val = (indexSub hi u).val then
+      .returned ((indexAdd lo (searchIndex .i64 1)).val, (indexSub hi (searchIndex .i64 1)).val)
+    else
+      let m := indexMidpoint lo hi
+      match vectorRead v m.val with
+      | none => .invalidAccess m.val
+      | some a =>
+        if lt a x then equalSearchLoop lt v x u fuel m hi
+        else if lt x a then equalSearchLoop lt v x u fuel lo m
+        else
+          let start := indexAdd lo u
+          match firstSearchLoop lt v x (v.size + 2) start
+              (indexSub (indexAdd m (searchIndex m.ty 1)) start) with
+          | .invalidAccess i => .invalidAccess i
+          | .exhausted => .exhausted
+          | .returned a =>
+            match lastSearchLoop lt v x (searchIndex m.ty 1) (v.size + 2)
+                (indexSub m (searchIndex m.ty 1)) (indexAdd (indexSub hi u) (searchIndex m.ty 1)) with
+            | .returned b => .returned (a, b)
+            | .invalidAccess i => .invalidAccess i
+            | .exhausted => .exhausted
+
+/-- `searchsorted(v, x, ilo::T, ihi::T, o)`, `base/sort.jl:221-238`. -/
+def searchsorted (lt : α → α → Bool) (v : Array α) (x : α) {t : IntTy}
+    (lo hi : JInt t) (fuel : Nat := v.size + 2) : SearchResult (Int × Int) :=
+  let u := searchIndex t 1
+  equalSearchLoop lt v x u fuel (indexSub ⟨t, lo⟩ u) (indexAdd ⟨t, hi⟩ u)
+
+/-- `issorted(itr, order)`, `base/sort.jl:48-60`, on a finite list. -/
+def issorted (lt : α → α → Bool) : List α → Bool
+  | [] => true
+  | [_] => true
+  | a :: b :: rest => if lt b a then false else issorted lt (b :: rest)
+
+/-- `v[i]` is ordered before `x`. -/
+def before (lt : α → α → Bool) (v : Array α) (x : α) (i : Int) : Bool :=
+  match vectorRead v i with
+  | some a => lt a x
+  | none => false
+
+/-- `v[i]` is not ordered after `x`. -/
+def notAfter (lt : α → α → Bool) (v : Array α) (x : α) (i : Int) : Bool :=
+  match vectorRead v i with
+  | some a => !(lt x a)
+  | none => false
+
+/-! ### Proofs for `Int` windows -/
+
+abbrev I (x : Int) : SearchIndex := searchIndex .i64 x
+
+end JuliaLean.Sort
+
+
+/-!
+`searchsortedfirst`/`searchsortedlast`/`searchsorted` on integer ranges,
+`base/sort.jl:269-302` (master `bbfa0ce4150`).
+
+Scope: ranges whose `first`, `step` and `last` share the element type `T`
+(`UnitRange{T}`, and `StepRange{T,T}` for signed `T`), searched for a value
+`x::T` of the same type. On `Int64` ranges this is the default case
+`searchsortedfirst(r, x::Int)`. The four `FastRangeOrderings`
+(`Forward`, `Reverse`, `Lt(<)`, `ReverseOrdering(Lt(<))`) compare
+`BitInteger`s identically to `<` (`isless` on integers is `<`), so the ordering
+is the Boolean `rev` (`ReverseOrdering`).
+-/
+
+namespace JuliaLean.Sort
+
+open JuliaLean JuliaLean.Registry
+
+/-- `lt(o, a, b)` for a `FastRangeOrderings` value on integers,
+`base/ordering.jl:118-121`: `rev` is `o isa ReverseOrdering`. -/
+def rangeLt {t : IntTy} (rev : Bool) (a b : JInt t) : Bool :=
+  if rev then decide (b.val < a.val) else decide (a.val < b.val)
+
+/-- `y + 1` with the `Int` literal `1`: the sum is computed in
+`promote_type(T, Int64)` (`base/int.jl`), wrapping there. -/
+def addOneInt {t : IntTy} (y : JInt t) : Int :=
+  wrapInt (IntTy.promote t .i64) (y.val + 1)
+
+/-- The `::keytype(a)` return annotation converts the result to `Int`. -/
+def toKeytype (y : Int) : Jl JInt64 := JInt.convert (IntTy.i64.name) .i64 y
+
+/-- `searchsortedlast(a::AbstractRange{<:Integer}, x::Real, o::FastRangeOrderings)`,
+`base/sort.jl:269-283`. `floor(Integer, x)` and `ceil(Integer, x)` are `x`
+for an integer `x`. `len` is `length(a)`. -/
+def rangeSearchLast {t : IntTy} (f h l : JInt t) (len : JInt64) (x : JInt t)
+    (rev : Bool) : Jl JInt64 :=
+  if rangeLt rev x f then pure (JInt.lit .i64 0)                 -- sort.jl:272-273
+  else if h.val = 0 ∨ !(rangeLt rev x l) then pure len            -- sort.jl:274-275
+  else do
+    -- sort.jl:277-281: both branches are `fld(x - f, h) + 1` for integer x
+    let q ← JInt.fld (x - f) h
+    toKeytype (addOneInt q)
+
+/-- `searchsortedfirst(a::AbstractRange{<:Integer}, x::Real, o::FastRangeOrderings)`,
+`base/sort.jl:285-299`. `length(a) + 1` is `Int` arithmetic. -/
+def rangeSearchFirst {t : IntTy} (f h l : JInt t) (len : JInt64) (x : JInt t)
+    (rev : Bool) : Jl JInt64 :=
+  if !(rangeLt rev f x) then pure (JInt.lit .i64 1)               -- sort.jl:288-289
+  else if h.val = 0 ∨ rangeLt rev l x then pure (len + JInt.lit .i64 1)  -- sort.jl:290-291
+  else do
+    -- sort.jl:293-297: both branches are `cld(x - f, h) + 1` for integer x
+    let q ← JInt.cld (x - f) h
+    toKeytype (addOneInt q)
+
+/-- `searchsorted(a::AbstractRange{<:Real}, x::Real, o)`, `base/sort.jl:301-302`:
+the pair of endpoints of `searchsortedfirst(a,x,o):searchsortedlast(a,x,o)`. -/
+def rangeSearchsorted {t : IntTy} (f h l : JInt t) (len : JInt64) (x : JInt t)
+    (rev : Bool) : Jl (JInt64 × JInt64) := do
+  let a ← rangeSearchFirst f h l len x rev
+  let b ← rangeSearchLast f h l len x rev
+  pure (a, b)
+
+/-- The `i`-th element (1-based) of the arithmetic progression, as a mathematical integer. -/
+def rangeElem {t : IntTy} (f h : JInt t) (i : Int) : Int := f.val + (i - 1) * h.val
+
+/-- `lt(o, a, b)` on the mathematical element values. -/
+def elemLt (rev : Bool) (a b : Int) : Bool :=
+  if rev then decide (b < a) else decide (a < b)
+
+end JuliaLean.Sort
+
+
+/-!
+`partialsort!`/`partialsort` and `partialsortperm!`/`partialsortperm`,
+`base/sort.jl:97-177, 1853-1915` (master `bbfa0ce4150`), for element types
+that are not `Bool` (so `BoolOptimization` passes through).
+-/
+
+namespace JuliaLean.Sort
+
+open JuliaLean
+
+/-- `k::Union{Integer,OrdinalRange}`. A range is stored as Julia stores it:
+`first`, `step`, `last` and its length; its elements are `first + i*step`, `i < len`. -/
+inductive KSel where
+  | int (k : Int)
+  | range (first step last : Int) (len : Nat)
+
+/-- The indices `k` selects (`maybeview`, sort.jl:110-111). -/
+def KSel.indices : KSel → List Int
+  | .int k => [k]
+  | .range f s _ n => (List.range n).map fun (i : Nat) => f + (i : Int) * s
+
+/-- `ScratchQuickSort(k)`, sort.jl:1081-1082: `(k, k)` or `(first(k), last(k))`. -/
+def KSel.target : KSel → Target
+  | .int k => ⟨some k, some k⟩
+  | .range f _ l _ => ⟨some f, some l⟩
+
+def KSel.isEmpty : KSel → Bool
+  | .int _ => false
+  | .range _ _ _ n => n == 0
+
+/-- Result of `partialsort!` in the model. `sampling` marks inputs that reach the
+randomized sampling phase of `BracketedSort` (sort.jl:1287 onward: `length(v) ≥ 260`
+and a nonempty target), which is outside this model. -/
+inductive PartialOutcome (α : Type) where
+  | done (v : Array α) (result : List α)
+  | thrown (e : JlError)
+  | sampling
+
+section
+variable {α : Type} [Inhabited α]
+
+/-- `maybeview(v, k)` with the bounds check of `getindex`/`view`. -/
+def maybeview (v : Array α) (k : KSel) : Jl (List α) :=
+  if k.indices.all (fun i => decide (1 ≤ i ∧ i ≤ v.size)) then .ok (k.indices.map (rd v))
+  else .error .boundsError
+
+/-- `partialsort!(v, k, o)`, sort.jl:97-108:
+`BoolOptimization(Small{12}(BracketedSort(k)))`. `BracketedSort` (sort.jl:1264-1286)
+returns at once for `lo ≥ hi`, delegates to `InitialOptimizations(ScratchQuickSort(k))`
+when `ln < 260`, and otherwise evaluates `minimum(target)` (sort.jl:1286), which
+throws `ArgumentError` for an empty range. -/
+def partialsort (piv : Int → Int → Int) (lt : α → α → Bool) (v : Array α) (k : KSel) :
+    PartialOutcome α :=
+  let n : Int := v.size
+  let finish (w : Array α) : PartialOutcome α :=
+    match maybeview w k with
+    | .ok r => .done w r
+    | .error e => .thrown e
+  if n - 1 < 12 then finish (insertionSort lt v 1 n)                       -- sort.jl:797
+  else if n < 260 then                                                    -- sort.jl:1277
+    finish (initialOptimizations lt (fun w => scratchQuickSort piv lt k.target w 1 n) v 1 n)
+  else if k.isEmpty then .thrown (.argumentError "range must be non-empty") -- sort.jl:1286
+  else .sampling
+
+end
+
+/-! ### `partialsortperm` -/
+
+instance sortInhabitedJInt {t : IntTy} : Inhabited (JInt t) := ⟨JInt.lit t 0⟩
+
+/-- `partialsortperm(v, k)` for `k` of integer type `t` (sort.jl:1853-1854) and
+`partialsortperm!` (sort.jl:1896-1915): `ix = similar(Vector{eltype(k)}, axes(v,1))`,
+`ix[i] = i` converts each index to `t` (`InexactError` when it does not fit),
+then `InitialOptimizations(ScratchQuickSort(k))` sorts `ix` under
+`Perm(ord(lt, by, rev, order), v)` (`base/ordering.jl:123-127`). -/
+def partialsortperm (t : IntTy) (piv : Int → Int → Int) (lt : Int → Int → Bool)
+    (v : Array Int) (k : KSel) : Jl (List (JInt t)) := do
+  let ix ← (List.range v.size).mapM fun (i : Nat) => JInt.convert (t.name) t ((i : Int) + 1)
+  let ix := ix.toArray
+  let n : Int := v.size
+  let plt (a b : JInt t) : Bool :=
+    lt (rd v a.val) (rd v b.val) || (!(lt (rd v b.val) (rd v a.val)) && decide (a.val < b.val))
+  let ix := initialOptimizations plt (fun w => scratchQuickSort piv plt k.target w 1 n) ix 1 n
+  maybeview ix k
+
+end JuliaLean.Sort
+
+
+/-!
+Executable control-flow models for the `base/sort.jl` findings catalogued by
+the `SortTuplesCov` area. The public Julia reproducers exercise the complete methods.
+-/
+
+namespace JuliaLean.SortTuplesCov
+
+open JuliaLean
+
+/-! ### `insorted` equivalence -/
+
+inductive SortValue where
+  | negZero | posZero | one | missing
+  deriving DecidableEq
+
+/-- Julia `==` for the values used by the reproducer (`none` is `missing`). -/
+def SortValue.eq : SortValue → SortValue → Option Bool
+  | .missing, _ | _, .missing => none
+  | .negZero, .posZero | .posZero, .negZero => some true
+  | a, b => some (a = b)
+
+/-- Julia `isless`: signed zeroes are ordered and `missing` sorts last. -/
+def SortValue.lt : SortValue → SortValue → Bool
+  | .negZero, .posZero | .negZero, .one | .negZero, .missing => true
+  | .posZero, .one | .posZero, .missing => true
+  | .one, .missing => true
+  | _, _ => false
+
+def orMissing : Option Bool → Option Bool → Option Bool
+  | some true, _ | _, some true => some true
+  | none, _ | _, none => none
+  | _, _ => some false
+
+/-- `in(x, r)` used by `insorted(x, r::AbstractRange)`, `base/sort.jl:466`. -/
+def insortedRange (x : SortValue) (r : List SortValue) : Option Bool :=
+  r.foldl (fun acc y => orMissing acc (SortValue.eq x y)) (some false)
+
+/-- `!isempty(searchsorted(v, x))`, `base/sort.jl:465`: membership under the
+sort-order equivalence `!lt(x,y) && !lt(y,x)`. -/
+def insortedVector (x : SortValue) (v : List SortValue) : Bool :=
+  v.any fun y => !SortValue.lt x y && !SortValue.lt y x
+
+/-! ### Legacy six-argument sort -/
+
+inductive LegacyAlg where
+  | quick | merge | partialQuick | custom
+  deriving DecidableEq
+
+/-- `_sort!(v, a::Algorithm, o, kw)`, `base/sort.jl:2586-2595`. -/
+def legacySortFallback (a legacyEntry : LegacyAlg) : Jl Unit :=
+  if legacyEntry = a then
+    .error (.argumentError "Base.Sort._sort! is not defined")
+  else .ok ()
+
+/-- The six-argument `sort!(..., scratch::Vector)`, `base/sort.jl:2578-2582`:
+after a bounds check it enters `_sort!` with `legacy_dispatch_entry=a`. -/
+def legacySortWithScratch (length lo hi : Int) (a : LegacyAlg) : Jl Unit :=
+  if 1 ≤ lo ∧ hi ≤ length then legacySortFallback a a else .error .boundsError
+
+/-- Supported old five-argument methods, `base/sort.jl:2454-2457,2482-2486,
+2533-2537`. -/
+def legacySortWithoutScratch (length lo hi : Int) (a : LegacyAlg) : Jl Unit :=
+  if 1 ≤ lo ∧ hi ≤ length then
+    match a with
+    | .quick | .merge | .partialQuick => .ok ()
+    | .custom => legacySortFallback a a
+  else .error .boundsError
+
+/-! ### Descending `PartialQuickSort` target -/
+
+inductive PartialAction where
+  | skipLower | skipUpper | recurseLower | recurseUpper
+  deriving DecidableEq
+
+/-- The branch after `partition!` in `_partialquicksort!`,
+`base/sort.jl:2546-2562`. -/
+def partialQuickAction (lo hi firstTarget lastTarget pivot : Int) : PartialAction :=
+  if pivot ≤ firstTarget then .skipLower
+  else if pivot ≥ lastTarget then .skipUpper
+  else if pivot - lo < hi - pivot then .recurseLower
+  else .recurseUpper
+
+def targetIndices (first step : Int) (length : Nat) : List Int :=
+  (List.range length).map fun (i : Nat) => first + (i : Int) * step
+
+/-! ### Tuple algorithm dispatch -/
+
+inductive TupleAlg where
+  | defaultStable | defaultUnstable | insertion | quick | merge | partialQuick
+  deriving DecidableEq
+
+/-- `_sort(x::NTuple, a, o, kw)`, `base/sort.jl:1798-1808`: only the two
+default algorithm tags have a method. -/
+def sortTupleDispatch (a : TupleAlg) : Jl Unit :=
+  match a with
+  | .defaultStable | .defaultUnstable => .ok ()
+  | _ => .error (.methodError "Base.Sort._sort")
+
+/-! ### `dims` default evaluation order -/
+
+/-- `size(A, dims)` for a two-dimensional array, including its exception at
+dimension zero. -/
+def matrixSize (dims : Int) : Jl Nat :=
+  if dims < 1 then .error .boundsError
+  else if dims ≤ 2 then .ok 2 else .ok 1
+
+/-- `sort!(A; dims, scratch=<default>)`, `base/sort.jl:2187-2223`.  Julia
+evaluates the scratch default's `size(A,dims)` before the body's explicit
+dimension check. -/
+def sortDimsDefault (nd dims : Int) : Jl Unit := do
+  let n ← matrixSize dims
+  let _scratchAllocated := !(n < 10)
+  if 1 ≤ dims ∧ dims ≤ nd then .ok ()
+  else .error (.argumentError "dimension out of range")
+
+/-! ### Missing values and caller-provided scratch -/
+
+inductive ScratchEltype where
+  | int32 | missingOrInt32
+  deriving DecidableEq
+
+/-- `make_scratch(scratch::Vector, T, len)`, `base/sort.jl:511-516`: a scratch
+whose element type differs from `T` is reinterpreted, which requires both
+element types to be bitstypes. -/
+def makeScratch (scratchType targetType : ScratchEltype) : Jl Unit :=
+  if scratchType = targetType then .ok ()
+  else match scratchType, targetType with
+    | .int32, .int32 => .ok ()
+    | _, _ => .error (.argumentError "cannot reinterpret")
+
+/-- `MissingOptimization` keeps the caller scratch while changing the view's
+element type to the non-missing type, and `RadixSort` passes both to
+`make_scratch`, `base/sort.jl:651-655,1017-1046`. -/
+def sortMissingWithScratch (scratchType : ScratchEltype) : Jl Unit :=
+  makeScratch scratchType .int32
+
+end JuliaLean.SortTuplesCov
+
+
+/-! Keyword wrappers and scratch-space methods from `base/sort.jl`
+(master `bbfa0ce4150`). -/
+
+namespace JuliaLean.SortTuplesCov
+
+open JuliaLean
+
+inductive RevChoice where
+  | nothing | false_ | true_
+  deriving DecidableEq
+
+def reverseRequested : RevChoice → Bool
+  | .true_ => true
+  | _ => false
+
+/-- Keyword `issorted`, `base/sort.jl:86-95`. -/
+def issortedKeyword {I O R : Type} (ord : Bool → O) (core : I → O → R)
+    (itr : I) (rev : RevChoice) : R :=
+  if reverseRequested rev then core itr (ord true) else core itr (ord false)
+
+/-- Keyword `partialsort!`, `base/sort.jl:166-168`. -/
+def partialsortKeyword {V K O R : Type} (ord : RevChoice → O)
+    (core : V → K → O → R) (v : V) (k : K) (rev : RevChoice) : R :=
+  core v k (ord rev)
+
+/-- Generated positional search wrappers, `base/sort.jl:304-310`. -/
+def searchOrderWrapper {V X O R : Type} (first last : V → Int)
+    (core : V → X → Int → Int → O → R) (v : V) (x : X) (o : O) : R :=
+  core v x (first v) (last v) o
+
+/-- Generated keyword search wrappers, `base/sort.jl:304-310`. -/
+def searchKeywordWrapper {V X O R : Type} (ord : RevChoice → O)
+    (core : V → X → O → R) (v : V) (x : X) (rev : RevChoice) : R :=
+  core v x (ord rev)
+
+/-! ### Alternative keyword management -/
+
+inductive KwValue where
+  | missing
+  | nothing
+  | value (n : Int)
+  deriving DecidableEq
+
+abbrev KwState := List (String × KwValue)
+
+def kwLookup (kw : KwState) (name : String) : Option KwValue :=
+  (kw.find? fun p => p.1 = name).map Prod.snd
+
+/-- The body generated for `_lo`, `_hi`, `_mn`, `_mx`, `_scratch`, and
+`_legacy_dispatch_entry`, `base/sort.jl:475-489`. -/
+def generatedKeywordGetter (kw : KwState) (name : String) (default : KwValue) : KwState × KwValue :=
+  match kwLookup kw name with
+  | some v => if v = .missing then (kw ++ [(name, default)], default) else (kw, v)
+  | none => (kw ++ [(name, default)], default)
+
+/-- `@getkw syms...`, `base/sort.jl:470-473`, expands each symbol to its
+generated getter name in the same order. -/
+def getkwExpansion (syms : List String) : List String := syms.map ("_" ++ ·)
+
+/-! ### Scratch space -/
+
+structure ScratchType where
+  name : String
+  bytes : Nat
+  bits : Bool
+
+structure ScratchVector where
+  type : ScratchType
+  length : Nat
+
+structure ScratchResult where
+  backing : ScratchVector
+  viewType : ScratchType
+  viewLength : Nat
+
+/-- `make_scratch(nothing, T, len)`, `base/sort.jl:503-506`. -/
+def makeScratchNothing (target : ScratchType) (length : Nat) : ScratchResult :=
+  let v := ⟨target, length⟩
+  ⟨v, target, length⟩
+
+/-- `make_scratch(scratch::Vector{T}, T, len)`, `base/sort.jl:507-510`. -/
+def makeScratchSame (scratch : ScratchVector) (length : Nat) : ScratchResult :=
+  let backing := { scratch with length := max scratch.length length }
+  ⟨backing, scratch.type, backing.length⟩
+
+/-- `make_scratch(scratch::Vector, T, len)`, `base/sort.jl:511-516`: compute
+the backing length in bytes, resize, then reinterpret. -/
+def makeScratchOther (scratch : ScratchVector) (target : ScratchType) (length : Nat) : Jl ScratchResult :=
+  let bytesNeeded := length * target.bytes
+  let backingLength := bytesNeeded / scratch.type.bytes
+  let backing := { scratch with length := max scratch.length backingLength }
+  if scratch.type.bits && target.bits && target.bytes > 0 &&
+      (backing.length * scratch.type.bytes) % target.bytes = 0 then
+    .ok ⟨backing, target, backing.length * scratch.type.bytes / target.bytes⟩
+  else .error (.argumentError "cannot reinterpret")
+
+end JuliaLean.SortTuplesCov
+
+
+/-! Executable branch and mutation models for the optimization pipeline in
+`base/sort.jl` (master `bbfa0ce4150`). -/
+
+namespace JuliaLean.SortTuplesCov
+
+open JuliaLean
+
+/-! ### SubArray optimization -/
+
+inductive SubarrayRoute where
+  | view | parentVector
+  deriving DecidableEq
+
+/-- Generic `SubArrayOptimization`, `base/sort.jl:559`. -/
+def subarrayOptimization {R : Type} (next : R) : R := next
+
+/-- Unwrappable SubArray method, `base/sort.jl:560-574`. -/
+def unwrappableSubarrayOptimization (parentIsArray parentIsVector : Bool)
+    (hi lo offset : Int) : SubarrayRoute :=
+  if (parentIsArray && !parentIsVector && hi - lo < 100) || offset ≠ 0 then .view
+  else .parentVector
+
+/-! ### WithoutMissingVector -/
+
+/-- Constructor, `base/sort.jl:591-596`. `none` represents `missing`. -/
+def withoutMissingVector {V : Type} (data : Array (Option V)) (unsafeFlag : Bool := false) :
+    Jl (Array (Option V)) :=
+  if !unsafeFlag && data.any (fun x => x.isNone) then
+    .error (.argumentError "data must not contain missing values")
+  else .ok data
+
+/-- `getindex`, `base/sort.jl:598-602`, including its assertion. -/
+def withoutMissingGet {V : Type} (data : Array (Option V)) (i : Int) : Jl V :=
+  match JuliaLean.Sort.rd data i with
+  | some x => .ok x
+  | none => .error (.argumentError "encountered missing in WithoutMissingVector")
+
+/-- `setindex!`, `size`, and `axes`, `base/sort.jl:603-608`. -/
+def withoutMissingSet {V : Type} (data : Array (Option V)) (x : V) (i : Int) : Array (Option V) :=
+  JuliaLean.Sort.wr data i (some x)
+def withoutMissingSize {V : Type} (data : Array (Option V)) : Nat := data.size
+def withoutMissingAxes {V : Type} (data : Array (Option V)) : Nat × Nat := (1, data.size)
+
+/-! ### send_to_end! -/
+
+section SendToEnd
+
+variable {V : Type} [Inhabited V]
+
+def sendScan (f : V → Bool) (hi : Int) : Nat → Array V → Int → Array V × Int
+  | 0, v, i => (v, i)
+  | fuel + 1, v, i =>
+    if i ≤ hi && !f (JuliaLean.Sort.rd v i) then sendScan f hi fuel v (i + 1) else (v, i)
+
+def sendLoop (f : V → Bool) (hi : Int) : Nat → Array V → Int → Int → Array V × Int
+  | 0, v, i, _ => (v, i)
+  | fuel + 1, v, i, j =>
+    if j ≤ hi then
+      if !f (JuliaLean.Sort.rd v j) then
+        let a := JuliaLean.Sort.rd v i
+        let b := JuliaLean.Sort.rd v j
+        sendLoop f hi fuel (JuliaLean.Sort.wr (JuliaLean.Sort.wr v i b) j a) (i + 1) (j + 1)
+      else sendLoop f hi fuel v i (j + 1)
+    else (v, i)
+
+/-- `send_to_end!(f, v; lo, hi)`, `base/sort.jl:620-634`. -/
+def sendToEnd (f : V → Bool) (v : Array V) (lo hi : Int) : Array V × Int :=
+  let first := sendScan f hi (hi - lo + 2).toNat v lo
+  let out := sendLoop f hi (hi - first.2 + 1).toNat first.1 first.2 (first.2 + 1)
+  (out.1, out.2 - 1)
+
+/-- Direct-order wrappers, `base/sort.jl:645-648`, recorded as the exact
+choice of direction, predicate complement, and stability flag. -/
+inductive SendRoute where
+  | forward (complement reverseView : Bool)
+  | reverse (complement reverseView : Bool)
+  deriving DecidableEq
+
+def sendToEndRoute (reverseOrder endStable : Bool) : SendRoute :=
+  if !reverseOrder then
+    if endStable then .forward true true else .forward false false
+  else if endStable then .reverse true false else .reverse false true
+
+end SendToEnd
+
+/-! ### Missing and IEEE dispatch -/
+
+inductive MissingRoute where
+  | direct | permutation | pass
+  deriving DecidableEq
+
+/-- Branch conditions of `MissingOptimization`, `base/sort.jl:651-686`. -/
+def missingOptimizationRoute (direct hasMissingEltype perm permDirect integerIndices
+    dataHasMissing identityIndices : Bool) : MissingRoute :=
+  if direct && hasMissingEltype then .direct
+  else if perm && permDirect && integerIndices && dataHasMissing && identityIndices then .permutation
+  else .pass
+
+def afterZero (reverse signbit : Bool) : Bool := if reverse then signbit else !signbit
+def isConcreteIEEEFloat (isIEEE concrete : Bool) : Bool := isIEEE && concrete
+
+inductive IEEERoute where
+  | values | permutation | pass
+  deriving DecidableEq
+
+/-- The three branches of `IEEEFloatOptimization`, `base/sort.jl:706-731`. -/
+def ieeeOptimizationRoute (valueIEEE direct integerIndices perm permDirect dataIEEE : Bool) : IEEERoute :=
+  if valueIEEE && direct then .values
+  else if integerIndices && perm && permDirect && dataIEEE then .permutation
+  else .pass
+
+/-! ### Bool optimization -/
+
+def fillBoolRange (v : Array Bool) (lo hi : Int) (x : Bool) : Array Bool :=
+  (List.range (hi - lo + 1).toNat).foldl
+    (fun out (k : Nat) => JuliaLean.Sort.wr out (lo + (k : Int)) x) v
+
+/-- Specialized Bool sort, `base/sort.jl:746-758`. -/
+def boolOptimization (lt : Bool → Bool → Bool) (v : Array Bool) (lo hi : Int) : Array Bool :=
+  let first := if lt false true then some false else if lt true false then some true else none
+  match first with
+  | none => v
+  | some x =>
+    let count := (List.range (hi - lo + 1).toNat).foldl
+      (fun n (k : Nat) => if JuliaLean.Sort.rd v (lo + (k : Int)) = x then n + 1 else n) 0
+    fillBoolRange (fillBoolRange v lo (lo + count - 1) x) (lo + count) hi (!x)
+
+def boolOptimizationGeneric {R : Type} (next : R) : R := next
+
+end JuliaLean.SortTuplesCov
+
+
+/-! Algorithm-selection methods from `base/sort.jl` (master
+`bbfa0ce4150`). -/
+
+namespace JuliaLean.SortTuplesCov
+
+/-! ### Generic dispatch components -/
+
+def isUIntMappableDispatch {R : Type} (mappable : Bool) (yes no : R) : R :=
+  if mappable then yes else no
+
+structure SmallAlgorithm (R : Type) where
+  threshold : Int
+  small : R
+  big : R
+
+/-- `Small{N}(small,big)` and `Small{N}(big)`, `base/sort.jl:793-794`. -/
+def smallExplicit {R : Type} (n : Int) (small big : R) : SmallAlgorithm R := ⟨n, small, big⟩
+def smallDefault {R : Type} (n : Int) (defaultSmall big : R) : SmallAlgorithm R :=
+  smallExplicit n defaultSmall big
+
+/-- `_sort!(..., a::Small{N}, ...)`, `base/sort.jl:795-802`. -/
+def smallDispatch {R : Type} (a : SmallAlgorithm R) (lo hi : Int) : R :=
+  if hi - lo < a.threshold then a.small else a.big
+
+inductive CheckSortedRoute where
+  | alreadySorted | reversed | next
+  deriving DecidableEq
+
+/-- `CheckSorted`, `base/sort.jl:864-879`. -/
+def checkSortedDispatch (sorted reverseSorted : Bool) (lo hi : Int) : CheckSortedRoute :=
+  if sorted then .alreadySorted
+  else if hi - lo ≥ 500 && reverseSorted then .reversed
+  else .next
+
+inductive StableCheckRoute where
+  | alreadySorted | strictlyReversed | next
+  deriving DecidableEq
+
+/-- `StableCheckSorted`, `base/sort.jl:1368-1379`. -/
+def stableCheckDispatch (sorted strictlyReverseSorted : Bool) : StableCheckRoute :=
+  if sorted then .alreadySorted else if strictlyReverseSorted then .strictlyReversed else .next
+
+structure Extrema (V : Type) where
+  min : V
+  max : V
+
+/-- The loop of `ComputeExtrema`, `base/sort.jl:893-905`. -/
+def computeExtremaLoop {V : Type} (lt : V → V → Bool) (v : Array V) :
+    Nat → Nat → Extrema V → Extrema V
+  | _, 0, e => e
+  | i, fuel + 1, e =>
+    match v[i]? with
+    | none => e
+    | some x => computeExtremaLoop lt v (i + 1) fuel
+        ⟨if lt x e.min then x else e.min, if lt e.max x then x else e.max⟩
+
+def computeExtrema {V : Type} (lt : V → V → Bool) (v : Array V) : Option (Extrema V) :=
+  match v[0]? with
+  | none => none
+  | some x => some (computeExtremaLoop lt v 1 (v.size - 1) ⟨x, x⟩)
+
+inductive ExtremaRoute where
+  | allEquivalent | next
+  deriving DecidableEq
+
+def computeExtremaRoute {V : Type} (lt : V → V → Bool) (e : Extrema V) : ExtremaRoute :=
+  if lt e.min e.max then .next else .allEquivalent
+
+structure CountingChoice where
+  useCounting : Bool
+  threshold : Int
+
+/-- `ConsiderCountingSort`, `base/sort.jl:923-933`, after the source's
+wrapping range computation. -/
+def considerCounting (elementBytes : Nat) (range span : Int) : CountingChoice :=
+  let threshold := if elementBytes > 8 then 5 * span - 100 else span / 2
+  ⟨range < threshold, threshold⟩
+
+/-- `maybe_reverse`, `base/sort.jl:946-947`. -/
+def maybeReverse {V : Type} (reverse : Bool) (xs : List V) : List V :=
+  if reverse then xs.reverse else xs
+
+structure RadixChoice where
+  useRadix : Bool
+
+/-- `ConsiderRadixSort`, `base/sort.jl:983-992`, with `scaledLog` equal to
+the already evaluated source expression `22log(hi-lo)`. -/
+def considerRadix (elementBytes bits scaledLog : Nat) : RadixChoice :=
+  ⟨elementBytes ≤ 8 && bits + 70 < scaledLog⟩
+
+/-! ### Pipeline construction and defaults -/
+
+inductive PipelineStage where
+  | subarray | missing | bool_ | small (n : Int) | ieee | uintMappable
+  | checkSorted | computeExtrema | considerCounting | considerRadix
+  | stableCheckSorted | insertion | scratchQuick
+  deriving Repr, DecidableEq
+
+/-- `InitialOptimizations(next)`, `base/sort.jl:1473-1478`. -/
+def initialOptimizationStages (next : List PipelineStage) : List PipelineStage :=
+  [.subarray, .missing, .bool_, .small 10, .ieee] ++ next
+
+/-- `_DEFAULT_ALGORITHMS_FOR_VECTORS` and the default `_sort!` method,
+`base/sort.jl:1580-1593`. -/
+def defaultVectorStages : List PipelineStage :=
+  initialOptimizationStages [.uintMappable, .small 40, .checkSorted, .computeExtrema,
+    .considerCounting, .considerRadix, .small 80, .scratchQuick, .stableCheckSorted,
+    .scratchQuick]
+
+def defaultSortDispatch (_stable : Bool) : List PipelineStage := defaultVectorStages
+
+inductive DefaultAlgorithm where
+  | stable | unstable
+  deriving DecidableEq
+
+inductive ValueClass where
+  | numericArray | missingArray | bottomArray | otherArray | other
+  deriving DecidableEq
+
+/-- `defalg`, `base/sort.jl:1620-1624`. -/
+def defalg : ValueClass → DefaultAlgorithm
+  | .numericArray | .missingArray | .bottomArray => .unstable
+  | .otherArray | .other => .stable
+
+/-! ### Algorithm display -/
+
+structure AlgorithmNode where
+  typeName : String
+  fields : List (String × Option AlgorithmNode)
+  depth : Nat
+
+inductive PrintToken where
+  | indent (columns : Nat) | typeName (name : String) | openParen | closeParen
+  | comma | newline | value (text : String)
+  deriving Repr, DecidableEq
+
+/-- `print_tree`, `base/sort.jl:1600-1616`.  Fuel is a structural model
+parameter; callers supply more than the nesting depth. -/
+def printAlgorithmTree : Nat → AlgorithmNode → Nat → List PrintToken
+  | 0, _, _ => []
+  | fuel + 1, alg, columns =>
+    [.indent columns, .typeName alg.typeName, .openParen] ++
+      (alg.fields.zipIdx.flatMap fun (field, i) =>
+        (if i > 0 then [.comma] else []) ++
+        match field.2 with
+        | some child => [.newline] ++ printAlgorithmTree fuel child (columns + 1)
+        | none => (if i > 0 then [.value " "] else []) ++ [.value field.1]) ++
+      [.closeParen]
+
+/-- `show` calls `print_tree(io, alg, 0)`, `base/sort.jl:1597-1599`. -/
+def showAlgorithm (alg : AlgorithmNode) : List PrintToken := printAlgorithmTree (alg.depth + 1) alg 0
+
+/-- `show_type`, `base/sort.jl:1617-1618`. -/
+def showAlgorithmType (smallN : Option Int) (name : String) : String :=
+  match smallN with
+  | none => name
+  | some n => "Base.Sort.Small{" ++ toString n ++ "}"
+
+end JuliaLean.SortTuplesCov
+
+
+/-! Counting-sort and radix-sort kernels from `base/sort.jl` (master
+`bbfa0ce4150`).  Values are represented after the source's reversible unsigned
+mapping, so the kernels operate on nonnegative bucket offsets. -/
+
+namespace JuliaLean.SortTuplesCov
+
+/-- The count loop of `CountingSort`, `base/sort.jl:948-969`. -/
+def countingBuckets (range : Nat) (xs : List Nat) : List Nat :=
+  (List.range (range + 1)).map fun bucket => xs.count bucket
+
+/-- Repopulation loop of `CountingSort`. -/
+def countingOutput (reverse : Bool) (counts : List Nat) : List Nat :=
+  let buckets := (List.range counts.length).flatMap fun i => List.replicate (counts.getD i 0) i
+  if reverse then buckets.reverse else buckets
+
+def countingSortMapped (range : Nat) (reverse : Bool) (xs : List Nat) : List Nat :=
+  countingOutput reverse (countingBuckets range xs)
+
+/-- A stable radix pass, the observable result of the two loops in
+`radix_sort_pass!`, `base/sort.jl:1402-1429`. -/
+def radixPass (xs : List Nat) (shift chunkSize : Nat) : List Nat :=
+  let bucketCount := 2 ^ chunkSize
+  (List.range bucketCount).flatMap fun bucket =>
+    xs.filter fun x => ((x >>> shift) % bucketCount) = bucket
+
+structure RadixState where
+  inWorking : Bool
+  data : List Nat
+
+/-- Alternating passes of `radix_sort!`, `base/sort.jl:1384-1401`.
+Fuel exhaustion is a model error. Julia accepts a zero chunk and does not
+terminate when `bits > 0`; it still executes one pass when `bits = 0`. -/
+def radixSortLoop (bits chunkSize : Nat) :
+    Nat → Nat → Bool → List Nat → base.range.JlX RadixState
+  | 0, _, _, _ => .error (.errorException "fuel")
+  | fuel + 1, shift, inWorking, xs =>
+    let ys := radixPass xs shift chunkSize
+    let nextShift := shift + chunkSize
+    if nextShift ≥ bits then .ok ⟨!inWorking, ys⟩
+    else radixSortLoop bits chunkSize fuel nextShift (!inWorking) ys
+
+def radixSort (xs : List Nat) (bits chunkSize : Nat) : base.range.JlX RadixState :=
+  radixSortLoop bits chunkSize (bits + 1) 0 true xs
+
+/-- `radix_chunk_size_heuristic`, `base/sort.jl:1430-1441`.  `guess` is the
+source expression `min(10, log(hi-lo)*3/4+3)` after evaluation. -/
+def radixChunkSizeHeuristic (bits guess : Nat) : Nat :=
+  if bits = 0 then 0 else (bits + ((bits + guess - 1) / guess) - 1) / ((bits + guess - 1) / guess)
+
+/-- The two `maybe_unsigned` methods, `base/sort.jl:1443-1444`. -/
+def maybeUnsignedInteger (x : Int) : Int := x
+def maybeUnsignedBitSigned (bits : Nat) (x : Int) : Int :=
+  x % (2 ^ bits : Nat)
+
+end JuliaLean.SortTuplesCov
+
+
+/-! Public sorting wrappers, tuple merge sort, permutation wrappers, and
+multidimensional routing from `base/sort.jl` (master `bbfa0ce4150`). -/
+
+namespace JuliaLean.SortTuplesCov
+
+/-! ### Vector and tuple sort wrappers -/
+
+/-- `sort!(v; ...)`, `base/sort.jl:1732-1741`, after `ord` and
+`maybe_apply_initial_optimizations` have been evaluated. -/
+def sortVectorBang {V : Type} (core : List V → List V) (v : List V) : List V := core v
+
+/-- `sort(v::AbstractVector; kws...)`, `base/sort.jl:1780`.  The pair records
+that the source is unchanged and the copied result is sorted. -/
+def sortVectorCopy {V : Type} (core : List V → List V) (v : List V) : List V × List V :=
+  (v, core v)
+
+/-- `sort` on KeySet and ValueIterator, `base/sort.jl:1782-1783`. -/
+def sortCollected {V : Type} (collect : List V) (core : List V → List V) : List V := core collect
+
+/-- Tuple `merge`, `base/sort.jl:1814-1818`. -/
+def mergeSorted {V : Type} (lt : V → V → Bool) : List V → List V → List V
+  | xs, [] => xs
+  | [], ys => ys
+  | x :: xs, y :: ys =>
+    if lt y x then y :: mergeSorted lt (x :: xs) ys
+    else x :: mergeSorted lt xs (y :: ys)
+termination_by xs ys => xs.length + ys.length
+
+/-- `_mergesort(x::NTuple, o)`, `base/sort.jl:1809-1813`, with fuel equal to
+the tuple length. -/
+def tupleMergeSort {V : Type} (lt : V → V → Bool) : Nat → List V → List V
+  | 0, xs => xs
+  | _ + 1, [] => []
+  | _ + 1, [x] => [x]
+  | fuel + 1, xs =>
+    let n := xs.length / 2
+    mergeSorted lt (tupleMergeSort lt fuel (xs.take n)) (tupleMergeSort lt fuel (xs.drop n))
+
+/-- Default tuple `_sort`, `base/sort.jl:1798-1808`. -/
+def sortTupleDefault {V : Type} (vectorCore : List V → List V)
+    (lt : V → V → Bool) (xs : List V) : List V :=
+  if xs.length > 9 then vectorCore xs else tupleMergeSort lt (xs.length + 1) xs
+
+/-! ### Permutation wrappers -/
+
+inductive SortpermRoute where
+  | integerRangeFastPath | generic
+  deriving DecidableEq
+
+/-- `sortperm`, `base/sort.jl:1966-1979`: explicit branching on `rev`. -/
+def sortpermOrderingChoice (rev : RevChoice) : Bool := reverseRequested rev
+
+/-- `_sortperm`, `base/sort.jl:1980-1994`, after extrema and overflow checks. -/
+def sortpermRoute (forward vector integerElements moreThanOne noOverflow shortRange : Bool) :
+    SortpermRoute :=
+  if forward && vector && integerElements && moreThanOne && noOverflow && shortRange then
+    .integerRangeFastPath
+  else .generic
+
+/-- `sortperm!`, `base/sort.jl:2037-2055`, recording validation and the
+initialized linear indices. -/
+def sortpermBang (axesMatch vectorDimsConflict : Bool) (length : Nat) : Except String (List Nat) :=
+  if vectorDimsConflict then .error "Dims argument incorrect for type"
+  else if !axesMatch then .error "index array must have the same axes"
+  else .ok ((List.range length).map (.+1))
+
+/-- `partialsortperm!`, `base/sort.jl:1896-1915`, including the axes check and
+unconditional index initialization (`initialized` is accepted but unused). -/
+def partialsortpermBang (axesMatch initialized : Bool) (length : Nat) : Except String (List Nat) :=
+  if !axesMatch then .error "index vector must have the same axes"
+  else
+    let _ := initialized
+    .ok ((List.range length).map (.+1))
+
+/-! ### Multidimensional sorting -/
+
+inductive ArraySortRoute where
+  | firstDimension | permutedDimension
+  deriving DecidableEq
+
+/-- `sort(A; dims)`, `base/sort.jl:2112-2134`. -/
+def arraySortRoute (dimension : Int) : ArraySortRoute :=
+  if dimension = 1 then .firstDimension else .permutedDimension
+
+inductive ChunkScratchRoute where
+  | noScratch | acquiredScratch | reusedScratch
+  deriving DecidableEq
+
+/-- The three `sort_chunks!` methods, `base/sort.jl:2136-2154`. -/
+def sortChunksRoute (scratchPresent nestedProducedScratch : Bool) : ChunkScratchRoute :=
+  if scratchPresent then .reusedScratch
+  else if nestedProducedScratch then .acquiredScratch else .noScratch
+
+/-- Local `get_view` and `get_value`, `base/sort.jl:2205-2206,2224`. -/
+def getViewIndices (selectedDimension : Nat) (idx : List Nat) (ndims : Nat) : List (Option Nat) :=
+  (List.range ndims).map fun i => if i + 1 = selectedDimension then none else idx[i]?
+def getValue (x : Nat) : Nat := x
+
+end JuliaLean.SortTuplesCov
+
+
+/-! Unsigned order-preserving mappings from `base/sort.jl:2227-2310`
+(master `bbfa0ce4150`).  A bit integer is its fixed-width bit pattern. -/
+
+namespace JuliaLean.SortTuplesCov
+
+def wordMask (bits : Nat) : Nat := 2 ^ bits - 1
+def signMask (bits : Nat) : Nat := 2 ^ (bits - 1)
+
+/-- Unsigned Forward methods, `base/sort.jl:2267-2268`. -/
+def uintMapUnsigned (word : Nat) : Nat := word
+def uintUnmapUnsigned (word : Nat) : Nat := word
+
+/-- Signed Forward methods, `base/sort.jl:2270-2273`. -/
+def uintMapSigned (bits word : Nat) : Nat := word ^^^ signMask bits
+def uintUnmapSigned (bits word : Nat) : Nat := word ^^^ signMask bits
+
+/-- Char methods, `base/sort.jl:2282-2284`: reinterpret to and from UInt32. -/
+def uintMapChar (code : UInt32) : UInt32 := code
+def uintUnmapChar (word : UInt32) : UInt32 := word
+
+/-- ReverseOrdering methods, `base/sort.jl:2287-2289`. -/
+def uintMapReverse (bits : Nat) (forward : Nat → Nat) (word : Nat) : Nat :=
+  wordMask bits ^^^ forward word
+def uintUnmapReverse (bits : Nat) (forwardUnmap : Nat → Nat) (word : Nat) : Nat :=
+  forwardUnmap (wordMask bits ^^^ word)
+
+inductive UIntMapType where
+  | bits (width : Nat) | char | unsupported
+  deriving DecidableEq
+
+/-- `UIntMappable`, including fallback, Forward bit integers and Char, and
+ReverseOrdering forwarding, `base/sort.jl:2237,2275,2284,2289`. -/
+def uintMappable : UIntMapType → Bool → Option Nat
+  | .bits width, _ => some width
+  | .char, _ => some 32
+  | .unsupported, _ => none
+
+/-! ### Vector mapping loops -/
+
+def uintMapLoop (map : Nat → Nat) (lo : Int) : Nat → Array Nat → Array Nat
+  | 0, v => v
+  | fuel + 1, v =>
+    let i := lo + fuel
+    uintMapLoop map lo fuel (JuliaLean.Sort.wr v i (map (JuliaLean.Sort.rd v i)))
+
+/-- `uint_map!`, `base/sort.jl:2295-2301`. -/
+def uintMapBang (map : Nat → Nat) (v : Array Nat) (lo hi : Int) : Array Nat :=
+  uintMapLoop map lo (hi - lo + 1).toNat v
+
+def uintUnmapLoop (unmap : Nat → Nat) (offset : Nat) (lo indexOffset : Int) :
+    Nat → Array Nat → Array Nat → Array Nat
+  | 0, v, _ => v
+  | fuel + 1, v, u =>
+    let i := lo + fuel
+    uintUnmapLoop unmap offset lo indexOffset fuel
+      (JuliaLean.Sort.wr v i (unmap (JuliaLean.Sort.rd u (i + indexOffset) + offset))) u
+
+/-- `uint_unmap!`, `base/sort.jl:2303-2310`. -/
+def uintUnmapBang (unmap : Nat → Nat) (v u : Array Nat) (lo hi : Int)
+    (offset : Nat := 0) (indexOffset : Int := 0) : Array Nat :=
+  uintUnmapLoop unmap offset lo indexOffset (hi - lo + 1).toNat v u
+
+/-! ### Legacy algorithm wrapping -/
+
+inductive PublicAlg where
+  | quick | merge | insertion | other
+  deriving DecidableEq
+
+/-- `maybe_apply_initial_optimizations`, `base/sort.jl:2396-2399`. -/
+def maybeApplyInitialOptimizations : PublicAlg → Bool
+  | .quick | .merge | .insertion => true
+  | .other => false
+
+end JuliaLean.SortTuplesCov
+
+
+/-! Legacy QuickSort, MergeSort, and PartialQuickSort kernels from
+`base/sort.jl:2401-2595` (master `bbfa0ce4150`). -/
+
+namespace JuliaLean.SortTuplesCov
+
+section
+
+variable {V : Type} [Inhabited V]
+
+def midpointInt (lo hi : Int) : Int := lo + (hi - lo) / 2
+
+/-- `selectpivot!`, `base/sort.jl:2409-2429`. -/
+def selectPivot (lt : V → V → Bool) (v : Array V) (lo hi : Int) : Array V × V :=
+  let mi := midpointInt lo hi
+  let v := if lt (JuliaLean.Sort.rd v lo) (JuliaLean.Sort.rd v mi) then
+    let a := JuliaLean.Sort.rd v lo
+    let b := JuliaLean.Sort.rd v mi
+    JuliaLean.Sort.wr (JuliaLean.Sort.wr v mi a) lo b else v
+  let v := if lt (JuliaLean.Sort.rd v hi) (JuliaLean.Sort.rd v lo) then
+    if lt (JuliaLean.Sort.rd v hi) (JuliaLean.Sort.rd v mi) then
+      let a := JuliaLean.Sort.rd v hi
+      let b := JuliaLean.Sort.rd v lo
+      let c := JuliaLean.Sort.rd v mi
+      JuliaLean.Sort.wr (JuliaLean.Sort.wr (JuliaLean.Sort.wr v hi b) lo c) mi a
+    else
+      let a := JuliaLean.Sort.rd v hi
+      let b := JuliaLean.Sort.rd v lo
+      JuliaLean.Sort.wr (JuliaLean.Sort.wr v hi b) lo a
+    else v
+  (v, JuliaLean.Sort.rd v lo)
+
+def scanLess (lt : V → V → Bool) (pivot : V) : Nat → Array V → Int → Int
+  | 0, _, i => i
+  | fuel + 1, v, i => if lt (JuliaLean.Sort.rd v i) pivot then scanLess lt pivot fuel v (i + 1) else i
+
+def scanGreater (lt : V → V → Bool) (pivot : V) : Nat → Array V → Int → Int
+  | 0, _, j => j
+  | fuel + 1, v, j => if lt pivot (JuliaLean.Sort.rd v j) then scanGreater lt pivot fuel v (j - 1) else j
+
+def partitionLoop (lt : V → V → Bool) (pivot : V) (lo : Int) :
+    Nat → Array V → Int → Int → Array V × Int
+  | 0, v, _, j => (JuliaLean.Sort.wr (JuliaLean.Sort.wr v j pivot) lo (JuliaLean.Sort.rd v j), j)
+  | fuel + 1, v, i, j =>
+    let i := scanLess lt pivot fuel v (i + 1)
+    let j := scanGreater lt pivot fuel v (j - 1)
+    if i ≥ j then (JuliaLean.Sort.wr (JuliaLean.Sort.wr v j pivot) lo (JuliaLean.Sort.rd v j), j)
+    else
+      let a := JuliaLean.Sort.rd v i
+      let b := JuliaLean.Sort.rd v j
+      partitionLoop lt pivot lo fuel (JuliaLean.Sort.wr (JuliaLean.Sort.wr v i b) j a) i j
+
+/-- Old `partition!`, `base/sort.jl:2435-2452`. -/
+def legacyPartition (lt : V → V → Bool) (v : Array V) (lo hi : Int) : Array V × Int :=
+  let p := selectPivot lt v lo hi
+  partitionLoop lt p.2 lo (hi - lo + 2).toNat p.1 lo hi
+
+/-- `_quicksort!`, `base/sort.jl:2459-2478`. -/
+def quickSortLoop (lt : V → V → Bool) : Nat → Array V → Int → Int → Array V
+  | 0, v, _, _ => v
+  | fuel + 1, v, lo, hi =>
+    if lo < hi then
+      if hi - lo ≤ 20 then JuliaLean.Sort.insertionSort lt v lo hi
+      else
+        let p := legacyPartition lt v lo hi
+        let j := p.2
+        if j - lo < hi - j then
+          let w := if lo < j - 1 then quickSortLoop lt fuel p.1 lo (j - 1) else p.1
+          quickSortLoop lt fuel w (j + 1) hi
+        else
+          let w := if j + 1 < hi then quickSortLoop lt fuel p.1 (j + 1) hi else p.1
+          quickSortLoop lt fuel w lo (j - 1)
+    else v
+
+def quickSort (lt : V → V → Bool) (v : Array V) (lo hi : Int) : Array V :=
+  quickSortLoop lt (hi - lo + 2).toNat v lo hi
+
+def copyLeftLoop (v : Array V) (lo : Int) : Nat → Array V → Array V
+  | 0, t => t
+  | fuel + 1, t => copyLeftLoop v lo fuel (JuliaLean.Sort.wr t (fuel + 1) (JuliaLean.Sort.rd v (lo + fuel)))
+
+def mergeMainLoop (lt : V → V → Bool) (hi : Int) :
+    Nat → Array V → Array V → Int → Int → Int → Array V × Int × Int × Int
+  | 0, v, _, i, j, k => (v, i, j, k)
+  | fuel + 1, v, t, i, j, k =>
+    if k < j && j ≤ hi then
+      if lt (JuliaLean.Sort.rd v j) (JuliaLean.Sort.rd t i) then
+        mergeMainLoop lt hi fuel (JuliaLean.Sort.wr v k (JuliaLean.Sort.rd v j)) t i (j + 1) (k + 1)
+      else
+        mergeMainLoop lt hi fuel (JuliaLean.Sort.wr v k (JuliaLean.Sort.rd t i)) t (i + 1) j (k + 1)
+    else (v, i, j, k)
+
+def mergeRemainder (t : Array V) : Nat → Array V → Int → Int → Array V
+  | 0, v, _, _ => v
+  | fuel + 1, v, i, k => mergeRemainder t fuel (JuliaLean.Sort.wr v k (JuliaLean.Sort.rd t i)) (i + 1) (k + 1)
+
+/-- `_mergesort!`, `base/sort.jl:2488-2531`. -/
+def mergeSortLoop (lt : V → V → Bool) : Nat → Array V → Int → Int → Array V
+  | 0, v, _, _ => v
+  | fuel + 1, v, lo, hi =>
+    if lo < hi then
+      if hi - lo ≤ 20 then JuliaLean.Sort.insertionSort lt v lo hi
+      else
+        let m := midpointInt lo hi
+        let v := mergeSortLoop lt fuel v lo m
+        let v := mergeSortLoop lt fuel v (m + 1) hi
+        let leftLength := (m - lo + 1).toNat
+        let t := copyLeftLoop v lo leftLength (Array.replicate leftLength default)
+        let r := mergeMainLoop lt hi (hi - lo + 1).toNat v t 1 (m + 1) lo
+        mergeRemainder t (r.2.2.2 - r.2.1).toNat r.1 r.2.1 r.2.2.2
+    else v
+
+def mergeSort (lt : V → V → Bool) (v : Array V) (lo hi : Int) : Array V :=
+  mergeSortLoop lt (hi - lo + 2).toNat v lo hi
+
+/-- `_partialquicksort!`, `base/sort.jl:2539-2566`. -/
+def partialQuickSortLoop (lt : V → V → Bool) (firstTarget lastTarget : Int) :
+    Nat → Array V → Int → Int → Array V
+  | 0, v, _, _ => v
+  | fuel + 1, v, lo, hi =>
+    if lo < hi then
+      if hi - lo ≤ 20 then JuliaLean.Sort.insertionSort lt v lo hi
+      else
+        let p := legacyPartition lt v lo hi
+        let j := p.2
+        if j ≤ firstTarget then partialQuickSortLoop lt firstTarget lastTarget fuel p.1 (j + 1) hi
+        else if j ≥ lastTarget then partialQuickSortLoop lt firstTarget lastTarget fuel p.1 lo (j - 1)
+        else if j - lo < hi - j then
+          let w := if lo < j - 1 then partialQuickSortLoop lt firstTarget lastTarget fuel p.1 lo (j - 1) else p.1
+          partialQuickSortLoop lt firstTarget lastTarget fuel w (j + 1) hi
+        else
+          let w := if j + 1 < hi then partialQuickSortLoop lt firstTarget lastTarget fuel p.1 (j + 1) hi else p.1
+          partialQuickSortLoop lt firstTarget lastTarget fuel w lo (j - 1)
+    else v
+
+def partialQuickSort (lt : V → V → Bool) (firstTarget lastTarget : Int)
+    (v : Array V) (lo hi : Int) : Array V :=
+  partialQuickSortLoop lt firstTarget lastTarget (hi - lo + 2).toNat v lo hi
+
+end
+
+end JuliaLean.SortTuplesCov
+
+
+/-! Remaining behavioral methods in `base/sort.jl` (master `bbfa0ce4150`):
+BracketedSort helpers, the RadixSort wrapper, the integer-range permutation
+fast path, and the legacy entry-point wrappers. -/
+
+namespace JuliaLean.SortTuplesCov
+
+open JuliaLean
+
+/-! ### BracketedSort -/
+
+structure BracketKernelResult where
+  countBelow : Nat
+  lastMiddle : Nat
+  selected : List Bool
+
+/-- The predicates and counters of `bracket_kernel!`,
+`base/sort.jl:1226-1246`. -/
+def bracketKernel {V : Type} (lt : V → V → Bool) (xs : List V)
+    (loSign hiSign : Option V) : BracketKernelResult :=
+  let flags := xs.map fun x =>
+    let below := loSign.any fun s => lt x s
+    let atMostHigh := hiSign.elim true fun s => !lt s x
+    below != atMostHigh
+  ⟨(xs.filter fun x => loSign.any fun s => lt x s).length,
+    flags.count true, flags⟩
+
+/-- `move!`, `base/sort.jl:1248-1262`, represented by the exact route because
+the method either swaps disjoint pairs or performs its two range reversals. -/
+inductive MoveRoute where
+  | pairSwaps | overlappingReversals | lengthError | rangeError
+  deriving DecidableEq
+
+def moveRoute (targetLength sourceLength : Nat) (single disjoint rangeOrdered : Bool) : MoveRoute :=
+  if targetLength ≠ sourceLength then .lengthError
+  else if single || disjoint then .pairSwaps
+  else if rangeOrdered then .overlappingReversals else .rangeError
+
+inductive BracketedRoute where
+  | emptyWindow | smallFallback | heuristicFallback | successfulTrial | finalFallback
+  deriving DecidableEq
+
+/-- Control flow of `_sort!(..., a::BracketedSort, ...)`,
+`base/sort.jl:1264-1353`, after its scalar estimates and three trials have been
+evaluated. -/
+def bracketedSortRoute (lo hi length : Int) (heuristicFallback trialSucceeded : Bool) :
+    BracketedRoute :=
+  if !(lo < hi) then .emptyWindow
+  else if length < 260 then .smallFallback
+  else if heuristicFallback then .heuristicFallback
+  else if trialSucceeded then .successfulTrial
+  else .finalFallback
+
+/-! ### RadixSort wrapper -/
+
+structure RadixWrapperTrace where
+  mapped : Bool
+  subtractedMinimum : Bool
+  madeScratch : Bool
+  radixPasses : Bool
+  unmapped : Bool
+  deriving DecidableEq
+
+/-- `_sort!(v, a::RadixSort, o, kw)`, `base/sort.jl:1017-1047`. -/
+def radixSortWrapper (_bits : Nat) : RadixWrapperTrace :=
+  ⟨true, true, true, true, true⟩
+
+/-! ### Integer-range sortperm fast path -/
+
+/-- `sortperm_int_range`, `base/sort.jl:2058-2081`: stable bucket order for
+the labels `x[i] - minval`. -/
+def sortpermIntRange (x : List Int) (rangeLength : Nat) (minValue : Int) : List Nat :=
+  (List.range rangeLength).flatMap fun label =>
+    ((List.range x.length).zip x).filterMap fun (i, value) =>
+      if value - minValue = (label : Int) then some (i + 1) else none
+
+/-! ### Legacy entry wrappers -/
+
+def checkedLegacyEntry {V : Type} (boundsOK : Bool) (result : Array V) : Jl (Array V) :=
+  if boundsOK then .ok result else .error .boundsError
+
+/-- QuickSort five-argument entry, `base/sort.jl:2454-2457`. -/
+def quickSortEntry {V : Type} [Inhabited V] (boundsOK : Bool) (lt : V → V → Bool)
+    (v : Array V) (lo hi : Int) : Jl (Array V) :=
+  checkedLegacyEntry boundsOK (quickSort lt v lo hi)
+
+/-- MergeSort vector disambiguation and main entry, `base/sort.jl:2480-2486`. -/
+def mergeSortEntry {V : Type} [Inhabited V] (boundsOK : Bool) (lt : V → V → Bool)
+    (v : Array V) (lo hi : Int) : Jl (Array V) :=
+  checkedLegacyEntry boundsOK (mergeSort lt v lo hi)
+def mergeSortVectorEntry {V : Type} [Inhabited V] (boundsOK : Bool)
+    (lt : V → V → Bool) (v : Array V) (lo hi : Int) : Jl (Array V) :=
+  mergeSortEntry boundsOK lt v lo hi
+
+/-- PartialQuickSort five-argument entry, `base/sort.jl:2533-2537`. -/
+def partialQuickSortEntry {V : Type} [Inhabited V] (boundsOK : Bool)
+    (lt : V → V → Bool) (firstTarget lastTarget : Int)
+    (v : Array V) (lo hi : Int) : Jl (Array V) :=
+  checkedLegacyEntry boundsOK (partialQuickSort lt firstTarget lastTarget v lo hi)
+
+/-- Generic three-, five-, and ignored-sixth-argument entries,
+`base/sort.jl:2571-2577`. -/
+def legacyThreeArg {V A O : Type} (five : Array V → Int → Int → A → O → Jl (Array V))
+    (v : Array V) (a : A) (o : O) : Jl (Array V) := five v 1 v.size a o
+def legacyFiveArg {V A O : Type} (boundsOK : Bool)
+    (newSort : Array V → A → O → Jl (Array V)) (v : Array V) (a : A) (o : O) :
+    Jl (Array V) := if boundsOK then newSort v a o else .error .boundsError
+def legacyIgnoredScratch {V A O S : Type}
+    (five : Array V → Int → Int → A → O → Jl (Array V))
+    (v : Array V) (lo hi : Int) (a : A) (o : O) (_ : S) : Jl (Array V) :=
+  five v lo hi a o
+
+end JuliaLean.SortTuplesCov

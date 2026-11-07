@@ -1,0 +1,85 @@
+id: bitarray-scalar-extrema-values
+title: BitArray maximum includes a true bit outside the parent's logical extent
+priority: P2
+kind: wrong-result
+area: BitArrays
+files:
+  - base/bitarray.jl
+  - base/reduce.jl
+functions:
+  - maximum(::BitArray)
+  - vec(::BitArray)
+  - push!(::BitVector, ::Bool)
+summary: |
+  After parent = falses(1, 1) and push!(vec(parent), true), the parent's sole
+  logical element remains false. maximum(parent) nevertheless returns true,
+  while maximum(collect(parent)) returns false. The extra vector element
+  occupies a padding bit in the parent that the packed maximum reads.
+likelihood: |
+  Requires retaining a parent BitArray while growing its reshaped vector and
+  then computing an extremum on the parent. The reproducer uses a one-element
+  parent and adds just one bit.
+maybe_intended: |
+  Shared element storage explains why an alias can alter the same packed word.
+  The new bit is not a logical element of the parent, so it should not determine
+  the parent's maximum. This shares its storage-corruption cause with
+  bitarrays-vec-resize-alias; it is a separate symptom, seen through maximum.
+  Related issue #64147 demonstrates the same alias-growth corruption through
+  count, any, and equality; it does not explicitly demonstrate maximum.
+reproducer: |
+  parent = falses(1, 1)
+  grown = vec(parent)
+  push!(grown, true)
+  @assert parent[1, 1] == false
+  @assert maximum(collect(parent)) == false
+  @assert maximum(parent) == true
+output:
+  release: |
+    REPRODUCED bitarray-scalar-extrema-values
+  nightly: |
+    REPRODUCED bitarray-scalar-extrema-values
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  maximum(parent) should return false, the maximum of its sole logical element.
+  Alternatively, reject the alias resize before invalidating the parent.
+  The runtime program prints only its success marker after checking the values.
+  This example covers maximum only; it does not show a minimum failure,
+  mutation by maximum itself, or an empty-array exception mismatch.
+promised_by: |
+  Pinned source f755f49a9e41380d7da126b3c1db9fe7f83dd027.
+  base/reduce.jl:689: "maximum(itr; [init])"
+  base/reduce.jl:691: "Return the largest element in a collection."
+  base/bitarray.jl:5-6: "# notes: bits are stored in contiguous chunks
+  #        unused bits must always be set to 0"
+  base/bitarray.jl:1748:
+  maximum(B::BitArray) = isempty(B) ? throw(ArgumentError("argument must be non-empty")) : any(B)
+  The logical-element result follows from maximum's public description; the
+  specialized implementation additionally relies on the padding invariant.
+cause: |
+  _bitreshape shares the chunks vector at base/bitarray.jl:481. push! writes
+  the added true bit at lines 750-752 without changing the parent's len.
+  maximum delegates to any at line 1748, and any scans whole chunks at lines
+  1736-1744 without masking the last word to the parent's logical length.
+possible_fix: |
+  Prevent resizing an aliased vector from corrupting the parent's packed
+  storage invariant, by rejecting or detaching structural mutations.
+  Masking maximum alone would leave count, equality, and other whole-word
+  operations exposed to the same invalid padding.
+duplicates:
+  issues:
+    - number: 64147
+      state: open
+      relation: related
+  prs: []
+  queries:
+    - 'gh search issues --repo JuliaLang/julia "BitArray maximum"'
+    - 'gh search issues --repo JuliaLang/julia "BitArray tail bits"'
+    - 'gh search issues --repo JuliaLang/julia "BitArray alias"'
+    - 'gh search prs --repo JuliaLang/julia "BitArray maximum"'
+    - 'gh search prs --repo JuliaLang/julia "BitArray tail bits"'
+    - 'gh search prs --repo JuliaLang/julia "BitArray alias"'
+lean:
+  property: JuliaLean.Proofs.base.bitarray.Archive20261102Round6.ScalarExtremaValues
+  theorem: JuliaLean.ChatGPT.Batch4.Group8.BitarrayScalarExtremaValues_refuted

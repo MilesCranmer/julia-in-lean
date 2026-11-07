@@ -58,5 +58,5 @@ duplicates:
     - {number: 33100, state: closed, relation: related}
   queries: ["findnext BoundsError", "findprev", "findnext out of bounds", "findnext start index", "54584"]
 lean:
-  property: JuliaLean.ArrayOps.FindAllStarts
-  theorem: JuliaLean.ArrayOps.findAllStarts_refuted
+  property: JuliaLean.Proofs.base.array.round4.FindAllStarts
+  theorem: JuliaLean.Proofs.base.array.round4.findAllStarts_refuted

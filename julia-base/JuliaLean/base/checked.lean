@@ -974,8 +974,8 @@ def checkedCldBits {t : IntTy} (x y : JInt t) : Jl (JInt t) := checkedCld JInt.c
 
 def promoteBits {t s : IntTy} (x : JInt t) (y : JInt s) :
     Jl (JInt (t.promote s) × JInt (t.promote s)) := do
-  let a ← JInt.convert (t.promote s) x.val
-  let b ← JInt.convert (t.promote s) y.val
+  let a ← JInt.convert ((t.promote s).name) (t.promote s) x.val
+  let b ← JInt.convert ((t.promote s).name) (t.promote s) y.val
   pure (a, b)
 
 def checkedAddMixedBits {t s : IntTy} (x : JInt t) (y : JInt s) :=
@@ -1040,3 +1040,217 @@ def checkedPowerBySquaringBits {t s : IntTy} (x : JInt t) (p : JInt s) :=
 def checkedPowBits {t s : IntTy} (x : JInt t) (p : JInt s) :=
   checkedPow checkedPowerBySquaringBits x p
 end JuliaLean.base.checked
+
+namespace JuliaLean.IntArith.Checked
+
+/-- base/checked.jl:136-137,200-201,239-240: checked LLVM arithmetic
+intrinsics return a wrapping result and the exact overflow flag. -/
+def intrinsicResult {t : IntTy} (x : Int) : JInt t × Bool :=
+  (JInt.wrap t x, decide (¬ (t.min ≤ x ∧ x ≤ t.max)))
+
+/-- base/checked.jl:135-137. BrokenSignedInt/BrokenUnsignedInt are empty. -/
+def addWithOverflow {t : IntTy} (x y : JInt t) : JInt t × Bool :=
+  intrinsicResult (x.val + y.val)
+
+/-- base/checked.jl:199-201. BrokenSignedInt/BrokenUnsignedInt are empty. -/
+def subWithOverflow {t : IntTy} (x y : JInt t) : JInt t × Bool :=
+  intrinsicResult (x.val - y.val)
+
+/-- base/checked.jl:238-280: Int128/UInt128 use manual division thresholds,
+including the y == -1 short circuit before fld(typemin, y). Other widths use
+LLVM checked multiplication. Jl retains exceptions of intermediate divisions. -/
+def mulWithOverflow {t : IntTy} (x y : JInt t) : Jl (JInt t × Bool) := do
+  if t = .i128 then
+    let f ← if y.val > 0 then do
+      let hi ← JInt.fld (JInt.typemax t) y
+      if x > hi then pure true else do
+        let lo ← JInt.cld (JInt.typemin t) y
+        pure (decide (x < lo))
+    else if y.val < 0 then do
+      let hi ← JInt.cld (JInt.typemax t) y
+      if x < hi then pure true
+      else if y.val ≠ -1 then do
+        let lo ← JInt.fld (JInt.typemin t) y
+        pure (decide (x > lo))
+      else pure false
+    else pure false
+    pure (x * y, f)
+  else if t = .u128 then
+    let f ← if y.val > 0 then do
+      let hi ← JInt.fld (JInt.typemax t) y
+      pure (decide (x > hi))
+    else pure false
+    pure (x * y, f)
+  else pure (intrinsicResult (x.val * y.val))
+
+/-- base/checked.jl:166-175: getfield extracts the intrinsic result/flag. -/
+def checkedAdd {t : IntTy} (x y : JInt t) : Jl (JInt t) :=
+  let zb := addWithOverflow x y
+  if zb.2 then .error (.overflowError "") else .ok zb.1
+
+/-- base/checked.jl:226-231. -/
+def checkedSub {t : IntTy} (x y : JInt t) : Jl (JInt t) :=
+  let zb := subWithOverflow x y
+  if zb.2 then .error (.overflowError "") else .ok zb.1
+
+/-- base/checked.jl:290-295, including manual multiplication exceptions. -/
+def checkedMul {t : IntTy} (x y : JInt t) : Jl (JInt t) := do
+  let zb ← mulWithOverflow x y
+  if zb.2 then .error (.overflowError "") else .ok zb.1
+
+/-- base/checked.jl:89-91: active generic negation delegates to checked_sub. -/
+def checkedNeg {t : IntTy} (x : JInt t) : Jl (JInt t) :=
+  checkedSub (JInt.lit t 0) x
+
+/-- base/checked.jl:121-128: signed ifelse computes wrapping -x, then
+rejects a negative result; unsigned abs is the identity. -/
+def checkedAbs {t : IntTy} (x : JInt t) : Jl (JInt t) :=
+  if t.signed then
+    let r := if x.val < 0 then -x else x
+    if r.val < 0 then .error (.overflowError "") else .ok r
+  else .ok x
+
+/-- base/checked.jl:319: division overflow intentionally throws DivideError. -/
+def checkedDiv {t : IntTy} (x y : JInt t) : Jl (JInt t) := JInt.div x y
+/-- base/checked.jl:328: signed typemin % -1 returns zero, without overflow. -/
+def checkedRem {t : IntTy} (x y : JInt t) : Jl (JInt t) := JInt.remInt x y
+/-- base/checked.jl:337. -/
+def checkedFld {t : IntTy} (x y : JInt t) : Jl (JInt t) := JInt.fld x y
+/-- base/checked.jl:346. -/
+def checkedMod {t : IntTy} (x y : JInt t) : Jl (JInt t) := JInt.mod x y
+/-- base/checked.jl:355. -/
+def checkedCld {t : IntTy} (x y : JInt t) : Jl (JInt t) := JInt.cld x y
+
+/-- base/checked.jl:26-33: promote converts x first, then y, before invoking
+any checked operation; an inexact conversion takes priority over its errors. -/
+def promoted (op : {t : IntTy} → JInt t → JInt t → Jl (JInt t))
+    {t s : IntTy} (x : JInt t) (y : JInt s) : Jl (JInt (t.promote s)) := do
+  let a ← JInt.convert ((t.promote s).name) (t.promote s) x.val
+  let b ← JInt.convert ((t.promote s).name) (t.promote s) y.val
+  op a b
+
+/-- base/checked.jl:26. -/
+def checkedAddMixed {t s : IntTy} (x : JInt t) (y : JInt s) := promoted @checkedAdd x y
+/-- base/checked.jl:27. -/
+def checkedSubMixed {t s : IntTy} (x : JInt t) (y : JInt s) := promoted @checkedSub x y
+/-- base/checked.jl:28. -/
+def checkedMulMixed {t s : IntTy} (x : JInt t) (y : JInt s) := promoted @checkedMul x y
+/-- base/checked.jl:29. -/
+def checkedDivMixed {t s : IntTy} (x : JInt t) (y : JInt s) := promoted @checkedDiv x y
+/-- base/checked.jl:30. -/
+def checkedRemMixed {t s : IntTy} (x : JInt t) (y : JInt s) := promoted @checkedRem x y
+/-- base/checked.jl:31. -/
+def checkedFldMixed {t s : IntTy} (x : JInt t) (y : JInt s) := promoted @checkedFld x y
+/-- base/checked.jl:32. -/
+def checkedModMixed {t s : IntTy} (x : JInt t) (y : JInt s) := promoted @checkedMod x y
+/-- base/checked.jl:33. -/
+def checkedCldMixed {t s : IntTy} (x : JInt t) (y : JInt s) := promoted @checkedCld x y
+/-- base/checked.jl:376: the generic fallback returns length(r) unchanged,
+including its errors; specialized range checked_length methods are separate. -/
+def checkedLength {α β : Type} (length : α → Jl β) (r : α) : Jl β := length r
+
+end JuliaLean.IntArith.Checked
+
+namespace JuliaLean.FloatIntCov.Checked
+
+open JuliaLean JuliaLean.IntArith.Checked
+
+/-- `base/checked.jl:26-33`: promote both operands, then call the operation. -/
+def promotedCalls {t s : IntTy} (x : JInt t) (y : JInt s) :=
+  (checkedAddMixed x y, checkedSubMixed x y, checkedMulMixed x y,
+   checkedDivMixed x y, checkedRemMixed x y, checkedFldMixed x y,
+   checkedModMixed x y, checkedCldMixed x y)
+
+/-- `base/checked.jl:37`: the catchall reports that the operation is absent. -/
+def checkedAbsFallback {α : Type} (_x : α) : Jl α :=
+  .error (.methodError "checked_abs")
+
+/-- `base/checked.jl:92-93`: the negation overflow helper always throws. -/
+def throwOverflowNegation {α β : Type} (_x : α) : Jl β :=
+  .error (.overflowError "")
+
+/-- `base/checked.jl:156-157`: the binary overflow helper always throws. -/
+def throwOverflowBinary {α β γ δ : Type} (_op : α) (_x : β) (_y : γ) : Jl δ :=
+  .error (.overflowError "")
+
+/-- Julia's integer value of a Boolean in the arithmetic special cases. -/
+def boolInt (x : Bool) : Int := if x then 1 else 0
+
+/-- `base/checked.jl:128`. -/
+def checkedAbsBool (x : Bool) : Bool := x
+
+/-- `base/checked.jl:138`: Bool wrapping addition promotes to `Int`. -/
+def addWithOverflowBool (x y : Bool) : Int × Bool :=
+  (boolInt x + boolInt y, false)
+
+/-- `base/checked.jl:179`: unary plus on Bool promotes to `Int`. -/
+def checkedAddBool (x : Bool) : Int := boolInt x
+
+/-- `base/checked.jl:202`: Bool subtraction promotes to `Int`. -/
+def subWithOverflowBool (x y : Bool) : Int × Bool :=
+  (boolInt x - boolInt y, false)
+
+/-- `base/checked.jl:241`: Bool wrapping multiplication promotes to `Int`. -/
+def mulWithOverflowBool (x y : Bool) : Int × Bool :=
+  (boolInt x * boolInt y, false)
+
+/-- The active `add_with_overflow` methods at `base/checked.jl:136-137`. -/
+def addWithOverflowMethod {t : IntTy} (x y : JInt t) : JInt t × Bool :=
+  addWithOverflow x y
+
+/-- The active `sub_with_overflow` methods at `base/checked.jl:200-201`. -/
+def subWithOverflowMethod {t : IntTy} (x y : JInt t) : JInt t × Bool :=
+  subWithOverflow x y
+
+/-- The active intrinsic and 128-bit `mul_with_overflow` methods at lines 239-240 and 259-280. -/
+def mulWithOverflowMethod {t : IntTy} (x y : JInt t) : Jl (JInt t × Bool) :=
+  mulWithOverflow x y
+
+/-- `base/checked.jl:178,298`: a unary checked fold is the identity. -/
+def checkedUnary {t : IntTy} (x : JInt t) : Jl (JInt t) := .ok x
+
+/-- `base/checked.jl:181-192`: left-associated fixed-arity checked addition. -/
+def checkedAddList {t : IntTy} : JInt t → List (JInt t) → Jl (JInt t)
+  | x, [] => .ok x
+  | x, y :: ys => do checkedAddList (← checkedAdd x y) ys
+
+/-- `base/checked.jl:299-310`: left-associated fixed-arity checked multiplication. -/
+def checkedMulList {t : IntTy} : JInt t → List (JInt t) → Jl (JInt t)
+  | x, [] => .ok x
+  | x, y :: ys => do checkedMulList (← checkedMul x y) ys
+
+/-- `base/checked.jl:368`: Boolean checked powers use ordinary Boolean powers. -/
+def checkedPowerBool (x : Bool) (p : Int) : Jl Bool :=
+  if p < 0 then
+    if x then .ok true else .error (.domainError "")
+  else if p = 0 then .ok true
+  else .ok x
+
+end JuliaLean.FloatIntCov.Checked
+
+namespace JuliaLean.IntArith.NumberTheory
+
+/-- `checked_abs`, used by `base/intfuncs.jl:54-55,142,152`. -/
+def checkedAbs {t : IntTy} (a : JInt t) : Jl (JInt t) := Checked.checkedAbs a
+
+end JuliaLean.IntArith.NumberTheory
+
+namespace JuliaLean.ArrayOps
+
+open JuliaLean
+
+variable {α β : Type}
+
+/-- `checked_mul` on `Int`, `base/checked.jl`: `OverflowError` outside `Int64`. -/
+def checkedMul64 (a b : JInt64) : Jl JInt64 :=
+  if IntTy.i64.min ≤ a.val * b.val ∧ a.val * b.val ≤ IntTy.i64.max then
+    .ok (JInt.wrap .i64 (a.val * b.val))
+  else .error (.overflowError "checked_mul")
+
+/-- `checked_add` on `Int`. -/
+def checkedAdd64 (a b : JInt64) : Jl JInt64 :=
+  if IntTy.i64.min ≤ a.val + b.val ∧ a.val + b.val ≤ IntTy.i64.max then
+    .ok (JInt.wrap .i64 (a.val + b.val))
+  else .error (.overflowError "checked_add")
+
+end JuliaLean.ArrayOps

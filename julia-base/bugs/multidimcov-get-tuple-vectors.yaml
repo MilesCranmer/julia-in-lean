@@ -56,5 +56,5 @@ duplicates:
   issues: []
   queries: ["indcopy", "get default tuple of vectors MethodError", "get(A, I, default) MethodError", "RangeVecIntList", "get array default tuple vector", "get default MethodError array"]
 lean:
-  property: JuliaLean.MultidimCov.ArrayV2.PIndcopy
-  theorem: JuliaLean.MultidimCov.ArrayV2.pIndcopy_refuted
+  property: JuliaLean.Proofs.base.array.LegacyRefutations.TupleVectorsReturnValues
+  theorem: JuliaLean.Proofs.base.array.LegacyRefutations.tupleVectorsReturnValues_refuted

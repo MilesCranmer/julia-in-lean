@@ -1,0 +1,77 @@
+id: div-bitinteger-fldmod-contract-v2
+title: "All-types fldmod equivalence fails on a mixed UInt8 and Int8 remainder"
+priority: P2
+kind: wrong-result
+area: Div
+files:
+  - base/div.jl
+  - base/int.jl
+functions:
+  - "fldmod(::BitInteger,::BitInteger)"
+  - "fld(::BitInteger,::BitInteger)"
+  - "mod(::BitInteger,::BitInteger)"
+summary: |
+  The exact all-types fldmod contract fails at UInt8(1), Int8(-2). fldmod returns remainder UInt8(255), while mod returns Int8(-1). This is the same concrete library defect as intarith-division-fldmod-consistency-v2, reported here against the fldmod documentation.
+likelihood: |
+  Code mixing unsigned numerators and negative signed divisors can observe different remainders through mod and fldmod.
+maybe_intended: |
+  Retaining a wrapped quotient is an acknowledged policy. The remainder mismatch is distinct because the public mod call already supplies a signed result.
+reproducer: |
+  x, y = UInt8(1), Int8(-2)
+  p = fldmod(x, y)
+  @assert p === (UInt8(255), UInt8(255))
+  @assert mod(x, y) === Int8(-1) && BigInt(p[2]) != BigInt(mod(x, y))
+  println("REPRODUCED div-bitinteger-fldmod-contract-v2")
+output:
+  release: |
+    REPRODUCED div-bitinteger-fldmod-contract-v2
+  nightly: |
+    REPRODUCED div-bitinteger-fldmod-contract-v2
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  Return a pair whose second component agrees with mod for the same inputs, or document a different contract explicitly.
+promised_by: |
+  base/div.jl:382-383: "The floored quotient and modulus after division. A convenience wrapper for
+  `divrem(x, y, RoundDown)`. Equivalent to `(fld(x, y), mod(x, y))`."
+  All source references are pinned to Julia commit f755f49a9e41380d7da126b3c1db9fe7f83dd027.
+  https://github.com/JuliaLang/julia/blob/f755f49a9e41380d7da126b3c1db9fe7f83dd027/base/div.jl
+cause: |
+  The RoundDown integer divrem path reconstructs its remainder in unsigned arithmetic. The mixed mod path returns a signed remainder, so the documented pair equivalence fails.
+possible_fix: |
+  Define mixed fldmod using the matching public fld and mod results, with an explicit type policy.
+duplicates:
+  issues:
+    - number: 57855
+      state: open
+      relation: related
+    - number: 19181
+      state: closed
+      relation: related
+    - number: 64440
+      state: open
+      relation: related
+  prs:
+    - number: 62319
+      state: open
+      relation: related
+    - number: 63557
+      state: open
+      relation: related
+  queries:
+    - "issues: fldmod unsigned"
+    - "prs: fldmod unsigned"
+    - "issues: fldmod signed"
+    - "prs: fldmod signed"
+    - "issues: fldmod mod"
+    - "prs: fldmod mod"
+    - "issues: fldmod"
+    - "prs: fldmod"
+    - "issues: divrem"
+    - "prs: divrem"
+    - "issues: unsigned mod"
+    - "prs: unsigned mod"
+lean:
+  property: JuliaLean.Proofs.base.div.Round1.AllBitIntegerFldmodContract
+  theorem: JuliaLean.ChatGPT.Batch4.Group17.DivBitintegerFldmodContractV2_refuted

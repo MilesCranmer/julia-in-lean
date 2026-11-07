@@ -1,0 +1,71 @@
+id: toml-r1-parse-error-location
+title: "TOML reports line 2, column -1 for an invalid bare key at line 1"
+priority: P2
+kind: wrong-result
+area: Toml
+files: [base/toml/parser.jl, stdlib/TOML/src/TOML.jl]
+functions: ["parse(l::Parser)", "tryparse(l::Parser)", "TOML.parse(::AbstractString)", "TOML.tryparse(::AbstractString)"]
+summary: |
+  For input `"@\n"`, `TOML.tryparse` returns a ParserError retaining the input
+  but reporting line 2, column -1 instead of line 1, column 1. `TOML.parse`
+  throws a ParserError with the same incorrect location, so both public APIs
+  misreport the first invalid bare-key character.
+likelihood: |
+  This affects malformed TOML when an invalid initial bare-key character is
+  followed by a newline. Hand-edited configuration can contain this error;
+  callers parsing valid TOML are unaffected.
+maybe_intended: ""
+reproducer: |
+  `repro/toml-r1-parse-error-location.jl` calls `TOML.parse("@\n")` and checks
+  that the thrown ParserError retains the input but reports line 2, column -1.
+  The covered tryparse entry keeps its own script at
+  `repro/toml-r1-tryparse-error-location.jl`, which checks the returned error.
+  Both were run with `julia`.
+output:
+  release: |
+    JULIA 1.13.2 COMMIT 45b6d15e34bbd2003a31acce0b1847b63dad029c
+    REPRODUCED toml-r1-tryparse-error-location
+    REPRODUCED toml-r1-parse-error-location
+  nightly: |
+    JULIA 1.15.0-DEV.unknown COMMIT f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    REPRODUCED toml-r1-tryparse-error-location
+    REPRODUCED toml-r1-parse-error-location
+reproduced: {release: true, nightly: true}
+expected: |
+  Both APIs should locate the invalid `@` at line 1, column 1. `tryparse` should
+  return a ParserError with `.str == "@\n"`, `.line == 1`, and `.column == 1`;
+  `parse` should throw a ParserError with the same fields.
+promised_by: |
+  `TOML.tryparse` documents that it returns a ParserError on failure and shows
+  its line and column fields (stdlib/TOML/docs/src/index.md:42-61;
+  stdlib/TOML/src/TOML.jl:138-151). `TOML.parse` documents that it throws a
+  ParserError on failure (stdlib/TOML/src/TOML.jl:115-120). `@` is not a valid
+  bare-key character (TOML 1.0 Keys, raw lines 107-109;
+  base/toml/parser.jl:796-804).
+cause: |
+  `tryparse` copies the current parser line and `column - 1` into the error
+  (base/toml/parser.jl:599-611). The invalid-character branch of `_parse_key`
+  calls `eat_char` for the initial `@` (base/toml/parser.jl:831-834).
+  `eat_char` calls `next_char`, which loads the following LF as look-ahead and
+  advances the line to 2 while resetting the column to 0
+  (base/toml/parser.jl:413-430). `tryparse` therefore records line 2 and
+  column -1. `parse` throws that same error (base/toml/parser.jl:593-596).
+possible_fix: |
+  Record the error location at the offending character before look-ahead can
+  advance across the following newline.
+duplicates:
+  issues: []
+  prs: []
+  queries:
+    - 'JuliaLang/julia issues "TOML ParserError column -1"'
+    - 'JuliaLang/julia PRs "TOML ParserError column -1"'
+    - 'JuliaLang/julia issues "TOML error location line column"'
+    - 'JuliaLang/julia PRs "TOML error location line column"'
+    - 'JuliaLang/TOML.jl issues "TOML ParserError column -1"'
+    - 'JuliaLang/TOML.jl PRs "TOML ParserError column -1"'
+    - 'JuliaLang/TOML.jl issues "TOML error location line column"'
+    - 'JuliaLang/TOML.jl PRs "TOML error location line column"'
+lean:
+  property: JuliaLean.Proofs.base.toml.parser.Round2.ParseInvalidInitialBareKeyLocation
+  theorem: JuliaLean.ChatGPT.Batch2.Group1.TomlR1ParseErrorLocation_refuted
+covers: [toml-r1-parse-error-location, toml-r1-tryparse-error-location]

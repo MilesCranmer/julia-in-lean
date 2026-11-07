@@ -1,4 +1,7 @@
 import JuliaLean.Core
+import JuliaLean.Runtime.Collections
+import JuliaLean.base.operators
+import JuliaLean.base.essentials
 
 /-!
 # Model of `base/missing.jl`
@@ -43,6 +46,9 @@ inductive PrintArgument (Message : Type) where
   | message (value : Message)
   | character (value : Char)
 
+inductive MissingMethodError where
+  | methodError (functionName : String) (arguments : List (JuliaType String))
+  deriving Repr
 /--
 Julia source: base/missing.jl:5-5 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 ```julia
@@ -410,8 +416,8 @@ def UnaryTypeFunction.juliaName : UnaryTypeFunction → String
   | .one => "one"
   | .oneunit => "oneunit"
 
-def unaryTypeAnyError {α : Type} (f : UnaryTypeFunction) : Except JlError α :=
-  .error (.methodError f.juliaName)
+def unaryTypeAnyError {α : Type} (f : UnaryTypeFunction) : Except MissingMethodError α :=
+  .error (.methodError f.juliaName [.any])
 
 /--
 Julia source: base/missing.jl:107-107 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -454,8 +460,8 @@ def FloatTypeFunction.juliaName : FloatTypeFunction → String
   | .real => "real"
   | .complex => "complex"
 
-def floatTypeAnyError {α : Type} (f : FloatTypeFunction) : Except JlError α :=
-  .error (.methodError f.juliaName)
+def floatTypeAnyError {α : Type} (f : FloatTypeFunction) : Except MissingMethodError α :=
+  .error (.methodError f.juliaName [.any])
 
 /--
 Julia source: base/missing.jl:112-112 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -968,6 +974,36 @@ def iterateSkipMissing {Itr α State : Type}
   | none => none
   | some (item, state) => iterateSkipMissingLoop iterateNext ismissing itr.x item state
 
+
+/- The terminating results of Julia's `iterate(::SkipMissing)` loop. -/
+inductive iterateSkipMissingLoopReturns {Itr α State : Type}
+    (iterateNext : Itr → State → Option (Option α × State))
+    (ismissing : Option α → Bool) (itr : Itr) :
+    Option α → State → Option (Option α × State) → Prop where
+  | returned {item state} (h : ismissing item = false) :
+      iterateSkipMissingLoopReturns iterateNext ismissing itr item state
+        (some (item, state))
+  | exhausted {item state} (h : ismissing item = true)
+      (hnext : iterateNext itr state = none) :
+      iterateSkipMissingLoopReturns iterateNext ismissing itr item state none
+  | skipped {item state nextItem nextState result}
+      (h : ismissing item = true)
+      (hnext : iterateNext itr state = some (nextItem, nextState))
+      (tail : iterateSkipMissingLoopReturns iterateNext ismissing itr
+        nextItem nextState result) :
+      iterateSkipMissingLoopReturns iterateNext ismissing itr item state result
+
+/-- Relates a `SkipMissing` call to each result allowed by its source loop. -/
+def iterateSkipMissingReturns {Itr α State : Type}
+    (iterate : Itr → List State → Option (Option α × State))
+    (iterateNext : Itr → State → Option (Option α × State))
+    (ismissing : Option α → Bool) (itr : SkipMissing Itr) (state : List State)
+    (result : Option (Option α × State)) : Prop :=
+  match iterate itr.x state with
+  | none => result = none
+  | some (item, nextState) =>
+      iterateSkipMissingLoopReturns iterateNext ismissing itr.x item nextState result
+
 inductive IndexStyleModel where
   | linear
   | cartesian
@@ -984,6 +1020,22 @@ def indexStyleSkipMissing {Itr : Type}
     (T : TypeRef (SkipMissing Itr)) : IndexStyleModel :=
   indexStyle ⟨T.token⟩
 
+-- Source: base/missing.jl:253-254 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+def eachindexSkipMissingFilter {Itr Ix IndexIterator FilterResult α : Type}
+    (filter : (Ix → Bool) → IndexIterator → FilterResult)
+    (eachindex : Itr → IndexIterator)
+    (getindex : Itr → Ix → Option α) (ismissing : Option α → Bool)
+    (itr : SkipMissing Itr) : FilterResult :=
+  filter (fun i => !ismissing (getindex itr.x i)) (eachindex itr.x)
+
+-- Source: base/missing.jl:255-256 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+def keysSkipMissingFilter {Itr K IndexIterator FilterResult α : Type}
+    (filter : (K → Bool) → IndexIterator → FilterResult)
+    (keys : Itr → IndexIterator)
+    (getindex : Itr → K → Option α) (ismissing : Option α → Bool)
+    (itr : SkipMissing Itr) : FilterResult :=
+  filter (fun i => !ismissing (getindex itr.x i)) (keys itr.x)
+
 /--
 Julia source: base/missing.jl:253-254 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 ```julia
@@ -996,7 +1048,7 @@ def eachindexSkipMissing {Itr Ix IndexIterator α : Type}
     (eachindex : Itr → IndexIterator)
     (getindex : Itr → Ix → Option α) (ismissing : Option α → Bool)
     (itr : SkipMissing Itr) : IndexIterator :=
-  filter (fun i => !ismissing (getindex itr.x i)) (eachindex itr.x)
+  eachindexSkipMissingFilter filter eachindex getindex ismissing itr
 
 /--
 Julia source: base/missing.jl:255-256 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -1010,7 +1062,7 @@ def keysSkipMissing {Itr K IndexIterator α : Type}
     (keys : Itr → IndexIterator)
     (getindex : Itr → K → Option α) (ismissing : Option α → Bool)
     (itr : SkipMissing Itr) : IndexIterator :=
-  filter (fun i => !ismissing (getindex itr.x i)) (keys itr.x)
+  keysSkipMissingFilter filter keys getindex ismissing itr
 
 inductive MissingIndexError (ParentError Message : Type) where
   | parent (error : ParentError)
@@ -1077,28 +1129,68 @@ def filterSkipMissing {Itr α Y : Type}
     (eltype : TypeRef Itr → JuliaType α)
     (ismissing : Option α → Bool) (f : α → Bool)
     (itr : SkipMissing Itr) : Y :=
-  (elements itr.x).foldl (fun y xi =>
+  let initial := similar itr.x (eltypeSkipMissing eltype typesplit ⟨()⟩) 0
+  let values := elements itr.x
+  values.foldl (fun y xi =>
     if !ismissing xi then
       match xi with
       | none => y
       | some x => if f x then push y x else y
-    else y) (similar itr.x (eltypeSkipMissing eltype typesplit ⟨()⟩) 0)
+    else y) initial
 
-/-- Typed expression nodes built by `@coalesce`; `choose` evaluates its argument once. -/
+/-- Typed syntax nodes for the escaped assignment, missing test, conditional, and let in `@coalesce`. -/
+inductive CoalesceAssignment (Arg : Type) where
+  | escapedAssignment (name : String) (arg : Arg)
+  deriving Repr
+
+inductive CoalesceCondition (Arg : Type) where
+  | ismissing (assignment : CoalesceAssignment Arg)
+  | not (condition : CoalesceCondition Arg)
+  deriving Repr
+
 inductive CoalesceExpr (Arg : Type) where
   | missing
-  | choose (arg : Arg) (rest : CoalesceExpr Arg)
+  | variable (name : String)
+  | conditional (condition : CoalesceCondition Arg)
+      (whenTrue whenFalse : CoalesceExpr Arg)
   | letValue (body : CoalesceExpr Arg)
   deriving Repr
 
+abbrev CoalesceRuntime (State : Type) := State × Option JuliaValue
+
+def evalCoalesceAssignment {Arg State : Type}
+    (evaluate : Arg → State → JuliaValue × State) :
+    CoalesceAssignment Arg → CoalesceRuntime State → JuliaValue × CoalesceRuntime State
+  | .escapedAssignment _ arg, (state, _) =>
+    let (value, state) := evaluate arg state
+    (value, (state, some value))
+
+def evalCoalesceCondition {Arg State : Type}
+    (evaluate : Arg → State → JuliaValue × State) :
+    CoalesceCondition Arg → CoalesceRuntime State → Bool × CoalesceRuntime State
+  | .ismissing assignment, state =>
+    let (value, state) := evalCoalesceAssignment evaluate assignment state
+    (match value with | .missing => true | .value _ => false, state)
+  | .not condition, state =>
+    let (value, state) := evalCoalesceCondition evaluate condition state
+    (!value, state)
+
+def evalCoalesceExprWithState {Arg State : Type}
+    (evaluate : Arg → State → JuliaValue × State) :
+    CoalesceExpr Arg → CoalesceRuntime State → JuliaValue × CoalesceRuntime State
+  | .missing, state => (.missing, state)
+  | .variable _, state => (state.2.getD .missing, state)
+  | .conditional condition whenTrue whenFalse, state =>
+    let (test, state) := evalCoalesceCondition evaluate condition state
+    if test then evalCoalesceExprWithState evaluate whenTrue state
+    else evalCoalesceExprWithState evaluate whenFalse state
+  | .letValue body, (state, _) =>
+    evalCoalesceExprWithState evaluate body (state, none)
+
 def evalCoalesceExpr {Arg : Type} (evaluate : Arg → JuliaValue) :
-    CoalesceExpr Arg → JuliaValue
-  | .missing => .missing
-  | .choose arg rest =>
-    match evaluate arg with
-    | .missing => evalCoalesceExpr evaluate rest
-    | value => value
-  | .letValue body => evalCoalesceExpr evaluate body
+    CoalesceExpr Arg → JuliaValue :=
+  fun expr =>
+    (evalCoalesceExprWithState (fun arg _ => (evaluate arg, ())) expr ((), none)).1
 
 /-- The variable-argument dispatcher represented by the three `coalesce` methods. -/
 def coalesce : List JuliaValue → JuliaValue
@@ -1146,7 +1238,9 @@ end
 ```
 -/
 def coalesceMacro {Arg : Type} (args : List Arg) : CoalesceExpr Arg :=
-  let expr := args.reverse.foldl (fun expr arg => .choose arg expr) .missing
+  let expr := args.reverse.foldl (fun rest arg =>
+    .conditional (.not (.ismissing (.escapedAssignment "val" arg)))
+      (.variable "val") rest) .missing
   .letValue expr
 /-- Index operations supplied by the generic `Integer` interface of an array's linear indices. -/
 structure IntegerIndexOps (Index : Type) where
@@ -1155,7 +1249,9 @@ structure IntegerIndexOps (Index : Type) where
   successor : Index → Index
   maximum : Index
   spanLessThan : Index → Index → JInt64 → Bool
-  midpoint : Index → Index → Index
+  subtract : Index → Index → Index
+  shiftRight : Index → JInt64 → Index
+  add : Index → Index → Index
   range : Index → Index → List Index
 
 /-- Linear access to an `AbstractArray`; `Index` stays generic over Julia `Integer`. -/
@@ -1284,7 +1380,8 @@ partial def mapreduceImplSkipMissingKernel {Index α β : Type}
         v := op v (f (assertNonmissing ai))
     return some v
   else
-    let imid := indexOps.midpoint ifirst ilast
+    let halfSpan := indexOps.shiftRight (indexOps.subtract ilast ifirst) (JInt.lit .i64 1)
+    let imid := indexOps.add ifirst halfSpan
     let v1 := mapreduceImplSkipMissingKernel indexOps ismissing assertNonmissing mapreduceFirst something
       f op itr ifirst imid blksize
     let v2 := mapreduceImplSkipMissingKernel indexOps ismissing assertNonmissing mapreduceFirst something
@@ -1396,7 +1493,8 @@ mapreduce(f, op, itr::SkipMissing{<:AbstractArray}) =
 def mapreduceSkipMissing {Index α β : Type}
     (indexStyle : TypeRef (AbstractArrayModel Index α) → IndexStyleModel)
     (eltypeIncludesMissing : AbstractArrayModel Index α → Bool)
-    (mapreduceRaw : (α → β) → (β → β → β) → AbstractArrayModel Index α → β)
+    (mapreduceRaw : IndexStyleModel → (α → β) → (β → β → β) →
+      AbstractArrayModel Index α → β)
     (mapfoldl : (α → β) → (β → β → β) → SkipMissing (AbstractArrayModel Index α) → β)
     (indexOps : IntegerIndexOps Index)
     (typesplit : JuliaType α → JuliaType α → JuliaType α)
@@ -1409,18 +1507,475 @@ def mapreduceSkipMissing {Index α β : Type}
     (something : Option β → β) (f : α → β) (op : β → β → β)
     (itr : SkipMissing (AbstractArrayModel Index α)) : β :=
   let array := itr.x
+  let style := indexStyle ⟨()⟩
   let input :=
     if eltypeIncludesMissing array then
       SkipReduceInput.filtered itr
     else
       SkipReduceInput.raw array
-  match input with
-  | .raw array => mapreduceRaw f op array
-  | .filtered itr =>
-    match indexStyle ⟨()⟩ with
-    | .linear =>
-      mapreduceIndexLinear indexOps typesplit eltype ismissing assertNonmissing
-        mapreduceEmpty mapreduceFirst pairwiseBlocksize something f op itr
-    | .cartesian =>
-      mapreduceIndexCartesian mapfoldl f op itr
+  match style, input with
+  | .linear, .raw array => mapreduceRaw .linear f op array
+  | .cartesian, .raw array => mapreduceRaw .cartesian f op array
+  | .linear, .filtered itr =>
+    mapreduceIndexLinear indexOps typesplit eltype ismissing assertNonmissing
+      mapreduceEmpty mapreduceFirst pairwiseBlocksize something f op itr
+  | .cartesian, .filtered itr =>
+    mapreduceIndexCartesian mapfoldl f op itr
+/-- Dispatch Boolean operations over `Option` values through this file's missing methods. -/
+def andOption : Option Bool → Option Bool → Option Bool
+  | none, none => andMissingMissing
+  | none, some right => andMissingBool JuliaLean.base.essentials.ifelse .missing right
+  | some left, none => andBoolMissing JuliaLean.base.essentials.ifelse left .missing
+  | some left, some right => some (left && right)
+
+def orOption : Option Bool → Option Bool → Option Bool
+  | none, none => orMissingMissing
+  | none, some right => orMissingBool JuliaLean.base.essentials.ifelse .missing right
+  | some left, none => orBoolMissing JuliaLean.base.essentials.ifelse left .missing
+  | some left, some right => some (left || right)
+
+def xorOption : Option Bool → Option Bool → Option Bool
+  | none, none => xorMissingMissing
+  | none, some right => xorMissingBool .missing right
+  | some left, none => xorBoolMissing left .missing
+  | some left, some right => some (left ^^ right)
+
+def notOption : Option Bool → Option Bool
+  | none => generatedUnaryMissing (α := Bool) .missing
+  | some value => some (!value)
+
+def nandOption (left right : Option Bool) : Option Bool :=
+  notOption (andOption left right)
+
+def norOption (left right : Option Bool) : Option Bool :=
+  notOption (orOption left right)
+
+def eqOption {α : Type} (eq : α → α → Bool) : Option α → Option α → Option Bool
+  | none, none => equalMissingMissing
+  | none, some right => equalMissingAny right
+  | some left, none => equalAnyMissing left
+  | some left, some right => some (eq left right)
+
+def ltOption {α : Type} (lt : α → α → Bool) : Option α → Option α → Option Bool
+  | none, none => lessMissingMissing
+  | none, some right => lessMissingAny right
+  | some left, none => lessAnyMissing left
+  | some left, some right => some (lt left right)
+
+def neOption {α : Type} (eq : α → α → Bool) (x y : Option α) : Option Bool :=
+  JuliaLean.base.operators.notEqual (eqOption eq) notOption x y
+
+def leOption {α : Type} (eq lt : α → α → Bool) (x y : Option α) : Option Bool :=
+  JuliaLean.base.operators.lessEqual (ltOption lt) (eqOption eq) orOption x y
+
+def gtOption {α : Type} (lt : α → α → Bool) (x y : Option α) : Option Bool :=
+  JuliaLean.base.operators.greaterThan (ltOption lt) x y
+
+def geOption {α : Type} (eq lt : α → α → Bool) (x y : Option α) : Option Bool :=
+  JuliaLean.base.operators.greaterEqual (leOption eq lt) x y
+
+def islessOption {α : Type} (lt : α → α → Bool) : Option α → Option α → Bool
+  | none, none => islessMissingMissing
+  | none, some right => islessMissingAny right
+  | some left, none => islessAnyMissing left
+  | some left, some right => lt left right
+
+def isequalOption {α : Type} (eq : α → α → Bool) : Option α → Option α → Bool
+  | none, none => isequalMissingMissing
+  | none, some right => isequalMissingAny right
+  | some left, none => isequalAnyMissing left
+  | some left, some right => eq left right
+
+def minOption {α : Type} (lt : α → α → Bool) : Option α → Option α → Option α
+  | none, none => minmaxBinaryBothMissing MissingValue.missing MissingValue.missing
+  | none, some right => minmaxBinaryMissingAny MissingValue.missing right
+  | some left, none => minmaxBinaryAnyMissing left MissingValue.missing
+  | some left, some right => if lt right left then some right else some left
+
+def maxOption {α : Type} (lt : α → α → Bool) : Option α → Option α → Option α
+  | none, none => minmaxBinaryBothMissing MissingValue.missing MissingValue.missing
+  | none, some right => minmaxBinaryMissingAny MissingValue.missing right
+  | some left, none => minmaxBinaryAnyMissing left MissingValue.missing
+  | some left, some right => if lt right left then some left else some right
+
+def minmaxOption {α : Type} (lt : α → α → Bool) :
+    Option α → Option α → Option α × Option α
+  | none, none => minmaxPairBothMissing MissingValue.missing MissingValue.missing
+  | none, some right => minmaxPairMissingAny MissingValue.missing right
+  | some left, none => minmaxPairAnyMissing left MissingValue.missing
+  | some left, some right =>
+      if lt right left then (some right, some left) else (some left, some right)
+
 end JuliaLean.base.missing
+
+namespace JuliaLean.MissingChar
+
+/-- Errors of the skipmissing functions: a shared `JlError` or `MissingException`
+(`base/missing.jl:14-16`). -/
+inductive SMErr where
+  | jl (e : JlError)
+  | missingException
+  deriving Repr, DecidableEq
+
+abbrev SMJl (α : Type) := Except SMErr α
+
+/-- `iterate(x::Vector, i)`, `base/array.jl`: `(x[i], i+1)` while `i ≤ length(x)`.
+The state is the 1-based index of the next element. -/
+def vecIterate (x : List (Option α)) (i : Nat) : Option (Option α × Nat) :=
+  if 1 ≤ i ∧ i ≤ x.length then some (x.getD (i - 1) none, i + 1) else none
+
+/-- The `while ismissing(item)` loop of `iterate(itr::SkipMissing, state...)`,
+`base/missing.jl:244-248`. Bound: `fuel` = elements left after `s`. -/
+def smWhile (x : List (Option α)) : Nat → Option α → Nat → Option (α × Nat)
+  | _, some a, s => some (a, s)
+  | 0, none, _ => none
+  | fuel + 1, none, s =>
+    match vecIterate x s with
+    | none => none
+    | some (item, s') => smWhile x fuel item s'
+
+/-- `iterate(itr::SkipMissing, state...)`, `base/missing.jl:240-250`. -/
+def smIterate (x : List (Option α)) (s : Nat) : Option (α × Nat) :=
+  match vecIterate x s with
+  | none => none
+  | some (item, s') => smWhile x (x.length + 1 - s') item s'
+
+/-- `collect(skipmissing(x))`: the values `iterate` yields from state 1.
+Bound: `fuel`, at least the number of elements left. -/
+def smCollectFrom (x : List (Option α)) : Nat → Nat → List α
+  | 0, _ => []
+  | fuel + 1, s =>
+    match smIterate x s with
+    | none => []
+    | some (a, s') => a :: smCollectFrom x fuel s'
+
+def smCollect (x : List (Option α)) : List α := smCollectFrom x (x.length + 1) 1
+
+/-- `keys(itr::SkipMissing) = Iterators.filter(i -> !ismissing(itr.x[i]), keys(itr.x))`
+and `eachindex` likewise, `base/missing.jl:253-256`. -/
+def smKeys (x : List (Option α)) : List Nat :=
+  (List.range x.length).map (· + 1) |>.filter fun i => (x.getD (i - 1) none).isSome
+
+/-- `x[i]` for an `Int` index: `BoundsError` outside `1:length(x)`. -/
+def vecGet (x : List (Option α)) (i : Int) : SMJl (Option α) :=
+  if 1 ≤ i ∧ i ≤ x.length then .ok (x.getD (i.toNat - 1) none) else .error (.jl .boundsError)
+
+/-- `getindex(itr::SkipMissing, i::Int)`, `base/missing.jl:257-261`. -/
+def smGetindex (x : List (Option α)) (i : Int) : SMJl α := do
+  let v ← vecGet x i
+  match v with
+  | none => .error .missingException
+  | some a => .ok a
+
+/-- `getindex(itr::SkipMissing, I::AbstractVector{Int})`, `base/missing.jl:257-261`:
+`v = itr.x[I]` is a vector, and `ismissing(v)` is false for a vector. -/
+def smGetindexVec (x : List (Option α)) (I : List Int) : SMJl (List (Option α)) :=
+  I.mapM (vecGet x)
+
+/-- `filter(f, itr::SkipMissing{<:AbstractArray})`, `base/missing.jl:385-393`. -/
+def smFilter (f : α → Bool) (x : List (Option α)) : List α :=
+  x.foldl (fun y xi => match xi with
+    | some a => if f a then y ++ [a] else y
+    | none => y) []
+
+/-- `findfirst(testf, A)` for non-arrays, `base/array.jl:2523-2528`:
+`for (i, a) in pairs(A)`; `pairs(A) = Generator(=>, keys(A), values(A))`
+(`base/abstractdict.jl:178`) zips `keys(itr)` with the iteration of `itr`. -/
+def smFindfirst (f : α → Bool) (x : List (Option α)) : Option Nat :=
+  ((smKeys x).zip (smCollect x)).find? (fun p => f p.2) |>.map (·.1)
+
+/-- `IteratorSize` of an iterator. -/
+inductive ISize where
+  | hasLength (n : Nat)
+  | sizeUnknown
+  | isInfinite
+  deriving DecidableEq
+
+/-- `first(_zip_lengths_finite_equal(is))`, `base/iterators.jl:401-411`. -/
+def zipLengthsFiniteEqual : List ISize → Bool × Option Nat
+  | [] => (true, none)
+  | .hasLength m :: rest =>
+    let (b, n) := zipLengthsFiniteEqual rest
+    (b && (n.isNone || n == some m), some m)
+  | _ :: _ => (false, none)
+
+/-- `findlast(testf, A)` for non-arrays, `base/array.jl:2716-2721`:
+`for (i, a) in Iterators.reverse(pairs(A))`. `reverse(G::Generator)` reverses the
+zipped iterators (`base/iterators.jl:157`), and `reverse(z::Zip)` throws
+`ArgumentError` unless all have finite equal lengths (`:521-526`).
+`IteratorSize(::Type{<:Filter}) = SizeUnknown()` (`:596`) for `keys(itr)` and
+`IteratorSize(::Type{<:SkipMissing}) = SizeUnknown()` (`base/missing.jl:236`). -/
+def smFindlast (f : α → Bool) (x : List (Option α)) : SMJl (Option Nat) :=
+  if !(zipLengthsFiniteEqual [.sizeUnknown, .sizeUnknown]).1 then
+    .error (.jl (.argumentError "Cannot reverse zipped iterators of unknown, infinite, or unequal lengths"))
+  else
+    .ok (((smKeys x).zip (smCollect x)).reverse.find? (fun p => f p.2) |>.map (·.1))
+
+/-! ## `mapreduce` over `skipmissing` of an array, `base/missing.jl:272-362` -/
+
+/-- The `for outer i in i:ilast; ai = A[i]; !ismissing(ai) && break; end` scans
+(`base/missing.jl:281-284, 290-293, 322-325, 331-334`): the first non-missing value
+at an index in `i:ilast` and that index. Bound: `fuel` = `ilast + 1 - i`. -/
+def firstNonMissing (x : List (Option α)) : Nat → Nat → Nat → Option (α × Nat)
+  | 0, _, _ => none
+  | fuel + 1, i, ilast =>
+    if i > ilast then none
+    else match x.getD (i - 1) none with
+      | some a => some (a, i)
+      | none => firstNonMissing x fuel (i + 1) ilast
+
+/-- The `@simd for i = i:ilast` accumulation, `base/missing.jl:340-345`, as a
+left fold (`@simd` may reassociate `op`; the statements below assume `op`
+associative). Bound: `fuel` = `ilast + 1 - i`. -/
+def simdLoop (f : α → β) (op : β → β → β) (x : List (Option α)) : Nat → Nat → Nat → β → β
+  | 0, _, _, v => v
+  | fuel + 1, i, ilast, v =>
+    if i > ilast then v
+    else
+      let v := match x.getD (i - 1) none with
+        | some a => op v (f a)
+        | none => v
+      simdLoop f op x fuel (i + 1) ilast v
+
+/-- `_mapreduce_impl_skipmissing(f, op, itr, ifirst, ilast, blksize)`,
+`base/missing.jl:306-362`, returning `nothing` (`none`) or `Some(v)`.
+`mapreduce_first(f, op, a) = reduce_first(op, f(a)) = f(a)` for a generic `op`
+(`base/reduce.jl`). -/
+def mrImpl (f : α → β) (op : β → β → β) (x : List (Option α)) (blk : Nat)
+    (ifirst ilast : Nat) : Option β :=
+  if ifirst > ilast then none
+  else if ifirst = ilast then
+    match x.getD (ifirst - 1) none with
+    | none => none
+    | some a1 => some (f a1)
+  else if ilast - ifirst < blk then
+    match firstNonMissing x (ilast + 1 - ifirst) ifirst ilast with
+    | none => none
+    | some (a1, i) =>
+      match firstNonMissing x (ilast - i) (i + 1) ilast with
+      | none => some (f a1)
+      | some (a2, i) => some (simdLoop f op x (ilast - i) (i + 1) ilast (op (f a1) (f a2)))
+  else
+    let imid := ifirst + (ilast - ifirst) / 2
+    let v1 := mrImpl f op x blk ifirst imid
+    let v2 := mrImpl f op x blk (imid + 1) ilast
+    match v1, v2 with
+    | none, none => none
+    | none, v2 => v2
+    | v1, none => v1
+    | some a, some b => some (op a b)
+termination_by ilast + 1 - ifirst
+
+/-- `mapreduce(f, op, skipmissing(A))` for `A::Vector{Union{Missing,T}}`:
+`_mapreduce(f, op, IndexLinear(), itr)`, `base/missing.jl:272-297`. `empty` is
+`mapreduce_empty(f, op, eltype(itr))` (an error for a generic `op`). -/
+def mrSkip (f : α → β) (op : β → β → β) (empty : Jl β) (blk : Nat)
+    (x : List (Option α)) : Jl β :=
+  let ilast := x.length
+  match firstNonMissing x ilast 1 ilast with
+  | none => empty
+  | some (a1, i) =>
+    match firstNonMissing x (ilast - i) (i + 1) ilast with
+    | none => .ok (f a1)
+    | some _ =>
+      match mrImpl f op x blk 1 ilast with
+      | some v => .ok v
+      | none => .error (.argumentError "something(nothing)")
+
+end JuliaLean.MissingChar
+
+namespace JuliaLean.MissingChar
+
+/-- `ismissing(x) = x === missing`, `base/essentials.jl`. -/
+def JV.isMissing : JV α → Bool
+  | .missing => true
+  | _ => false
+
+/-- `coalesce(x...)`, `base/missing.jl:420-422`:
+`coalesce() = missing`, `coalesce(x::Missing, y...) = coalesce(y...)`,
+`coalesce(x::Any, y...) = x`. -/
+def coalesce : List (JV α) → JV α
+  | [] => .missing
+  | .missing :: ys => coalesce ys
+  | x :: _ => x
+
+/-- `@coalesce(x...)`, `base/missing.jl:451-457`: arguments evaluated in turn,
+`!ismissing(val) ? val : <rest>`, innermost `missing`. -/
+def atCoalesce : List (JV α) → JV α
+  | [] => .missing
+  | v :: rest => if !v.isMissing then v else atCoalesce rest
+
+end JuliaLean.MissingChar
+
+
+/-! Method-specific models for `base/missing.jl` on master `bbfa0ce4150`. -/
+
+namespace JuliaLean.ReduceCov.MissingCov
+
+open JuliaLean.MissingChar
+
+def m5 (_ : Unit) : String := "missing"
+
+def m18 (msg : String) : String := "MissingException: " ++ msg
+
+def m39 (typesplit : α → α → α) (missing T : α) : α := typesplit T missing
+
+def m41 (nonmissing : α → α) (supertype isBottom : α → α → Bool) (T bottom : α) : RJ α :=
+  let R := nonmissing T
+  if supertype R T then .error (.errorException "could not compute non-missing type")
+  else if isBottom R bottom then .error (.errorException "cannot convert a value to missing for assignment")
+  else .ok R
+
+def m48 (unionMissing : α → α) (S : α) : α := unionMissing S
+
+def m49 (unionNothingMissing : α → α) (S : α) : α := unionNothingMissing S
+
+def m50 (nonnothing nonmissing : α → α) (supertype : α → α → Bool)
+    (promote : α → α → α) (unionBoth : α → α) (any T S : α) : α :=
+  let Rn := nonnothing T
+  if supertype Rn T then any
+  else
+    let Rm := nonmissing Rn
+    if supertype Rm Rn then any else unionBoth (promote Rm S)
+
+def m60 (nonmissing : α → α) (supertype : α → α → Bool) (promote : α → α → α)
+    (unionMissing : α → α) (any T S : α) : α :=
+  let R := nonmissing T
+  if supertype R T then any else unionMissing (promote R S)
+
+def m68 (x : α) : α := x
+
+def m69 (x : α) : α := x
+
+def m70 (checked : τ → RJ σ) (convert : σ → α → RJ β) (T : τ) (x : α) : RJ β := do
+  (checked T).bind (fun R => convert R x)
+
+def m71 (nonnothing : τ → RJ σ) (nonmissing : σ → RJ ρ) (convert : ρ → α → RJ β)
+    (T : τ) (x : α) : RJ β :=
+  (nonnothing T).bind (fun R => (nonmissing R).bind (fun U => convert U x))
+
+@[simp] def missingResult (α : Type) : Option α := none
+
+def m74 := missingResult Bool
+def m76 (α : Type) (_ : α) := missingResult Bool
+def m78 (α : Type) (_ : α) := missingResult Bool
+def m79 (α : Type) (_ : α) := missingResult Bool
+def m82 (α : Type) (_ : α) : Bool := false
+def m83 := missingResult Bool
+def m85 (α : Type) (_ : α) := missingResult Bool
+def m86 : Bool := false
+def m89 := missingResult Bool
+def m90 := missingResult Bool
+def m91 := missingResult Bool
+def m92 (α : Type) (_ : α) := missingResult Bool
+def m93 (α : Type) (_ : α) := missingResult Bool
+
+/-- Every generated unary method returns `missing`, `base/missing.jl:96-103`. -/
+def m103 (α : Type) (_function : String) : Option α := none
+
+def m106 (α : Type) (f : String) : Jl α := .error (.methodError f)
+def m107 (α : Type) (_function : String) : Option α := none
+def m108 (checked : τ → RJ σ) (f : σ → RJ α) (T : τ) : RJ α := (checked T).bind f
+def m111 (α : Type) (f : String) : Jl α := .error (.methodError f)
+def m112 (nonmissing : τ → σ) (f : σ → ρ) (unionMissing : ρ → α) (T : τ) : α :=
+  unionMissing (f (nonmissing T))
+
+def m119 (α : Type) (_function : String) : Option α := none
+def m120 (α β : Type) (_function : String) (_ : β) : Option α := none
+def m121 (α β : Type) (_function : String) (_ : β) : Option α := none
+def m125 (α : Type) (_rounding : α) := missingResult Int
+def m126 (α β : Type) (_number : α) (_rounding : β) := missingResult Int
+def m127 (α β : Type) (_number : α) (_rounding : β) := missingResult Int
+
+def m131 (result : α) : α := result
+def m132 (result : α) (_ : β) : α := result
+def m133 (result : α) (_ : β) : α := result
+def m134 (result : α) : α := result
+def m137 (α β γ : Type) (_lo : β) (_hi : γ) : Option α := none
+def m139 (T : String) : String :=
+  "cannot convert a missing value to type " ++ T ++ ": use Union{" ++ T ++ ", Missing} instead"
+
+def m143 (α : Type) (_sigdigits _digits _base : Int) : Option α := none
+def m144 (α : Type) (_rounding : α) := missingResult Int
+def m145 (T : String) : RJ Unit := .error (.missingException (m139 T))
+def m147 (checked : τ → RJ σ) (round : σ → α → ρ → RJ β) (T : τ) (x : α) (r : ρ) : RJ β := do
+  (checked T).bind (fun U => round U x r)
+def m149 := @m147
+def m150 := @m147
+def m151 := @m147
+def m154 (α : Type) (_exponent : Int) : Option α := none
+
+def m157 := missingResult Bool
+def m159 (b : Bool) : Option Bool := if b then none else some false
+def m160 (α : Type) (_ : α) := missingResult α
+def m161 (α : Type) (_ : α) := missingResult α
+def m162 := missingResult Bool
+def m164 (b : Bool) : Option Bool := if b then some true else none
+def m165 (α : Type) (_ : α) := missingResult α
+def m166 (α : Type) (_ : α) := missingResult α
+def m167 := missingResult Bool
+def m169 (_ : Bool) := missingResult Bool
+def m170 (α : Type) (_ : α) := missingResult α
+def m171 (α : Type) (_ : α) := missingResult α
+def m173 (α : Type) (_ : α) := missingResult String
+def m174 (α : Type) (_ : α) := missingResult String
+
+inductive FloatKind where | abstractReal | concreteBigFloat deriving DecidableEq
+inductive FloatValue where | missing | exactBig | roundedF64 deriving DecidableEq
+
+/-- `float(A::AbstractArray{Union{T,Missing}})`, `base/missing.jl:176-179`. -/
+def m176 (T : FloatKind) (A : List FloatValue) : List FloatValue :=
+  let U : FloatValue := match T with | .abstractReal => .roundedF64 | .concreteBigFloat => .exactBig
+  A.map fun x => match x, U with
+    | .missing, _ => .missing
+    | .exactBig, .roundedF64 => .roundedF64
+    | value, _ => value
+
+def m180 (A : List FloatValue) := A
+
+structure Skip (α : Type) where x : List (Option α)
+
+def m231 (x : List (Option α)) : Skip α := ⟨x⟩
+def m236 : MissingChar.ISize := .sizeUnknown
+def m237 (parentStyle : α → β) (T : α) : β := parentStyle T
+def m238 (eltype : α → β) (nonmissing : β → γ) (T : α) : γ := nonmissing (eltype T)
+def m252 (indexStyle : α → β) (T : α) : β := indexStyle T
+def m263 (showParent : List (Option α) → String) (s : Skip α) : String :=
+  "skipmissing(" ++ showParent s.x ++ ")"
+
+def m275 (f : α → β) (op : β → β → β) (empty : Jl β) (blk : Nat) (s : Skip α) : Jl β :=
+  mrSkip f op empty blk s.x
+def m299 (mapfoldl : (α → β) → (β → β → β) → Skip α → γ)
+    (f : α → β) (op : β → β → β) (s : Skip α) : γ := mapfoldl f op s
+def m303 (pairwise : (α → β) → (β → β → β) → Nat)
+    (f : α → β) (op : β → β → β) (s : Skip α) (first last : Nat) : Option β :=
+  mrImpl f op s.x (pairwise f op) first last
+def m306 (f : α → β) (op : β → β → β) (s : Skip α) (first last blk : Nat) : Option β :=
+  mrImpl f op s.x blk first last
+
+def m420 (α : Type) : JV α := .missing
+def m421 (ys : List (JV α)) : JV α := coalesce ys
+def m422 (x : JV α) (_ys : List (JV α)) : JV α := x
+
+inductive CoalesceExpr (α : Type) where
+  | missing
+  | branch (value : JV α) (rest : CoalesceExpr α)
+
+def m451 (args : List (JV α)) : CoalesceExpr α :=
+  args.reverse.foldl (fun expr value => .branch value expr) .missing
+
+end JuliaLean.ReduceCov.MissingCov
+
+namespace JuliaLean.Reduce.Ty
+
+/-- `nonmissingtype(T)`, `base/missing.jl:39`; `Missing` gives `Union{}`. -/
+def nonmissing : Ty → Ty
+  | .missing => .bottom
+  | .union a b =>
+    match nonmissing a, nonmissing b with
+    | .bottom, y => y
+    | x, .bottom => x
+    | x, y => .union x y
+  | t => t
+
+end JuliaLean.Reduce.Ty

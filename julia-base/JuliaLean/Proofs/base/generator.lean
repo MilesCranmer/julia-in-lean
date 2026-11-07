@@ -50,13 +50,25 @@ def collectIteratorPrefix {I Args A : Type}
           | .error error => .error error
           | .ok rest => .ok (value :: rest)
 
+def generatorAnswer {A State : Type} :
+    Jl (IteratorStep A State) → Except GeneratorError (Option (IteratorStep A State))
+  | .error error => .error (.iterator error)
+  | .ok .done => .ok none
+  | .ok raw => .ok (some raw)
+
+def generatorPair {A State : Type} :
+    IteratorStep A State → Except GeneratorError (A × State)
+  | .yielded value next => .ok (value,next)
+  | _ => .error .tupleTypeAssertion
+
 def collectGeneratorPrefix {I F Args A B : Type}
     (apply : F → A → B)
     (iterate : I → Args → Jl (IteratorStep A Args))
     (g : Generator I F) : Nat → Args → Except GeneratorError (List B)
   | 0, _ => .ok []
   | n + 1, state =>
-      match iterateGenerator apply iterate g state with
+      match iterateGenerator (fun f x => Except.ok (apply f x))
+          (fun itr st => generatorAnswer (iterate itr st)) generatorPair g state with
       | .error error => .error error
       | .ok none => .ok []
       | .ok (some (value, next)) =>
@@ -78,7 +90,9 @@ def GeneratorRejectsMalformedStep : Prop :=
     (apply : F → A → B)
     (iterate : I → Args → Jl (IteratorStep A Args)) (state : Args),
     iterate g.iter state = .ok .malformed →
-      iterateGenerator apply iterate g state = .error .tupleTypeAssertion
+      iterateGenerator (fun f x => Except.ok (apply f x))
+        (fun itr st => generatorAnswer (iterate itr st)) generatorPair g state =
+        .error .tupleTypeAssertion
 
 def GeneratorIterationSemantics : Prop :=
   GeneratorMapsFinitePrefixes ∧ GeneratorRejectsMalformedStep
@@ -203,7 +217,8 @@ theorem generatorMapsFinitePrefixes_proven : GeneratorMapsFinitePrefixes := by
       | done =>
         simp [collectIteratorPrefix, step] at h
         subst values
-        simp [collectGeneratorPrefix, iterateGenerator, step]
+        simp [collectGeneratorPrefix, iterateGenerator, generatorAnswer, generatorPair, step,
+          Bind.bind, Except.bind, Functor.map, Except.map, pure, Except.pure]
       | malformed => simp [collectIteratorPrefix, step] at h
       | yielded value next =>
         cases rest : collectIteratorPrefix iterate n g.iter next with
@@ -211,12 +226,14 @@ theorem generatorMapsFinitePrefixes_proven : GeneratorMapsFinitePrefixes := by
         | ok xs =>
           simp [collectIteratorPrefix, step, rest] at h
           subst values
-          simp [collectGeneratorPrefix, iterateGenerator, step, ih next xs rest]
+          simp [collectGeneratorPrefix, iterateGenerator, generatorAnswer, generatorPair, step,
+            Bind.bind, Except.bind, Functor.map, Except.map, pure, Except.pure, ih next xs rest]
 
 theorem generatorIterationSemantics_proven : GeneratorIterationSemantics := by
   refine ⟨generatorMapsFinitePrefixes_proven, ?_⟩
   intro I F A B Args g apply iterate state h
-  simp [iterateGenerator, h]
+  simp [iterateGenerator, generatorAnswer, generatorPair, h,
+    Bind.bind, Except.bind, Functor.map, Except.map, pure, Except.pure]
 
 theorem generatorTypeMapsFinitePrefixes_proven : GeneratorTypeMapsFinitePrefixes := by
   intro I T A B Args hasFree typeValue iter apply iterate fuel state values h

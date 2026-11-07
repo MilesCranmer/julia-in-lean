@@ -1,0 +1,55 @@
+id: intfuncs-lcm-array-real
+title: "lcm on a rational array overflows before a later zero makes the result representable"
+priority: P2
+kind: wrong-exception
+area: IntFuncsCov
+files: [base/intfuncs.jl]
+functions: ["lcm(abc::AbstractArray{<:Real})"]
+summary: |
+  lcm(Rational{Int8}[64//1, 3//1, 0//1]) throws OverflowError while reducing
+  the first pair. The mathematical least common multiple of all three values
+  is 0//1, which fits the result type.
+likelihood: |
+  Requires a fixed-width rational array with an overflowing reduction prefix
+  followed by zero. The three-element input uses ordinary small values.
+maybe_intended: |
+  Fixed-width reductions may report intermediate overflow even when a later
+  zero would make the final result representable. The documentation does not
+  explicitly promise to avoid every intermediate overflow.
+reproducer: |
+  xs = Rational{Int8}[64//1, 3//1, 0//1]
+  lcm(xs)
+output:
+  release: |
+    intfuncs-lcm-array-real = OverflowError: 64 * 3 overflowed for type Int8
+    REPRODUCED intfuncs-lcm-array-real
+  nightly: |
+    intfuncs-lcm-array-real = OverflowError: 64 * 3 overflowed for type Int8
+    REPRODUCED intfuncs-lcm-array-real
+reproduced: {release: true, nightly: true}
+expected: |
+  Return 0//1 when the contract depends on representability of the final
+  numerator and denominator, or document intermediate-overflow limitations.
+promised_by: |
+  The lcm docstring at base/intfuncs.jl:100-101 says:
+  "Least common (positive) multiple (or zero if any argument is zero).
+  The arguments may be integer and rational numbers."
+  The normalized-rational-array registry contract also requires the exact
+  result when its final numerator and denominator fit.
+cause: |
+  base/intfuncs.jl:167-175 reduces nonsingleton arrays with reduce(lcm, abc).
+  The checked multiplication in the pairwise lcm path at lines 136-142
+  raises OverflowError for 64 * 3 before the later zero is considered.
+possible_fix: |
+  Consider zero short-circuiting for finite rational arrays while preserving
+  the documented treatment of infinite rationals and invalid inputs.
+duplicates:
+  issues: []
+  prs: []
+  search_notes: |
+    No matching issue or PR is known.
+    bugs/intfuncs-lcm-array.yaml concerns a separate singleton typemin path.
+  queries: ["gh search issues 'lcm Rational overflow' --repo JuliaLang/julia --limit 100 --json number,title,state,url", "gh search prs 'lcm overflow' --repo JuliaLang/julia --limit 100 --json number,title,state,url", "gh search issues 'lcm zero' --repo JuliaLang/julia --limit 100 --json number,title,state,url", "gh search prs 'lcm zero' --repo JuliaLang/julia --limit 100 --json number,title,state,url"]
+lean:
+  property: JuliaLean.Proofs.base.intfuncs.approvedRound5.LcmArrayRealNativeAnyError
+  theorem: JuliaLean.ChatGPT.Batch4.Group12.IntfuncsLcmArrayReal_refuted

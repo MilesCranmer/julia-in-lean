@@ -67,5 +67,5 @@ duplicates:
     - "issues and prs: fldmod mod"
     - "issues and prs: divrem mixed signed"
 lean:
-  property: JuliaLean.IntArith.Division.FldmodConsistency
-  theorem: JuliaLean.IntArith.Division.fldmodInconsistent
+  property: JuliaLean.Proofs.base.div.BitIntegerMixedFldmodConsistency
+  theorem: JuliaLean.Proofs.base.div.bitIntegerMixedFldmodConsistency_refuted

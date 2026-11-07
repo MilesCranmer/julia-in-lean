@@ -1,0 +1,76 @@
+id: bignumscov-mpfr-994-v2
+title: cmp treats BigFloat negative zero and BigInt zero as equal
+priority: P2
+kind: wrong-result
+area: BigNums
+files:
+  - base/mpfr.jl
+  - base/operators.jl
+functions:
+  - cmp(::BigFloat, ::BigInt)
+summary: |
+  cmp(BigFloat(-0.0; precision=256), BigInt(0)) returns zero even though
+  isless reports that the negative floating zero precedes the integer zero.
+  The specialized MPFR comparison disagrees with cmp's documented total order.
+likelihood: |
+  Mixed BigFloat and BigInt comparisons can encounter negative zero from
+  ordinary floating-point arithmetic. The discrepancy matters to callers
+  using cmp as a three-way form of isless.
+maybe_intended: |
+  MPFR's numeric comparison deliberately equates the two zeros. Julia's cmp
+  contract additionally requires the signed-zero distinction made by isless.
+  The existing Rational/float issue #64167 is analogous but uses different methods.
+reproducer: |
+  x = BigFloat(-0.0; precision=256)
+  y = BigInt(0)
+  @assert cmp(x, y) == 0 && isless(x, y)
+  println("REPRODUCED bignumscov-mpfr-994-v2")
+output:
+  release: |
+    REPRODUCED bignumscov-mpfr-994-v2
+  nightly: |
+    REPRODUCED bignumscov-mpfr-994-v2
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  Return -1 because isless(x, y) is true.
+promised_by: |
+  At pinned source f755f49a9e41380d7da126b3c1db9fe7f83dd027,
+  base/operators.jl:510-511 says:
+  "Return -1, 0, or 1 depending on whether `x` is less than, equal to, or greater than `y`,
+  respectively. Uses the total order implemented by `isless`."
+  base/operators.jl:211-212 says:
+  "- If `isless(x, y)` is defined, then so is `isless(y, x)` and `isequal(x, y)`,
+    and exactly one of those three yields `true`."
+  The AbstractFloat/Real isless method at line 242 includes the signless term.
+cause: |
+  base/mpfr.jl:994-997 handles NaN and otherwise returns mpfr_cmp_z directly.
+  That numeric comparison loses the distinction between negative floating
+  zero and integer zero. No signed-zero tie-break is applied to its zero result.
+possible_fix: |
+  Handle equal numerical zeros using the same sign-bit order as isless, or
+  implement this specialization through isless without losing exact mixed comparison.
+duplicates:
+  issues:
+    - number: 64167
+      state: open
+      relation: related
+      note: Rational/float signed-zero cmp defect, not an exact duplicate
+  prs:
+    - number: 64575
+      state: open
+      relation: related
+      note: Rational/float fix, does not change MPFR comparisons
+  queries:
+    - tool: gh search issues --repo JuliaLang/julia
+      query: cmp BigFloat
+    - tool: gh search issues --repo JuliaLang/julia
+      query: cmp isless zero
+    - tool: gh search prs --repo JuliaLang/julia
+      query: cmp zero
+    - tool: gh search prs --repo JuliaLang/julia
+      query: cmp BigFloat
+lean:
+  property: JuliaLean.Proofs.base.mpfr.Round1.BigFloatBigIntCmpTotalOrder
+  theorem: JuliaLean.ChatGPT.Batch4.Group3.BignumscovMpfr994V2_refuted

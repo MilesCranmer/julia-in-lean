@@ -603,3 +603,51 @@ def rotateHalfCounted [Monad m] {A K B : Type} (mod : K → I64 → m K)
   if ← equals count (JuliaLean.base.abstractarray.int 1) then half a else copy a
 
 end JuliaLean.base.arraymath
+
+namespace JuliaLean.NumMisc.Coverage
+
+open JuliaLean
+
+/-! ## `base/arraymath.jl:5-133` -/
+
+inductive BroadcastRoute where | generic | sameRankArrays | reshapedArrays | arrayScalar | scalarArray
+  deriving DecidableEq, Repr
+
+def broadcastRoute (sameRank bothArrays leftArray rightArray : Bool) : BroadcastRoute :=
+  if bothArrays then if sameRank then .sameRankArrays else .reshapedArrays
+  else if leftArray then .arrayScalar else if rightArray then .scalarArray else .generic
+
+def reverseDims (rank : Nat) (dims : Option (List Int)) : List Int :=
+  match dims with
+  | none => ((List.range rank).map (fun n => n + 1)).map (fun n : Nat => (n : Int))
+  | some ds => ds
+
+def validReverseDims (rank : Nat) (dims : List Int) : Bool :=
+  dims.all (fun d => 1 ≤ d ∧ d ≤ rank) && dims.eraseDups.length == dims.length
+
+
+/-! ## `base/arraymath.jl:154-317` -/
+
+abbrev Matrix := List (List Nat)
+
+def matrixGet (matrix : Matrix) (row col : Nat) : Nat := (matrix.getD row []).getD col 0
+
+def rotateLeft (matrix : Matrix) : Matrix :=
+  let rows := matrix.length
+  let cols := matrix.foldl (fun width row => max width row.length) 0
+  (List.range cols).map fun col =>
+    (List.range rows).map fun row => matrixGet matrix row (cols - col - 1)
+
+def rotateRight (matrix : Matrix) : Matrix :=
+  let rows := matrix.length
+  let cols := matrix.foldl (fun width row => max width row.length) 0
+  (List.range cols).map fun col =>
+    (List.range rows).map fun row => matrixGet matrix (rows - row - 1) col
+
+def rotateHalf (matrix : Matrix) : Matrix := matrix.reverse.map List.reverse
+
+def rotateLeftK (matrix : Matrix) (k : Int) : Matrix :=
+  match k % 4 with | 1 => rotateLeft matrix | 2 => rotateHalf matrix | 3 => rotateRight matrix | _ => matrix
+
+
+end JuliaLean.NumMisc.Coverage

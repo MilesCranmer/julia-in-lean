@@ -25,9 +25,11 @@ reproducer: |
 output:
   release: |
     false true false missing
+    false false
     REPRODUCED sorttuplescov-insorted-range-equivalence
   nightly: |
     false true false missing
+    false false
     REPRODUCED sorttuplescov-insorted-range-equivalence
 reproduced: {release: true, nightly: true}
 expected: |
@@ -47,7 +49,15 @@ duplicates:
   issues:
     - {number: 48388, state: closed, relation: related}
     - {number: 44102, state: closed, relation: related}
-  queries: ["issues: insorted", "issues: insorted range", "issues: insorted missing", "issues: insorted -0.0", "issues/prs: insorted AbstractRange"]
+  prs:
+    - {number: 37490, state: merged, relation: related}
+  queries:
+    - "issues: insorted"
+    - "issues: insorted range"
+    - "issues: insorted missing"
+    - "issues: insorted -0.0"
+    - "PRs: insorted"
+    - "PRs: insorted AbstractRange"
 lean:
-  property: JuliaLean.SortTuplesCov.InsortedRangeAgrees
-  theorem: JuliaLean.SortTuplesCov.insortedRangeAgrees_refuted
+  property: JuliaLean.Proofs.base.sort.InsortedRangeAgrees
+  theorem: JuliaLean.Proofs.base.sort.insortedRangeAgrees_refuted

@@ -36,5 +36,6 @@ duplicates:
   issues: []
   queries: ["reshape! FieldError dims", "reshape! Array no field dims", "reshape! setfield size"]
 lean:
-  property: JuliaLean.MultidimCov.ReshapedFaithfulA.P55
-  theorem: JuliaLean.MultidimCov.ReshapedFaithfulA.p55_refuted
+  property: JuliaLean.Proofs.base.reshapedarray.ReshapeBangUpdatesDimensions
+  theorem: ""
+  notes: "The registered native obligation is todo: reshapeBang delegates the Array :dims write to an unbound setter, and its ReshapedError type cannot represent the actual FieldError for Array's missing :dims field."

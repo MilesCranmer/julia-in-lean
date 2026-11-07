@@ -61,5 +61,5 @@ duplicates:
     - "PRs: gcdx documentation"
     - "issues and PRs: gcdx"
 lean:
-  property: JuliaLean.IntArith.NumberTheory.GcdxStrictBounds
-  theorem: JuliaLean.IntArith.NumberTheory.gcdxStrictBounds_refuted
+  property: JuliaLean.Proofs.base.intfuncs.GcdxStrictBounds
+  theorem: JuliaLean.Proofs.base.intfuncs.gcdxStrictBounds_refuted

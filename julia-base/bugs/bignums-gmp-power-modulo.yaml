@@ -1,0 +1,82 @@
+id: bignums-gmp-power-modulo
+covers:
+  - gmp-modular-exponent-full-domain
+title: BigInt powermod throws DivideError for a noninvertible negative power
+priority: P2
+kind: wrong-exception
+area: BigNums
+files:
+  - base/gmp.jl
+  - base/intfuncs.jl
+functions:
+  - powermod(::BigInt, ::BigInt, ::BigInt)
+summary: |
+  powermod(BigInt(2), BigInt(-1), BigInt(4)) throws DivideError. The base 2
+  has no inverse modulo 4. The generic integer powermod path resolves negative
+  powers through invmod and reports DomainError for this invalid inverse.
+likelihood: |
+  Requires a negative exponent and a base that is not invertible modulo the
+  modulus. Modular arithmetic code that handles DomainError for an invalid
+  inverse receives a different exception after switching to BigInt.
+maybe_intended: |
+  The powermod docstring does not specify an exception type. The invmod
+  docstring promises an error for noncoprime inputs, without naming its type.
+  DivideError therefore satisfies that weak wording. The reported defect is
+  inconsistency with Julia's checked inverse path, not a violated explicit
+  powermod promise of DomainError. The docs do not make that stronger promise.
+reproducer: |
+  err = try
+      powermod(BigInt(2), BigInt(-1), BigInt(4))
+  catch e
+      e
+  end
+  @assert err isa DivideError
+  println("REPRODUCED bignums-gmp-power-modulo")
+output:
+  release: |
+    REPRODUCED bignums-gmp-power-modulo
+  nightly: |
+    REPRODUCED bignums-gmp-power-modulo
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  Report DomainError for a negative exponent whose modular inverse does not
+  exist, consistently with generic integer powermod and BigInt invmod.
+promised_by: |
+  Pinned source f755f49a9e41380d7da126b3c1db9fe7f83dd027.
+  base/intfuncs.jl:504 (powermod docstring): "Compute ``x^p \\pmod m``."
+  base/intfuncs.jl:292-294 (invmod docstring):
+  "Take the inverse of `n` modulo `m`: `y` such that ``n y = 1 \\pmod m``,
+  and ``div(y,m) = 0``. This will throw an error if ``m = 0``, or if
+  ``gcd(n,m) \\neq 1``."
+  Neither quote names DomainError. The generic negative-exponent branch at
+  base/intfuncs.jl:530-539 calls invmod; the BigInt inverse implementation at
+  base/gmp.jl:518-535 explicitly throws DomainError when inversion fails.
+cause: |
+  base/gmp.jl:669-672 passes the exponent directly to MPZ.powm, bypassing
+  invmod. With a negative exponent and no modular inverse, GMP signals the
+  invalid operation through its division-error path, yielding DivideError.
+possible_fix: |
+  Route negative BigInt exponents through powermod(invmod(x, m), -p, m),
+  matching the generic integer method's checked inverse behavior.
+duplicates:
+  issues:
+    - number: 15350
+      state: closed
+      relation: related
+      detail: Requested negative exponents through modular inversion; does not report this exception mismatch.
+      url: https://github.com/JuliaLang/julia/issues/15350
+  prs:
+    - number: 15448
+      state: merged
+      relation: related
+      detail: Implemented negative-exponent support in the generic powermod path.
+      url: https://github.com/JuliaLang/julia/pull/15448
+  queries:
+    - 'issues and PRs: BigInt powermod DivideError'
+    - 'issues and PRs: powermod negative exponent'
+    - 'issues and PRs: powermod'
+lean:
+  property: JuliaLean.Proofs.base.gmp.Round1.ModularPowerFullDomain
+  theorem: JuliaLean.ChatGPT.Batch4.Group7.BignumsGmpPowerModulo_refuted

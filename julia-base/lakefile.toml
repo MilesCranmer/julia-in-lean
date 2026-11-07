@@ -4,5 +4,7 @@ defaultTargets = ["JuliaLean"]
 [[lean_lib]]
 name = "JuliaLean"
 # Per-file memory cap (MB), so a runaway elaboration fails instead of
-# exhausting the shared allocation.
-moreLeanArgs = ["-M8000"]
+# exhausting a node. Sequential cold C-runtime builds peak near 12 GiB. The cap does
+# not change the output, so it is a weak argument: raising it does not rebuild
+# anything.
+weakLeanArgs = ["-M24000"]

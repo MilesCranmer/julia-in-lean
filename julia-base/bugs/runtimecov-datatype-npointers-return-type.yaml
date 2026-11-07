@@ -42,5 +42,5 @@ duplicates:
   issues: []
   queries: ["datatype_npointers"]
 lean:
-  property: JuliaLean.RuntimeCov.Layout.NpointersReturnType
-  theorem: JuliaLean.RuntimeCov.Layout.npointersReturnType_refuted
+  property: JuliaLean.Proofs.base.runtime_internals.NpointersReturnType
+  theorem: JuliaLean.Proofs.base.runtime_internals.npointersReturnType_refuted

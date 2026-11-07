@@ -9,7 +9,7 @@ summary: |
   Unary minus on typemin(Int8):Int8(1):Int8(-126) returns elements
   [-128, -129, -130]. Negating the collected Int8 elements gives [-128, 127, 126].
   The Int64 range typemin(Int):3:typemin(Int)+20 has seven elements, but its
-  negated range is empty (Lean witness JuliaLean.Ranges.negateInt64Empty).
+  negated range is empty.
 likelihood: |
   Rare boundary inconsistency when a fixed-width range includes typemin and
   its negation crosses the signed representability boundary.

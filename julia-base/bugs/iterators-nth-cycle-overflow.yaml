@@ -1,33 +1,30 @@
 id: iterators-nth-cycle-overflow
-title: Iterators.nth(cycle(v, m), k) throws BoundsError when length(v) * m overflows
+title: Iterators.nth rejects valid indices when a repeated cycle length overflows
 priority: P2
 kind: wrong-exception
 area: Iterators
 files:
-- base/iterators.jl
+  - base/iterators.jl
 functions:
-- nth(::Flatten{Take{Repeated}}, n)
-- cycle(xs, n)
+  - nth(::Flatten{Take{Repeated}}, n)
+  - cycle(xs, n)
 summary: |
-  The fast path of nth for cycle(v, m) checks n > k*cycles with a wrapping
-  multiplication. For nth(cycle([1,2,3], 2^62), 1) the product wraps to -2^62,
-  so every index throws BoundsError, although first(cycle([1,2,3], 2^62)) == 1.
-  When the wrapped product is positive, valid indices above it throw.
+  nth(cycle([1, 2, 3], 2^62), 1) throws BoundsError even though first of the
+  same iterator returns 1. Its bounds check multiplies the factor length by
+  the repetition count in Int arithmetic. The product wraps to a negative
+  number, making a valid positive index appear out of bounds.
 likelihood: |
-  Needs a repetition count with length(v) * m > typemax(Int), e.g. cycle(v,
-  typemax(Int)) used as "practically forever". Uncommon; the error is loud.
-maybe_intended: ''
+  Requires a repetition count whose total element count exceeds typemax(Int).
+  Using a huge cycle count as a practically unlimited iterator can trigger it
+  without allocating the repeated collection.
+maybe_intended: |
+  length cannot represent this iterator's mathematical size in Int, but nth
+  does not need that total size to retrieve element 1. Its documented bounds
+  check concerns whether the requested element exists.
 reproducer: |
-  # nth(cycle(v, m), k) checks k > length(v) * m with a wrapping multiplication
   c = Iterators.cycle([1, 2, 3], 2^62)
-  r = try
-      Iterators.nth(c, 1)
-  catch e
-      e
-  end
-  println("nth(cycle([1,2,3], 2^62), 1) = ", r isa Exception ? sprint(showerror, r) : repr(r))
-  println("first(cycle([1,2,3], 2^62)) = ", first(c))
-  r isa BoundsError && println("REPRODUCED iterators-nth-cycle-overflow")
+  first(c)             # 1
+  Iterators.nth(c, 1)   # throws BoundsError
 output:
   release: |
     nth(cycle([1,2,3], 2^62), 1) = BoundsError: attempt to access Base.Iterators.Flatten{Base.Iterators.Take{Base.Iterators.Repeated{Vector{Int64}}}} at index [1]
@@ -41,26 +38,37 @@ reproduced:
   release: true
   nightly: true
 expected: |
-  nth(cycle([1,2,3], 2^62), 1) == 1 (and v[mod1(k, 3)] for every k up to the
-  true length).
+  nth(c, 1) should return 1. Other valid indices should return the corresponding
+  element of [1, 2, 3] modulo its length, without requiring a representable total.
 promised_by: |
-  nth docstring, base/iterators.jl:1728-1731: "Get the n-th element of an
-  iterable collection. Throw a BoundsError if not existing."
+  Pinned source f755f49a9e41380d7da126b3c1db9fe7f83dd027:
+  base/iterators.jl:1730: "Get the `n`th element of an iterable collection. Throw a [`BoundsError`](@ref) if not existing."
+  base/iterators.jl:1031: "If `n` is specified, then it cycles through `iter` that many times."
 cause: |
-  base/iterators.jl:1771, (n > k*cycles || k == 0): k*cycles is Int
-  multiplication that wraps.
+  base/iterators.jl:1771 checks n > k*cycles before selecting an element by
+  mod1. Both factors are Int, so k*cycles wraps before the comparison.
 possible_fix: |
-  Compare without multiplying: n > k*cycles  <=>  cld(n, k) > cycles (for k > 0),
-  or use widemul(k, cycles).
+  Check k == 0 first, then compare cld(n, k) against cycles for positive n,
+  or use widened multiplication. Preserve bounds errors for nonpositive n.
 duplicates:
-  issues:
-  - number: 56580
-    state: merged
-    relation: related
+  issues: []
+  prs:
+    - number: 64311
+      state: open
+      relation: duplicate
+      note: "proposed fix for this exact overflow counterexample"
+    - number: 56580
+      state: merged
+      relation: related
+      note: "introduced nth and its specialized cycle paths"
+  search_notes: |
+    PR #64311 contains the same [1, 2, 3], 2^62, index-1 example and replaces
+    the overflowing multiplication with a quotient comparison. No matching
+    issue is known.
   queries:
-  - nth cycle
-  - Iterators.nth
-  - nth BoundsError
+    - nth cycle overflow
+    - Iterators.nth BoundsError
+    - nth cycle
 lean:
-  property: JuliaLean.Iterators.NthCycleCorrect
-  theorem: JuliaLean.Iterators.nthCycleCorrect_refuted
+  property: JuliaLean.Proofs.base.iterators.NthCycleCorrect
+  theorem: JuliaLean.ChatGPT.Batch4.Group5.IteratorsNthCycleOverflow_refuted

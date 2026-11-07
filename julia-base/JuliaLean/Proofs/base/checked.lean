@@ -1,4 +1,6 @@
 import JuliaLean.base.checked
+import JuliaLean.base.div
+import JuliaLean.base.operators
 import JuliaLean.Proofs.base.int
 import JuliaLean.Registry.Types
 
@@ -9,6 +11,129 @@ Arithmetic specifications use the exact mathematical result and the target type'
 range, independently of the model's intrinsic calls and manual multiplication thresholds.
 -/
 namespace JuliaLean.Proofs.base.checked
+
+namespace Round1
+
+open JuliaLean JuliaLean.base.checked
+
+/-- The magnitude is the least integer bounding the input symmetrically around zero. -/
+def StateMagnitude (input magnitude : Int) : Prop :=
+  0 ≤ magnitude ∧ ∀ bound : Int, magnitude ≤ bound ↔ -bound ≤ input ∧ input ≤ bound
+
+/-- The mathematical integer denoted by a Julia Bool. -/
+def StateBooleanValue (value : Bool) : Int := if value then 1 else 0
+
+/-- Checked absolute value of every unsigned bit integer is its mathematical magnitude.
+Julia source: base/checked.jl:127 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+Julia documentation: base/checked.jl:108–119; doc/src/base/math.md:216 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-/
+def UnsignedAbsoluteMagnitude : Prop :=
+  ∀ (t : IntTy), t.signed = false → ∀ x : JInt t,
+    StateMagnitude x.val (checkedAbsUnsigned x).val
+
+/-- Checked absolute value of either Boolean has its complete mathematical magnitude.
+Julia source: base/checked.jl:128 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+Julia documentation: base/checked.jl:108–119; doc/src/base/math.md:216 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-/
+def BooleanAbsoluteMagnitude : Prop :=
+  ∀ x : Bool,
+    StateMagnitude (StateBooleanValue x) (StateBooleanValue (checkedAbsBool x))
+
+/-- The unique representable residue of an exact integer, together with a complete overflow flag.
+The quotient witness and exactness equivalence are independent of the bit-vector construction. -/
+def ArithOverflowReport (t : IntTy) (exact : Int) (r : JInt t × Bool) : Prop :=
+  (∃ k : Int, exact = r.1.val + k * (2 ^ t.bits : Int)) ∧
+  (r.2 = false ↔ r.1.val = exact) ∧
+  (r.2 = true ↔ exact < t.min ∨ t.max < exact)
+
+def ArithBoolValue (x : Bool) : Int := if x then 1 else 0
+
+/-- Signed addition returns the exact residue and reports precisely nonrepresentable sums.
+Julia source: base/checked.jl:136 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+Julia documentation: base/checked.jl:5–11,130–134; doc/src/base/math.md:212–230. -/
+def ArithSignedAdditionReport : Prop :=
+  ∀ (t : IntTy) (h : t.signed = true) (x y : JInt t),
+    ArithOverflowReport t (x.val + y.val) (addWithOverflowSigned h x y)
+
+/-- Unsigned addition returns the exact residue and a complete overflow flag.
+Julia source: base/checked.jl:137 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+Julia documentation: base/checked.jl:5–11,130–134; doc/src/base/math.md:212–230. -/
+def ArithUnsignedAdditionReport : Prop :=
+  ∀ (t : IntTy) (h : t.signed = false) (x y : JInt t),
+    ArithOverflowReport t (x.val + y.val) (addWithOverflowUnsigned h x y)
+
+/-- Signed subtraction returns the exact residue and a complete overflow flag.
+Julia source: base/checked.jl:200 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+Julia documentation: base/checked.jl:5–11,194–198; doc/src/base/math.md:212–230. -/
+def ArithSignedSubtractionReport : Prop :=
+  ∀ (t : IntTy) (h : t.signed = true) (x y : JInt t),
+    ArithOverflowReport t (x.val - y.val) (subWithOverflowSigned h x y)
+
+/-- Unsigned subtraction returns the exact residue and a complete overflow flag.
+Julia source: base/checked.jl:201 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+Julia documentation: base/checked.jl:5–11,194–198; doc/src/base/math.md:212–230. -/
+def ArithUnsignedSubtractionReport : Prop :=
+  ∀ (t : IntTy) (h : t.signed = false) (x y : JInt t),
+    ArithOverflowReport t (x.val - y.val) (subWithOverflowUnsigned h x y)
+
+/-- On the modeled 64-bit target, every selected signed intrinsic multiplication has a complete report.
+Int128 has its own source method, retained separately as a full blocker; no values of an admitted width are excluded.
+Julia source: base/checked.jl:62–73,239,257–274 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+Julia documentation: base/checked.jl:5–11,233–237; doc/src/base/math.md:212–230. -/
+def ArithSignedIntrinsicMultiplicationReport : Prop :=
+  ∀ (t : IntTy) (h : t.signed = true), t ≠ .i128 → ∀ x y : JInt t,
+    ArithOverflowReport t (x.val * y.val) (mulWithOverflowSigned h x y)
+
+/-- On the modeled 64-bit target, every selected unsigned intrinsic multiplication has a complete report.
+UInt128 has its own source method; the 32-bit target's wider fallback is retained as a complete blocker.
+Julia source: base/checked.jl:62–73,240,275–281 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+Julia documentation: base/checked.jl:5–11,233–237; doc/src/base/math.md:212–230. -/
+def ArithUnsignedIntrinsicMultiplicationReport : Prop :=
+  ∀ (t : IntTy) (h : t.signed = false), t ≠ .u128 → ∀ x y : JInt t,
+    ArithOverflowReport t (x.val * y.val) (mulWithOverflowUnsigned h x y)
+
+/-- Boolean addition yields the exact native Int sum with no overflow (modeled Int=Int64).
+Julia source: base/checked.jl:138 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+Julia documentation: base/checked.jl:130–134; base/bool.jl:145–150. -/
+def ArithBooleanAdditionReport : Prop :=
+  ∀ x y : Bool,
+    let r := addWithOverflowBool x y
+    r.2 = false ∧ r.1.val - ArithBoolValue x = ArithBoolValue y ∧
+      (∀ z : Int, r.1.val ≤ z ↔ ArithBoolValue x ≤ z - ArithBoolValue y)
+
+/-- Boolean subtraction yields the exact native Int difference with no overflow (Int=Int64).
+Julia source: base/checked.jl:202 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+Julia documentation: base/checked.jl:194–198; base/bool.jl:145–150. -/
+def ArithBooleanSubtractionReport : Prop :=
+  ∀ x y : Bool,
+    let r := subWithOverflowBool x y
+    r.2 = false ∧ r.1.val + ArithBoolValue y = ArithBoolValue x ∧
+      (∀ z : Int, r.1.val ≤ z ↔ ArithBoolValue x ≤ z + ArithBoolValue y)
+
+/-- Boolean multiplication retains Boolean type and is exact, with no overflow.
+Julia source: base/checked.jl:241 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+Julia documentation: base/checked.jl:233–237; base/bool.jl:149–150. -/
+def ArithBooleanMultiplicationReport : Prop :=
+  ∀ x y : Bool,
+    let r := mulWithOverflowBool x y
+    r.2 = false ∧ ArithBoolValue r.1 = ArithBoolValue x * ArithBoolValue y
+
+/- This fixed-type binding selects the actual same-type fld overload and the actual
+unsigned division source method. It needs no Boolean correction or constructor bridge. -/
+def ArithFldU128 (x y : JInt .u128) : Jl (JInt .u128) :=
+  JuliaLean.base.div.fld_same_numeric
+    (fun a b _ => JuliaLean.base.div.div_Unsigned_Down JuliaLean.base.int.div_UInt128 a b) x y
+
+/-- All UInt128 products return a representable residue and the complete overflow flag.
+Julia source: base/checked.jl:277–280 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+Julia documentation: base/checked.jl:5–11,233–237; doc/src/base/math.md:212–230. -/
+def ArithUInt128MultiplicationReport : Prop :=
+  ∀ x y : JInt .u128,
+    match mulWithOverflowUInt128 ArithFldU128 x y with
+    | .ok r => ArithOverflowReport .u128 (x.val * y.val) r
+    | .error _ => False
+
+end Round1
 
 open JuliaLean JuliaLean.C JuliaLean.base.checked JuliaLean.base.int JuliaLean.base.bool JuliaLean.Proofs.base.int
 private instance {α : Type} [DecidableEq α] : DecidableEq (Jl α)
@@ -1136,8 +1261,8 @@ def PromotionBeforeOperation : Prop :=
   (∀ (t s : IntTy)
     (promote : JInt t → JInt s → Jl (JInt (t.promote s) × JInt (t.promote s))),
     (∀ a b, promote a b = do
-      let pa ← JInt.convert (t.promote s) a.val
-      let pb ← JInt.convert (t.promote s) b.val
+      let pa ← JInt.convert ((t.promote s).name) (t.promote s) a.val
+      let pb ← JInt.convert ((t.promote s).name) (t.promote s) b.val
       pure (pa, pb)) →
     ∀ (x : JInt t) (y : JInt s),
       if h : ((t.promote s).min ≤ x.val ∧ x.val ≤ (t.promote s).max) ∧
@@ -1536,6 +1661,146 @@ Nothing to promise: `checked_length@376`; the generic fallback returns `length(r
 -/
 
 /-! ## Registry -/
+end JuliaLean.Proofs.base.checked
+
+
+
+namespace JuliaLean.ChatGPT.Batch4.Group19
+
+open JuliaLean JuliaLean.base.checked JuliaLean.Proofs.base.checked
+open JuliaLean.Proofs.base.checked.Round1 JuliaLean.Proofs.base.int
+
+/-- A nonnegative integer is its own least symmetric upper bound. -/
+theorem checkedMagnitudeNonnegative (n : Int) (hn : 0 ≤ n) : StateMagnitude n n := by
+  refine ⟨hn, ?_⟩
+  intro bound
+  omega
+
+theorem CheckedUnsignedAbsoluteMagnitude_proven : JuliaLean.Proofs.base.checked.Round1.UnsignedAbsoluteMagnitude := by
+  intro t ht x
+  have hmin : t.min = 0 := by
+    cases t <;> simp_all [IntTy.signed, IntTy.min]
+  have hx : 0 ≤ x.val := by simpa only [hmin] using x.property.1
+  exact checkedMagnitudeNonnegative x.val hx
+
+theorem CheckedBoolAbsoluteMagnitude_proven : JuliaLean.Proofs.base.checked.Round1.BooleanAbsoluteMagnitude := by
+  intro x
+  apply checkedMagnitudeNonnegative
+  cases x <;> decide
+
+/-- Reduction modulo the word width has an explicit integer quotient witness. -/
+theorem checkedWrapResidue (t : IntTy) (n : Int) :
+    ∃ k : Int, n = wrapInt t n + k * (2 ^ t.bits : Int) := by
+  have hmod : wrapInt t n % (2 ^ t.bits : Int) = n % (2 ^ t.bits : Int) := by
+    simpa only [Int.natCast_pow, Int.ofNat_two] using wrapInt_emod_self t n
+  have hn := Int.ediv_mul_add_emod n (2 ^ t.bits : Int)
+  have hw := Int.ediv_mul_add_emod (wrapInt t n) (2 ^ t.bits : Int)
+  refine ⟨n / (2 ^ t.bits : Int) - wrapInt t n / (2 ^ t.bits : Int), ?_⟩
+  rw [Int.sub_mul]
+  omega
+
+/-- The existing intrinsic description implies the full residue and flag specification. -/
+theorem checkedIntrinsicComplete (t : IntTy) (n : Int) :
+    ArithOverflowReport t n (intrinsicResult t n) := by
+  unfold ArithOverflowReport
+  simp only [intrinsicResult, JInt.wrap]
+  refine ⟨checkedWrapResidue t n, ?_, ?_⟩
+  · by_cases hr : t.min ≤ n ∧ n ≤ t.max
+    · simp [hr, wrapInt_of_inRange t n hr]
+    · have hw : wrapInt t n ≠ n := by
+        intro he
+        have hb := wrapInt_bounds t n
+        rw [he] at hb
+        exact hr hb
+      simp [hr, hw]
+  · simp only [decide_eq_true_eq]
+    omega
+
+theorem IntarithCheckedSignedAddReport_proven : JuliaLean.Proofs.base.checked.Round1.ArithSignedAdditionReport := by
+  intro t h x y
+  rw [addWithOverflowSignedExact h x y]
+  exact checkedIntrinsicComplete t (x.val + y.val)
+
+theorem IntarithCheckedUnsignedAddReport_proven : JuliaLean.Proofs.base.checked.Round1.ArithUnsignedAdditionReport := by
+  intro t h x y
+  rw [addWithOverflowUnsignedExact h x y]
+  exact checkedIntrinsicComplete t (x.val + y.val)
+
+theorem IntarithCheckedSignedSubReport_proven : JuliaLean.Proofs.base.checked.Round1.ArithSignedSubtractionReport := by
+  intro t h x y
+  rw [subWithOverflowSignedExact h x y]
+  exact checkedIntrinsicComplete t (x.val - y.val)
+
+theorem IntarithCheckedUnsignedSubReport_proven : JuliaLean.Proofs.base.checked.Round1.ArithUnsignedSubtractionReport := by
+  intro t h x y
+  rw [subWithOverflowUnsignedExact h x y]
+  exact checkedIntrinsicComplete t (x.val - y.val)
+
+theorem IntarithCheckedSignedIntrinsicMulReport_proven : JuliaLean.Proofs.base.checked.Round1.ArithSignedIntrinsicMultiplicationReport := by
+  intro t h _ x y
+  rw [mulWithOverflowSignedExact h x y]
+  exact checkedIntrinsicComplete t (x.val * y.val)
+
+theorem IntarithCheckedUnsignedIntrinsicMulReport_proven : JuliaLean.Proofs.base.checked.Round1.ArithUnsignedIntrinsicMultiplicationReport := by
+  intro t h _ x y
+  rw [mulWithOverflowUnsignedExact h x y]
+  exact checkedIntrinsicComplete t (x.val * y.val)
+
+theorem IntarithCheckedBoolAddReport_proven : JuliaLean.Proofs.base.checked.Round1.ArithBooleanAdditionReport := by
+  intro x y
+  have hv : (addWithOverflowBool x y).1.val = ArithBoolValue x + ArithBoolValue y := by
+    cases x <;> cases y <;> decide
+  refine ⟨rfl, ?_, ?_⟩
+  · rw [hv]
+    omega
+  · intro z
+    rw [hv]
+    omega
+
+theorem IntarithCheckedBoolSubReport_proven : JuliaLean.Proofs.base.checked.Round1.ArithBooleanSubtractionReport := by
+  intro x y
+  have hv : (subWithOverflowBool x y).1.val = ArithBoolValue x - ArithBoolValue y := by
+    cases x <;> cases y <;> decide
+  refine ⟨rfl, ?_, ?_⟩
+  · rw [hv]
+    omega
+  · intro z
+    rw [hv]
+    omega
+
+theorem IntarithCheckedBoolMulReport_proven : JuliaLean.Proofs.base.checked.Round1.ArithBooleanMultiplicationReport := by
+  intro x y
+  cases x <;> cases y <;> decide
+
+/-- The source's unsigned floor-division binding agrees with the proved integer operation. -/
+theorem checkedSourceFldU128 (x y : JInt .u128) :
+    ArithFldU128 x y = JInt.fld x y := by
+  unfold ArithFldU128 JuliaLean.base.div.fld_same_numeric JuliaLean.base.div.div_Unsigned_Down
+    JuliaLean.base.int.div_UInt128
+  dsimp only
+  rw [checked_udiv_int_eq (t := .u128) rfl x y]
+  unfold JInt.fld JInt.div
+  by_cases hy : y.val = 0
+  · simp [hy, Bind.bind, Except.bind]
+  · simp [hy, IntTy.signed, Bind.bind, Except.bind, Pure.pure, Except.pure,
+      JuliaLean.base.int.lit]
+
+theorem IntarithCheckedUint128MulReport_proven : JuliaLean.Proofs.base.checked.Round1.ArithUInt128MultiplicationReport := by
+  intro x y
+  have hfld : ArithFldU128 = (JInt.fld (t := .u128)) := by
+    funext a b
+    exact checkedSourceFldU128 a b
+  have hm : mulWithOverflowUInt128 JInt.fld x y =
+      .ok (intrinsicResult .u128 (x.val * y.val)) :=
+    overflowReportsExact.2.2.2.2.2.2.2 x y
+  rw [hfld, hm]
+  exact checkedIntrinsicComplete .u128 (x.val * y.val)
+
+end JuliaLean.ChatGPT.Batch4.Group19
+
+
+namespace JuliaLean.Proofs.base.checked
+open JuliaLean.Registry
 def entries : List JuliaLean.Registry.Entry := [
   { id := "intarith-checked-add-sub-exact", juliaFile := "base/checked.jl",
     juliaFns := ["checked_add", "checked_sub", "add_with_overflow", "sub_with_overflow"],
@@ -1623,7 +1888,67 @@ def entries : List JuliaLean.Registry.Entry := [
     juliaFns := ["checked_sub same type"],
     statement := "Same-type checked subtraction returns the mathematical difference or OverflowError when it is out of range, including Bool.",
     source := "base/checked.jl:226-231", status := .proven,
-    prop := ``SubAllExact, thm := some ``subAllExact }
+    prop := ``SubAllExact, thm := some ``subAllExact },
+  { id := "checked-unsigned-absolute-magnitude", juliaFile := "base/checked.jl",
+    juliaFns := ["checked_abs(::UnsignedInt)@127"],
+    statement := "For every unsigned built-in integer width and every value, source checkedAbsUnsigned returns the nonnegative least symmetric upper bound of the input's mathematical integer value. The universal order characterization fully determines the magnitude and is independent of the identity implementation; a constant/wrong return does not satisfy it. Return type is the input JInt type, with no allocation/error branch.",
+    source := "base/checked.jl:127; documentation: base/checked.jl:108–119; doc/src/base/math.md:216", status := .proven,
+    prop := ``Round1.UnsignedAbsoluteMagnitude, thm := some ``JuliaLean.ChatGPT.Batch4.Group19.CheckedUnsignedAbsoluteMagnitude_proven },
+  { id := "checked-bool-absolute-magnitude", juliaFile := "base/checked.jl",
+    juliaFns := ["checked_abs(::Bool)@128"],
+    statement := "For both Boolean inputs, source checkedAbsBool returns a Boolean whose numeric value is the nonnegative least symmetric upper bound of the input's numeric value; universal bounds specify the complete magnitude contract without a literal identity equation or expected-result callback. The Bool result type and absence of an error branch are represented by the actual source function's type.",
+    source := "base/checked.jl:128; documentation: base/checked.jl:108–119; doc/src/base/math.md:216", status := .proven,
+    prop := ``Round1.BooleanAbsoluteMagnitude, thm := some ``JuliaLean.ChatGPT.Batch4.Group19.CheckedBoolAbsoluteMagnitude_proven },
+  { id := "intarith-checked-signed-add-report", juliaFile := "base/checked.jl",
+    juliaFns := ["add_with_overflow@136"],
+    statement := "SignedInt addition, all five widths and every pair. For fixed-width reporting, an integer quotient witnesses exact = returned value + k*2^width, false flag is equivalent to equality with the exact integer, and true flag is equivalent to being below typemin or above typemax. The result carrier supplies its representable range. No successful-result premise, selected sample operands, bounded multiplication factor, callee law or expected-answer callback. Subjects are the actual source-mirrored declarations in JuliaLean/base/checked.lean:280–301,473–494,563–584,645–681,396 as applicable, already bound to runtime_intrinsics_c arithmetic or actual Bool models.",
+    source := "base/checked.jl:136; documentation: base/checked.jl:5–11,130–134; doc/src/base/math.md:212–230", status := .proven,
+    prop := ``Round1.ArithSignedAdditionReport, thm := some ``JuliaLean.ChatGPT.Batch4.Group19.IntarithCheckedSignedAddReport_proven },
+  { id := "intarith-checked-unsigned-add-report", juliaFile := "base/checked.jl",
+    juliaFns := ["add_with_overflow@137"],
+    statement := "UnsignedInt addition, all five widths and every pair. For fixed-width reporting, an integer quotient witnesses exact = returned value + k*2^width, false flag is equivalent to equality with the exact integer, and true flag is equivalent to being below typemin or above typemax. The result carrier supplies its representable range. No successful-result premise, selected sample operands, bounded multiplication factor, callee law or expected-answer callback. Subjects are the actual source-mirrored declarations in JuliaLean/base/checked.lean:280–301,473–494,563–584,645–681,396 as applicable, already bound to runtime_intrinsics_c arithmetic or actual Bool models.",
+    source := "base/checked.jl:137; documentation: base/checked.jl:5–11,130–134; doc/src/base/math.md:212–230", status := .proven,
+    prop := ``Round1.ArithUnsignedAdditionReport, thm := some ``JuliaLean.ChatGPT.Batch4.Group19.IntarithCheckedUnsignedAddReport_proven },
+  { id := "intarith-checked-signed-sub-report", juliaFile := "base/checked.jl",
+    juliaFns := ["sub_with_overflow@200"],
+    statement := "SignedInt subtraction, all five widths and every pair. For fixed-width reporting, an integer quotient witnesses exact = returned value + k*2^width, false flag is equivalent to equality with the exact integer, and true flag is equivalent to being below typemin or above typemax. The result carrier supplies its representable range. No successful-result premise, selected sample operands, bounded multiplication factor, callee law or expected-answer callback. Subjects are the actual source-mirrored declarations in JuliaLean/base/checked.lean:280–301,473–494,563–584,645–681,396 as applicable, already bound to runtime_intrinsics_c arithmetic or actual Bool models.",
+    source := "base/checked.jl:200; documentation: base/checked.jl:5–11,194–198; doc/src/base/math.md:212–230", status := .proven,
+    prop := ``Round1.ArithSignedSubtractionReport, thm := some ``JuliaLean.ChatGPT.Batch4.Group19.IntarithCheckedSignedSubReport_proven },
+  { id := "intarith-checked-unsigned-sub-report", juliaFile := "base/checked.jl",
+    juliaFns := ["sub_with_overflow@201"],
+    statement := "UnsignedInt subtraction, all five widths and every pair. For fixed-width reporting, an integer quotient witnesses exact = returned value + k*2^width, false flag is equivalent to equality with the exact integer, and true flag is equivalent to being below typemin or above typemax. The result carrier supplies its representable range. No successful-result premise, selected sample operands, bounded multiplication factor, callee law or expected-answer callback. Subjects are the actual source-mirrored declarations in JuliaLean/base/checked.lean:280–301,473–494,563–584,645–681,396 as applicable, already bound to runtime_intrinsics_c arithmetic or actual Bool models.",
+    source := "base/checked.jl:201; documentation: base/checked.jl:5–11,194–198; doc/src/base/math.md:212–230", status := .proven,
+    prop := ``Round1.ArithUnsignedSubtractionReport, thm := some ``JuliaLean.ChatGPT.Batch4.Group19.IntarithCheckedUnsignedSubReport_proven },
+  { id := "intarith-checked-signed-intrinsic-mul-report", juliaFile := "base/checked.jl",
+    juliaFns := ["mul_with_overflow@239"],
+    statement := "Signed intrinsic multiplication for every actually selected Int8/16/32/64 pair on the modeled 64-bit target. For fixed-width reporting, an integer quotient witnesses exact = returned value + k*2^width, false flag is equivalent to equality with the exact integer, and true flag is equivalent to being below typemin or above typemax. The result carrier supplies its representable range. No successful-result premise, selected sample operands, bounded multiplication factor, callee law or expected-answer callback. Subjects are the actual source-mirrored declarations in JuliaLean/base/checked.lean:280–301,473–494,563–584,645–681,396 as applicable, already bound to runtime_intrinsics_c arithmetic or actual Bool models. The Lean native-Int architecture is explicitly 64-bit (base/int.lean:8 and checked.lean:144–145,300,396,493); the separate complete architecture-dispatch blocker retains 32-bit selection/native result types. The excluded128-bit type is selected by its more-specific source method, with a complete all-input contract (signed blocked, unsigned stated), not an accuracy/domain restriction.",
+    source := "base/checked.jl:62–73,239,257–274; documentation: base/checked.jl:5–11,233–237; doc/src/base/math.md:212–230", status := .proven,
+    prop := ``Round1.ArithSignedIntrinsicMultiplicationReport, thm := some ``JuliaLean.ChatGPT.Batch4.Group19.IntarithCheckedSignedIntrinsicMulReport_proven },
+  { id := "intarith-checked-unsigned-intrinsic-mul-report", juliaFile := "base/checked.jl",
+    juliaFns := ["mul_with_overflow@240"],
+    statement := "Unsigned intrinsic multiplication for every actually selected UInt8/16/32/64 pair on the modeled 64-bit target. For fixed-width reporting, an integer quotient witnesses exact = returned value + k*2^width, false flag is equivalent to equality with the exact integer, and true flag is equivalent to being below typemin or above typemax. The result carrier supplies its representable range. No successful-result premise, selected sample operands, bounded multiplication factor, callee law or expected-answer callback. Subjects are the actual source-mirrored declarations in JuliaLean/base/checked.lean:280–301,473–494,563–584,645–681,396 as applicable, already bound to runtime_intrinsics_c arithmetic or actual Bool models. The Lean native-Int architecture is explicitly 64-bit (base/int.lean:8 and checked.lean:144–145,300,396,493); the separate complete architecture-dispatch blocker retains 32-bit selection/native result types. The excluded128-bit type is selected by its more-specific source method, with a complete all-input contract (signed blocked, unsigned stated), not an accuracy/domain restriction.",
+    source := "base/checked.jl:62–73,240,275–281; documentation: base/checked.jl:5–11,233–237; doc/src/base/math.md:212–230", status := .proven,
+    prop := ``Round1.ArithUnsignedIntrinsicMultiplicationReport, thm := some ``JuliaLean.ChatGPT.Batch4.Group19.IntarithCheckedUnsignedIntrinsicMulReport_proven },
+  { id := "intarith-checked-bool-add-report", juliaFile := "base/checked.jl",
+    juliaFns := ["add_with_overflow@138"],
+    statement := "All Boolean pairs produce the exact native Int sum and false overflow flag; cancellation and all integer order cuts independently characterize the value. For fixed-width reporting, an integer quotient witnesses exact = returned value + k*2^width, false flag is equivalent to equality with the exact integer, and true flag is equivalent to being below typemin or above typemax. The result carrier supplies its representable range. No successful-result premise, selected sample operands, bounded multiplication factor, callee law or expected-answer callback. Subjects are the actual source-mirrored declarations in JuliaLean/base/checked.lean:280–301,473–494,563–584,645–681,396 as applicable, already bound to runtime_intrinsics_c arithmetic or actual Bool models. The Lean native-Int architecture is explicitly 64-bit (base/int.lean:8 and checked.lean:144–145,300,396,493); the separate complete architecture-dispatch blocker retains 32-bit selection/native result types.",
+    source := "base/checked.jl:138; documentation: base/checked.jl:130–134; base/bool.jl:145–150", status := .proven,
+    prop := ``Round1.ArithBooleanAdditionReport, thm := some ``JuliaLean.ChatGPT.Batch4.Group19.IntarithCheckedBoolAddReport_proven },
+  { id := "intarith-checked-bool-sub-report", juliaFile := "base/checked.jl",
+    juliaFns := ["sub_with_overflow@202"],
+    statement := "All Boolean pairs produce the exact native Int difference and false overflow flag; cancellation and all integer order cuts independently characterize the value. For fixed-width reporting, an integer quotient witnesses exact = returned value + k*2^width, false flag is equivalent to equality with the exact integer, and true flag is equivalent to being below typemin or above typemax. The result carrier supplies its representable range. No successful-result premise, selected sample operands, bounded multiplication factor, callee law or expected-answer callback. Subjects are the actual source-mirrored declarations in JuliaLean/base/checked.lean:280–301,473–494,563–584,645–681,396 as applicable, already bound to runtime_intrinsics_c arithmetic or actual Bool models. The Lean native-Int architecture is explicitly 64-bit (base/int.lean:8 and checked.lean:144–145,300,396,493); the separate complete architecture-dispatch blocker retains 32-bit selection/native result types.",
+    source := "base/checked.jl:202; documentation: base/checked.jl:194–198; base/bool.jl:145–150", status := .proven,
+    prop := ``Round1.ArithBooleanSubtractionReport, thm := some ``JuliaLean.ChatGPT.Batch4.Group19.IntarithCheckedBoolSubReport_proven },
+  { id := "intarith-checked-bool-mul-report", juliaFile := "base/checked.jl",
+    juliaFns := ["mul_with_overflow@241"],
+    statement := "All Boolean pairs produce the Boolean exact product, with false overflow flag. For fixed-width reporting, an integer quotient witnesses exact = returned value + k*2^width, false flag is equivalent to equality with the exact integer, and true flag is equivalent to being below typemin or above typemax. The result carrier supplies its representable range. No successful-result premise, selected sample operands, bounded multiplication factor, callee law or expected-answer callback. Subjects are the actual source-mirrored declarations in JuliaLean/base/checked.lean:280–301,473–494,563–584,645–681,396 as applicable, already bound to runtime_intrinsics_c arithmetic or actual Bool models.",
+    source := "base/checked.jl:241; documentation: base/checked.jl:233–237; base/bool.jl:149–150", status := .proven,
+    prop := ``Round1.ArithBooleanMultiplicationReport, thm := some ``JuliaLean.ChatGPT.Batch4.Group19.IntarithCheckedBoolMulReport_proven },
+  { id := "intarith-checked-uint128-mul-report", juliaFile := "base/checked.jl",
+    juliaFns := ["mul_with_overflow@277"],
+    statement := "All UInt128 pairs, including zero and maximal values, return a complete exact-residue/overflow report without an unexpected error. For fixed-width reporting, an integer quotient witnesses exact = returned value + k*2^width, false flag is equivalent to equality with the exact integer, and true flag is equivalent to being below typemin or above typemax. The result carrier supplies its representable range. No successful-result premise, selected sample operands, bounded multiplication factor, callee law or expected-answer callback. Subjects are the actual source-mirrored declarations in JuliaLean/base/checked.lean:280–301,473–494,563–584,645–681,396 as applicable, already bound to runtime_intrinsics_c arithmetic or actual Bool models. The floor-division binding uses actual base/div.lean:fld_same_numeric564–565,div_Unsigned_Down680 and base/int.lean:div_UInt1281763; no Boolean correction, copied constructor/promotion bridge or JInt.fld adapter. The Lean native-Int architecture is explicitly 64-bit (base/int.lean:8 and checked.lean:144–145,300,396,493); the separate complete architecture-dispatch blocker retains 32-bit selection/native result types.",
+    source := "base/checked.jl:277–280; documentation: base/checked.jl:5–11,233–237; doc/src/base/math.md:212–230", status := .proven,
+    prop := ``Round1.ArithUInt128MultiplicationReport, thm := some ``JuliaLean.ChatGPT.Batch4.Group19.IntarithCheckedUint128MulReport_proven }
 ]
 
 end JuliaLean.Proofs.base.checked

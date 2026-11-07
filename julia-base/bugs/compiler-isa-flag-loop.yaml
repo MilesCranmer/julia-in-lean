@@ -77,3 +77,9 @@ duplicates:
 lean:
   property: ""
   theorem: ""
+  notes: |
+    Blocked: there is no installed compiler inference model or registry entry for
+    Conditional validity, ssadef reaching definitions, or loop back-edge slot
+    refinement. RuntimeCov.BaseCompiler models bootstrap wrappers only. A
+    source-mirrored inference model must connect the two-iteration reproducer
+    to its inferred false result before a model-backed property can be registered.

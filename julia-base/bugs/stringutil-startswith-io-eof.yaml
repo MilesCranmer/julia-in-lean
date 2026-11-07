@@ -46,7 +46,9 @@ possible_fix: |
 duplicates:
   issues: 
     - {number: 40616, state: closed, relation: related}
+  prs:
+    - {number: 43055, state: merged, relation: related}
   queries: ["issues: startswith IO", "issues: startswith IOBuffer", "issues: startswith EOFError", "prs: startswith EOFError"]
 lean:
-  property: JuliaLean.StringUtil.StartswithIoEof
-  theorem: JuliaLean.StringUtil.startswithIoEof_refuted
+  property: JuliaLean.Proofs.base.strings.util.Round6.StartswithIoEof
+  theorem: JuliaLean.Proofs.base.strings.util.Round6.startswithIoEof_refuted

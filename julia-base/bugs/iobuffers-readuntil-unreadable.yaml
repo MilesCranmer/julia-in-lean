@@ -42,7 +42,14 @@ possible_fix: |
   Add `io.readable || _throw_not_readable()` at the start of both methods.
 duplicates:
   issues: []
-  queries: ["IOBuffer not readable readline", "readuntil not readable IOBuffer", "_throw_not_readable", "IOBuffer readable readline", "readuntil readable"]
+  prs:
+    - number: 64310
+      state: open
+      relation: duplicate
+      note: "Exact readuntil/readline permission defect and proposed fix; opened and inspected."
+  queries:
+    - "gh search issues readuntil readable --repo JuliaLang/julia --limit 100 --json number,title,state,url"
+    - "gh search prs readuntil readable --repo JuliaLang/julia --limit 100 --json number,title,state,url"
 lean:
-  property: JuliaLean.IOBuffers.ReadUntilUnreadable
-  theorem: JuliaLean.IOBuffers.readUntilUnreadable_refuted
+  property: JuliaLean.Proofs.base.iobuffer.ReadUntilUnreadable
+  theorem: JuliaLean.ChatGPT.Batch6.Group1.IobuffersReaduntilUnreadable_refuted

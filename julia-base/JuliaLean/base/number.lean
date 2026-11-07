@@ -1,4 +1,5 @@
 import JuliaLean.Core
+import JuliaLean.base.operators
 
 /-!
 # Model of `base/number.jl`
@@ -622,3 +623,275 @@ def bigBottom {α β : Type} (constructBottom : Int → Jl α) (_slurp : List β
   constructBottom 0
 
 end JuliaLean.base.number
+
+namespace JuliaLean.NumbersCov
+
+open JuliaLean
+
+structure GenericOps (α : Type) where
+  eq : α → α → Bool
+  lt : α → α → Bool
+  le : α → α → Bool
+  zero : α → α
+  one : α → α
+  oneunit : α → α
+  castOneType : α → α
+  convertZero : α → α
+  convertOne : α → α
+  neg : α → α
+  pos : α → α
+  add : α → α → α
+  sub : α → α → α
+  mul : α → α → α
+  div : α → α → α
+  rem : α → α → α
+  mod : α → α → α
+  pow : α → α → α
+  powInt : α → Int → α
+  widen : α → α
+  atan2 : α → α → α
+  isfinite : α → Bool
+  isnan : α → Bool
+  isinf : α → Bool
+
+namespace NumberModel
+
+/-- `convert(::Type{T}, x::T) = x`; `base/number.jl:6`. -/
+def convertSame (x : α) : α := x
+
+/-- `convert(::Type{T}, x::Number) = T(x)::T`; `base/number.jl:7`. -/
+def convertNumber (convert : α → β) (x : α) : β := convert x
+
+/-- `isinteger(x::Integer) = true`; `base/number.jl:22`. -/
+def isintegerInteger (_ : Int) : Bool := true
+
+/-- `isfinite(x::Number) = iszero(x-x)`; `base/number.jl:84`. -/
+def isfiniteNumber (o : GenericOps α) (x : α) : Bool := o.eq (o.sub x x) (o.zero x)
+
+/-- Scalar `size`; `base/number.jl:86`. -/
+def size (_ : α) : List Nat := []
+
+/-- Scalar `size(x,d)`; `base/number.jl:87`. -/
+def sizeDim (_ : α) (d : Int) : Jl Nat := if d < 1 then .error .boundsError else .ok 1
+
+/-- Scalar `axes`; `base/number.jl:88`. -/
+def axes (_ : α) : List (Nat × Nat) := []
+
+/-- Scalar `axes(x,d)`; `base/number.jl:89`. -/
+def axesDim (_ : α) (d : Int) : Jl (Nat × Nat) :=
+  if d < 1 then .error .boundsError else .ok (1, 1)
+
+/-- `eltype(::Type{T}) = T`, represented by its type tag; `base/number.jl:90`. -/
+def eltype (tag : α) : α := tag
+
+/-- Both scalar `ndims` methods; `base/number.jl:91-92`. -/
+def ndims (_ : α) : Nat := 0
+
+/-- Scalar length and first/last index; `base/number.jl:93-97`. -/
+def length (_ : α) : Nat := 1
+def firstindex (_ : α) : Nat := 1
+def lastindex (_ : α) : Nat := 1
+def indexDim (d : Int) : Jl Nat := if d < 1 then .error .boundsError else .ok 1
+
+/-- `IteratorSize(::Type{<:Number}) = HasShape{0}()`; encoded as rank zero;
+`base/number.jl:98`. -/
+def iteratorRank (_ : α) : Nat := 0
+
+/-- `keys(::Number) = OneTo(1)`; `base/number.jl:99`. -/
+def keys (_ : α) : List Nat := [1]
+
+/-- Zero-argument scalar indexing; `base/number.jl:101`. -/
+def getindex0 (x : α) : α := x
+
+/-- Checked scalar indexing; `base/number.jl:102-111`. -/
+def getindex1 (x : α) (i : Int) : Jl α := if i = 1 then .ok x else .error .boundsError
+def getindexMany (x : α) (is : List Int) : Jl α :=
+  if is.all (· = 1) then .ok x else .error .boundsError
+
+/-- Nonthrowing scalar `get`; `base/number.jl:112-115`. -/
+def get1 (x default : α) (i : Int) : α := if i = 1 then x else default
+def getMany (x default : α) (is : List Int) : α := if is.all (· = 1) then x else default
+def getThunk1 (f : Unit → α) (x : α) (i : Int) : α := if i = 1 then x else f ()
+def getThunkMany (f : Unit → α) (x : α) (is : List Int) : α :=
+  if is.all (· = 1) then x else f ()
+
+/-- `first`, `last`, and `copy` on numbers; `base/number.jl:117-119`. -/
+def identityNumber (x : α) : α := x
+
+/-- Sign predicates; `base/number.jl:143,165,187`. -/
+def signbit (o : GenericOps α) (x : α) : Bool := o.lt x (o.zero x)
+def ispositive (o : GenericOps α) (x : α) : Bool := o.lt (o.zero x) x
+def isnegative (o : GenericOps α) (x : α) : Bool := o.lt x (o.zero x)
+
+/-- Generic and Real `sign`; `base/number.jl:211-213`. -/
+def signNumber (o : GenericOps α) (x : α) : α :=
+  if o.eq x (o.zero x) then
+    o.div x (if signbit o (o.oneunit x) then o.neg (o.oneunit x) else o.oneunit x)
+  else o.div x (if signbit o x then o.neg x else x)
+
+def signReal (o : GenericOps α) (x : α) : α :=
+  if o.lt x (o.zero x) then o.neg (o.one x)
+  else if o.lt (o.zero x) x then o.one x else o.castOneType x
+
+def signUnsigned (o : GenericOps α) (x : α) : α :=
+  if o.lt (o.zero x) x then o.one x else o.zero x
+
+/-- `abs`, `abs2`, `flipsign`, and `copysign`; `base/number.jl:214,238-271`. -/
+def abs (o : GenericOps α) (x : α) : α := if signbit o x then o.neg x else x
+def abs2Number (o : GenericOps α) (x : α) : α := o.powInt (abs o x) 2
+def abs2Real (o : GenericOps α) (x : α) : α := o.mul x x
+def flipsign (o : GenericOps α) (x y : α) : α := if signbit o y then o.neg x else o.pos x
+def copysign (o : GenericOps α) (x y : α) : α :=
+  if signbit o x != signbit o y then o.neg x else o.pos x
+
+/-- `conj`, `transpose`, `adjoint`, and real `angle`; `base/number.jl:273-276`. -/
+def conj (x : α) : α := x
+def transpose (x : α) : α := x
+def adjoint (x : α) : α := conj x
+def angle (o : GenericOps α) (x : α) : α := o.atan2 (o.zero x) x
+
+/-- `widemul`; `base/number.jl:327`. -/
+def widemul (o : GenericOps α) (x y : α) : α := o.mul (o.widen x) (o.widen y)
+
+/-- Scalar iteration and membership; `base/number.jl:329-334`. -/
+def iterate (x : α) : Option (α × Unit) := some (x, ())
+def iterateNext (_ : α) (_ : Unit) : Option (α × Unit) := none
+def isempty (_ : α) : Bool := false
+def mem (o : GenericOps α) (x y : α) : Bool := o.eq x y
+def map (f : List α → β) (x : α) (ys : List α) : β := f (x :: ys)
+
+/-- Generic zero/one/oneunit methods; `base/number.jl:363-432`. -/
+def zeroValue (o : GenericOps α) (x : α) : α := o.convertZero x
+def zeroType (convert : Int → α) : α := convert 0
+def oneType (convert : Int → α) : α := convert 1
+def oneValue (oneType : Unit → α) (_ : α) : α := oneType ()
+def oneunitValue (cast : α → α) (one : α) : α := cast one
+def oneunitType (cast : α → α) (one : α) : α := cast one
+
+/-- `big(::Type{T}) = typeof(big(zero(T)))`; represented by composing the
+three observable operations; `base/number.jl:452`. -/
+def bigType (zero : α → β) (big : β → γ) (typeOf : γ → δ) (t : α) : δ :=
+  typeOf (big (zero t))
+
+/-- `Union{}(value)` in the zero, one, oneunit, and big fallbacks;
+`base/number.jl:365,407,432,453`. Core rejects construction of Bottom. -/
+def bottomCall (fn : String) : Jl α := .error (.argumentError fn)
+
+end NumberModel
+
+end JuliaLean.NumbersCov
+
+namespace JuliaLean.NumbersCov.Rows.Number
+
+open JuliaLean JuliaLean.NumbersCov
+open JuliaLean.NumbersCov.Rows
+
+def m6 (x : α) : α := NumberModel.convertSame x
+def m7 (convert : α → β) (x : α) : β := NumberModel.convertNumber convert x
+def m22 (x : Int) : Bool := NumberModel.isintegerInteger x
+def m84 (o : GenericOps α) (x : α) : Bool := NumberModel.isfiniteNumber o x
+def m86 (x : α) := NumberModel.size x
+def m87 (x : α) (d : Int) := NumberModel.sizeDim x d
+def m88 (x : α) := NumberModel.axes x
+def m89 (x : α) (d : Int) := NumberModel.axesDim x d
+def m90 (tag : α) := NumberModel.eltype tag
+def m91 (x : α) := NumberModel.ndims x
+def m92 (tag : α) := NumberModel.ndims tag
+def m93 (x : α) := NumberModel.length x
+def m94 (x : α) := NumberModel.firstindex x
+def m95 (_x : α) (d : Int) := NumberModel.indexDim d
+def m96 (x : α) := NumberModel.lastindex x
+def m97 (_x : α) (d : Int) := NumberModel.indexDim d
+def m98 (tag : α) := NumberModel.iteratorRank tag
+def m99 (x : α) := NumberModel.keys x
+def m101 (x : α) := NumberModel.getindex0 x
+def m102 (x : α) (i : Int) := NumberModel.getindex1 x i
+def m107 (x : α) (is : List Int) := NumberModel.getindexMany x is
+def m112 (x default : α) (i : Int) := NumberModel.get1 x default i
+def m113 (x default : α) (is : List Int) := NumberModel.getMany x default is
+def m114 (f : Unit → α) (x : α) (i : Int) := NumberModel.getThunk1 f x i
+def m115 (f : Unit → α) (x : α) (is : List Int) := NumberModel.getThunkMany f x is
+def m117 (x : α) := NumberModel.identityNumber x
+def m118 := @m117
+def m119 := @m117
+def m165 (o : GenericOps α) (x : α) := NumberModel.ispositive o x
+def m187 (o : GenericOps α) (x : α) := NumberModel.isnegative o x
+def m211 (o : GenericOps α) (x : α) := NumberModel.signNumber o x
+def m212 (o : GenericOps α) (x : α) := NumberModel.signReal o x
+def m213 (o : GenericOps α) (x : α) := NumberModel.signUnsigned o x
+def m238 (o : GenericOps α) (x : α) := NumberModel.abs2Number o x
+def m239 (o : GenericOps α) (x : α) := NumberModel.abs2Real o x
+def m255 (o : GenericOps α) (x y : α) := NumberModel.flipsign o x y
+def m271 (o : GenericOps α) (x y : α) := NumberModel.copysign o x y
+def m273 (x : α) := NumberModel.conj x
+def m274 (x : α) := NumberModel.transpose x
+def m275 (x : α) := NumberModel.adjoint x
+def m276 (o : GenericOps α) (x : α) := NumberModel.angle o x
+def m327 (o : GenericOps α) (x y : α) := NumberModel.widemul o x y
+def m329 (x : α) := NumberModel.iterate x
+def m330 (x : α) (state : Unit) := NumberModel.iterateNext x state
+def m331 (x : α) := NumberModel.isempty x
+def m332 (o : GenericOps α) (x y : α) := NumberModel.mem o x y
+def m334 (f : List α → β) (x : α) (ys : List α) := NumberModel.map f x ys
+def m363 (o : GenericOps α) (x : α) := NumberModel.zeroValue o x
+def m364 (convert : Int → α) := NumberModel.zeroType convert
+def m365 (fn : String) : Jl α := NumberModel.bottomCall fn
+def m405 (convert : Int → α) := NumberModel.oneType convert
+def m406 (oneType : Unit → α) (x : α) := NumberModel.oneValue oneType x
+def m407 := @m365
+def m430 (cast : α → α) (one : α) := NumberModel.oneunitValue cast one
+def m431 (cast : α → α) (one : α) := NumberModel.oneunitType cast one
+def m432 := @m365
+def m452 (zero : α → β) (big : β → γ) (typeOf : γ → δ) (t : α) :=
+  NumberModel.bigType zero big typeOf t
+def m453 := @m365
+
+end JuliaLean.NumbersCov.Rows.Number
+
+namespace JuliaLean.HashOps
+
+def iszeroFallback (o : FallbackOps α) (x : α) : Bool := o.eq x (o.zero x)
+def isoneFallback (o : FallbackOps α) (x : α) : Bool := o.eq x (o.one x)
+def signbitFallback (o : FallbackOps α) (x : α) : Bool := o.lt x (o.zero x)
+def absFallback (o : FallbackOps α) (x : α) : α := if signbitFallback o x then o.neg x else x
+def signFallback (o : FallbackOps α) (x : α) : α :=
+  if o.lt x (o.zero x) then o.neg (o.one x)
+  else if o.lt (o.zero x) x then o.one x else x
+def zeroFallback (o : FallbackOps α) (x : α) : α := o.zero x
+def oneFallback (o : FallbackOps α) (x : α) : α := o.one x
+def oneunitFallback (o : FallbackOps α) (x : α) : α := o.castOne (o.one x)
+def muladdFallback (o : FallbackOps α) (x y z : α) : α := o.add (o.mul x y) z
+def invFallback (o : FallbackOps α) (x : α) : α := o.div (o.one x) x
+
+end JuliaLean.HashOps
+
+namespace JuliaLean.MathFuncs
+
+open JuliaLean.Float
+
+/-- `sign(x::Real)` for Float64; `base/number.jl:212`. -/
+def signF (x : F64) : F64 :=
+  if F64.lt x F64.zero then lit 0xbff0000000000000
+  else if F64.lt F64.zero x then F64.one
+  else x
+
+end JuliaLean.MathFuncs
+
+namespace JuliaLean.MathFuncs
+
+open JuliaLean.Float
+
+/-- Binary32 `inv(x) = one(x)/x`, `base/number.jl:269` and `base/float.jl:490`. -/
+def inv32 (x : F32) : F32 := toF32 (F64.div F64.one (ofF32 x))
+
+end JuliaLean.MathFuncs
+
+namespace JuliaLean.MathCov.Trig
+
+open JuliaLean JuliaLean.Promotion JuliaLean.MathCov.FP
+
+/-- `sign(x)` for a float. -/
+def signF {T : FTy} (x : FV T) : FV T :=
+  if x.isnan || x.iszero then x else copysign (one T) x
+
+end JuliaLean.MathCov.Trig

@@ -1,7 +1,7 @@
 file	line	endline	name	signature	status	entry	note
 base/iobuffer.jl	96	107	_new_generic_iobuffer	_new_generic_iobuffer( ::Type{T}, data::T, readable::Bool, writable::Bool, seekable::Bool, append::Bool, maxsize::Int, ) where T<:AbstractVector{UInt8}	modelled	iocov-iobuffer-new	
-base/iobuffer.jl	110	130	GenericIOBuffer{T}	GenericIOBuffer{T}( data::T, readable::Bool, writable::Bool, seekable::Bool, append::Bool, maxsize::Integer, truncate::Bool, ) where T<:AbstractVector{UInt8}	modelled	iocov-iobuffer-generic-constructors	
-base/iobuffer.jl	134	137	GenericIOBuffer	GenericIOBuffer(data::T, readable::Bool, writable::Bool, seekable::Bool, append::Bool, maxsize::Integer, truncate::Bool) where T<:AbstractVector{UInt8}	modelled	iocov-iobuffer-generic-constructors	
+base/iobuffer.jl	110	130	GenericIOBuffer{T}	GenericIOBuffer{T}( data::T, readable::Bool, writable::Bool, seekable::Bool, append::Bool, maxsize::Integer, truncate::Bool, ) where T<:AbstractVector{UInt8}	todo		
+base/iobuffer.jl	134	137	GenericIOBuffer	GenericIOBuffer(data::T, readable::Bool, writable::Bool, seekable::Bool, append::Bool, maxsize::Integer, truncate::Bool) where T<:AbstractVector{UInt8}	todo		
 base/iobuffer.jl	141	161	GenericIOBuffer	GenericIOBuffer(data::Vector{UInt8}, readable::Bool, writable::Bool, seekable::Bool, append::Bool, maxsize::Integer, truncate::Bool)	modelled	iocov-iobuffer-vector-constructor	
 base/iobuffer.jl	163	163	get_offset	get_offset(io::GenericIOBuffer)	modelled	iocov-iobuffer-offset-accessors	
 base/iobuffer.jl	164	164	get_compacted	get_compacted(io::GenericIOBuffer)	modelled	iocov-iobuffer-offset-accessors	
@@ -14,7 +14,7 @@ base/iobuffer.jl	286	286	PipeBuffer	PipeBuffer(maxsize::Integer)	modelled	iobuff
 base/iobuffer.jl	289	294	_truncated_pipebuffer	_truncated_pipebuffer(data::AbstractVector{UInt8}=Memory{UInt8}(); maxsize::Int = typemax(Int))	modelled	iocov-iobuffer-truncated-pipe	
 base/iobuffer.jl	296	296	_similar_data	_similar_data(b::GenericIOBuffer, len::Int)	modelled	iobuffers-view-grow	
 base/iobuffer.jl	297	297	_similar_data	_similar_data(b::IOBuffer, len::Int)	modelled	iocov-iobuffer-similar-data	
-base/iobuffer.jl	302	332	copy	copy(b::GenericIOBuffer{T}) where T	modelled	iocov-iobuffer-copy	
+base/iobuffer.jl	302	332	copy	copy(b::GenericIOBuffer{T}) where T	todo		
 base/iobuffer.jl	334	342	show	show(io::IO, b::GenericIOBuffer)	modelled	iocov-iobuffer-show-compacted,iocov-iobuffer-show	
 base/iobuffer.jl	344	347	_throw_not_readable	_throw_not_readable()	modelled	iocov-iobuffer-not-readable	
 base/iobuffer.jl	349	359	unsafe_read	unsafe_read(from::GenericIOBuffer, p::Ptr{UInt8}, nb::UInt)	modelled	iobuffers-no-out-of-bounds	

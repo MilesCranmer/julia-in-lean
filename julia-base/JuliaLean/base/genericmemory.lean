@@ -329,9 +329,11 @@ end
 ```
 -/
 def unsafeCopytoGenericRefs {m : Type → Type} [Monad m]
-    {M P TD TS VS N I Ptr Token : Type}
+    {M P TD TS VS Converted N I Ptr Token : Type}
     (destOps : MemoryAccessOps m M P TD VS) (srcOps : MemoryAccessOps m M P TS VS)
-    (copy : MemoryCopyOps m M P I64 I64 N I Ptr Token) (boundsChecking : Bool)
+    (copy : MemoryCopyOps m M P I64 I64 N I Ptr Token)
+    (convert : VS → m Converted) (typeassert : Converted → m TD)
+    (boundsChecking : Bool)
     (memoryrefoffset : GenericMemoryRef M P → I64)
     (sameElementType : Decidable (TD = TS)) (dest src : GenericMemoryRef M P) (n : N) : m (GenericMemoryRef M P) := do
   if copy.isZero n then return dest
@@ -344,7 +346,7 @@ def unsafeCopytoGenericRefs {m : Type → Type} [Monad m]
         (memoryrefoffset dest) src.mem (memoryrefoffset src) n
       return dest
   | isFalse _ =>
-      let _ ← unsafeCopytoMemoryFallback destOps srcOps copy dest.mem
+      let _ ← unsafeCopytoMemoryFallback destOps srcOps copy convert typeassert dest.mem
         (memoryrefoffset dest) src.mem (memoryrefoffset src) n
       return dest
 
@@ -400,9 +402,10 @@ end
 ```
 -/
 def unsafeCopytoMemoryFallback {m : Type → Type} [Monad m]
-    {M P TD TS VS D S N I Ptr Token : Type}
+    {M P TD TS VS Converted D S N I Ptr Token : Type}
     (destOps : MemoryAccessOps m M P TD VS) (srcOps : MemoryAccessOps m M P TS VS)
     (copy : MemoryCopyOps m M P D S N I Ptr Token)
+    (convert : VS → m Converted) (typeassert : Converted → m TD)
     (dest : M) (doffs : D) (src : M) (soffs : S) (n : N) : m M := do
   if copy.isZero n then return dest
   let destp ← copy.pointerDest dest doffs
@@ -415,7 +418,7 @@ def unsafeCopytoMemoryFallback {m : Type → Type} [Monad m]
       if ← isassignedMemory srcOps false src sourceIndex then
         let destIndex ← copy.destIndex doffs i
         let value ← srcOps.getindex src sourceIndex
-        let _ ← setindexMemory destOps false dest value destIndex
+        let _ ← setindexMemory destOps convert typeassert false dest value destIndex
       else
         let destIndex ← copy.destIndex doffs i
         let _ ← unsetindexMemoryInt destOps false dest destIndex
@@ -425,7 +428,7 @@ def unsafeCopytoMemoryFallback {m : Type → Type} [Monad m]
       if ← isassignedMemory srcOps false src sourceIndex then
         let destIndex ← copy.destIndex doffs i
         let value ← srcOps.getindex src sourceIndex
-        let _ ← setindexMemory destOps false dest value destIndex
+        let _ ← setindexMemory destOps convert typeassert false dest value destIndex
       else
         let destIndex ← copy.destIndex doffs i
         let _ ← unsetindexMemoryInt destOps false dest destIndex
@@ -670,10 +673,13 @@ function setindex!(A::Memory{T}, x, i1::Int) where {T}
 end
 ```
 -/
-def setindexMemory {m : Type → Type} [Monad m] {M P T V : Type}
-    (ops : MemoryAccessOps m M P T V) (boundsChecking : Bool)
-    (A : M) (x : V) (i1 : I64) : m M := do
-  let val ← match ops.castElement x with | some v => pure v | none => ops.convertElement x
+def setindexMemory {m : Type → Type} [Monad m] {M P T V Converted : Type}
+    (ops : MemoryAccessOps m M P T V)
+    (convert : V → m Converted) (typeassert : Converted → m T)
+    (boundsChecking : Bool) (A : M) (x : V) (i1 : I64) : m M := do
+  let val ← match ops.castElement x with
+    | some v => pure v
+    | none => typeassert (← convert x)
   setindexMemoryRaw ops boundsChecking A val i1
 
 /--
@@ -686,13 +692,14 @@ function setindex!(A::Memory{T}, x, i1::Int, i2::Int, I::Int...) where {T}
 end
 ```
 -/
-def setindexMemoryCartesian {m : Type → Type} [Monad m] {M P T V : Type}
-    (ops : MemoryAccessOps m M P T V) (boundsChecking : Bool)
+def setindexMemoryCartesian {m : Type → Type} [Monad m] {M P T V Converted : Type}
+    (ops : MemoryAccessOps m M P T V)
+    (convert : V → m Converted) (typeassert : Converted → m T)
     (throwBounds : M → I64 → I64 → List I64 → m Unit)
-    (A : M) (x : V) (i1 i2 : I64) (I : List I64) : m M := do
+    (boundsChecking : Bool) (A : M) (x : V) (i1 i2 : I64) (I : List I64) : m M := do
   if boundsChecking && !(i2 == 1 && I.all (fun i => i == 1)) then
     throwBounds A i1 i2 I
-  setindexMemory ops boundsChecking A x i1
+  setindexMemory ops convert typeassert boundsChecking A x i1
 
 /--
 Julia source: base/genericmemory.jl:346-355 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -1023,3 +1030,71 @@ def replaceindexAtomic {m : Type → Type} [Monad m] {M P T E V R : Type}
   memoryrefReplace memref expected newval successOrder failOrder boundsChecking
 
 end JuliaLean.base.genericmemory
+
+namespace JuliaLean.NumMisc.Coverage
+
+open JuliaLean
+
+abbrev MemoryModel := List (Option Nat)
+
+def memoryIndex (offset : Nat) : Nat := offset
+def memoryParent (memory : MemoryModel) : MemoryModel := memory
+def memoryIndexStyle : Nat := 1
+def memoryElementSize (alignedSize : Nat) : Nat := alignedSize
+def unsetAt (memory : MemoryModel) (index : Nat) : MemoryModel := memory.set (index - 1) none
+
+inductive CopyRoute where | zero | bits | boxed | forward | backward deriving DecidableEq, Repr
+
+def copyRoute (count : Nat) (sameType bits : Bool) (destPointer sourcePointer endPointer : Nat) : CopyRoute :=
+  if count == 0 then .zero
+  else if sameType then if bits then .bits else .boxed
+  else if destPointer < sourcePointer || destPointer > endPointer then .forward else .backward
+
+def copySlots (dest src : MemoryModel) (destOffset sourceOffset count : Nat) (backward : Bool) : MemoryModel :=
+  let indices := if backward then (List.range count).reverse else List.range count
+  indices.foldl (fun out k => out.set (destOffset + k) (src.getD (sourceOffset + k) none)) dest
+
+def similarMemory (length : Nat) : MemoryModel := List.replicate length none
+
+def convertMemory (alreadyType : Bool) (same converted : MemoryModel) : MemoryModel :=
+  if alreadyType then same else converted
+
+def memoryIsAssigned (memory : MemoryModel) (index : Nat) : Bool :=
+  (memory.getD (index - 1) none).isSome
+
+def fillByteMemory (length value : Nat) : MemoryModel :=
+  List.replicate length (some (value % 256))
+def memoryRange (memory : MemoryModel) (first count : Nat) : MemoryModel :=
+  (memory.drop first).take count
+
+def memorySet (memory : MemoryModel) (index : Nat) (value : Option Nat) : MemoryModel :=
+  memory.set index value
+
+def memoryCompare (left right : List Nat) : Int :=
+  if left < right then -1 else if right < left then 1 else 0
+
+def sortedFindRoute (leftSorted rightSorted : Bool) : Bool := leftSorted && rightSorted
+
+def sameShape (destination source : MemoryModel) : Bool := destination.length == source.length
+
+def trailingIndexValid (second : Int) (rest : List Int) : Bool :=
+  second == 1 && rest.all (· == 1)
+
+def indcopyScale (sizes : List Nat) (indexCount : Nat) : Nat :=
+  match sizes[indexCount]? with
+  | none => 0
+  | some first => (sizes.drop (indexCount + 1)).foldl (· * ·) first
+
+inductive AtomicOp where | get | set | setOnce | modify | swap | replace deriving DecidableEq, Repr
+
+structure AtomicEvent where
+  operation : AtomicOp
+  index : Nat
+  successOrder : Nat
+  failOrder : Nat
+  deriving DecidableEq, Repr
+
+def atomicEvent (operation : AtomicOp) (index success fail : Nat) : AtomicEvent :=
+  ⟨operation, index, success, fail⟩
+
+end JuliaLean.NumMisc.Coverage

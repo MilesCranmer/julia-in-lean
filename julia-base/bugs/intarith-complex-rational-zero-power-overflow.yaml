@@ -1,0 +1,61 @@
+id: intarith-complex-rational-zero-power-overflow
+title: "Zero integer power of a complex Rational{Int8} throws OverflowError"
+priority: P2
+kind: wrong-exception
+area: IntArith
+files: [base/rational.jl, base/intfuncs.jl]
+functions: ["^(z::Complex{<:Rational}, n::Integer)", "^(x::Rational, n::Integer)", "power_by_squaring"]
+summary: |
+  Explicitly calling ^(z, Int8(0)) for z = complex(Int8(12)//Int8(1),
+  Int8(0)//Int8(1)) throws OverflowError. The exact identity result is
+  representable in the original component type.
+likelihood: |
+  Affects narrow-component rational complex values whose unused square
+  overflows when the requested integer exponent is zero.
+maybe_intended: |
+  Checked rational arithmetic can reject an unrepresentable product, but no
+  square is mathematically required for exponent zero.
+reproducer: |
+  Stored at repro/intarith-complex-rational-zero-power-overflow.jl.
+  z = complex(Int8(12)//Int8(1), Int8(0)//Int8(1))
+  ^(z, Int8(0))
+output:
+  release: |
+    REPRODUCED intarith-complex-rational-zero-power-overflow
+  nightly: |
+    REPRODUCED intarith-complex-rational-zero-power-overflow
+reproduced: {release: true, nightly: true}
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: true
+  output: |
+    JULIA_VERSION 1.15.0-DEV.unknown
+    JULIA_COMMIT f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    GMP_VERSION 6.3.0
+    rational_power_zero THROW OverflowError: OverflowError: 12 * 12 overflowed for type Int8
+    complex_rational_power_zero THROW OverflowError: OverflowError: 12 * 12 overflowed for type Int8
+    REPRODUCED intarith-complex-rational-zero-power-overflow
+    REPRODUCED rational-power-native-rational-integer
+expected: |
+  Return complex one with normalized Rational{Int8} components one and zero.
+promised_by: |
+  The integer-power identity z^0 = one(z) applies to this finite nonzero value.
+  base/intfuncs.jl:411-412 explicitly returns one(x) for exponent zero.
+cause: |
+  base/rational.jl:637-638 delegates to power_by_squaring. Its initial square at
+  base/intfuncs.jl:400 occurs before the zero-exponent check at lines 411-412.
+  Computing the unnecessary rational product 12*12 overflows Int8 first.
+possible_fix: |
+  Handle the identity exponent before computing an unused square, while
+  retaining the specified result type and conversion behavior.
+duplicates:
+  issues: []
+  prs: []
+  queries:
+    - "GitHub issues and PRs: repo:JuliaLang/julia complex rational power"
+    - "GitHub issues: repo:JuliaLang/julia rational power"
+    - "Web: site:github.com/JuliaLang/julia power_by_squaring zero overflow"
+lean:
+  property: JuliaLean.Proofs.base.rational.Models1Group20.PowerNativeComplexIntegerCorrect
+  theorem: JuliaLean.ChatGPT.Batch10.Group2.Models1G20PowerNativeComplexInteger_refuted
+covers: [rational-power-native-rational-integer]

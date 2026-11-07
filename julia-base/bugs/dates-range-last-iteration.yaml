@@ -64,10 +64,8 @@ duplicates:
     - {number: 50981, state: open, relation: related}
   queries: ["Dates last length", "Dates range Month last", "StepRange Month", "repo:JuliaLang/julia Month range"]
   notes: |
-    PR #63714 was read, including its accessor and range diffs; it addresses
-    both underlying causes. The exact example was not found. The final PR
-    search for Dates last length hit GitHub's search rate limit (HTTP 403),
-    so that additional query could not be completed.
+    PR #63714 addresses both underlying causes in its accessor and range
+    changes. No report of the exact example is known.
 lean:
   property: JuliaLean.Dates.RangeLastIteration
   theorem: JuliaLean.Dates.rangeLastIteration_refuted

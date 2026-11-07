@@ -1,6 +1,6 @@
 id: promotion-rational-from-float-representable
 title: "Rational{T}(x::AbstractFloat) throws InexactError for exactly representable x such as -128.0"
-priority: P2
+priority: P3
 kind: wrong-exception
 area: Promotion
 files: [base/rational.jl]
@@ -63,5 +63,5 @@ duplicates:
     - {number: 63121, state: open, relation: related}
   queries: ["rationalize", "Rational InexactError", "rationalize typemin", "typemin Rational conversion", "Rational float conversion inexact"]
 lean:
-  property: JuliaLean.Promotion.RationalOfFloatRepresentable
-  theorem: JuliaLean.Promotion.rationalOfFloatRepresentable_refuted
+  property: JuliaLean.Proofs.base.rational.Round4.from_float_representable
+  theorem: JuliaLean.Proofs.base.rational.Round4.from_float_representable_refuted

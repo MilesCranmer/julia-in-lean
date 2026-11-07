@@ -1,27 +1,36 @@
 id: multidim-findfirst-empty-matrix
-title: "findfirst/findlast throw BoundsError on empty matrices such as zeros(Bool, 0, 3)"
+title: findfirst and findlast throw BoundsError on empty matrices with zero rows
 priority: P1
 kind: wrong-exception
 area: Multidim
-files: [base/array.jl, base/multidimensional.jl]
-functions: ["findfirst(A::AbstractArray)", "findfirst(testf::Function, A::AbstractArray)", "findlast(A::AbstractArray)", "findlast(testf::Function, A::AbstractArray)", "findnext(testf::Function, A, start)", "findprev(testf::Function, A, start)"]
+files:
+  - base/array.jl
+  - base/multidimensional.jl
+functions:
+  - findfirst(A::AbstractArray)
+  - findfirst(testf::Function, A::AbstractArray)
+  - findlast(A::AbstractArray)
+  - findlast(testf::Function, A::AbstractArray)
+  - findnext(testf::Function, A, start)
+  - findprev(testf::Function, A, start)
 summary: |
-  For an empty array whose empty dimension is not the last one (0x3, 2x0x2, ...),
-  findfirst(A), findfirst(f, A), findlast(A) and findlast(f, A) throw BoundsError
-  instead of returning nothing. Vectors, 3x0 matrices and 0x0 matrices are fine.
-  BitMatrix is affected too.
+  Searching a 0-by-3 Boolean matrix with findfirst or findlast throws
+  BoundsError instead of returning nothing. Predicate searches on zero-row
+  numeric matrices also fail. The reproducer includes a BitMatrix. A
+  3-by-0 matrix returns nothing, so the behavior depends on which dimension is
+  empty.
 likelihood: |
-  Ordinary code searches masks or data matrices that can be empty, for example
-  findfirst(x -> x > t, M) on a matrix with zero rows read from a file or produced by
-  filtering. The call throws instead of returning nothing.
+  Filtering data can leave a matrix with zero rows. Searching such a matrix for
+  a matching entry should be an ordinary empty search; instead it throws.
 maybe_intended: |
-  Reported for findnext in #36938 (open since 2020); the findfirst/findlast consequence
-  is not mentioned there.
+  There is no element to inspect, and both search docstrings explicitly return
+  nothing when no match exists. Open issue #36938 describes the underlying
+  findnext failure on the same kind of empty Cartesian index space.
 reproducer: |
-  findfirst(zeros(Bool, 0, 3))            # BoundsError, expected nothing
-  findlast(zeros(Bool, 0, 3))             # BoundsError
-  findfirst(iszero, zeros(0, 2))          # BoundsError
-  findfirst(zeros(Bool, 3, 0))            # nothing
+  findfirst(zeros(Bool, 0, 3))
+  findlast(zeros(Bool, 0, 3))
+  findfirst(iszero, zeros(0, 2))
+  findfirst(zeros(Bool, 3, 0))
 output:
   release: |
     BoundsError(Matrix{Bool}(undef, 0, 3), (1, 1))
@@ -39,30 +48,51 @@ output:
     nothing
     BoundsError(0×3 BitMatrix, (1, 1))
     REPRODUCED multidim-findfirst-empty-matrix
-reproduced: {release: true, nightly: true}
+reproduced:
+  release: true
+  nightly: true
 expected: |
-  nothing, as for every other empty collection.
+  Each search of an empty array returns nothing. Run the short calls individually
+  to observe the exceptions; the full reproducer catches and prints them so it
+  can exercise both directions, the predicate variants and BitMatrix in one run.
 promised_by: |
-  findfirst docstring, base/array.jl:2488-2492: "Return the index or key of the first
-  element of A for which predicate returns true. Return nothing if there is no such
-  element." findlast likewise (base/array.jl:2684-2714).
+  base/array.jl:2486-2487 at f755f49a9e41380d7da126b3c1db9fe7f83dd027:
+  "Return the index or key of the first element of `A` for which `predicate` returns `true`.
+  Return `nothing` if there is no such element."
+  base/array.jl:2682-2683:
+  "Return the index or key of the last element of `A` for which `predicate` returns `true`.
+  Return `nothing` if there is no such element."
 cause: |
-  findfirst(A::AbstractArray) and findfirst(f, A::AbstractArray) call
-  findnext(f, A, first(keys(A))) (base/array.jl:2444, 2531-2532). For a 0x3 matrix
-  keys(A) is CartesianIndices((0, 3)) with first CartesianIndex(1, 1) and last
-  CartesianIndex(0, 3). The generic findnext (base/array.jl:2475-2486) treats the
-  search as empty only if i > l, but CartesianIndex ordering compares the last
-  coordinate first (base/multidimensional.jl:142), so CartesianIndex(1, 1) <
-  CartesianIndex(0, 3) and A[1, 1] is read. findlast/findprev (base/array.jl:2632,
-  2671-2682) mirror this with i < f.
+  findfirst starts findnext at first(keys(A)) (base/array.jl:2439,2526-2527).
+  The generic findnext checks i > last(keys(A)) at lines 2470-2475 before
+  reading A[i]. For a 0-by-3 matrix, first and last are CartesianIndex(1,1)
+  and CartesianIndex(0,3); their ordering does not identify the index space as
+  empty. findprev mirrors this with i < first(keys(A)) at lines 2666-2671.
 possible_fix: |
-  Return nothing early when isempty(A) (or isempty(keys(A))) in findfirst/findlast,
-  or test emptiness of the index range instead of i > l in findnext/findprev.
+  Check whether the Cartesian index space is empty before the first array read
+  in the generic forward and backward searches. Preserve the existing handling
+  of nonempty searches and their start indices.
 duplicates:
   issues:
-    - {number: 36938, state: open, relation: duplicate}
-    - {number: 40120, state: open, relation: related}
-  queries: ["issues: findfirst (titles scanned)", "issues: findnext (titles scanned)", "issues: findlast (titles scanned)", "issues: findfirst empty matrix", "issues: findfirst BoundsError empty", "issues: findlast empty matrix", "issues: findfirst 0×", "prs: findnext CartesianIndex", "prs: findfirst matrix BoundsError", "prs: findfirst zero rows"]
+    - number: 36938
+      state: open
+      relation: duplicate
+  prs:
+    - number: 40120
+      state: open
+      relation: related
+  queries:
+    - 'gh search issues --repo JuliaLang/julia findfirst empty matrix'
+    - 'gh search issues --repo JuliaLang/julia findnext empty'
+    - 'gh search issues --repo JuliaLang/julia findlast CartesianIndex'
+    - 'gh search prs --repo JuliaLang/julia findfirst empty matrix'
+    - 'gh search prs --repo JuliaLang/julia findnext empty'
+    - 'gh search prs --repo JuliaLang/julia findlast CartesianIndex'
+  notes: |
+    Inspected #36938, which demonstrates the same BoundsError for a zero-row
+    matrix and explains the CartesianIndex comparison. Inspected PR #40120;
+    its stated fixes concern empty-string searches, bounds checking and index
+    alignment, so it is related search work rather than a verified fix here.
 lean:
-  property: JuliaLean.Multidim.FindfirstCartesian
-  theorem: JuliaLean.Multidim.findfirstCartesian_refuted
+  property: JuliaLean.Proofs.base.array.FindfirstCartesian
+  theorem: JuliaLean.ChatGPT.Batch4.Group2.MultidimFindfirstEmptyMatrix_refuted

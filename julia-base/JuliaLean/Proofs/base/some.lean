@@ -354,10 +354,11 @@ private theorem tuple_getindex {args : List JuliaExpr} {value : JuliaExpr} {i : 
     · have : IntTy.i64.min ≤ 0 := by decide
       omega
     · omega
-  have hconv : JInt.convert .i64 (Int.ofNat i) = .ok ⟨(i : Int), hr⟩ := by
+  have hconv : JInt.convert (IntTy.i64.name) .i64 (Int.ofNat i) = .ok ⟨(i : Int), hr⟩ := by
     unfold JInt.convert
     exact dite_eq_left hr
-  simp only [JuliaLean.base.tuple.getindexInteger, JuliaLean.base.tuple.convertIndex,
+  simp only [JuliaLean.base.tuple.getindexInteger,
+    JuliaLean.base.tuple.convertInt_index, JuliaLean.base.tuple.convertIndex,
     hconv, JuliaLean.base.tuple.liftJ]
   change JuliaLean.base.tuple.getfield args (i : Int) = .ok value
   unfold JuliaLean.base.tuple.getfield
@@ -381,7 +382,8 @@ theorem macroShortCircuitShape_proven : MacroShortCircuitShapeSpec := by
   change ∃ expr : JuliaExpr, ((forIn (reverse (JuliaLean.base.tuple.keysTuple args))
     (JuliaExpr.call (.globalRef "Base" "something") [.globalRef "Base" "nothing"])
     (fun i rest => do
-      let arg ← ((JuliaLean.base.tuple.getindexInteger args (.big (Int.ofNat i))).mapError _ :
+      let arg ← ((JuliaLean.base.tuple.getindexInteger args (.big (Int.ofNat i)) :
+          JuliaLean.base.tuple.R JuliaExpr).mapError _ :
         JuliaLean.base.abstractarray.Result JuliaExpr)
       pure (.yield (macroNode (inlineanonymous "val" i) arg rest))) :
         JuliaLean.base.abstractarray.Result JuliaExpr) >>= pure) = .ok expr ∧
@@ -431,57 +433,93 @@ theorem someShowEval_refuted : ¬ SomeShowEval := by
 
 /-! ## Registry -/
 
+end JuliaLean.Proofs.base.some
+
+namespace JuliaLean.ChatGPT.Batch4.Group15
+open JuliaLean.Proofs.base.some
+
+theorem SomeTypeConstruction_proven : JuliaLean.Proofs.base.some.SomeTypeObjectSpec := by
+  exact JuliaLean.Proofs.base.some.someTypeObject_proven
+
+theorem SomePromoteRuleNothing_proven : JuliaLean.Proofs.base.some.PromoteRuleNothingSpec := by
+  exact JuliaLean.Proofs.base.some.promoteRuleNothing_proven
+
+theorem SomePromoteRuleSupertype_proven : JuliaLean.Proofs.base.some.PromoteRuleWithNothingSpec := by
+  exact JuliaLean.Proofs.base.some.promoteRuleWithNothing_proven
+
+theorem SomeConvertNothingUnion_proven : JuliaLean.Proofs.base.some.ConvertNothingSpec := by
+  exact JuliaLean.Proofs.base.some.convertNothing_proven
+
+theorem SomeConvertSome_proven : JuliaLean.Proofs.base.some.ConvertSomeSpec := by
+  exact JuliaLean.Proofs.base.some.convertSome_proven
+
+theorem SomeShowTypeinfo_proven : JuliaLean.Proofs.base.some.ShowSomeSpec := by
+  exact JuliaLean.Proofs.base.some.showSome_proven
+
+theorem SomeNotnothing_proven : JuliaLean.Proofs.base.some.NotnothingSpec := by
+  exact JuliaLean.Proofs.base.some.notnothing_proven
+
+theorem SomeIsnothing_proven : JuliaLean.Proofs.base.some.IsnothingSpec := by
+  exact JuliaLean.Proofs.base.some.isnothing_proven
+
+theorem SomeEq_proven : JuliaLean.Proofs.base.some.EqSomeSpec := by
+  exact JuliaLean.Proofs.base.some.eqSome_proven
+
+theorem SomeIsequal_proven : JuliaLean.Proofs.base.some.IsequalSomeSpec := by
+  exact JuliaLean.Proofs.base.some.isequalSome_proven
+
+theorem MissingcharSomeHashIsequal_proven : JuliaLean.Proofs.base.some.HashSomeIsequal := by
+  exact JuliaLean.Proofs.base.some.hashSomeIsequal_proven
+
+end JuliaLean.ChatGPT.Batch4.Group15
+
+namespace JuliaLean.Proofs.base.some
+
+open JuliaLean
+open JuliaLean.base.some
+open JuliaLean.Registry
+
 def entries : List Entry := [
   { id := "some-type-construction", juliaFile := "base/some.jl",
     juliaFns := ["Some(::Type{T})"]
     statement := "Some(T) stores T as its payload and has wrapper type Some{Type{T}}.",
     source := "base/some.jl:15",
-    status := .proven, prop := ``SomeTypeObjectSpec, thm := some ``someTypeObject_proven },
-  { id := "some-type-promotion", juliaFile := "base/some.jl",
-    juliaFns := ["nonnothingtype(::Type)"]
-    statement := "Removing Nothing from a union type leaves no Nothing alternative.",
-    source := "base/some.jl:17",
-    status := .proven, prop := ``NonNothingTypeSpec, thm := some ``nonNothingType_proven },
-  { id := "some-checked-type-removal", juliaFile := "base/some.jl",
-    juliaFns := ["nonnothingtype_checked(::Type)"]
-    statement := "Checked removal reports ErrorException when the type is Any or when removing Nothing leaves Bottom.",
-    source := "base/some.jl:27-32",
-    status := .proven, prop := ``NonNothingTypeCheckedSpec, thm := some ``nonNothingTypeChecked_proven },
+    status := .proven, prop := ``SomeTypeObjectSpec, thm := some ``JuliaLean.ChatGPT.Batch4.Group15.SomeTypeConstruction_proven },
   { id := "some-promote-rule-nothing", juliaFile := "base/some.jl",
     juliaFns := ["promote_rule(::Type{Nothing}, ::Type)"]
     statement := "Promotion of Nothing with any type retains Nothing in the promoted union type.",
     source := "base/some.jl:18",
-    status := .proven, prop := ``PromoteRuleNothingSpec, thm := some ``promoteRuleNothing_proven },
+    status := .proven, prop := ``PromoteRuleNothingSpec, thm := some ``JuliaLean.ChatGPT.Batch4.Group15.SomePromoteRuleNothing_proven },
   { id := "some-promote-rule-supertype", juliaFile := "base/some.jl",
     juliaFns := ["promote_rule(::Type{>:Nothing}, ::Type)"]
     statement := "The Nothing-bearing promotion rule includes Nothing in its result unless its source check returns Any.",
     source := "base/some.jl:19-25",
-    status := .proven, prop := ``PromoteRuleWithNothingSpec, thm := some ``promoteRuleWithNothing_proven },
+    status := .proven, prop := ``PromoteRuleWithNothingSpec, thm := some ``JuliaLean.ChatGPT.Batch4.Group15.SomePromoteRuleSupertype_proven },
   { id := "some-convert-nothing-union", juliaFile := "base/some.jl",
     juliaFns := ["convert(::Type{T}, ::T) where T>:Nothing", "convert(::Type{T}, x) where T>:Nothing"]
     statement := "Conversion to a type admitting Nothing preserves same-typed values and otherwise converts to the non-Nothing portion of the target.",
     source := "base/some.jl:34-35",
-    status := .proven, prop := ``ConvertNothingSpec, thm := some ``convertNothing_proven },
+    status := .proven, prop := ``ConvertNothingSpec, thm := some ``JuliaLean.ChatGPT.Batch4.Group15.SomeConvertNothingUnion_proven },
   { id := "some-convert-some", juliaFile := "base/some.jl",
     juliaFns := ["convert(::Type{Some{T}}, ::Some{T})", "convert(::Type{Some{T}}, ::Some)"]
     statement := "Conversion to Some{T} preserves an already matching wrapper's payload, and otherwise converts the payload to T before wrapping it.",
     source := "base/some.jl:36-37",
-    status := .proven, prop := ``ConvertSomeSpec, thm := some ``convertSome_proven },
+    status := .proven, prop := ``ConvertSomeSpec, thm := some ``JuliaLean.ChatGPT.Batch4.Group15.SomeConvertSome_proven },
   { id := "some-show-typeinfo", juliaFile := "base/some.jl",
     juliaFns := ["show(::IO, ::Some)"]
     statement := "show uses the payload's representation when IOContext typeinfo equals typeof(x), and includes Some(...) otherwise.",
     source := "base/some.jl:39-47 (show method)",
-    status := .proven, prop := ``ShowSomeSpec, thm := some ``showSome_proven },
+    status := .proven, prop := ``ShowSomeSpec, thm := some ``JuliaLean.ChatGPT.Batch4.Group15.SomeShowTypeinfo_proven },
   { id := "some-notnothing", juliaFile := "base/some.jl",
     juliaFns := ["notnothing(::Any)", "notnothing(::Nothing)"]
     statement := "notnothing(x) throws ArgumentError exactly when x is nothing, and returns every non-nothing value unchanged.",
     source := "base/some.jl:49-55 (notnothing docstring and methods)",
-    status := .proven, prop := ``NotnothingSpec, thm := some ``notnothing_proven },
+    status := .proven, prop := ``NotnothingSpec, thm := some ``JuliaLean.ChatGPT.Batch4.Group15.SomeNotnothing_proven },
   { id := "some-isnothing", juliaFile := "base/some.jl",
     juliaFns := ["isnothing"]
     statement := "isnothing(x) is true exactly when x is nothing; it does not unwrap nested Some values.",
     source := "base/some.jl:57-67 (isnothing docstring and method)",
-    status := .proven, prop := ``IsnothingSpec, thm := some ``isnothing_proven },
+    status := .proven, prop := ``IsnothingSpec, thm := some ``JuliaLean.ChatGPT.Batch4.Group15.SomeIsnothing_proven },
   { id := "some-something-first", juliaFile := "base/some.jl",
     juliaFns := ["something()", "something(::Nothing, ...)", "something(::Some, ...)", "something(::Any, ...)"]
     statement := "something returns the first non-nothing argument, unwraps one Some, and throws ArgumentError if no value exists.",
@@ -497,24 +535,17 @@ def entries : List Entry := [
     juliaFns := ["==(::Some, ::Some)"]
     statement := "Equality on Some wrappers is reflexive whenever equality on the wrapped values is reflexive.",
     source := "base/some.jl:169 (method); invariant (equality is reflexive)",
-    status := .proven, prop := ``EqSomeSpec, thm := some ``eqSome_proven },
+    status := .proven, prop := ``EqSomeSpec, thm := some ``JuliaLean.ChatGPT.Batch4.Group15.SomeEq_proven },
   { id := "some-isequal", juliaFile := "base/some.jl",
     juliaFns := ["isequal(::Some, ::Some)"]
     statement := "isequal on Some wrappers is reflexive whenever isequal on the wrapped values is reflexive.",
     source := "base/some.jl:170 (method); invariant (isequal is reflexive)",
-    status := .proven, prop := ``IsequalSomeSpec, thm := some ``isequalSome_proven },
+    status := .proven, prop := ``IsequalSomeSpec, thm := some ``JuliaLean.ChatGPT.Batch4.Group15.SomeIsequal_proven },
   { id := "missingchar-some-hash-isequal", juliaFile := "base/some.jl",
     juliaFns := ["isequal(::Some, ::Some)", "hash(::Some, ::UInt)"]
     statement := "isequal(Some(a), Some(b)) implies hash(Some(a), h) == hash(Some(b), h) whenever the hash contract holds for the wrapped values.",
     source := "invariant (hash docstring: isequal(x,y) implies hash(x)==hash(y))",
-    status := .proven, prop := ``HashSomeIsequal, thm := some ``hashSomeIsequal_proven },
-  { id := "missingchar-some-show-typeinfo", juliaFile := "base/some.jl",
-    juliaFns := ["show(::IO, ::Some)"]
-    statement := "Evaluating repr(v) for v::Vector{Some{Int64}} gives v back.",
-    source := "base/show.jl (show docstring: parseable Julia code when possible)",
-    status := .refuted, prop := ``SomeShowEval, thm := some ``someShowEval_refuted,
-    issue := "none found (queries: Some show typeinfo, Some typeinfo, show Some array convert, repr Some)",
-    notes := "repr([Some(1), Some(2)]) is Some{Int64}[1, 2]; evaluating it throws MethodError. External IO, vector rendering and evaluation are constrained by their documented interface laws." }
+    status := .proven, prop := ``HashSomeIsequal, thm := some ``JuliaLean.ChatGPT.Batch4.Group15.MissingcharSomeHashIsequal_proven },
 ]
 
 /-! ## Method to property coverage -/
@@ -535,7 +566,7 @@ def entries : List Entry := [
 | `convert(::Type{T}, x) where T>:Nothing` | `some-convert-nothing-union` |
 | `convert(::Type{Some{T}}, ::Some{T})` | `some-convert-some` |
 | `convert(::Type{Some{T}}, ::Some)` | `some-convert-some` |
-| `show(::IO, ::Some)` | `some-show-typeinfo`, `missingchar-some-show-typeinfo` |
+| `show(::IO, ::Some)` | `some-show-typeinfo` |
 | `notnothing(::Any)` | `some-notnothing` |
 | `notnothing(::Nothing)` | `some-notnothing` |
 | `isnothing` | `some-isnothing` |

@@ -1,0 +1,68 @@
+id: div-bitinteger-away-quotient
+title: "Mixed RoundFromZero division returns wrapped UInt8(255) rather than -1"
+priority: P3
+kind: documentation
+area: Div
+files:
+  - base/div.jl
+  - base/int.jl
+functions:
+  - "div(::Integer,::Integer,::typeof(RoundFromZero))"
+summary: |
+  div(UInt8(1), Int8(-2), RoundFromZero) returns UInt8(255), whereas rounding the exact quotient -1/2 away from zero yields -1. The documented integer-value quotient does not hold for this ordinary mixed pair.
+likelihood: |
+  Unsigned dividends divided by negative signed values can require a negative quotient in any nonzero away-rounding case.
+maybe_intended: |
+  The mixed-signedness result policy retains the dividend signedness. Issue #57855 and proposed documentation PR #63557 cover that known behavior across rounding modes. The pinned mathematical wording lacks the exception.
+reproducer: |
+  x, y = UInt8(1), Int8(-2)
+  q = div(x, y, RoundFromZero)
+  @assert q === UInt8(255)
+  @assert div(BigInt(x), BigInt(y), RoundFromZero) == -1
+  println("REPRODUCED div-bitinteger-away-quotient")
+output:
+  release: |
+    REPRODUCED div-bitinteger-away-quotient
+  nightly: |
+    REPRODUCED div-bitinteger-away-quotient
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  Document the mixed-signedness wrapping exception for RoundFromZero, or choose an exact signed quotient representation.
+promised_by: |
+  base/div.jl:8-13: "Computes `x / y`, rounded to an integer according to the rounding mode `r`." The displayed formula is "round(x / y, r)" followed by "without any intermediate rounding." base/div.jl:21 says RoundFromZero requires Julia 1.9.
+  All source references are pinned to Julia commit f755f49a9e41380d7da126b3c1db9fe7f83dd027.
+  https://github.com/JuliaLang/julia/blob/f755f49a9e41380d7da126b3c1db9fe7f83dd027/base/div.jl
+cause: |
+  The away-from-zero dispatcher selects a directed division path. For opposite signs it inherits the mixed unsigned floor result, which wraps -1 to UInt8(255).
+possible_fix: |
+  Include RoundFromZero in the documented mixed-signedness quotient policy, following #63557, or redesign the result type with explicit compatibility review.
+duplicates:
+  issues:
+    - number: 57855
+      state: open
+      relation: duplicate
+    - number: 34519
+      state: closed
+      relation: related
+  prs:
+    - number: 63557
+      state: open
+      relation: related
+  queries:
+    - "issues: RoundFromZero unsigned"
+    - "prs: RoundFromZero unsigned"
+    - "issues: div unsigned signed"
+    - "prs: div unsigned signed"
+    - "issues: RoundFromZero negative"
+    - "prs: RoundFromZero negative"
+    - "issues: RoundFromZero"
+    - "prs: RoundFromZero"
+    - "issues: div unsigned"
+    - "prs: div unsigned"
+    - "issues: signedness"
+    - "prs: signedness"
+lean:
+  property: JuliaLean.Proofs.base.div.Round1.AllBitIntegerAwayQuotient
+  theorem: JuliaLean.ChatGPT.Batch4.Group17.DivBitintegerAwayQuotient_refuted

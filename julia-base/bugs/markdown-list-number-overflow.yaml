@@ -47,5 +47,5 @@ duplicates:
   issues: []
   queries: ["Markdown list overflow", "Markdown OverflowError", "Markdown ordered list number", "NUM_OR_BULLETS"]
 lean:
-  property: JuliaLean.Markdown.ListTotal
-  theorem: JuliaLean.Markdown.listTotal_refuted
+  property: JuliaLean.Markdown.ListNoOverflow
+  theorem: JuliaLean.Markdown.listNoOverflow_refuted

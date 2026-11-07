@@ -1,0 +1,88 @@
+id: mathfuncs-mod2pi-ieee-range
+title: Float32 mod2pi result exceeds the documented exact two-pi range
+priority: P3
+kind: documentation
+area: Math
+files:
+  - base/math.jl
+  - base/special/rem2pi.jl
+functions:
+  - mod2pi
+  - rem2pi(::Float32, ::RoundingMode)
+summary: |
+  mod2pi(-nextfloat(0.0f0)) returns Float32 bits 0x40c90fdb,
+  which exceed exact 2*pi. The docstring explicitly promises [0, 2*pi)
+  relative to numerically exact 2*pi. This is a documented-range conflict,
+  not evidence that the nearest floating-point approximation is inaccurate.
+likelihood: |
+  A publicly constructible negative Float32 subnormal suffices. The result
+  arises near the upper endpoint when the Float64 remainder is narrowed to
+  Float32. No large input or allocation is required.
+maybe_intended: |
+  Returning the closest representable Float32 approximation to the exact
+  remainder can round above exact 2*pi. That can be numerically reasonable,
+  but contradicts the literal half-open exact range. The docstring also
+  says it computes a floating-point representation, so documentation repair
+  may be preferable to changing the numerical result. No repair is assumed.
+reproducer: |
+  x = -nextfloat(0.0f0)
+  @assert reinterpret(UInt32, x) == 0x80000001
+  result = mod2pi(x)
+  @assert result isa Float32
+  @assert isfinite(result)
+  @assert reinterpret(UInt32, result) == 0x40c90fdb
+  setprecision(BigFloat, 256) do
+      two_pi_upper = setrounding(BigFloat, RoundUp) do
+          2 * BigFloat(pi)
+      end
+      @assert BigFloat(result) > two_pi_upper
+  end
+  println("REPRODUCED mathfuncs-mod2pi-ieee-range")
+output:
+  release: "REPRODUCED mathfuncs-mod2pi-ieee-range"
+  nightly: "REPRODUCED mathfuncs-mod2pi-ieee-range"
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  The documented contract and returned values should agree. If [0, exact
+  2*pi) is intended as a strict postcondition, finite results must stay
+  below exact 2*pi. Otherwise document the possibility that floating-point
+  rounding places the representation beyond that mathematical interval.
+promised_by: |
+  Pinned source f755f49a9e41380d7da126b3c1db9fe7f83dd027:
+  https://github.com/JuliaLang/julia/blob/f755f49a9e41380d7da126b3c1db9fe7f83dd027/base/math.jl#L1221-L1241
+  "Modulus after division by 2pi, returning in the range [0,2pi)."
+  The following paragraph specifies division by "numerically exact 2pi".
+  The note discusses floating-point endpoint conversion but does not qualify
+  the range for Float32 results whose nearest endpoint lies above exact 2*pi.
+cause: |
+  mod2pi delegates to rem2pi(x, RoundDown). The Float32 method computes
+  Float32(rem2pi(Float64(x), r)), which rounds the Float64 remainder near
+  2*pi to Float32. RoundDown here selects the quotient convention for the
+  remainder; it does not request downward rounding of the final conversion.
+possible_fix: |
+  Clarify whether the promised range applies to the exact remainder before
+  floating-point rounding or to the returned representation. If the latter
+  is required, address endpoint conversion consistently across formats.
+  This report does not recommend changing the approximation without review.
+duplicates:
+  issues:
+    - number: 5537
+      state: closed
+      relation: related
+      note: "Discusses why mod2pi(2pi) is nonzero when Float64(2pi) is below exact 2pi; different endpoint issue."
+  prs:
+    - number: 33853
+      state: merged
+      relation: related
+      note: "Adds current endpoint-conversion documentation; no Float32 upper-range repair."
+  search_notes: |
+    Related discussions include #5537 and PR #33853. Neither is an exact
+    duplicate of this Float32 above-exact-two-pi case.
+  queries:
+    - "gh search issues mod2pi --repo JuliaLang/julia --limit 100 --json number,title,state,url"
+    - "gh search prs mod2pi --repo JuliaLang/julia --limit 100 --json number,title,state,url"
+lean:
+  property: JuliaLean.Proofs.base.math.Archive20261102Round7.Mod2piIEEEExactRange
+  theorem: JuliaLean.ChatGPT.Batch4.Group9.MathfuncsMod2piIeeeRange_refuted

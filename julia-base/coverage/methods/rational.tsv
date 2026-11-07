@@ -1,138 +1,138 @@
 file	line	endline	name	signature	status	entry	note
-base/rational.jl	14	14	unsafe_rational	unsafe_rational(::Type{T}, num, den) where {T}	todo		trivial: restates the constructor body
-base/rational.jl	17	17	unsafe_rational	unsafe_rational(num::T, den::T) where {T<:Integer}	todo		trivial: restates a forwarding body
-base/rational.jl	18	18	unsafe_rational	unsafe_rational(num::Integer, den::Integer)	todo		trivial: restates a forwarding body
-base/rational.jl	20	26	checked_den	checked_den(::Type{T}, num::T, den::T) where T<:Integer	todo		trivial: restates the checked-denominator body
-base/rational.jl	27	27	checked_den	checked_den(num::T, den::T) where T<:Integer	todo		trivial: restates a forwarding body
-base/rational.jl	28	28	checked_den	checked_den(num::Integer, den::Integer)	todo		trivial: restates a forwarding body
-base/rational.jl	30	30	__throw_rational_argerror_zero	__throw_rational_argerror_zero(T)	todo		trivial: restates the error body
+base/rational.jl	14	14	unsafe_rational	unsafe_rational(::Type{T}, num, den) where {T}	modelled	rational-input-approximation-tolerance,rational-complex-numerator-value,rational-complex-integer-power-value	Reviewed line by line against pinned f755f49 source.
+base/rational.jl	17	17	unsafe_rational	unsafe_rational(num::T, den::T) where {T<:Integer}	modelled	rational-components-roundtrip	unsafeRationalSameSource is parametric in the component carrier and delegates only identity field conversion; Round4.components_reconstruct and its constructor dependency call the installed same-type unsafe constructor.
+base/rational.jl	18	18	unsafe_rational	unsafe_rational(num::Integer, den::Integer)	modelled	rational-arithmetic-exact,rational-mixed-arithmetic,rational-mixed-left-value	Reviewed line by line against pinned f755f49 source.
+base/rational.jl	20	26	checked_den	checked_den(::Type{T}, num::T, den::T) where T<:Integer	modelled	rational-checked-den-effects	Source-mirrored model JuliaLean.base.rational.Models2Group10.checkedDenTyped; reviewed against Julia f755f49.
+base/rational.jl	27	27	checked_den	checked_den(num::T, den::T) where T<:Integer	modelled	rational-checked-den-effects	Source-mirrored model JuliaLean.base.rational.Models2Group10.checkedDenSame; reviewed against Julia f755f49.
+base/rational.jl	28	28	checked_den	checked_den(num::Integer, den::Integer)	modelled	rational-complex-power-recursive-cycle	Reviewed line by line against pinned f755f49 source.
+base/rational.jl	30	30	__throw_rational_argerror_zero	__throw_rational_argerror_zero(T)	modelled	rational-zero-over-zero-rejected	throwRationalZeroSource constructs the complete LazyString parts and throws ArgumentError; constructSource reaches it after denominator-zero then numerator-zero checks.
 base/rational.jl	31	46	Rational{T}	Rational{T}(num::Integer, den::Integer) where T<:Integer	modelled	intarith-rational-normalize-before-convert	
-base/rational.jl	48	48	Rational	Rational(n::T, d::T) where {T<:Integer}	todo		trivial: restates a forwarding body
-base/rational.jl	49	49	Rational	Rational(n::Integer, d::Integer)	todo		trivial: restates a forwarding body
-base/rational.jl	50	50	Rational	Rational(n::Integer)	todo		trivial: restates the one-argument constructor body
-base/rational.jl	59	62	divgcd	divgcd(x::TX, y::TY)::Tuple{TX, TY} where {TX<:Integer, TY<:Integer}	todo		trivial: existential result only
-base/rational.jl	91	91	//	//(n::Integer, d::Integer)	todo		trivial: restates a forwarding body
-base/rational.jl	93	101	//	//(x::Rational, y::Integer)	todo		trivial: existential result only
-base/rational.jl	102	105	//	//(x::Integer, y::Rational)	todo		trivial: existential result only
-base/rational.jl	106	114	//	//(x::Rational, y::Rational)	todo		trivial: existential result only
-base/rational.jl	116	116	//	//(x::Complex, y::Real)	todo		trivial: restates a componentwise body
-base/rational.jl	120	128	_complex_exact_inv	_complex_exact_inv(y::Complex)	todo		trivial: existential result only
-base/rational.jl	129	135	_complex_exact_inv	_complex_exact_inv(y::Complex{<:Integer})	todo		trivial: existential result only
-base/rational.jl	137	140	//	//(x::Number, y::Complex)	todo		trivial: existential result only
-base/rational.jl	141	143	//	//(x::Integer, y::Complex{<:Integer})	todo		trivial: existential result only
-base/rational.jl	144	152	//	//(x::Complex{<:Integer}, y::Complex{<:Integer})	todo		trivial: existential result only
-base/rational.jl	154	154	//	//(X::AbstractArray, y::Number)	todo		trivial: restates the broadcast body
-base/rational.jl	156	165	show	show(io::IO, x::Rational)	todo		trivial: restates the show body
-base/rational.jl	167	171	read	read(s::IO, ::Type{Rational{T}}) where T<:Integer	todo		trivial: existential result only
-base/rational.jl	172	174	write	write(s::IO, z::Rational)	todo		trivial: restates the write body
-base/rational.jl	175	187	parse	parse(::Type{Rational{T}}, s::AbstractString) where T<:Integer	todo		trivial: existential result only
-base/rational.jl	190	192	Rational{T}	Rational{T}(x::Rational) where T<:Integer	todo		trivial: existential result only
-base/rational.jl	193	195	Rational{T}	Rational{T}(x::Integer) where T<:Integer	todo		trivial: existential result only
-base/rational.jl	197	197	Rational	Rational(x::Rational)	todo		trivial: restates identity
-base/rational.jl	199	200	Bool	Bool(x::Rational)	todo		trivial: existential result only
-base/rational.jl	201	202	(::Type{T})	(::Type{T})(x::Rational) where {T<:Integer}	todo		trivial: existential result only
-base/rational.jl	204	204	AbstractFloat	AbstractFloat(x::Rational)	todo		trivial: restates the conversion expression
-base/rational.jl	205	208	(::Type{T})	(::Type{T})(x::Rational{S}) where T<:AbstractFloat where S	todo		trivial: restates the conversion expression
-base/rational.jl	211	212	Float16	Float16(x::Rational{<:Union{Int16,Int32,Int64,UInt16,UInt32,UInt64}})	todo		trivial: restates a conversion chain
-base/rational.jl	213	214	Float16	Float16(x::Rational{<:Union{Int128,UInt128}})	todo		trivial: restates a conversion chain
+base/rational.jl	48	48	Rational	Rational(n::T, d::T) where {T<:Integer}	modelled	rational-same-native;rational-same-effects	Source-mirrored model JuliaLean.base.rational.Models2Group10.rationalSameInteger; reviewed against Julia f755f49.
+base/rational.jl	49	49	Rational	Rational(n::Integer, d::Integer)	modelled	rational-manual-float-identity,rational-complex-integer-scalar-division,rational-integer-rem-rational-native	Reviewed line by line against pinned f755f49 source.
+base/rational.jl	50	50	Rational	Rational(n::Integer)	modelled	rational-integer-effects	Source-mirrored model JuliaLean.base.rational.Models2Group10.rationalFromInteger; reviewed against Julia f755f49.
+base/rational.jl	59	62	divgcd	divgcd(x::TX, y::TY)::Tuple{TX, TY} where {TX<:Integer, TY<:Integer}	modelled	rational-divgcd-native-pair;rational-divgcd-effects	Source-mirrored model JuliaLean.base.rational.Models2Group10.divgcd; reviewed against Julia f755f49.
+base/rational.jl	91	91	//	//(n::Integer, d::Integer)	modelled	rational-exact-integers-effects	Source-mirrored model JuliaLean.base.rational.Models2Group10.exactDivideIntegers; reviewed against Julia f755f49.
+base/rational.jl	93	101	//	//(x::Rational, y::Integer)	modelled	rational-arithmetic-exact,rational-mixed-arithmetic,rational-complex-power-recursive-cycle	Reviewed line by line against pinned f755f49 source.
+base/rational.jl	102	105	//	//(x::Integer, y::Rational)	modelled	rational-arithmetic-exact,rational-mixed-integer-division,rational-complex-power-recursive-cycle	Reviewed line by line against pinned f755f49 source.
+base/rational.jl	106	114	//	//(x::Rational, y::Rational)	modelled	rational-arithmetic-exact,rational-exact-division,rational-native-extended-division	Reviewed line by line against pinned f755f49 source.
+base/rational.jl	116	116	//	//(x::Complex, y::Real)	modelled	rational-complex-integer-quotient,rational-complex-and-io-exact,rational-rounded-rational-integer	Reviewed line by line against pinned f755f49 source.
+base/rational.jl	120	128	_complex_exact_inv	_complex_exact_inv(y::Complex)	modelled	rational-complex-and-io-exact,rational-native-rational-complex-division,rational-complex-power-recursive-cycle	Reviewed line by line against pinned f755f49 source.
+base/rational.jl	129	135	_complex_exact_inv	_complex_exact_inv(y::Complex{<:Integer})	modelled	rational-complex-and-io-exact,rational-complex-power-recursive-cycle	Reviewed line by line against pinned f755f49 source.
+base/rational.jl	137	140	//	//(x::Number, y::Complex)	modelled	rational-native-rational-complex-division,rational-complex-power-recursive-cycle	Reviewed line by line against pinned f755f49 source.
+base/rational.jl	141	143	//	//(x::Integer, y::Complex{<:Integer})	modelled	rational-complex-power-recursive-cycle	Reviewed line by line against pinned f755f49 source.
+base/rational.jl	144	152	//	//(x::Complex{<:Integer}, y::Complex{<:Integer})	modelled	rational-complex-integer-quotient,rational-complex-and-io-exact,rational-rounded-rational-integer	Reviewed line by line against pinned f755f49 source.
+base/rational.jl	154	154	//	//(X::AbstractArray, y::Number)	modelled	rational-array-exact-division-effects	Source-mirrored model JuliaLean.base.rational.Models2Group10.exactDivideArray; reviewed against Julia f755f49.
+base/rational.jl	156	165	show	show(io::IO, x::Rational)	modelled	rational-complex-and-io-exact,rational-complex-power-recursive-cycle	Reviewed line by line against pinned f755f49 source.
+base/rational.jl	167	171	read	read(s::IO, ::Type{Rational{T}}) where T<:Integer	modelled	rational-read-effects	Source-mirrored model JuliaLean.base.rational.Models2Group10.readRationalValue; reviewed against Julia f755f49.
+base/rational.jl	172	174	write	write(s::IO, z::Rational)	modelled	rational-write-effects	Source-mirrored model JuliaLean.base.rational.Models2Group10.writeRationalValue; reviewed against Julia f755f49.
+base/rational.jl	175	187	parse	parse(::Type{Rational{T}}, s::AbstractString) where T<:Integer	modelled	rational-parse-effects	Source-mirrored model JuliaLean.base.rational.Models2Group10.parseRationalValue; reviewed against Julia f755f49.
+base/rational.jl	190	192	Rational{T}	Rational{T}(x::Rational) where T<:Integer	modelled	rational-conversion-effects	Source-mirrored model JuliaLean.base.rational.Models2Group10.convertRationalValue; reviewed against Julia f755f49.
+base/rational.jl	193	195	Rational{T}	Rational{T}(x::Integer) where T<:Integer	modelled	rational-typed-integer-rational-effects	Source-mirrored model JuliaLean.base.rational.Models2Group10.rationalFromIntegerAs; reviewed against Julia f755f49.
+base/rational.jl	197	197	Rational	Rational(x::Rational)	modelled	rational-identity-value	Installed rationalIdentitySource checked against f755f49; generic result carrier preserves selected outcomes; open method contract registered.
+base/rational.jl	199	200	Bool	Bool(x::Rational)	modelled	rational-bool-native;models2-g10-rational-bool-effects	Source-mirrored model JuliaLean.base.rational.Models2Group10.boolFromRational; reviewed against Julia f755f49.
+base/rational.jl	201	202	(::Type{T})	(::Type{T})(x::Rational) where {T<:Integer}	modelled	rational-integer-from-rational-native;rational-integer-from-rational-effects	Source-mirrored model JuliaLean.base.rational.Models2Group10.integerFromRational; reviewed against Julia f755f49.
+base/rational.jl	204	204	AbstractFloat	AbstractFloat(x::Rational)	modelled	rational-abstract-float-effects	Source-mirrored model JuliaLean.base.rational.Models2Group10.abstractFloatRational; reviewed against Julia f755f49.
+base/rational.jl	205	208	(::Type{T})	(::Type{T})(x::Rational{S}) where T<:AbstractFloat where S	modelled	rational-typed-float-effects	Source-mirrored model JuliaLean.base.rational.Models2Group10.typedFloatRational; reviewed against Julia f755f49.
+base/rational.jl	211	212	Float16	Float16(x::Rational{<:Union{Int16,Int32,Int64,UInt16,UInt32,UInt64}})	modelled	rational-small-float-no-spurious-overflow	float16OfRationalSmallSource covers exactly all six listed component types and calls concrete Float32 conversion/division then Float16 conversion in source order.
+base/rational.jl	213	214	Float16	Float16(x::Rational{<:Union{Int128,UInt128}})	modelled	rational-small-float-no-spurious-overflow	float16OfRational128Source covers both Int128 and UInt128 and calls concrete Float64 conversion/division then Float16 conversion.
 base/rational.jl	215	216	Float32	Float32(x::Rational{<:Union{Int128,UInt128}})	modelled	promotion-float-from-rational-nearest	
 base/rational.jl	218	222	Rational{T}	Rational{T}(x::AbstractFloat) where T<:Integer	modelled	promotion-rational-from-float-exact,promotion-rational-from-float-representable	
-base/rational.jl	223	223	Rational	Rational(x::Float64)	todo		trivial: existential result only
-base/rational.jl	224	224	Rational	Rational(x::Float32)	todo		trivial: existential result only
-base/rational.jl	226	226	big	big(q::Rational)	todo		trivial: restates the conversion expression
-base/rational.jl	228	228	big	big(z::Complex{<:Rational{<:Integer}})	todo		trivial: restates the conversion expression
-base/rational.jl	230	230	promote_rule	promote_rule(::Type{Rational{T}}, ::Type{S}) where {T<:Integer,S<:Integer}	todo		trivial: restates a promotion expression
-base/rational.jl	231	231	promote_rule	promote_rule(::Type{Rational{T}}, ::Type{Rational{S}}) where {T<:Integer,S<:Integer}	todo		trivial: restates a promotion expression
-base/rational.jl	232	232	promote_rule	promote_rule(::Type{Rational{T}}, ::Type{S}) where {T<:Integer,S<:AbstractFloat}	todo		trivial: restates a promotion expression
-base/rational.jl	234	234	widen	widen(::Type{Rational{T}}) where {T}	todo		trivial: restates a widening expression
-base/rational.jl	236	236	__throw_negate_unsigned	__throw_negate_unsigned()	todo		trivial: restates the error body
+base/rational.jl	223	223	Rational	Rational(x::Float64)	modelled	rational-complex-power-recursive-cycle	Reviewed line by line against pinned f755f49 source.
+base/rational.jl	224	224	Rational	Rational(x::Float32)	modelled	rational-complex-power-recursive-cycle	Reviewed line by line against pinned f755f49 source.
+base/rational.jl	226	226	big	big(q::Rational)	modelled	rational-big-effects	Source-mirrored model JuliaLean.base.rational.Models2Group10.bigRational; reviewed against Julia f755f49.
+base/rational.jl	228	228	big	big(z::Complex{<:Rational{<:Integer}})	modelled	rational-complex-rational-big-effects	Source-mirrored model JuliaLean.base.rational.Models2Group10.bigComplexRational; reviewed against Julia f755f49.
+base/rational.jl	230	230	promote_rule	promote_rule(::Type{Rational{T}}, ::Type{S}) where {T<:Integer,S<:Integer}	modelled	rational-integer-promotion,rational-complex-power-recursive-cycle	Reviewed line by line against pinned f755f49 source.
+base/rational.jl	231	231	promote_rule	promote_rule(::Type{Rational{T}}, ::Type{Rational{S}}) where {T<:Integer,S<:Integer}	modelled	rational-rational-promotion,rational-complex-power-recursive-cycle	Reviewed line by line against pinned f755f49 source.
+base/rational.jl	232	232	promote_rule	promote_rule(::Type{Rational{T}}, ::Type{S}) where {T<:Integer,S<:AbstractFloat}	modelled	rational-float-promotion-effects	Source-mirrored model JuliaLean.base.rational.Models2Group10.promoteRationalFloatType; reviewed against Julia f755f49.
+base/rational.jl	234	234	widen	widen(::Type{Rational{T}}) where {T}	modelled	rational-type-widening,rational-complex-power-recursive-cycle	Reviewed line by line against pinned f755f49 source.
+base/rational.jl	236	236	__throw_negate_unsigned	__throw_negate_unsigned()	modelled	rational-unsigned-negation-overflow	throwNegateUnsignedSource has no numeric callback and throws the exact OverflowError; negUnsignedSource and its registered unsigned-negation property depend on it.
 base/rational.jl	256	319	rationalize	rationalize(::Type{T}, x::AbstractFloat, tol::Real) where T<:Integer	modelled	promotion-rational-from-float-representable	family model mirrors this source method body
 base/rational.jl	320	320	rationalize	rationalize(::Type{T}, x::AbstractFloat; tol::Real = eps(x)) where {T<:Integer}	modelled	promotion-rational-from-float-representable	family model mirrors this source method body
-base/rational.jl	321	321	rationalize	rationalize(x::Real; kvs...)	todo		trivial: restates a forwarding body
-base/rational.jl	322	322	rationalize	rationalize(::Type{T}, x::Complex; kvs...) where {T<:Integer}	todo		trivial: restates componentwise forwarding
-base/rational.jl	323	323	rationalize	rationalize(x::Complex; kvs...)	todo		trivial: restates componentwise forwarding
-base/rational.jl	324	324	rationalize	rationalize(::Type{T}, x::Rational; tol::Real = eps(float(x))) where {T<:Integer}	todo		trivial: restates a forwarding body
-base/rational.jl	325	325	rationalize	rationalize(x::Rational{T}; kvs...) where {T<:Integer}	todo		trivial: restates a forwarding body
-base/rational.jl	326	333	rationalize	rationalize(::Type{T}, x::Rational, tol::Real) where {T<:Integer}	todo		trivial: restates the model's branches
-base/rational.jl	334	334	rationalize	rationalize(x::Integer; kvs...)	todo		trivial: restates the integer constructor body
+base/rational.jl	321	321	rationalize	rationalize(x::Real; kvs...)	modelled	rational-rationalize-real-default-effects	Source-mirrored model JuliaLean.base.rational.Models2Group10.rationalizeRealDefault; reviewed against Julia f755f49.
+base/rational.jl	322	322	rationalize	rationalize(::Type{T}, x::Complex; kvs...) where {T<:Integer}	modelled	models2-g10-rationalize-complex-typed-effects	Source-mirrored model JuliaLean.base.rational.Models2Group10.rationalizeComplexAs; reviewed against Julia f755f49.
+base/rational.jl	323	323	rationalize	rationalize(x::Complex; kvs...)	modelled	models2-g10-rationalize-complex-default-effects	Source-mirrored model JuliaLean.base.rational.Models2Group10.rationalizeComplexDefault; reviewed against Julia f755f49.
+base/rational.jl	324	324	rationalize	rationalize(::Type{T}, x::Rational; tol::Real = eps(float(x))) where {T<:Integer}	modelled	rational-complex-power-recursive-cycle	Reviewed line by line against pinned f755f49 source.
+base/rational.jl	325	325	rationalize	rationalize(x::Rational{T}; kvs...) where {T<:Integer}	modelled	rational-rationalize-rational-keywords-effects	Source-mirrored model JuliaLean.base.rational.Models2Group10.rationalizeRationalKeywords; reviewed against Julia f755f49.
+base/rational.jl	326	333	rationalize	rationalize(::Type{T}, x::Rational, tol::Real) where {T<:Integer}	modelled	rational-input-approximation-tolerance,rational-complex-power-recursive-cycle	Reviewed line by line against pinned f755f49 source.
+base/rational.jl	334	334	rationalize	rationalize(x::Integer; kvs...)	modelled	rational-rationalize-integer-default-effects	Source-mirrored model JuliaLean.base.rational.Models2Group10.rationalizeIntegerDefault; reviewed against Julia f755f49.
 base/rational.jl	335	342	rationalize	rationalize(::Type{T}, x::Integer; kvs...) where {T<:Integer}	modelled	numberscov-rationalize-integer-tolerance	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
-base/rational.jl	343	343	rationalize	rationalize(::Type{Union{}}, slurp...; kwargs...)	todo		trivial: restates the error body
-base/rational.jl	360	360	numerator	numerator(x::Union{Integer,Complex{<:Integer}})	todo		trivial: restates identity
-base/rational.jl	361	361	numerator	numerator(x::Rational)	todo		trivial: restates field selection
-base/rational.jl	362	367	numerator	numerator(z::Complex{<:Rational})	todo		trivial: existential result only
-base/rational.jl	383	383	denominator	denominator(x::Union{Integer,Complex{<:Integer}})	todo		trivial: restates the one expression
-base/rational.jl	384	384	denominator	denominator(x::Rational)	todo		trivial: restates field selection
-base/rational.jl	385	385	denominator	denominator(z::Complex{<:Rational})	todo		trivial: restates the lcm expression
-base/rational.jl	387	387	sign	sign(x::Rational)	todo		trivial: restates the sign expression
-base/rational.jl	388	388	signbit	signbit(x::Rational)	todo		trivial: restates the signbit expression
-base/rational.jl	390	390	abs	abs(x::Rational)	todo		trivial: existential result only
-base/rational.jl	392	392	typemin	typemin(::Type{Rational{T}}) where {T<:Signed}	todo		trivial: restates a constructor expression
-base/rational.jl	393	393	typemin	typemin(::Type{Rational{T}}) where {T<:Integer}	todo		trivial: restates a constructor expression
-base/rational.jl	394	394	typemax	typemax(::Type{Rational{T}}) where {T<:Integer}	todo		trivial: restates a constructor expression
-base/rational.jl	396	396	isinteger	isinteger(x::Rational)	todo		trivial: restates the denominator check
-base/rational.jl	397	397	ispow2	ispow2(x::Rational)	todo		trivial: restates a conjunction
-base/rational.jl	399	399	+	+(x::Rational)	todo		trivial: restates identity
-base/rational.jl	400	400	-	-(x::Rational)	todo		trivial: restates the negation expression
-base/rational.jl	402	405	-	-(x::Rational{T}) where T<:BitSigned	todo		trivial: restates the checked negation branch
-base/rational.jl	406	406	__throw_rational_numerator_typemin	__throw_rational_numerator_typemin(T)	todo		trivial: restates the error body
-base/rational.jl	408	411	-	-(x::Rational{T}) where T<:Unsigned	todo		trivial: restates the unsigned check
-base/rational.jl	413	413	-%	-%(x::Rational)	todo		trivial: restates the wrapping negation expression
-base/rational.jl	415	422	+	+(x::Rational, y::Rational)	todo		trivial: restates source order
-base/rational.jl	424	431	+%	+%(x::Rational, y::Rational)	todo		trivial: finite-sample computation only
+base/rational.jl	343	343	rationalize	rationalize(::Type{Union{}}, slurp...; kwargs...)	modelled	rational-rationalize-bottom-methoderror	rationalizeBottom covers every positional/keyword payload and throws MethodError naming rationalize. The shared JlError intentionally abstracts the MethodError tuple payload, consistently with Core.
+base/rational.jl	360	360	numerator	numerator(x::Union{Integer,Complex{<:Integer}})	modelled	rational-integer-numerator-value	Installed numeratorIntegerOrComplex checked against f755f49; generic result carrier preserves selected outcomes; open method contract registered.
+base/rational.jl	361	361	numerator	numerator(x::Rational)	modelled	rational-components-roundtrip	numeratorRationalSource is field selection over an arbitrary represented component carrier; Round4.components_reconstruct directly uses it.
+base/rational.jl	362	367	numerator	numerator(z::Complex{<:Rational})	modelled	rational-complex-numerator-value,rational-complex-and-io-exact,rational-complex-power-recursive-cycle	Reviewed line by line against pinned f755f49 source.
+base/rational.jl	383	383	denominator	denominator(x::Union{Integer,Complex{<:Integer}})	modelled	rational-integer-like-denominator-effects	Source-mirrored model JuliaLean.base.rational.Models2Group10.denominatorIntegerLike; reviewed against Julia f755f49.
+base/rational.jl	384	384	denominator	denominator(x::Rational)	modelled	rational-components-roundtrip	denominatorRationalSource is field selection over an arbitrary represented component carrier; Round4.components_reconstruct directly uses it.
+base/rational.jl	385	385	denominator	denominator(z::Complex{<:Rational})	modelled	rational-complex-numerator-value,rational-complex-power-recursive-cycle	Reviewed line by line against pinned f755f49 source.
+base/rational.jl	387	387	sign	sign(x::Rational)	modelled	rational-sign-effects	Source-mirrored model JuliaLean.base.rational.Models2Group10.signRational; reviewed against Julia f755f49.
+base/rational.jl	388	388	signbit	signbit(x::Rational)	modelled	rational-signbit-native;rational-signbit-effects	Source-mirrored model JuliaLean.base.rational.Models2Group10.signbitRational; reviewed against Julia f755f49.
+base/rational.jl	390	390	abs	abs(x::Rational)	modelled	rational-abs-effects	Source-mirrored model JuliaLean.base.rational.Models2Group10.absRational; reviewed against Julia f755f49.
+base/rational.jl	392	392	typemin	typemin(::Type{Rational{T}}) where {T<:Signed}	modelled	models2-g10-rational-signed-minimum-effects	Source-mirrored model JuliaLean.base.rational.Models2Group10.rationalSignedMinimum; reviewed against Julia f755f49.
+base/rational.jl	393	393	typemin	typemin(::Type{Rational{T}}) where {T<:Integer}	modelled	rational-integer-minimum-effects	Source-mirrored model JuliaLean.base.rational.Models2Group10.rationalIntegerMinimum; reviewed against Julia f755f49.
+base/rational.jl	394	394	typemax	typemax(::Type{Rational{T}}) where {T<:Integer}	modelled	rational-integer-maximum-effects	Source-mirrored model JuliaLean.base.rational.Models2Group10.rationalIntegerMaximum; reviewed against Julia f755f49.
+base/rational.jl	396	396	isinteger	isinteger(x::Rational)	modelled	rational-isinteger-native;rational-isinteger-effects	Source-mirrored model JuliaLean.base.rational.Models2Group10.isintegerRational; reviewed against Julia f755f49.
+base/rational.jl	397	397	ispow2	ispow2(x::Rational)	modelled	models2-g10-rational-ispow2-native;rational-ispow2-effects	Source-mirrored model JuliaLean.base.rational.Models2Group10.ispow2Rational; reviewed against Julia f755f49.
+base/rational.jl	399	399	+	+(x::Rational)	modelled	rational-unary-plus-effects	Source-mirrored model JuliaLean.base.rational.Models2Group10.plusRational; reviewed against Julia f755f49.
+base/rational.jl	400	400	-	-(x::Rational)	modelled	rational-generic-negate-effects	Source-mirrored model JuliaLean.base.rational.Models2Group10.negateRational; reviewed against Julia f755f49.
+base/rational.jl	402	405	-	-(x::Rational{T}) where T<:BitSigned	modelled	rational-numerator-typemin-overflow	negBitSignedSource covers all five BitSigned widths; it checks numerator equality with typemin before wrapping negation and retains the denominator without normalization.
+base/rational.jl	406	406	__throw_rational_numerator_typemin	__throw_rational_numerator_typemin(T)	modelled	rational-numerator-typemin-overflow	throwNumeratorTypeminSource constructs the full error string parts and throws OverflowError; the registered negBitSignedSource method depends on it.
+base/rational.jl	408	411	-	-(x::Rational{T}) where T<:Unsigned	modelled	models2-g10-rational-unsigned-negation-effects	Source-mirrored model JuliaLean.base.rational.Models2Group10.negateUnsignedRational; reviewed against Julia f755f49.
+base/rational.jl	413	413	-%	-%(x::Rational)	modelled	rational-wrapping-negation-effects	Source-mirrored model JuliaLean.base.rational.Models2Group10.wrappingNegateRational; reviewed against Julia f755f49.
+base/rational.jl	415	422	+	+(x::Rational, y::Rational)	modelled	intarith-complex-rational-zero-power-overflow,rational-native-rational-complex-division,rational-complex-power-recursive-cycle	Reviewed line by line against pinned f755f49 source.
+base/rational.jl	424	431	+%	+%(x::Rational, y::Rational)	modelled	rational-wrapping-and-remainder-exact,rational-rounded-rational-integer,rational-rounded-integer-rational	Reviewed line by line against pinned f755f49 source.
 base/rational.jl	433	440	-	-(x::Rational, y::Rational)	modelled	intarith-rational-infinity-sub	
-base/rational.jl	442	449	-%	-%(x::Rational, y::Rational)	todo		trivial: finite-sample computation only
-base/rational.jl	453	456	$op	($op)(x::Rational, y::Rational)	todo		generated-loop: (op,chop) in ((:rem,:rem), (:mod,:mod))
-base/rational.jl	462	464	$op	($op)(x::Rational, y::Integer)	todo		generated-loop: (op,chop) in ((:+,:checked_add), (:-,:checked_sub), (:rem,:rem), (:mod,:mod))
-base/rational.jl	469	471	$op	($op)(y::Integer, x::Rational)	todo		generated-loop: (op,chop) in ((:+,:checked_add), (:-,:checked_sub))
-base/rational.jl	476	478	$op	($op)(y::Integer, x::Rational)	todo		generated-loop: (op,chop) in ((:rem,:rem), (:mod,:mod))
-base/rational.jl	482	486	*	*(x::Rational, y::Rational)	todo		trivial: existential result only
-base/rational.jl	487	490	*	*(x::Rational, y::Integer)	todo		trivial: restates the same-type comparison
-base/rational.jl	491	494	*	*(y::Integer, x::Rational)	todo		trivial: restates the source forwarding body
-base/rational.jl	497	499	*	*(x::Bool, y::T)::promote_type(Bool,T) where T<:Rational	todo		trivial: existential result only
-base/rational.jl	500	500	*	*(y::Rational, x::Bool)	todo		trivial: restates the source forwarding body
-base/rational.jl	501	501	/	/(x::Rational, y::Union{Rational, Integer})	todo		trivial: restates the source forwarding body
-base/rational.jl	502	502	/	/(x::Integer, y::Rational)	todo		trivial: restates the source forwarding body
-base/rational.jl	503	503	inv	inv(x::Rational{T}) where {T}	todo		trivial: restates the checked denominator call
-base/rational.jl	505	505	fma	fma(x::Rational, y::Rational, z::Rational)	todo		trivial: restates the multiply-then-add expression
-base/rational.jl	507	507	==	==(x::Rational, y::Rational)	todo		trivial: restates stored-component equality
-base/rational.jl	508	509	<	<( x::Rational, y::Rational)	todo		trivial: finite-sample computation only
-base/rational.jl	510	511	<=	<=(x::Rational, y::Rational)	todo		trivial: finite-sample computation only
-base/rational.jl	514	514	==	==(x::Rational, y::Integer )	todo		trivial: restates the integer comparison expression
-base/rational.jl	515	515	==	==(x::Integer , y::Rational)	todo		trivial: restates forwarding
-base/rational.jl	516	516	<	<( x::Rational, y::Integer )	todo		trivial: restates the cross-product comparison
-base/rational.jl	517	517	<	<( x::Integer , y::Rational)	todo		trivial: restates the cross-product comparison
-base/rational.jl	518	518	<=	<=(x::Rational, y::Integer )	todo		trivial: restates the cross-product comparison
-base/rational.jl	519	519	<=	<=(x::Integer , y::Rational)	todo		trivial: restates the cross-product comparison
-base/rational.jl	521	527	==	==(x::AbstractFloat, q::Rational)	todo		trivial: existential result only
-base/rational.jl	529	529	==	==(q::Rational, x::AbstractFloat)	todo		trivial: restates forwarding
-base/rational.jl	533	578	$rel	($rel)(x::$Tx, y::$Ty)	todo		generated-loop: rel in (:<,:<=,:cmp); (Tx,Ty) in ((Rational,AbstractFloat), (AbstractFloat,Rational))
-base/rational.jl	583	583	==	==(z::Complex , x::Rational)	todo		trivial: restates the complex ambiguity branch
-base/rational.jl	584	584	==	==(x::Rational, z::Complex )	todo		trivial: restates the complex ambiguity branch
-base/rational.jl	586	589	div	div(x::Rational, y::Integer, r::RoundingMode)	todo		trivial: existential result only
-base/rational.jl	590	593	div	div(x::Integer, y::Rational, r::RoundingMode)	todo		trivial: existential result only
-base/rational.jl	594	598	div	div(x::Rational, y::Rational, r::RoundingMode)	todo		trivial: finite-sample computation only
-base/rational.jl	602	603	div	div(x::T, y::T, r::RoundingMode) where {T<:Rational}	todo		trivial: restates invoke forwarding
-base/rational.jl	606	606	div	div(x::$S, y::$T)	todo		generated-loop: (S, T) in ((Rational, Integer), (Integer, Rational), (Rational, Rational))
-base/rational.jl	607	607	fld	fld(x::$S, y::$T)	todo		generated-loop: (S, T) in ((Rational, Integer), (Integer, Rational), (Rational, Rational))
-base/rational.jl	608	608	cld	cld(x::$S, y::$T)	todo		generated-loop: (S, T) in ((Rational, Integer), (Integer, Rational), (Rational, Rational))
-base/rational.jl	612	612	round	round(x::Rational, r::RoundingMode=RoundNearest)	todo		trivial: restates forwarding
-base/rational.jl	614	619	round	round(::Type{T}, x::Rational{Tr}, r::RoundingMode=RoundNearest) where {T,Tr}	todo		trivial: finite-sample computation only
-base/rational.jl	621	626	round	round(::Type{T}, x::Rational{Bool}, ::RoundingMode=RoundNearest) where T	todo		trivial: finite-sample computation only
-base/rational.jl	628	630	^	^(x::Rational, n::Integer)	todo		trivial: restates power dispatch
-base/rational.jl	632	632	^	^(x::Number, y::Rational)	todo		trivial: restates power forwarding
-base/rational.jl	633	633	^	^(x::T, y::Rational) where {T<:AbstractFloat}	todo		trivial: restates power forwarding
-base/rational.jl	634	634	^	^(z::Complex{T}, p::Rational) where {T<:Real}	todo		trivial: restates power forwarding
-base/rational.jl	636	636	^	^(z::Complex{<:Rational}, n::Bool)	todo		trivial: restates the Bool branch
-base/rational.jl	637	639	^	^(z::Complex{<:Rational}, n::Integer)	todo		trivial: restates power dispatch
-base/rational.jl	641	641	iszero	iszero(x::Rational)	todo		trivial: restates the numerator predicate
-base/rational.jl	642	642	isone	isone(x::Rational)	todo		trivial: restates the component predicate
-base/rational.jl	644	646	lerpi	lerpi(j::Integer, d::Integer, a::Rational, b::Rational)	todo		trivial: restates interpolation arithmetic
-base/rational.jl	648	648	float	float(::Type{Rational{T}}) where {T<:Integer}	todo		trivial: restates type forwarding
-base/rational.jl	650	655	gcd	gcd(x::Rational, y::Rational)	todo		trivial: existential result only
-base/rational.jl	656	661	lcm	lcm(x::Rational, y::Rational)	todo		trivial: existential result only
-base/rational.jl	662	674	gcdx	gcdx(x::Rational, y::Rational)	todo		trivial: existential result only
-base/rational.jl	670	670	idiv	idiv(x, c)	todo		trivial: restates the integer quotient helper
-base/rational.jl	678	678	decompose	decompose(x::Rational)	todo		trivial: restates the decomposition tuple
-base/rational.jl	679	702	hash	hash(x::Rational{<:BitInteger64}, h::UInt)	todo		trivial: existential result only
-base/rational.jl	707	712	length	length(r::AbstractUnitRange{T}) where T<:Rational	todo		trivial: finite-sample computation only
-base/rational.jl	713	720	checked_length	checked_length(r::AbstractUnitRange{T}) where T<:Rational	todo		trivial: finite-sample computation only
+base/rational.jl	442	449	-%	-%(x::Rational, y::Rational)	modelled	rational-wrapping-and-remainder-exact,rational-rounded-rational-integer,rational-rounded-integer-rational	Reviewed line by line against pinned f755f49 source.
+base/rational.jl	453	456	$op	($op)(x::Rational, y::Rational)	modelled	rational-remainder-value,rational-mixed-remainder-value,rational-complex-power-recursive-cycle	Reviewed line by line against pinned f755f49 source.
+base/rational.jl	462	464	$op	($op)(x::Rational, y::Integer)	modelled	models2-g10-rational-integer-generated-effects	Source-mirrored model JuliaLean.base.rational.Models2Group10.rationalIntegerScalar; reviewed against Julia f755f49.
+base/rational.jl	469	471	$op	($op)(y::Integer, x::Rational)	modelled	models2-g10-integer-rational-checked-effects	Source-mirrored model JuliaLean.base.rational.Models2Group10.addIntegerRationalChecked;JuliaLean.base.rational.Models2Group10.subtractIntegerRationalChecked; reviewed against Julia f755f49.
+base/rational.jl	476	478	$op	($op)(y::Integer, x::Rational)	modelled	models2-g10-integer-rational-remainder-effects	Source-mirrored model JuliaLean.base.rational.Models2Group10.remIntegerRational;JuliaLean.base.rational.Models2Group10.modIntegerRational; reviewed against Julia f755f49.
+base/rational.jl	482	486	*	*(x::Rational, y::Rational)	modelled	rational-arithmetic-exact,rational-multiplication-exact,rational-fma-value	Reviewed line by line against pinned f755f49 source.
+base/rational.jl	487	490	*	*(x::Rational, y::Integer)	modelled	rational-arithmetic-exact,rational-mixed-arithmetic,rational-complex-power-recursive-cycle	Reviewed line by line against pinned f755f49 source.
+base/rational.jl	491	494	*	*(y::Integer, x::Rational)	modelled	rational-arithmetic-exact,rational-mixed-arithmetic,rational-mixed-left-value	Reviewed line by line against pinned f755f49 source.
+base/rational.jl	497	499	*	*(x::Bool, y::T)::promote_type(Bool,T) where T<:Rational	modelled	rational-bool-times-native,rational-complex-power-recursive-cycle	Reviewed line by line against pinned f755f49 source.
+base/rational.jl	500	500	*	*(y::Rational, x::Bool)	modelled	rational-bool-right-effects	Source-mirrored model JuliaLean.base.rational.Models2Group10.multiplyRationalBoolRight; reviewed against Julia f755f49.
+base/rational.jl	501	501	/	/(x::Rational, y::Union{Rational, Integer})	modelled	rational-slash-union-effects	Source-mirrored model JuliaLean.base.rational.Models2Group10.slashRationalUnion; reviewed against Julia f755f49.
+base/rational.jl	502	502	/	/(x::Integer, y::Rational)	modelled	rational-integer-rational-slash-effects	Source-mirrored model JuliaLean.base.rational.Models2Group10.slashIntegerRational; reviewed against Julia f755f49.
+base/rational.jl	503	503	inv	inv(x::Rational{T}) where {T}	modelled	rational-inverse-effects	Source-mirrored model JuliaLean.base.rational.Models2Group10.inverseRational; reviewed against Julia f755f49.
+base/rational.jl	505	505	fma	fma(x::Rational, y::Rational, z::Rational)	modelled	rational-fma-effects	Source-mirrored model JuliaLean.base.rational.Models2Group10.fmaRationals; reviewed against Julia f755f49.
+base/rational.jl	507	507	==	==(x::Rational, y::Rational)	modelled	rational-equality-effects	Source-mirrored model JuliaLean.base.rational.Models2Group10.equalRationals; reviewed against Julia f755f49.
+base/rational.jl	508	509	<	<( x::Rational, y::Rational)	modelled	rational-rational-comparisons,rational-native-rational-order,rational-checked-length-native-rational-range	Reviewed line by line against pinned f755f49 source.
+base/rational.jl	510	511	<=	<=(x::Rational, y::Rational)	modelled	rational-rational-comparisons,rational-native-rational-order,rational-complex-power-recursive-cycle	Reviewed line by line against pinned f755f49 source.
+base/rational.jl	514	514	==	==(x::Rational, y::Integer )	modelled	rational-integer-equality-selected	Source mirror eqRatIntMethod, checked against f755f49; selected-operation bodies retain changing result carriers and effects; legacy numeric adapters delegate to that body.
+base/rational.jl	515	515	==	==(x::Integer , y::Rational)	modelled	rational-integer-left-equality-selected	Source mirror eqIntRatMethod, checked against f755f49; selected-operation bodies retain changing result carriers and effects; legacy numeric adapters delegate to that body.
+base/rational.jl	516	516	<	<( x::Rational, y::Integer )	modelled	rational-integer-less-selected	Source mirror ltRatIntMethod, checked against f755f49; selected-operation bodies retain changing result carriers and effects; legacy numeric adapters delegate to that body.
+base/rational.jl	517	517	<	<( x::Integer , y::Rational)	modelled	rational-integer-left-less-selected	Source mirror ltIntRatMethod, checked against f755f49; selected-operation bodies retain changing result carriers and effects; legacy numeric adapters delegate to that body.
+base/rational.jl	518	518	<=	<=(x::Rational, y::Integer )	modelled	rational-integer-less-equal-selected	Source mirror leRatIntMethod, checked against f755f49; selected-operation bodies retain changing result carriers and effects; legacy numeric adapters delegate to that body.
+base/rational.jl	519	519	<=	<=(x::Integer , y::Rational)	modelled	rational-integer-left-less-equal-selected	Source mirror leIntRatMethod, checked against f755f49; selected-operation bodies retain changing result carriers and effects; legacy numeric adapters delegate to that body.
+base/rational.jl	521	527	==	==(x::AbstractFloat, q::Rational)	modelled	rational-finite-float-equality,rational-float-equality-reverse-selected,rational-complex-power-recursive-cycle	Reviewed line by line against pinned f755f49 source.
+base/rational.jl	529	529	==	==(q::Rational, x::AbstractFloat)	modelled	rational-float-equality-reverse-selected	Source mirror eqRatFloatMethod, checked against f755f49; selected-operation bodies retain changing result carriers and effects; legacy numeric adapters delegate to that body.
+base/rational.jl	533	578	$rel	($rel)(x::$Tx, y::$Ty)	modelled	promotion-cmp-rational-signed-zero,rational-float-comparison-exact,rational-complex-power-recursive-cycle	Reviewed line by line against pinned f755f49 source.
+base/rational.jl	583	583	==	==(z::Complex , x::Rational)	modelled	rational-complex-equality-selected;rational-complex-equality-recursive-cycle	Full source mirror eqComplexRatFull; legacy numeric API delegates to the source body helper. Selected same-method recursion uses the installed SelfDispatch/partial_fixpoint pattern; no fuel or fabricated termination.
+base/rational.jl	584	584	==	==(x::Rational, z::Complex )	modelled	rational-complex-equality-reverse-selected	Source mirror eqRatComplexMethod, checked against f755f49; selected-operation bodies retain changing result carriers and effects; legacy numeric adapters delegate to that body.
+base/rational.jl	586	589	div	div(x::Rational, y::Integer, r::RoundingMode)	modelled	rational-rounded-quotient-value,rational-complex-and-io-exact,rational-mixed-rounded-quotient	Reviewed line by line against pinned f755f49 source.
+base/rational.jl	590	593	div	div(x::Integer, y::Rational, r::RoundingMode)	modelled	rational-rounded-quotient-value,rational-complex-and-io-exact,rational-mixed-rounded-quotient	Reviewed line by line against pinned f755f49 source.
+base/rational.jl	594	598	div	div(x::Rational, y::Rational, r::RoundingMode)	modelled	rational-rounded-quotient-value,rational-complex-and-io-exact,rational-mixed-rounded-quotient	Reviewed line by line against pinned f755f49 source.
+base/rational.jl	602	603	div	div(x::T, y::T, r::RoundingMode) where {T<:Rational}	modelled	rational-compatibility-division-selected	Installed divCompatibilitySource checked against f755f49; generic result carrier preserves selected outcomes; open method contract registered.
+base/rational.jl	606	606	div	div(x::$S, y::$T)	modelled	rational-default-division-selected	Installed divDefaultSource checked against f755f49; generic result carrier preserves selected outcomes; open method contract registered.
+base/rational.jl	607	607	fld	fld(x::$S, y::$T)	modelled	rational-default-floor-selected	Installed fldDefaultSource checked against f755f49; generic result carrier preserves selected outcomes; open method contract registered.
+base/rational.jl	608	608	cld	cld(x::$S, y::$T)	modelled	rational-default-ceiling-selected	Installed cldDefaultSource checked against f755f49; generic result carrier preserves selected outcomes; open method contract registered.
+base/rational.jl	612	612	round	round(x::Rational, r::RoundingMode=RoundNearest)	modelled	rational-default-rounding-selected	Installed roundRatDefaultSource checked against f755f49; generic result carrier preserves selected outcomes; open method contract registered.
+base/rational.jl	614	619	round	round(::Type{T}, x::Rational{Tr}, r::RoundingMode=RoundNearest) where {T,Tr}	modelled	intarith-rational-infinite-rounding,intarith-rational-trunc-exact,promotion-trunc-rational-infinite-error	Reviewed line by line against pinned f755f49 source.
+base/rational.jl	621	626	round	round(::Type{T}, x::Rational{Bool}, ::RoundingMode=RoundNearest) where T	modelled	rational-bool-rounding,rational-complex-power-recursive-cycle	Reviewed line by line against pinned f755f49 source.
+base/rational.jl	628	630	^	^(x::Rational, n::Integer)	modelled	rational-integer-power-value,rational-integer-power-nonnegative,rational-power-native-rational-integer	Reviewed line by line against pinned f755f49 source.
+base/rational.jl	632	632	^	^(x::Number, y::Rational)	modelled	rational-number-power-exponent-effects;rational-number-power-recursive-cycle	Full source mirror powNumberRationalFull; legacy numeric API delegates to the source body helper. Selected same-method recursion uses the installed SelfDispatch/partial_fixpoint pattern; no fuel or fabricated termination.
+base/rational.jl	633	633	^	^(x::T, y::Rational) where {T<:AbstractFloat}	modelled	rational-float-power-exponent-effects;rational-float-power-recursive-cycle	Full source mirror powFloatRationalFull; legacy numeric API delegates to the source body helper. Selected same-method recursion uses the installed SelfDispatch/partial_fixpoint pattern; no fuel or fabricated termination.
+base/rational.jl	634	634	^	^(z::Complex{T}, p::Rational) where {T<:Real}	modelled	rational-complex-power-exponent-effects;rational-complex-power-recursive-cycle	Full source mirror powComplexRationalFull; legacy numeric API delegates to the source body helper. Selected same-method recursion uses the installed SelfDispatch/partial_fixpoint pattern; no fuel or fabricated termination.
+base/rational.jl	636	636	^	^(z::Complex{<:Rational}, n::Bool)	modelled	rational-complex-power-recursive-cycle	Reviewed line by line against pinned f755f49 source.
+base/rational.jl	637	639	^	^(z::Complex{<:Rational}, n::Integer)	modelled	rational-complex-integer-power-value,rational-complex-and-io-exact,intarith-complex-rational-zero-power-overflow	Reviewed line by line against pinned f755f49 source.
+base/rational.jl	641	641	iszero	iszero(x::Rational)	modelled	rational-zero-denominator-independent	Installed isZeroRationalSource checked against f755f49; generic result carrier preserves selected outcomes; open method contract registered.
+base/rational.jl	642	642	isone	isone(x::Rational)	modelled	rational-one-eager-predicate-effects	Source mirror isOneRationalMethod, checked against f755f49; selected-operation bodies retain changing result carriers and effects; legacy numeric adapters delegate to that body.
+base/rational.jl	644	646	lerpi	lerpi(j::Integer, d::Integer, a::Rational, b::Rational)	modelled	rational-interpolation-left-error-priority	Source mirror lerpiMethod, checked against f755f49; selected-operation bodies retain changing result carriers and effects; legacy numeric adapters delegate to that body.
+base/rational.jl	648	648	float	float(::Type{Rational{T}}) where {T<:Integer}	modelled	rational-floating-type-selected	Installed floatTypeSource checked against f755f49; generic result carrier preserves selected outcomes; open method contract registered.
+base/rational.jl	650	655	gcd	gcd(x::Rational, y::Rational)	modelled	rational-gcd-lcm-gcdx-exact,rational-gcd-lcm-mixed-infinity-error,rational-mixed-gcd-lcm	Reviewed line by line against pinned f755f49 source.
+base/rational.jl	656	661	lcm	lcm(x::Rational, y::Rational)	modelled	rational-gcd-lcm-gcdx-exact,rational-gcd-lcm-mixed-infinity-error,rational-mixed-gcd-lcm	Reviewed line by line against pinned f755f49 source.
+base/rational.jl	662	674	gcdx	gcdx(x::Rational, y::Rational)	modelled	rational-gcdx-bezout,rational-gcdx-native,rational-complex-power-recursive-cycle	Reviewed line by line against pinned f755f49 source.
+base/rational.jl	670	670	idiv	idiv(x, c)	modelled	rational-gcdx-bezout,rational-gcdx-native,rational-complex-power-recursive-cycle	Reviewed line by line against pinned f755f49 source.
+base/rational.jl	678	678	decompose	decompose(x::Rational)	modelled	rational-components-roundtrip	decomposeSource returns the actual numerator, native Int64 literal zero and denominator over arbitrary component carriers; Round4.components_reconstruct directly uses it.
+base/rational.jl	679	702	hash	hash(x::Rational{<:BitInteger64}, h::UInt)	modelled	rational-complex-and-io-exact	trivial: existential result only
+base/rational.jl	707	712	length	length(r::AbstractUnitRange{T}) where T<:Rational	modelled	rational-unit-range-length-value,rational-complex-and-io-exact,ranges-rational-int8-length-wraps	Reviewed line by line against pinned f755f49 source.
+base/rational.jl	713	720	checked_length	checked_length(r::AbstractUnitRange{T}) where T<:Rational	modelled	rational-checked-length-native-rational-range,rational-complex-power-recursive-cycle	Reviewed line by line against pinned f755f49 source.

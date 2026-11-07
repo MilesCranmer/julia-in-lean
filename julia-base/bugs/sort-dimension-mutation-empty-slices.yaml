@@ -1,0 +1,59 @@
+id: sort-dimension-mutation-empty-slices
+title: "sort! throws when a valid dimension has no slices"
+priority: P2
+kind: wrong-exception
+area: Sort
+files: [base/sort.jl]
+functions: ["sort!(A::AbstractArray; dims)", "get_view"]
+summary: |
+  sort!(A; dims) should leave an empty array unchanged when the requested
+  dimension is valid. For a 0×30 matrix, the temporary-vector branch calls
+  get_view on the first of zero slices and throws BoundsError. The same call
+  succeeds for a 0×29 matrix, which uses the direct branch.
+likelihood: |
+  Low: this requires an empty array with a non-first sorted dimension of length
+  at least 30. Empty arrays nevertheless arise naturally from filtering and
+  slicing.
+maybe_intended: ""
+reproducer: |
+  A = zeros(0, 30)
+  r = try
+      sort!(copy(A); dims=2)
+  catch e
+      e
+  end
+  println("sort!(zeros(0, 30); dims=2) -> ", r isa Exception ? sprint(showerror, r) : summary(r))
+  small = sort!(zeros(0, 29); dims=2)
+  println("sort!(zeros(0, 29); dims=2) -> ", summary(small))
+  if r isa BoundsError && size(small) == (0, 29)
+      println("REPRODUCED sort-dimension-mutation-empty-slices")
+  end
+output:
+  release: |
+    sort!(zeros(0, 30); dims=2) throws BoundsError; sort!(zeros(0, 29); dims=2) returns a 0×29 matrix
+    REPRODUCED sort-dimension-mutation-empty-slices
+  nightly: |
+    sort!(zeros(0, 30); dims=2) throws BoundsError; sort!(zeros(0, 29); dims=2) returns a 0×29 matrix
+    REPRODUCED sort-dimension-mutation-empty-slices
+reproduced: {release: true, nightly: true}
+expected: |
+  sort!(A; dims=2) returns the same 0×30 array with its axes unchanged; there
+  are no elements or slices to sort.
+promised_by: |
+  The sort! contract at base/sort.jl:2187-2224 says the operation sorts the
+  input array in place along dims. A valid dimension with no slices should be
+  a no-op that preserves the array's axes.
+cause: |
+  When dims != 1 and size(A, dims) >= 30, sort! takes the temporary-vector
+  branch. That branch evaluates get_view(first(idxs)) before its loop; idxs is
+  empty when another dimension has length zero, so first(idxs) throws
+  BoundsError.
+possible_fix: |
+  Return the input array before taking the temporary-vector branch when there
+  are no slices along dims.
+duplicates:
+  issues: []
+  queries: ["sort! dims BoundsError", "sort! dims empty array", "sort! dims first(idxs)", "sort dims BoundsError empty"]
+lean:
+  property: JuliaLean.Proofs.base.sort.DimensionMutationEmptySlices
+  theorem: JuliaLean.Proofs.base.sort.dimensionMutationEmptySlices_refuted

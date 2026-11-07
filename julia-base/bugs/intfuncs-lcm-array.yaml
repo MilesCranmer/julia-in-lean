@@ -1,0 +1,57 @@
+id: intfuncs-lcm-array
+title: "lcm on an integer array returns typemin instead of a positive result or OverflowError"
+priority: P2
+kind: wrong-result
+area: IntFuncsCov
+files: [base/intfuncs.jl]
+functions: ["lcm(abc::AbstractArray{<:Real})"]
+summary: |
+  lcm(Int8[typemin(Int8)]) returns -128 because the singleton-array path applies
+  ordinary abs to typemin(Int8). The negative result contradicts the docstring's
+  least-common-positive-multiple contract. The two-argument integer method uses
+  checked_abs and throws OverflowError for this unrepresentable positive result.
+likelihood: |
+  Requires a singleton integer array containing the minimum value of a signed
+  fixed-width type. Such values are uncommon, but array input reaches the method
+  directly and the result silently has the wrong sign.
+maybe_intended: |
+  The positive least common multiple of typemin(Int8) is 128, which Int8 cannot
+  represent. The two-argument method's OverflowError suggests the array method
+  should also throw rather than return a negative value.
+reproducer: |
+  result = lcm(Int8[typemin(Int8)])
+  @assert result == typemin(Int8)
+  println("REPRODUCED intfuncs-lcm-array")
+output:
+  release: |
+    REPRODUCED intfuncs-lcm-array
+  nightly: |
+    REPRODUCED intfuncs-lcm-array
+reproduced: {release: true, nightly: true}
+expected: |
+  Throw OverflowError because the positive result 128 is not representable as Int8,
+  matching the two-argument lcm method.
+promised_by: |
+  The lcm docstring, base/intfuncs.jl:97-104, promises the least common positive
+  multiple. The two-argument method at lines 136-143 checks the absolute result.
+cause: |
+  base/intfuncs.jl:174 returns abs(only(abc)) for a singleton array. Ordinary abs
+  of typemin(Int8) wraps to -128, so this path returns a negative value instead of
+  reporting that the positive result is unrepresentable. The two-argument method
+  uses checked_abs at line 142 and throws OverflowError.
+possible_fix: |
+  Use checked absolute value for the integer singleton case while preserving the
+  existing behavior for other Real element types.
+duplicates:
+  issues:
+    - {number: 34411, state: open, relation: related}
+    - {number: 50486, state: open, relation: related}
+  prs: []
+  queries:
+    - "issues: lcm array typemin"
+    - "issues: lcm typemin array method"
+    - "PRs: lcm array typemin"
+    - "PRs: lcm typemin array method"
+lean:
+  property: JuliaLean.Proofs.base.intfuncs.approvedRound5.LcmArrayExact
+  theorem: JuliaLean.Proofs.base.intfuncs.approvedRound5.lcmArrayExact_refuted

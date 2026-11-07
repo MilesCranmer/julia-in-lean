@@ -49,5 +49,5 @@ duplicates:
     - {number: 57906, state: closed, relation: related}
   queries: ["prevpow float", "prevpow Float32", "prevpow overflow", "prevpow Inf", "nextpow Float32", "prevpow"]
 lean:
-  property: JuliaLean.MathFuncs.prevpowLe
-  theorem: JuliaLean.MathFuncs.prevpowLe_refuted
+  property: JuliaLean.Proofs.base.intfuncs.PrevpowFloat32Bound
+  theorem: JuliaLean.Proofs.base.intfuncs.prevpowFloat32Bound_refuted

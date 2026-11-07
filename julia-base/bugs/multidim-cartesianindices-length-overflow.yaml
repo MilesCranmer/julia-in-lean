@@ -3,14 +3,15 @@ title: "length(CartesianIndices((2^32, 2^32))) == 0: isempty is true and linear 
 priority: P3
 kind: wrong-result
 area: Multidim
-files: [base/essentials.jl, base/abstractarray.jl, base/multidimensional.jl]
-functions: ["length(t::AbstractArray)", "isempty(a::AbstractArray)", "size(iter::CartesianIndices)", "getindex(::CartesianIndices, ::Int)"]
+files: [base/essentials.jl, base/abstractarray.jl, base/multidimensional.jl, base/range.jl]
+functions: ["length(t::AbstractArray)", "isempty(a::AbstractArray)", "size(iter::CartesianIndices)", "getindex(::CartesianIndices, ::Int)", "axes(::CartesianIndices)", "LinearIndices(::CartesianIndices)", "issubset(::CartesianIndices, ::CartesianIndices)"]
 summary: |
   The generic length(A) = prod(size(A)) multiplies the component lengths in wrapping
   Int arithmetic. CartesianIndices is lazy, so its size can be arbitrarily large:
   length(CartesianIndices((2^32, 2^32))) == 0 and isempty is true although iterate
   returns CartesianIndex(1, 1); linear indexing R[2] throws BoundsError (it is checked
   against 1:length) while R[2, 1] works; length(CartesianIndices((typemax(Int), 2))) == -2.
+  Wrapped component lengths also produce negative declared axes, change shape under LinearIndices conversion, and make issubset ignore actual points.
 likelihood: |
   Needs index spaces with more than typemax(Int) points, for example CartesianIndices
   of a lazy grid or of large ranges. Uncommon; the result is silent when it happens.
@@ -28,10 +29,22 @@ output:
     length = 0, isempty = true, first iterate = CartesianIndex(1, 1), R[2, 1] = CartesianIndex(2, 1), R[2] = BoundsError(CartesianIndices((4294967296, 4294967296)), (2,))
     length(CartesianIndices((typemax(Int), 2))) = -2
     REPRODUCED multidim-cartesianindices-length-overflow
+    declared axes = (Base.OneTo(-9223372036854775808),); region[1] = CartesianIndex(1)
+    REPRODUCED multidimensional-region-scalar-declared-axes
+    size(region) = (-9223372036854775808, 1); size(LinearIndices(region)) = (0, 1)
+    REPRODUCED multidimensional-linearindices-general-constructor
+    subset length = 0; issubset = true; missing point = CartesianIndex(-9223372036854775808)
+    REPRODUCED multidimensional-region-subset-geometry
   nightly: |
     length = 0, isempty = true, first iterate = CartesianIndex(1, 1), R[2, 1] = CartesianIndex(2, 1), R[2] = BoundsError(CartesianIndices((4294967296, 4294967296)), (2,))
     length(CartesianIndices((typemax(Int), 2))) = -2
     REPRODUCED multidim-cartesianindices-length-overflow
+    declared axes = (Base.OneTo(-9223372036854775808),); region[1] = CartesianIndex(1)
+    REPRODUCED multidimensional-region-scalar-declared-axes
+    size(region) = (-9223372036854775808, 1); size(LinearIndices(region)) = (0, 1)
+    REPRODUCED multidimensional-linearindices-general-constructor
+    subset length = 0; issubset = true; missing point = CartesianIndex(-9223372036854775808)
+    REPRODUCED multidimensional-region-subset-geometry
 reproduced: {release: true, nightly: true}
 expected: |
   An OverflowError from length (as Base.checked_length does for ranges), and
@@ -45,12 +58,29 @@ cause: |
   size(iter::CartesianIndices) = map(length, iter.indices)
   (base/multidimensional.jl:488); prod of Int wraps. isempty(a::AbstractArray) =
   (length(a) == 0) (base/abstractarray.jl:1262).
+  The component-range length overflow feeds axes and LinearIndices construction; issubset at base/multidimensional.jl:646-647 trusts isempty before comparing components.
 possible_fix: |
   Define length(iter::CartesianIndices) with Base.checked_mul (or define isempty as
   any(isempty, iter.indices)).
 duplicates:
   issues: []
-  queries: ["issues: CartesianIndices (titles scanned)", "issues: CartesianIndices length overflow", "issues: CartesianIndices overflow", "issues: isempty CartesianIndices", "issues: length overflow prod size", "issues: length of array overflows"]
+  queries: ["issues: CartesianIndices (titles scanned)", "issues: CartesianIndices length overflow", "issues: CartesianIndices overflow", "issues: isempty CartesianIndices", "issues: length overflow prod size", "issues: length of array overflows", "prs: CartesianIndices length overflow"]
+  search_notes: |
+    No related issue or PR is known.
 lean:
   property: JuliaLean.Multidim.CartesianIsEmpty
   theorem: JuliaLean.Multidim.cartesianIsEmpty_refuted
+covers: [multidimensional-region-scalar-declared-axes, multidimensional-linearindices-general-constructor, multidimensional-region-subset-geometry]
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: true
+  output: |
+    length = 0, isempty = true, first iterate = CartesianIndex(1, 1), R[2, 1] = CartesianIndex(2, 1), R[2] = BoundsError(CartesianIndices((4294967296, 4294967296)), (2,))
+    length(CartesianIndices((typemax(Int), 2))) = -2
+    REPRODUCED multidim-cartesianindices-length-overflow
+    declared axes = (Base.OneTo(-9223372036854775808),); region[1] = CartesianIndex(1)
+    REPRODUCED multidimensional-region-scalar-declared-axes
+    size(region) = (-9223372036854775808, 1); size(LinearIndices(region)) = (0, 1)
+    REPRODUCED multidimensional-linearindices-general-constructor
+    subset length = 0; issubset = true; missing point = CartesianIndex(-9223372036854775808)
+    REPRODUCED multidimensional-region-subset-geometry

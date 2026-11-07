@@ -248,6 +248,162 @@ def RefArrayInteropBehavior : Prop :=
   RefArrayIndexBehavior ∧ RefArrayPointerRouteBehavior ∧
   RefPointerArrayBehavior ∧ RefTupleBehavior
 
+end JuliaLean.Proofs.base.refpointer
+
+namespace JuliaLean.ChatGPT.Batch4.Group15
+open JuliaLean JuliaLean.base.refpointer JuliaLean.Proofs.base.refpointer
+
+theorem ref_scalar_behavior : RefScalarBehavior := by
+  refine ⟨?_, rfl, ?_, rfl, ?_, ?_⟩
+  · intro α
+    rfl
+  · intro R r
+    exact ⟨rfl, rfl, rfl, rfl, rfl, rfl⟩
+  · intro R α E get r value h
+    simp only [iterateRef, h, Bind.bind, Except.bind, Pure.pure, Except.pure]
+  · intro R S α r state
+    rfl
+
+theorem ref_value_construction_behavior : RefValueConstructionBehavior := by
+  refine ⟨?_, ?_, ?_, ?_, ?_⟩
+  · intro X R E construct get h x reference hx
+    exact h x reference hx
+  · intro T X R Y E construct convert get h x reference value hc hv
+    exact h T x reference value hc hv
+  · intro X R Y E construct convert get h x reference value hc hv
+    exact h x reference value hc hv
+  · intro T R X construct isBits isAssigned get hassigned hundef reference hc
+    exact ⟨hassigned T reference hc, fun hb => hundef T reference hc hb⟩
+  · intro R reference
+    rfl
+
+theorem ref_ref_index_behavior : RefRefIndexBehavior := by
+  intro R I inst reference index one
+  constructor
+  · intro h
+    simp [refRefIndex, h]
+  · intro h
+    simp [refRefIndex, h]
+
+theorem ref_wrap_offset (address offset : Int) :
+    wrapInt .u64 (address + wrapInt .u64 offset) = wrapInt .u64 (address + offset) := by
+  change (address + offset % (2 ^ 64)) % (2 ^ 64) = (address + offset) % (2 ^ 64)
+  simp only [Int.add_emod, Int.emod_emod]
+
+theorem ref_pointer_index_behavior : RefPointerIndexBehavior := by
+  constructor
+  · intro T I S O one subtract sizeOf multiply toUInt indexValue sizeValue offsetValue
+      pointer index hsubtract hmultiply hconvert
+    change wrapInt .u64 (pointer.address.val +
+      (toUInt (multiply (subtract index one) (sizeOf T))).val) = _
+    rw [hconvert, hmultiply, hsubtract]
+    exact ref_wrap_offset _ _
+  · exact ref_ref_index_behavior
+
+theorem ref_array_index_behavior : RefArrayIndexBehavior := by
+  refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+  · intro T A R length getindex hvalid hinvalid array index roots
+    exact ⟨fun h => hinvalid array index h, fun h => hvalid array index h⟩
+  · intro T A R setindex array index roots value updated h
+    refine ⟨makeRefArray (T := T) updated index roots, ?_, rfl, rfl, rfl⟩
+    simp only [setindexRefArray, makeRefArray, h, Bind.bind, Except.bind,
+      Pure.pure, Except.pure]
+  · intro T A getindex array
+    rfl
+  · intro T A I toInt array index converted h
+    simp only [refAbstractArray, refArrayIntegerNothingRoots, refArrayIntNothingRoots, Option.getD_some, h, Bind.bind,
+      Except.bind, Pure.pure, Except.pure]
+  · intro T A R array index roots
+    rfl
+  · intro T A array index
+    rfl
+  · intro T A R I toInt array index roots converted h
+    simp only [refArrayIntegerAnyRoots, refArrayIntAnyRoots, h, Bind.bind, Except.bind, Pure.pure, Except.pure]
+  · intro T A I toInt array index converted h
+    simp only [refArrayIntegerNothingRoots, refArrayIntNothingRoots, Option.getD_some, h, Bind.bind, Except.bind, Pure.pure, Except.pure]
+
+theorem ref_data_pointer_behavior : RefDataPointerBehavior := by
+  constructor
+  · intro R P convert pointsToData h reference pointer hc
+    exact h reference pointer hc
+  · intro X P convert pointsToData h value pointer hc
+    exact h value pointer hc
+
+theorem ref_array_pointer_route_behavior : RefArrayPointerRouteBehavior := by
+  constructor
+  · intro T A R P Q V allocatedinline isConcrete isMutable pointer getindex
+      pointerFromObjRef toPtrPtrCvoid pointerref sizePtrCvoid reference
+    refine ⟨?_, ?_, ?_⟩
+    · intro ha
+      simp only [unsafeConvertRefArray, ha, ite_true]
+    · intro ha hc hm
+      simp only [unsafeConvertRefArray, ha, hc, hm, Bool.and_self,
+        Bool.false_eq_true, ite_false, ite_true]
+    · intro ha hcm
+      simp only [unsafeConvertRefArray, ha, hcm, Bool.false_eq_true, ite_false]
+  · intro A R P pointer reference
+    rfl
+
+theorem ref_tuple_behavior : RefTupleBehavior := by
+  refine ⟨?_, ?_, ?_, ?_⟩
+  · intro T R E N construct get tuple h reference hc
+    exact h tuple reference hc
+  · intro R reference
+    rfl
+  · intro R TuplePointer RefPointer ElementPointer convert convertRef convertElement
+      tupleAddress refAddress elementAddress reference tuplePointer refPointer elementPointer
+      href helement
+    constructor
+    · intro hc hr
+      refine ⟨?_, href tuplePointer refPointer hr⟩
+      simp only [unsafeConvertRefTuple, hc, Bind.bind, Except.bind, hr]
+    · intro hc he
+      refine ⟨?_, helement tuplePointer elementPointer he⟩
+      simp only [unsafeConvertPtrTupleRef, hc, Bind.bind, Except.bind, he]
+  · intro TuplePointer ElementPointer convert pointer elementPointer tupleAddress
+      elementAddress h hc
+    exact h hc
+
+theorem RefpointerCoreBehavior_proven : JuliaLean.Proofs.base.refpointer.RefCoreBehavior := by
+  exact ⟨ref_scalar_behavior, ref_value_construction_behavior, ref_ref_index_behavior,
+    ref_pointer_index_behavior, ref_array_index_behavior, ref_data_pointer_behavior,
+    ref_array_pointer_route_behavior, ref_tuple_behavior⟩
+
+def ref_nul_error : JlError :=
+  .argumentError "embedded NULs are not allowed in C strings: \"a\\0b\""
+
+theorem ref_failed_pointer_has_no_pairing (roots pointers : List Unit) :
+    ¬ PointerRootPairs (fun (_ : Unit) => .ok ())
+      (fun (_ : Unit) => (Except.error ref_nul_error : Jl Unit))
+      (fun (_ : Unit) => (Except.ok () : Jl Unit)) [()] roots pointers := by
+  intro h
+  cases roots with
+  | nil => cases pointers <;> cases h
+  | cons root roots =>
+    cases pointers with
+    | nil => cases h
+    | cons pointer pointers =>
+      obtain ⟨converted, herror, _⟩ := h.2.1
+      cases herror
+
+theorem ref_nul_conversion_failures :
+    refPointerArray (T := Unit) (P := Unit) (Existing := Unit) (Root := Unit) (Q := Unit)
+      ⟨false, false, false, false⟩ (fun _ => ()) (fun _ => .ok ())
+      (fun _ => .error ref_nul_error) (fun _ => .ok ()) () [()] = .error ref_nul_error ∧
+    cconvertPtrArray (T := Unit) (P := Unit) (Existing := Unit) (Root := Unit) (Q := Unit)
+      ⟨false, false, false, false⟩ (fun _ => ()) (fun _ => .ok ())
+      (fun _ => .error ref_nul_error) (fun _ => .ok ()) () [()] = .error ref_nul_error ∧
+    cconvertRefPointerArray (T := Unit) (P := Unit) (Existing := Unit) (Root := Unit) (Q := Unit)
+      ⟨false, false, false, false⟩ (fun _ => ()) (fun _ => .ok ())
+      (fun _ => .error ref_nul_error) (fun _ => .ok ()) () [()] = .error ref_nul_error :=
+  ⟨rfl, rfl, rfl⟩
+
+end JuliaLean.ChatGPT.Batch4.Group15
+
+namespace JuliaLean.Proofs.base.refpointer
+
+open JuliaLean JuliaLean.base.refpointer JuliaLean.Registry
+
 def entries : List Entry := [
   { id := "refpointer-core-behavior", juliaFile := "base/refpointer.jl"
     juliaFns := ["eltype(::Type{<:Ref{T}})", "convert(::Type{Ref{T}}, ::Ref{T})",
@@ -267,7 +423,7 @@ def entries : List Entry := [
       "unsafe_convert(::Type{Ptr{T}}, ::Ptr{NTuple{N,T}})"]
     statement := "Ref has scalar shape and one-item iteration; initialized values, undefined-reference errors, array-backed access, pointer offsets, and tuple references preserve their documented behavior."
     source := "Ref docstring, base/refpointer.jl:97-150,182-194"
-    status := .todo, prop := ``RefCoreBehavior, thm := none },
+    status := .proven, prop := ``RefCoreBehavior, thm := some ``JuliaLean.ChatGPT.Batch4.Group15.RefpointerCoreBehavior_proven },
   { id := "refpointer-array-interoperability", juliaFile := "base/refpointer.jl"
     juliaFns := ["Ref{P}(::Array)", "Ref(::AbstractArray, ::Integer)",
       "cconvert(::Type{Ptr{P}}, ::Array{<:Union{Ptr,Cwstring,Cstring}})",
@@ -281,7 +437,202 @@ def entries : List Entry := [
       "getindex(::RefArray)", "setindex!(::RefArray)"]
     statement := "Pointer-array conversion reuses compatible storage or converts elements in order, retains each conversion root, appends C_NULL, and exposes tuple and array references through the expected element access and pointer view."
     source := "base/refpointer.jl:116-141,154-194"
-    status := .todo, prop := ``RefArrayInteropBehavior, thm := none }
+    status := .todo, prop := ``RefArrayInteropBehavior, thm := none, notes := "Frozen converting branch demands successful output without converter-success premises; registry prose promises ordered conversion and retained roots." }
 ]
 
 end JuliaLean.Proofs.base.refpointer
+
+namespace JuliaLean.ChatGPT.Batch8.Group4
+open JuliaLean JuliaLean.base.refpointer JuliaLean.Proofs.base.refpointer
+
+/-- A name-only reference to the existing private conversion loop. -/
+local macro "g4RefOriginalLoop" : term =>
+  pure (Lean.mkIdent (((Lean.Name.num `_private.JuliaLean.base.refpointer 0).append
+    `JuliaLean.base.refpointer.convertPointerArrayLoop)))
+
+/-- Successful element conversion pairs retain one root and pointer per input. -/
+theorem ref_pairs_lengths {T P Root Q : Type}
+    (convertRoot : T → Jl Root) (convertPointer : Root → Jl Q)
+    (assertPointer : Q → Jl P) (values : List T) (roots : List Root)
+    (pointers : List P)
+    (h : PointerRootPairs convertRoot convertPointer assertPointer values roots pointers) :
+    roots.length = values.length ∧ pointers.length = values.length := by
+  induction values generalizing roots pointers with
+  | nil =>
+    cases roots <;> cases pointers <;> simp only [PointerRootPairs] at h
+    exact ⟨rfl, rfl⟩
+  | cons value values ih =>
+    cases roots with
+    | nil => cases h
+    | cons root roots =>
+      cases pointers with
+      | nil => cases h
+      | cons pointer pointers =>
+        obtain ⟨hr, hp⟩ := ih roots pointers h.2.2
+        exact ⟨congrArg Nat.succ hr, congrArg Nat.succ hp⟩
+
+/-- The branch that already has the requested element type never calls a converter. -/
+theorem ref_existing_conversion {T P Existing Root Q : Type}
+    (tests : PointerArrayTypeTests) (arrayRef : List T → Existing)
+    (convertRoot : T → Jl Root) (convertPointer : Root → Jl Q)
+    (assertPointer : Q → Jl P) (null : P) (values : List T)
+    (same : tests.sameElementType = true) :
+    refPointerArray tests arrayRef convertRoot convertPointer assertPointer null values =
+      .ok (.existing (arrayRef values)) ∧
+    cconvertPtrArray tests arrayRef convertRoot convertPointer assertPointer null values =
+      .ok (.existing (arrayRef values)) ∧
+    cconvertRefPointerArray tests arrayRef convertRoot convertPointer assertPointer null values =
+      .ok (.existing (arrayRef values)) := by
+  have h : refPointerArray tests arrayRef convertRoot convertPointer assertPointer null values =
+      .ok (.existing (arrayRef values)) := by
+    simp only [refPointerArray, same, ite_true, Pure.pure, Except.pure]
+  exact ⟨h, h, h⟩
+
+/-- A compatible storage layout keeps the array and uses the first element index. -/
+theorem ref_direct_conversion {T P Existing Root Q : Type}
+    (tests : PointerArrayTypeTests) (arrayRef : List T → Existing)
+    (convertRoot : T → Jl Root) (convertPointer : Root → Jl Q)
+    (assertPointer : Q → Jl P) (null : P) (values : List T)
+    (different : tests.sameElementType = false)
+    (layout : (if tests.isBitsElement then tests.pointerOrCStringLayout else
+      tests.elementSubtypeOfPointer) = true) :
+    refPointerArray tests arrayRef convertRoot convertPointer assertPointer null values =
+      .ok (.direct (makeRefArray values (int64 1) ())) ∧
+    cconvertPtrArray tests arrayRef convertRoot convertPointer assertPointer null values =
+      .ok (.direct (makeRefArray values (int64 1) ())) ∧
+    cconvertRefPointerArray tests arrayRef convertRoot convertPointer assertPointer null values =
+      .ok (.direct (makeRefArray values (int64 1) ())) := by
+  have h : refPointerArray tests arrayRef convertRoot convertPointer assertPointer null values =
+      .ok (.direct (makeRefArray values (int64 1) ())) := by
+    simp only [refPointerArray, different, Bool.false_eq_true, ite_false, layout,
+      ite_true, Pure.pure, Except.pure]
+  exact ⟨h, h, h⟩
+
+
+/-- One source-loop iteration, stated as an equation usable by the simplifier. -/
+theorem ref_loop_cons {T P Root Q : Type}
+    (convertRoot : T → Jl Root) (convertPointer : Root → Jl Q)
+    (assertPointer : Q → Jl P) (value : T) (values : List T) :
+    g4RefOriginalLoop convertRoot convertPointer assertPointer (value :: values) =
+      (do
+        let root ← convertRoot value
+        let converted ← convertPointer root
+        let pointer ← assertPointer converted
+        let (pointers, roots) ← g4RefOriginalLoop convertRoot convertPointer assertPointer values
+        pure (pointer :: pointers, root :: roots)) := by
+  rfl
+
+/-- The frozen element loop realizes any successful, ordered conversion relation. -/
+theorem ref_loop_of_pairs {T P Root Q : Type}
+    (convertRoot : T → Jl Root) (convertPointer : Root → Jl Q)
+    (assertPointer : Q → Jl P) (values : List T) (roots : List Root)
+    (pointers : List P)
+    (h : PointerRootPairs convertRoot convertPointer assertPointer values roots pointers) :
+    g4RefOriginalLoop
+      convertRoot convertPointer assertPointer values = .ok (pointers, roots) := by
+  induction values generalizing roots pointers with
+  | nil =>
+    cases roots <;> cases pointers <;> simp only [PointerRootPairs] at h
+    rfl
+  | cons value values ih =>
+    cases roots with
+    | nil => cases h
+    | cons root roots =>
+      cases pointers with
+      | nil => cases h
+      | cons pointer pointers =>
+        obtain ⟨hr, ⟨converted, hc, hp⟩, ht⟩ := h
+        simp only [ref_loop_cons,
+          hr, hc, hp, ih roots pointers ht, Bind.bind, Except.bind, Pure.pure, Except.pure]
+
+/-- Total element converters provide ordered roots and pointers for any finite list. -/
+theorem ref_pairs_of_element_success {T P Root Q : Type}
+    (convertRoot : T → Jl Root) (convertPointer : Root → Jl Q)
+    (assertPointer : Q → Jl P) (values : List T)
+    (success : ∀ value ∈ values, ∃ root converted pointer,
+      convertRoot value = .ok root ∧ convertPointer root = .ok converted ∧
+        assertPointer converted = .ok pointer) :
+    ∃ roots pointers, PointerRootPairs convertRoot convertPointer assertPointer values roots pointers := by
+  induction values with
+  | nil => exact ⟨[], [], True.intro⟩
+  | cons value values ih =>
+    obtain ⟨root, converted, pointer, hr, hc, hp⟩ := success value (List.mem_cons_self)
+    obtain ⟨roots, pointers, ht⟩ := ih (fun v hv => success v (List.mem_cons_of_mem value hv))
+    exact ⟨root :: roots, pointer :: pointers, hr, ⟨converted, hc, hp⟩, ht⟩
+
+/-- Under the exact missing success premise, all three routes append null and retain roots. -/
+theorem ref_converted_array_of_pairs {T P Existing Root Q : Type}
+    (tests : PointerArrayTypeTests) (arrayRef : List T → Existing)
+    (convertRoot : T → Jl Root) (convertPointer : Root → Jl Q)
+    (assertPointer : Q → Jl P) (null : P) (values : List T)
+    (roots : List Root) (pointers : List P)
+    (different : tests.sameElementType = false)
+    (layout : (if tests.isBitsElement then tests.pointerOrCStringLayout else
+      tests.elementSubtypeOfPointer) = false)
+    (pairs : PointerRootPairs convertRoot convertPointer assertPointer values roots pointers) :
+    let reference := makeRefArray (T := P) (pointers ++ [null]) (int64 1) roots
+    refPointerArray tests arrayRef convertRoot convertPointer assertPointer null values =
+      .ok (.converted reference) ∧
+    cconvertPtrArray tests arrayRef convertRoot convertPointer assertPointer null values =
+      .ok (.converted reference) ∧
+    cconvertRefPointerArray tests arrayRef convertRoot convertPointer assertPointer null values =
+      .ok (.converted reference) ∧ roots.length = values.length ∧
+      pointers.length = values.length := by
+  have loop := ref_loop_of_pairs convertRoot convertPointer assertPointer values roots pointers pairs
+  have result : refPointerArray tests arrayRef convertRoot convertPointer assertPointer null values =
+      .ok (.converted (makeRefArray (pointers ++ [null]) (int64 1) roots)) := by
+    simp only [refPointerArray, different, layout, Bool.false_eq_true, ite_false,
+      loop, Bind.bind, Except.bind, Pure.pure, Except.pure]
+  exact ⟨result, result, result, ref_pairs_lengths convertRoot convertPointer assertPointer
+    values roots pointers pairs⟩
+
+/-- A root-conversion error at the first input is propagated before later inputs. -/
+theorem ref_head_root_error {T P Existing Root Q : Type}
+    (tests : PointerArrayTypeTests) (arrayRef : List T → Existing)
+    (convertRoot : T → Jl Root) (convertPointer : Root → Jl Q)
+    (assertPointer : Q → Jl P) (null : P) (value : T) (values : List T)
+    (error : JlError) (different : tests.sameElementType = false)
+    (layout : (if tests.isBitsElement then tests.pointerOrCStringLayout else
+      tests.elementSubtypeOfPointer) = false)
+    (failure : convertRoot value = .error error) :
+    refPointerArray tests arrayRef convertRoot convertPointer assertPointer null (value :: values) =
+      .error error := by
+  simp only [refPointerArray, different, layout, Bool.false_eq_true, ite_false,
+    ref_loop_cons,
+    failure, Bind.bind, Except.bind]
+
+/-- A pointer-conversion error is propagated after its root has been constructed. -/
+theorem ref_head_pointer_error {T P Existing Root Q : Type}
+    (tests : PointerArrayTypeTests) (arrayRef : List T → Existing)
+    (convertRoot : T → Jl Root) (convertPointer : Root → Jl Q)
+    (assertPointer : Q → Jl P) (null : P) (value : T) (values : List T)
+    (root : Root) (error : JlError) (different : tests.sameElementType = false)
+    (layout : (if tests.isBitsElement then tests.pointerOrCStringLayout else
+      tests.elementSubtypeOfPointer) = false)
+    (rootSuccess : convertRoot value = .ok root)
+    (failure : convertPointer root = .error error) :
+    refPointerArray tests arrayRef convertRoot convertPointer assertPointer null (value :: values) =
+      .error error := by
+  simp only [refPointerArray, different, layout, Bool.false_eq_true, ite_false,
+    ref_loop_cons,
+    rootSuccess, failure, Bind.bind, Except.bind]
+
+/-- A failed element type check propagates its error without accepting a converted array. -/
+theorem ref_head_assert_error {T P Existing Root Q : Type}
+    (tests : PointerArrayTypeTests) (arrayRef : List T → Existing)
+    (convertRoot : T → Jl Root) (convertPointer : Root → Jl Q)
+    (assertPointer : Q → Jl P) (null : P) (value : T) (values : List T)
+    (root : Root) (pointer : Q) (error : JlError)
+    (different : tests.sameElementType = false)
+    (layout : (if tests.isBitsElement then tests.pointerOrCStringLayout else
+      tests.elementSubtypeOfPointer) = false)
+    (rootSuccess : convertRoot value = .ok root)
+    (pointerSuccess : convertPointer root = .ok pointer)
+    (failure : assertPointer pointer = .error error) :
+    refPointerArray tests arrayRef convertRoot convertPointer assertPointer null (value :: values) =
+      .error error := by
+  simp only [refPointerArray, different, layout, Bool.false_eq_true, ite_false,
+    ref_loop_cons,
+    rootSuccess, pointerSuccess, failure, Bind.bind, Except.bind]
+
+end JuliaLean.ChatGPT.Batch8.Group4

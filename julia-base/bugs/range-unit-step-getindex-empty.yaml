@@ -42,7 +42,7 @@ cause: |
   base/range.jl:1034 computes the stop for the empty result through _empty_stop at
   base/range.jl:1002. For this input the mapped start is Int8(-128), and the helper
   tries to form its predecessor, -129, in the same element type. Julia 1.13 throws
-  InexactError during conversion; the target nightly detects the overflow and
+  InexactError during conversion; nightly detects the overflow and
   throws OverflowError instead.
 possible_fix: |
   Construct an empty result without requiring a predecessor representable in the

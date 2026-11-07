@@ -1,32 +1,32 @@
 id: iteratorscov-product-intersect-arity
-title: "intersect(product(1:3), product(1:2, 1:2)) returns four 2-tuples instead of nothing"
+title: intersect of products with different tuple arities invents common elements
 priority: P2
 kind: wrong-result
 area: IteratorsCov
 files:
-- base/iterators.jl
+  - base/iterators.jl
+  - base/abstractset.jl
 functions:
-- intersect(::ProductIterator, ::ProductIterator)
+  - intersect(::ProductIterator, ::ProductIterator)
 summary: |
-  intersect of two Iterators.product objects is computed factor by factor with
-  broadcasting, intersect.(a.iterators, b.iterators). When the two products have
-  different numbers of factors and one has a single factor, broadcasting repeats
-  that factor, so intersect(product(1:3), product(1:2, 1:2)) is product(1:2, 1:2):
-  four 2-tuples, although the first product yields only 1-tuples and the two share
-  no element. With 2 and 3 factors it throws DimensionMismatch instead of
-  returning an empty result.
+  intersect(product(1:3), product(1:2, 1:2)) returns a product containing
+  four 2-tuples. The first input contains only 1-tuples, so the inputs have
+  no common element. Broadcasting the one-factor tuple against the
+  two-factor tuple repeats the first factor instead of checking tuple arity.
 likelihood: |
-  Low: intersecting products of different dimension is unusual, but the result is
-  silently wrong when it happens.
+  Products of different dimensions can arise in generic Cartesian-product
+  code. This combination is uncommon, but the incorrect nonempty result
+  silently violates set intersection.
 maybe_intended: |
-  The method was added for CartesianIndices-like products of ranges of equal
-  dimension (#39943, #39949); products of different dimension may not have been
-  considered.
+  Issue #39943 requested a ProductIterator-preserving intersection for ranges
+  with the same dimension, explicitly using the same N for both arguments.
+  PR #39949 introduced a broader method without that restriction. Different
+  tuple arities appear to have been overlooked; they cannot share elements.
 reproducer: |
   a = Iterators.product(1:3)
   b = Iterators.product(1:2, 1:2)
-  collect(intersect(a, b))               # [(1, 1) (1, 2); (2, 1) (2, 2)]
-  intersect(collect(a), collect(b))      # empty
+  collect(intersect(a, b))           # four 2-tuples
+  intersect(collect(a), collect(b))  # empty
 output:
   release: |
     collect(intersect(product(1:3), product(1:2, 1:2))) = [(1, 1) (1, 2); (2, 1) (2, 2)]
@@ -40,30 +40,38 @@ reproduced:
   release: true
   nightly: true
 expected: |
-  An empty result (no 1-tuple equals a 2-tuple), as intersect(collect(a),
-  collect(b)) gives.
+  Return an empty intersection because no 1-tuple equals a 2-tuple, matching
+  intersection after collecting the inputs.
 promised_by: |
-  intersect docstring, base/abstractset.jl: "Construct the set containing those
-  elements which appear in all of the arguments."
+  Pinned source f755f49a9e41380d7da126b3c1db9fe7f83dd027:
+  base/abstractset.jl:118: "Construct the set containing those elements which appear in all of the arguments."
 cause: |
-  base/iterators.jl:1257: intersect(a::ProductIterator, b::ProductIterator) =
-  ProductIterator(intersect.(a.iterators, b.iterators)) broadcasts over tuples of
-  different lengths.
+  base/iterators.jl:1257 defines intersect(a::ProductIterator,
+  b::ProductIterator) as ProductIterator(intersect.(a.iterators, b.iterators)).
+  Broadcasting expands a singleton factor tuple, creating a higher-arity
+  product whose elements are absent from the first input. Other unequal
+  non-singleton factor counts can instead cause DimensionMismatch.
 possible_fix: |
-  Return an empty product (or fall back to the generic intersect) when the
-  numbers of factors differ.
+  Check that both products have the same number of factors before using the
+  factorwise method. Return an empty intersection for different tuple arities,
+  or route that case to a generic intersection implementation.
 duplicates:
   issues:
-  - number: 39943
-    state: closed
-    relation: related
-  - number: 39949
-    state: merged
-    relation: related
+    - number: 39943
+      state: closed
+      relation: related
+  prs:
+    - number: 39949
+      state: merged
+      relation: related
+      note: "introduced ProductIterator-preserving intersection"
+  search_notes: |
+    The issue requests the same-dimension optimization and the PR implements
+    it. Neither inspected body reports this differing-arity counterexample.
   queries:
-  - product intersect
-  - ProductIterator intersect
-  - intersect product
+    - product intersect
+    - ProductIterator intersect
+    - intersect dimension product
 lean:
-  property: JuliaLean.IteratorsCov.ProductIntersect
-  theorem: JuliaLean.IteratorsCov.productIntersect_refuted
+  property: JuliaLean.Proofs.base.iterators.ProductIntersect
+  theorem: JuliaLean.ChatGPT.Batch4.Group5.IteratorscovProductIntersectArity_refuted

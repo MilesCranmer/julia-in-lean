@@ -15,7 +15,7 @@ summary: |
   sees only the unscaled quotient, and div12(2.0^600, 5.0 * 2.0^-600) returns
   (Inf, -Inf), whose sum is NaN.
 likelihood: |
-  Low. div12 is internal (Base.div12) and nothing else in Base calls it on target
+  Low. div12 is internal (Base.div12) and nothing else in Base calls it on
   master; it needs a quotient below floatmin or above floatmax. Code outside Base that
   uses it for compensated arithmetic would get a silently wrong or NaN result.
 maybe_intended: |

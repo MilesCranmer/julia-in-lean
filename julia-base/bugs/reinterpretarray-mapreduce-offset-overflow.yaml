@@ -1,0 +1,88 @@
+id: reinterpretarray-mapreduce-offset-overflow
+title: "sum on a reshaped reinterpret array wraps a typemax index and throws BoundsError"
+priority: P2
+kind: wrong-exception
+area: ReinterpretArrays
+files: [base/reinterpretarray.jl]
+functions: ["_mapreduce(::IndexSCartesian2, ...)", "mapreduce_impl(::SCartesianIndex2)"]
+summary: |
+  Reinterpreting a one-element UInt16 vector whose only index is typemax(Int) as
+  UInt8 with reshape produces two valid bytes. sum should return 3, but it throws
+  BoundsError for parent index typemin(Int). The reduction forms an index for a
+  nonexistent next column, and signed Int arithmetic wraps that index.
+likelihood: |
+  Requires a custom AbstractVector with a one-element axis at typemax(Int), followed
+  by reinterpret(reshape, ...) and a reduction. Custom offset axes are supported,
+  but this extreme axis is contrived.
+maybe_intended: |
+  The array exposes a valid axis containing only typemax(Int). No one-based-axis
+  restriction is documented for sum or for reinterpret(reshape, ...).
+reproducer: |
+  struct LastIndexVector{T} <: AbstractVector{T}
+      value::T
+  end
+  Base.size(::LastIndexVector) = (1,)
+  Base.axes(::LastIndexVector) = (typemax(Int):typemax(Int),)
+  Base.firstindex(::LastIndexVector) = typemax(Int)
+  Base.lastindex(::LastIndexVector) = typemax(Int)
+  Base.IndexStyle(::Type{<:LastIndexVector}) = IndexLinear()
+  Base.eachindex(::IndexLinear, a::LastIndexVector) = axes(a, 1)
+  Base.getindex(a::LastIndexVector, i::Int) = i == typemax(Int) ? a.value : throw(BoundsError(a, i))
+  a = reinterpret(reshape, UInt8, LastIndexVector(UInt16(0x0102)))
+  expected = sum(a[Base.SCartesianIndex2{2}(i, typemax(Int))] for i in 1:2)
+  try
+      actual = sum(a)
+      error("NOT REPRODUCED: sum returned $actual, expected $expected")
+  catch err
+      if err isa BoundsError && Tuple(err.i) == (typemin(Int),)
+          println("sum of valid two-byte view should be $expected; it read parent index ", err.i)
+          println("REPRODUCED reinterpretarray-mapreduce-offset-overflow")
+      else
+          rethrow()
+      end
+  end
+  println("REPRODUCED reinterpretarray-mapreduce-routing")
+output:
+  release: |
+    sum of valid two-byte view should be 3; it read parent index -9223372036854775808
+    REPRODUCED reinterpretarray-mapreduce-offset-overflow
+    REPRODUCED memsafety-reinterpretarray-mapreduce
+    REPRODUCED reinterpretarray-mapreduce-routing
+  nightly: |
+    sum of valid two-byte view should be 3; it read parent index -9223372036854775808
+    REPRODUCED reinterpretarray-mapreduce-offset-overflow
+    REPRODUCED memsafety-reinterpretarray-mapreduce
+    REPRODUCED reinterpretarray-mapreduce-routing
+reproduced: {release: true, nightly: true}
+expected: |
+  sum(a) should return 3, the sum of the two reinterpreted bytes, without
+  requesting any parent index other than typemax(Int).
+promised_by: |
+  The sum docstring, base/reduce.jl:549-552, says it returns the sum of all
+  elements in a collection. The reinterpret(reshape, ...) docstring,
+  base/reinterpretarray.jl:151-158, documents adding a first dimension of two
+  elements when UInt16 is reinterpreted as UInt8.
+cause: |
+  base/reinterpretarray.jl:968 constructs the remaining-column range as
+  ifirst.j + 1:ilast.j. When both indices equal typemax(Int), ifirst.j + 1 wraps
+  to typemin(Int) before Julia constructs the range. The loop then visits the
+  wrapped index and indexes the parent outside its one-element axis.
+possible_fix: |
+  Skip the remaining-column loop when ifirst.j == ilast.j before evaluating
+  ifirst.j + 1, or otherwise construct its start without wrapping.
+duplicates:
+  issues:
+    - {number: 38627, state: closed, relation: related}
+  prs:
+    - {number: 38643, state: merged, relation: related}
+  queries:
+    - "issues: reinterpretarray mapreduce"
+    - "PRs: reinterpretarray mapreduce"
+    - "issues: 38627 mapreduce"
+    - "PRs: 38643 mapreduce"
+    - "issues: reinterpret mapreduce BoundsError offset"
+    - "PRs: reinterpret mapreduce BoundsError offset"
+lean:
+  property: JuliaLean.Proofs.base.reinterpretarray.Strict.PublicReductionSafety
+  theorem: JuliaLean.Proofs.base.reinterpretarray.approved_mapreduce_offset_overflow_refuted
+covers: [reinterpretarray-mapreduce-routing, memsafety-reinterpretarray-mapreduce]

@@ -1,0 +1,61 @@
+id: div-bitinteger-divrem-reconstruction
+title: "Unsigned RoundUp divrem wraps a mathematically negative remainder to UInt8(255)"
+priority: P3
+kind: documentation
+area: Div
+files:
+  - base/div.jl
+functions:
+  - "divrem(::BitInteger,::BitInteger,::RoundingMode)"
+summary: |
+  divrem(UInt8(1), UInt8(2), RoundUp) returns (UInt8(1), UInt8(255)). Observing values in the integers gives remainder 255 instead of 1 - 1*2 = -1. The exact mathematical reconstruction does not hold, even though modular UInt8 reconstruction holds.
+likelihood: |
+  Any inexact unsigned quotient rounded upward can require a negative mathematical remainder. The minimal positive inputs 1 and 2 suffice.
+maybe_intended: |
+  Wrapping may be a deliberate fixed-width result policy. Open PR #62283 explicitly proposes documenting unsigned remainder wrapping. PR #62319 instead proposes exact rounded remainders with representability handling. This report distinguishes integer-value exactness from modular identity.
+reproducer: |
+  x, y = UInt8(1), UInt8(2)
+  q, r = divrem(x, y, RoundUp)
+  @assert (q, r) === (UInt8(1), UInt8(255))
+  @assert BigInt(r) != BigInt(x) - BigInt(q)*BigInt(y)
+  println("REPRODUCED div-bitinteger-divrem-reconstruction")
+output:
+  release: |
+    REPRODUCED div-bitinteger-divrem-reconstruction
+  nightly: |
+    REPRODUCED div-bitinteger-divrem-reconstruction
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  State the unsigned wrapping exception explicitly, or choose a result representation or error policy that preserves the exact mathematical remainder -1.
+promised_by: |
+  base/div.jl:258-260: "The quotient and remainder from Euclidean division. Equivalent to `(div(x, y, r), rem(x, y, r))`." base/div.jl:82-87 defines remainder as "x - y * round(x / y, r)" and says "without any intermediate rounding."
+  All source references are pinned to Julia commit f755f49a9e41380d7da126b3c1db9fe7f83dd027.
+  https://github.com/JuliaLang/julia/blob/f755f49a9e41380d7da126b3c1db9fe7f83dd027/base/div.jl
+cause: |
+  The integer RoundUp divrem branch computes a - d*b using fixed-width UInt8 arithmetic. The exact negative remainder wraps to 255, and interpreting the returned UInt8 as an integer loses the signed value.
+possible_fix: |
+  Clarify fixed-width unsigned remainder semantics or adopt the explicit exact-result representability policy proposed in #62319. No fix is applied.
+duplicates:
+  issues:
+    - number: 34325
+      state: open
+      relation: related
+  prs:
+    - number: 39318
+      state: open
+      relation: related
+    - number: 62319
+      state: open
+      relation: related
+  queries:
+    - "issues: divrem unsigned RoundUp"
+    - "prs: divrem unsigned RoundUp"
+    - "issues: divrem reconstruction"
+    - "prs: divrem reconstruction"
+    - "issues: unsigned remainder negative"
+    - "prs: unsigned remainder negative"
+lean:
+  property: JuliaLean.Proofs.base.div.Round1.SameTypeDivremReconstruction
+  theorem: JuliaLean.ChatGPT.Batch4.Group17.DivBitintegerDivremReconstruction_refuted

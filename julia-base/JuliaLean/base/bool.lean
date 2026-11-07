@@ -1,4 +1,5 @@
 import JuliaLean.base.int
+import JuliaLean.Runtime.Collections
 
 /-!
 # Model of `base/bool.jl`
@@ -488,3 +489,126 @@ def boolFromReal {α : Type} (equal : α → Int → Jl Bool) (x : α) : Jl Bool
     | .ok false => .error (.inexactError "Bool")
 
 end JuliaLean.base.bool
+
+namespace JuliaLean.base.bool.Archive20261101PrimitiveNot
+
+/--
+Julia source: base/bool.jl:13 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+```julia
+(~)(x::Bool) = !x
+```
+-/
+def notBool (primitiveNot : Bool → Bool) (x : Bool) : Bool :=
+  primitiveNot x
+
+/--
+Julia source: base/bool.jl:131 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+```julia
+iszero(x::Bool) = !x
+```
+-/
+def iszeroBool (primitiveNot : Bool → Bool) (x : Bool) : Bool :=
+  primitiveNot x
+
+/--
+Julia source: base/bool.jl:135 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+```julia
+<(x::Bool, y::Bool) = y&!x
+```
+-/
+def ltBool (primitiveNot : Bool → Bool) (x y : Bool) : Bool :=
+  JuliaLean.base.bool.andBool y
+    (primitiveNot x)
+
+/--
+Julia source: base/bool.jl:136 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+```julia
+<=(x::Bool, y::Bool) = y|!x
+```
+-/
+def leBool (primitiveNot : Bool → Bool) (x y : Bool) : Bool :=
+  JuliaLean.base.bool.orBool y
+    (primitiveNot x)
+
+/--
+Julia source: base/bool.jl:151 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+```julia
+^(x::Bool, y::Bool) = x | !y
+```
+-/
+def powBool (primitiveNot : Bool → Bool) (x y : Bool) : Bool :=
+  JuliaLean.base.bool.orBool x
+    (primitiveNot y)
+
+end JuliaLean.base.bool.Archive20261101PrimitiveNot
+
+namespace JuliaLean.NumMisc.Coverage
+
+open JuliaLean
+
+/-! ## `base/bool.jl` -/
+
+def boolXor (x y : Bool) : Bool := x != y
+def boolPromote (otherType : Nat) : Nat := otherType
+def boolBounds : Bool × Bool := (false, true)
+def boolNot (x : Bool) : Bool := !x
+def boolAnd (x y : Bool) : Bool := x && y
+def boolOr (x y : Bool) : Bool := x || y
+def boolNand (xs : List Bool) : Bool := !(xs.foldl (· && ·) true)
+def boolNor (xs : List Bool) : Bool := !(xs.foldl (· || ·) false)
+def boolShiftLeft (x : Bool) (count : Nat) : Int := (if x then 1 else 0) * 2^count
+def boolShiftRight (x : Bool) (count : Nat) : Int := (if x then 1 else 0) / 2^count
+def boolPredicates (x : Bool) : Bool × Bool × Bool × Bool × Bool :=
+  (false, x, !x, x, x)
+def boolUnaryInt (x : Bool) : Int := if x then 1 else 0
+def boolCompare (x y : Bool) : Bool × Bool := (y && !x, y || !x)
+def boolAdd (x y : Bool) : Int := (if x then 1 else 0) + (if y then 1 else 0)
+def boolSub (x y : Bool) : Int := (if x then 1 else 0) - (if y then 1 else 0)
+def boolMul (x y : Bool) : Bool := x && y
+def boolPow (x y : Bool) : Bool := x || !y
+def boolDiv (x y : Bool) : Jl Bool := if y then .ok x else .error .divideError
+def boolRem (_x y : Bool) : Jl Bool := if y then .ok false else .error .divideError
+def boolConvertReal (zero one : Bool) : Jl Bool :=
+  if zero then .ok false else if one then .ok true else .error (.inexactError "Bool")
+def boolFloatAdd (x : Bool) (onePlusY y : Int) : Int := if x then onePlusY else y
+def boolFloatMul (x : Bool) (y signedZero : Int) : Int := if x then y else signedZero
+
+end JuliaLean.NumMisc.Coverage
+
+namespace JuliaLean.MathCov.Special
+
+open JuliaLean.Promotion JuliaLean.MathCov.FP
+
+/-- `Bool * x` for a float: `ifelse(b, x, copysign(zero(x), x))`; `base/bool.jl:182`. -/
+def boolMul {T : FTy} (b : Bool) (x : FV T) : FV T := if b then x else copysign (zero T) x
+
+end JuliaLean.MathCov.Special
+
+namespace JuliaLean.MathFuncs
+
+/-- `*(x::Bool, y::AbstractFloat) = ifelse(x, y, copysign(zero(y), y))`, also used for
+`y * x`; `base/bool.jl:161-164`. -/
+def boolMul (copysign : Float.F64 → Float.F64 → Float.F64)
+    (b : Bool) (y : Float.F64) : Float.F64 := if b then y else copysign Float.F64.zero y
+
+end JuliaLean.MathFuncs
+
+namespace JuliaLean.Reduce.Val
+
+open JuliaLean.Float
+
+/-- `x + y`; `+(::Bool, ::Bool)` is `Int(x) + Int(y)` (`base/bool.jl:145`), and a `Bool`
+plus a float is `ifelse(x, oneunit(y) + y, y)` (`base/bool.jl:155-158`). -/
+def plus : Val → Val → Val
+  | .bool b, .f64 y | .f64 y, .bool b => .f64 (if b then F64.add F64.one y else y)
+  | x, y => numBin (fun t x y => .int t (x + y)) (fun x y => .f64 (F64.add x y))
+    (fun a b => .int .i64 (boolInt .i64 a + boolInt .i64 b)) x y
+
+/-- `x * y`; `*(::Bool, ::Bool)` is `x & y` (`base/bool.jl:149`), and a `Bool` times a
+float is `ifelse(x, y, copysign(zero(y), y))` (`base/bool.jl:161-164`). -/
+def times : Val → Val → Val
+  | .bool b, .f64 y | .f64 y, .bool b => .f64 (if b then y else F64.zero (F64.signbit y))
+  | x, y => numBin (fun t x y => .int t (x * y)) (fun x y => .f64 (F64.mul x y))
+    (fun a b => .bool (a && b)) x y
+
+end JuliaLean.Reduce.Val

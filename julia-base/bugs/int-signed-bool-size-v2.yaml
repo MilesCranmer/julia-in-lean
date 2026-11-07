@@ -1,0 +1,45 @@
+id: int-signed-bool-size-v2
+title: "signed(Bool) is Int rather than a signed type with Bool's size"
+priority: P3
+kind: documentation
+area: IntArith
+files: [base/int.jl]
+functions: ["signed(::Type{Bool})"]
+summary: |
+  The signed(T::Integer) docstring promises a signed type of the same size. Bool
+  occupies one byte, while signed(Bool) returns the eight-byte native Int type.
+likelihood: |
+  Generic code can apply signed(T) to Bool while relying on the documented
+  same-size result. Passing Bool to this conversion is uncommon.
+maybe_intended: |
+  PR #35854 deliberately made signed(Bool) return Int to match signed(true).
+  The behavior is established, so the likely defect is the unqualified docstring.
+reproducer: |
+  sizeof(signed(Bool)) != sizeof(Bool)
+output:
+  release: |
+    REPRODUCED int-signed-bool-size-v2
+  nightly: |
+    REPRODUCED int-signed-bool-size-v2
+reproduced: {release: true, nightly: true}
+expected: |
+  signed(Bool) should have Bool's size, or the docstring should state the Bool
+  exception explicitly.
+promised_by: |
+  The signed(T::Integer) docstring in base/int.jl says it returns the signed type
+  of the same size.
+cause: |
+  base/int.jl defines signed(::Type{Bool}) = Int.
+possible_fix: |
+  Document the Bool exception while preserving the deliberate behavior from
+  PR #35854.
+duplicates:
+  issues: []
+  prs:
+    - "https://github.com/JuliaLang/julia/pull/35854 add (un)signed(::Type{Bool}) method"
+  queries:
+    - "gh search issues 'signed Bool same size' --repo JuliaLang/julia"
+    - "gh search prs 'signed Bool' --repo JuliaLang/julia"
+lean:
+  property: JuliaLean.Proofs.base.int.Archive20261101.SignedTypeSameSize
+  theorem: JuliaLean.ChatGPT.Batch6.Group2.IntSignedBoolSizeV2_refuted

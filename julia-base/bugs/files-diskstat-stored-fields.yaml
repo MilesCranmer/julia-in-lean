@@ -1,0 +1,75 @@
+id: files-diskstat-stored-fields
+title: "DiskStat stored properties and available bytes throw when total exceeds Int64"
+priority: P2
+kind: wrong-exception
+area: Files
+files: [base/file.jl]
+functions: ["getproperty(::DiskStat, ::Symbol)", "propertynames(::DiskStat)"]
+summary: |
+  A fixed-size DiskStat with bsize=1, blocks=typemax(UInt64), and bavail=0
+  has a stored bsize of 1 and an exact available byte count of zero.
+  Reading either property first converts the unrelated total byte count
+  to Int64, which raises InexactError.
+likelihood: |
+  Low for ordinary filesystems: this witness uses a public struct constructor
+  with an extreme block count. It needs no large allocation or invalid memory.
+maybe_intended: |
+  The DiskStat docstring recommends populating the struct with diskstat.
+  The public constructor accepts these field values, but an actual filesystem
+  may never report this block count. Failing a stored-field read because of
+  an unrelated derived count is nevertheless surprising.
+reproducer: |
+  T = typeof(diskstat(pwd()))
+  z = UInt64(0)
+  s = T(z, UInt64(1), typemax(UInt64), z, z, z, z, (z, z, z, z))
+  @assert :bsize in propertynames(s)
+  @assert getfield(s, :bsize) == UInt64(1)
+  @assert BigInt(getfield(s, :bsize)) * BigInt(getfield(s, :bavail)) == 0
+  stored_result = try
+      getproperty(s, :bsize)
+  catch err
+      err
+  end
+  available_result = try
+      getproperty(s, :available)
+  catch err
+      err
+  end
+  println("bsize result type: ", typeof(stored_result))
+  println("available result type: ", typeof(available_result))
+  @assert stored_result isa InexactError
+  @assert available_result isa InexactError
+  println("REPRODUCED files-diskstat-stored-fields")
+output:
+  release: |
+    bsize result type: InexactError
+    available result type: InexactError
+    REPRODUCED files-diskstat-stored-fields
+  nightly: |
+    bsize result type: InexactError
+    available result type: InexactError
+    REPRODUCED files-diskstat-stored-fields
+reproduced: {release: true, nightly: true}
+expected: |
+  Reading bsize returns the stored UInt64(1). Reading available returns Int64(0)
+  because its own byte count is representable, regardless of the total count.
+promised_by: |
+  base/file.jl:1686 returns the stored field for names other than total,
+  available, and used. base/file.jl:1689-1690 advertises bsize as a property.
+  The byte-accounting invariant requires a representable available count to
+  be readable independently of the unrelated total byte count.
+cause: |
+  base/file.jl:1680-1686 computes and converts both total and available before
+  selecting the requested property. At bsize=1 and blocks=typemax(UInt64),
+  the UInt64 product is exact but cannot convert to Int64. The first conversion
+  therefore prevents both the stored-field fallback and the available branch.
+possible_fix: |
+  Select the requested property before computing its derived byte counts.
+duplicates:
+  issues:
+    - {number: 42959, state: closed, relation: related}
+  queries: ["issues: DiskStat InexactError", "issues: diskstat overflow", "prs: DiskStat", "issues: DiskStat"]
+lean:
+  property: JuliaLean.Proofs.base.file.Round1.DiskStatStoredFieldsCorrect
+  theorem: JuliaLean.ChatGPT.Batch4.Group23.FilesDiskstatStoredFields_refuted
+covers: [files-diskstat-byte-accounting]

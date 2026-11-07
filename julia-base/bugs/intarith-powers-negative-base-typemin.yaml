@@ -56,5 +56,5 @@ duplicates:
     - "pull requests: ndigits typemin"
     - "pull requests: ndigits base"
 lean:
-  property: JuliaLean.IntArith.PowersDigits.NegativeBaseSingleDigit
-  theorem: JuliaLean.IntArith.PowersDigits.negativeBaseSingleDigit_refuted
+  property: JuliaLean.Proofs.base.intfuncs.NegativeBaseTypeminBehavior
+  theorem: JuliaLean.Proofs.base.intfuncs.negativeBaseTypeminBehavior_refuted

@@ -69,6 +69,7 @@ duplicates:
   - product countfrom
   - prod_iteratorsize
   - cycle IteratorSize
+covers: [iteratorsr4-product-trait-cardinality, iteratorscov-product-empty-infinite]
 lean:
   property: JuliaLean.IteratorsCov.ProductSizeSound
   theorem: JuliaLean.IteratorsCov.productSizeSound_refuted

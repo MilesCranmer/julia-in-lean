@@ -31,7 +31,8 @@ partial def countForallData (depth : Nat) (e : Expr) : MetaM Nat := do
       if depth > 0 && (`JuliaLean).isPrefixOf c then
         if let some (.defnInfo _) := (← getEnv).find? c then
           if (← isProp e) then
-            if let some e' ← unfoldDefinition? e then
+            -- Keep model computations opaque while unfolding the selected predicate.
+            if let some e' ← withReducible <| unfoldDefinition? e (ignoreTransparency := true) then
               total := total + (← countForallData (depth - 1) e')
     return total
   | .const c _ =>

@@ -1,0 +1,58 @@
+id: subarray-range-view-length-overflow
+title: "Range views reject a valid singleton selection when parent length wraps"
+priority: P2
+kind: wrong-exception
+area: SubArray
+files: [base/subarray.jl, base/range.jl, base/abstractarray.jl]
+functions: ["view(::AbstractUnitRange, ::AbstractUnitRange)", "view(::AbstractUnitRange, ::StepRange)"]
+summary: |
+  The Int64 range typemin(Int):typemax(Int) supports scalar indexing at 1,
+  returning typemin(Int). Selecting that same single element with view(r, 1:1)
+  or view(r, 1:1:1) instead throws BoundsError on both tested Julia versions.
+likelihood: |
+  Requires a lazy parent range whose mathematical length exceeds the signed
+  native index limit. No large allocation is required to construct the input.
+maybe_intended: |
+  Arrays conventionally report length as Int. These public range constructors
+  nevertheless accept the endpoints, and scalar indexing accepts the selected index.
+reproducer: |
+  r = typemin(Int):typemax(Int)
+  r[1]
+  view(r, 1:1)
+  view(r, 1:1:1)
+output:
+  release: |
+    JULIA 1.13.2 COMMIT 45b6d15e34bbd2003a31acce0b1847b63dad029c
+    parent scalar at 1 = -9223372036854775808
+    view with UnitRange{Int64} throws BoundsError
+    view with StepRange{Int64, Int64} throws BoundsError
+    REPRODUCED subarray-range-view-length-overflow
+  nightly: |
+    JULIA 1.15.0-DEV.unknown COMMIT f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    parent scalar at 1 = -9223372036854775808
+    view with UnitRange{Int64} throws BoundsError
+    view with StepRange{Int64, Int64} throws BoundsError
+    REPRODUCED subarray-range-view-length-overflow
+reproduced: {release: true, nightly: true}
+expected: |
+  Each singleton view returns the same value as r[1], rather than reporting
+  an invalid selected index when that index has a valid scalar access.
+promised_by: |
+  The view contract in doc/src/manual/arrays.md:619-621 and the concrete
+  forwarding methods at base/subarray.jl:230-237 preserve selected elements.
+  The scalar UnitRange access at base/range.jl:967-972 accepts index 1 here.
+cause: |
+  The view methods delegate to range indexing. Both range-indexing methods
+  at base/range.jl:1013-1026,1034-1049 call checkbounds on the parent range.
+  The parent range's Int64 length wraps from 2^64 to zero, so the range selector
+  check rejects an element that scalar endpoint-based indexing accepts.
+possible_fix: |
+  Use endpoint-based or widened range bounds checks when the parent range's
+  mathematical length cannot be represented as Int.
+duplicates:
+  issues: []
+  queries: ['site:github.com/JuliaLang/julia "view" "typemin" "typemax" "BoundsError"']
+lean:
+  property: JuliaLean.Proofs.base.subarray.Models1Group17.UnitRangeViewElementsAndErrors
+  theorem: JuliaLean.Proofs.base.subarray.Models1Group17.unitRangeViewElementsAndErrors_refuted
+covers: [subarray-unitrange-view-elements-errors, subarray-unit-step-view-elements-errors]

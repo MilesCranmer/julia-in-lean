@@ -5,6 +5,7 @@ kind: wrong-result
 area: ReinterpretArrays
 files: [base/reinterpretarray.jl]
 functions: ["reinterpret(::Type{T}, ::AbstractArray)", "size(::NonReshapedReinterpretArray)", "axes(::NonReshapedReinterpretArray)"]
+covers: [reinterpretarray-constructor-validation, reinterpretarray-constructor-validation-ordinary]
 summary: |
   The constructor check and size/axes of a non-reshaped ReinterpretArray compute
   size(A, 1) * sizeof(eltype(A)) in Int without overflow checking. For a lazy parent
@@ -49,5 +50,5 @@ duplicates:
   issues: []
   queries: ["reinterpret size overflow", "reinterpret range overflow", "reinterpret negative size", "reinterpret large range", "reinterpret lazy"]
 lean:
-  property: JuliaLean.ReinterpretArrays.RaSizeExact
-  theorem: JuliaLean.ReinterpretArrays.raSizeExact_refuted
+  property: JuliaLean.Proofs.base.reinterpretarray.ReinterpretSizeOverflow
+  theorem: JuliaLean.ChatGPT.Batch4.Group18.ReinterpretarraysSizeOverflow_refuted

@@ -1,6 +1,7 @@
 import JuliaLean.base.bool
 import JuliaLean.Registry.Types
 import JuliaLean.base.float
+import JuliaLean.Proofs.base.essentials
 
 /-!
 # Properties of `base/bool.jl`
@@ -13,9 +14,15 @@ namespace JuliaLean.Proofs.base.bool
 
 open JuliaLean JuliaLean.Promotion JuliaLean.Registry JuliaLean.base.bool
 
-/-! Nothing to promise: >>(x::Bool, c::UInt)@123: converts to Int and forwards to Int shift. -/
-/-! Nothing to promise: <<(x::Bool, c::UInt)@124: converts to Int and forwards to Int shift. -/
-/-! Nothing to promise: >>>(x::Bool, c::UInt)@125: converts to Int and forwards to Int shift. -/
+/-- The bitshift docstrings (`base/operators.jl`) promise `x >> n == fld(x, 2^n)`,
+`x >>> n` equal to it for nonnegative `x`, and `x << n == x * 2^n` wrapped to the result
+type. For Bool, the result type is Int. -/
+def BoolShiftsMatchBitshiftDocs : Prop :=
+  ∀ (x : Bool) (c : JInt .u64),
+    (shrBool x c).val = (if x then 1 else 0) / 2 ^ c.val.toNat ∧
+    (lshrBool x c).val = (if x then 1 else 0) / 2 ^ c.val.toNat ∧
+    (shlBool x c).val = wrapInt .i64 ((if x then 1 else 0) * 2 ^ c.val.toNat)
+
 /-! Nothing to promise: +(y::AbstractFloat, x::Bool)@158: forwards to the Bool-first float addition method. -/
 /-! Nothing to promise: *(y::AbstractFloat, x::Bool)@164: forwards to the Bool-first float product method. -/
 
@@ -307,6 +314,113 @@ theorem boolAbstractFloatStrongZeroFl (T : JuliaLean.base.float.FTy)
   simpa [flFloatProductOps] using
     (boolAbstractFloatStrongZero_proven (ops := flFloatProductOps T) x)
 
+end JuliaLean.Proofs.base.bool
+
+namespace JuliaLean.Proofs.Archive20261101PrimitiveNot
+
+
+
+/-- Boolean negation complements the zero-or-one value and is an involution for every Bool.
+Julia source: base/essentials.jl:1294 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+Julia documentation: doc/src/manual/mathematical-operations.md:50-64 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-/
+def BooleanNegationValue : Prop :=
+  ∀ x : Bool,
+    (if JuliaLean.base.essentials.Archive20261101PrimitiveNot.notBool x then (1 : Nat) else 0) +
+      (if x then (1 : Nat) else 0) = 1 ∧
+    JuliaLean.base.essentials.Archive20261101PrimitiveNot.notBool
+      (JuliaLean.base.essentials.Archive20261101PrimitiveNot.notBool x) = x
+
+/-- Boolean bitwise complement exchanges zero and one and is an involution on all Bool inputs.
+Julia source: base/bool.jl:13; base/essentials.jl:1294 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+Julia documentation: doc/src/manual/mathematical-operations.md:50-64,87-103 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-/
+def BooleanComplementValue : Prop :=
+  ∀ x : Bool,
+    (if JuliaLean.base.bool.Archive20261101PrimitiveNot.notBool
+      JuliaLean.base.essentials.Archive20261101PrimitiveNot.notBool x then (1 : Nat) else 0) +
+      (if x then (1 : Nat) else 0) = 1 ∧
+    JuliaLean.base.bool.Archive20261101PrimitiveNot.notBool
+      JuliaLean.base.essentials.Archive20261101PrimitiveNot.notBool
+      (JuliaLean.base.bool.Archive20261101PrimitiveNot.notBool
+        JuliaLean.base.essentials.Archive20261101PrimitiveNot.notBool x) = x
+
+/-- The Boolean iszero method recognizes exactly numerical zero over its whole source signature.
+Julia source: base/bool.jl:131; base/essentials.jl:1294 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+Julia documentation: base/number.jl:24-66; doc/src/manual/mathematical-operations.md:62-64 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-/
+def BooleanZeroPredicate : Prop :=
+  ∀ x : Bool,
+    JuliaLean.base.bool.Archive20261101PrimitiveNot.iszeroBool
+      JuliaLean.base.essentials.Archive20261101PrimitiveNot.notBool x = true ↔
+      (if x then (1 : Nat) else 0) = 0
+
+/-- Both Boolean comparison methods agree with the mathematical integer order false=0 and true=1.
+Julia source: base/bool.jl:135-136; base/essentials.jl:1294 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+Julia documentation: doc/src/manual/mathematical-operations.md:62-64,232-245 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-/
+def BooleanIntegerOrder : Prop :=
+  ∀ x y : Bool,
+    (JuliaLean.base.bool.Archive20261101PrimitiveNot.ltBool
+      JuliaLean.base.essentials.Archive20261101PrimitiveNot.notBool x y = true ↔
+      (if x then (1 : Nat) else 0) < (if y then (1 : Nat) else 0)) ∧
+    (JuliaLean.base.bool.Archive20261101PrimitiveNot.leBool
+      JuliaLean.base.essentials.Archive20261101PrimitiveNot.notBool x y = true ↔
+      (if x then (1 : Nat) else 0) ≤ (if y then (1 : Nat) else 0))
+
+/-- The Bool-by-Bool power method equals mathematical exponentiation of zero-or-one values, including zero exponent.
+Julia source: base/bool.jl:151; base/essentials.jl:1294 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+Julia documentation: doc/src/manual/mathematical-operations.md:12-24,62-64 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-/
+def BooleanIntegerPower : Prop :=
+  ∀ x y : Bool,
+    (if JuliaLean.base.bool.Archive20261101PrimitiveNot.powBool
+      JuliaLean.base.essentials.Archive20261101PrimitiveNot.notBool x y then (1 : Nat) else 0) =
+      (if x then (1 : Nat) else 0) ^ (if y then (1 : Nat) else 0)
+
+end JuliaLean.Proofs.Archive20261101PrimitiveNot
+
+namespace JuliaLean.Proofs.base.bool
+
+open JuliaLean.Registry
+
+end JuliaLean.Proofs.base.bool
+
+
+namespace JuliaLean.ChatGPT.Batch4.Group21
+open JuliaLean.Proofs.base.bool
+
+/-- essentials-bool-not-v2: Boolean negation complements the zero-or-one value and is an involution for every Bool. -/
+theorem EssentialsBoolNotV2_proven : JuliaLean.Proofs.Archive20261101PrimitiveNot.BooleanNegationValue := by
+  intro x
+  cases x <;> decide
+
+/-- bool-source-complement: Boolean bitwise complement exchanges zero and one and is an involution on all Bool inputs. -/
+theorem BoolSourceComplement_proven : JuliaLean.Proofs.Archive20261101PrimitiveNot.BooleanComplementValue := by
+  intro x
+  cases x <;> decide
+
+/-- bool-source-iszero: The Boolean iszero method recognizes exactly numerical zero over its whole source signature. -/
+theorem BoolSourceIszero_proven : JuliaLean.Proofs.Archive20261101PrimitiveNot.BooleanZeroPredicate := by
+  intro x
+  cases x <;> decide
+
+/-- bool-ordering-v2: Both Boolean comparison methods agree with the mathematical integer order false=0 and true=1. -/
+theorem BoolOrderingV2_proven : JuliaLean.Proofs.Archive20261101PrimitiveNot.BooleanIntegerOrder := by
+  intro x y
+  cases x <;> cases y <;> decide
+
+/-- bool-source-bool-power: The Bool-by-Bool power method equals mathematical exponentiation of zero-or-one values, including zero exponent. -/
+theorem BoolSourceBoolPower_proven : JuliaLean.Proofs.Archive20261101PrimitiveNot.BooleanIntegerPower := by
+  intro x y
+  cases x <;> cases y <;> decide
+
+end JuliaLean.ChatGPT.Batch4.Group21
+
+namespace JuliaLean.Proofs.base.bool
+
+open JuliaLean.Registry
+
 def entries : List Entry := [
   { id := "bool-promote-rule"
     juliaFile := "base/bool.jl"
@@ -379,7 +493,37 @@ def entries : List Entry := [
     juliaFns := ["Bool(::Real)"]
     statement := "For every Real type, conversion accepts equality to zero or one, throws InexactError otherwise, and propagates comparison errors in order."
     source := "base/bool.jl:170"
-    status := .proven, prop := ``BoolRealConversion, thm := some ``boolRealConversion_proven }
+    status := .proven, prop := ``BoolRealConversion, thm := some ``boolRealConversion_proven },
+  { id := "essentials-bool-not-v2", juliaFile := "base/essentials.jl",
+    juliaFns := ["!(::Bool)"],
+    statement := "Boolean negation complements the zero-or-one value and is an involution for every Bool.",
+    source := "base/essentials.jl:1294", status := .proven,
+    prop := ``JuliaLean.Proofs.Archive20261101PrimitiveNot.BooleanNegationValue, thm := some ``JuliaLean.ChatGPT.Batch4.Group21.EssentialsBoolNotV2_proven },
+  { id := "bool-source-complement", juliaFile := "base/bool.jl",
+    juliaFns := ["~(::Bool)"],
+    statement := "Boolean bitwise complement exchanges zero and one and is an involution on all Bool inputs.",
+    source := "base/bool.jl:13; base/essentials.jl:1294", status := .proven,
+    prop := ``JuliaLean.Proofs.Archive20261101PrimitiveNot.BooleanComplementValue, thm := some ``JuliaLean.ChatGPT.Batch4.Group21.BoolSourceComplement_proven },
+  { id := "bool-source-iszero", juliaFile := "base/bool.jl",
+    juliaFns := ["iszero(::Bool)"],
+    statement := "The Boolean iszero method recognizes exactly numerical zero over its whole source signature.",
+    source := "base/bool.jl:131; base/essentials.jl:1294", status := .proven,
+    prop := ``JuliaLean.Proofs.Archive20261101PrimitiveNot.BooleanZeroPredicate, thm := some ``JuliaLean.ChatGPT.Batch4.Group21.BoolSourceIszero_proven },
+  { id := "bool-ordering-v2", juliaFile := "base/bool.jl",
+    juliaFns := ["<(::Bool, ::Bool)", "<=(::Bool, ::Bool)"],
+    statement := "Both Boolean comparison methods agree with the mathematical integer order false=0 and true=1.",
+    source := "base/bool.jl:135-136; base/essentials.jl:1294", status := .proven,
+    prop := ``JuliaLean.Proofs.Archive20261101PrimitiveNot.BooleanIntegerOrder, thm := some ``JuliaLean.ChatGPT.Batch4.Group21.BoolOrderingV2_proven },
+  { id := "bool-source-bool-power", juliaFile := "base/bool.jl",
+    juliaFns := ["^(::Bool, ::Bool)"],
+    statement := "The Bool-by-Bool power method equals mathematical exponentiation of zero-or-one values, including zero exponent.",
+    source := "base/bool.jl:151; base/essentials.jl:1294", status := .proven,
+    prop := ``JuliaLean.Proofs.Archive20261101PrimitiveNot.BooleanIntegerPower, thm := some ``JuliaLean.ChatGPT.Batch4.Group21.BoolSourceBoolPower_proven },
+  { id := "bool-shifts-match-bitshift-docs", juliaFile := "base/bool.jl",
+    juliaFns := [">>(::Bool, ::UInt)", "<<(::Bool, ::UInt)", ">>>(::Bool, ::UInt)"],
+    statement := "Shifting a Bool by an unsigned count returns the Int that the bitshift docstrings promise: floor division by 2^n for >> and >>>, and multiplication by 2^n wrapped to Int for <<.",
+    source := "base/bool.jl:123-125; base/operators.jl bitshift docstrings", status := .todo,
+    prop := ``BoolShiftsMatchBitshiftDocs, thm := none }
 ]
 
 end JuliaLean.Proofs.base.bool

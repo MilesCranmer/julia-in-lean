@@ -9,7 +9,7 @@ summary: |
   sum of a Float64 range with integer-valued elements and more than about 2^27
   elements can be wrong even when every element and the exact sum are representable.
   For r = -51540000771.0:3.0:51540000771.0 (34360000515 elements, first(r) + last(r)
-  == 0.0) the exact sum is 0, but sum(r) returns 1.0 on target master and 131064.0 on
+  == 0.0) the exact sum is 0, but sum(r) returns 1.0 on master and 131064.0 on
   1.13.2. The step term r.step * sum(1:np) is exact; r.ref * length(r) is off by one,
   because *(::TwicePrecision, ::Integer) loses bits for large integers.
 likelihood: |
@@ -50,7 +50,7 @@ cause: |
   x.hi to u = truncbits(x.hi, nb) with nb = top_set_bit(abs(v) - 1) and forms
   ((x.hi - u) + x.lo) * v in Float64, which is exact only while the product fits in
   53 bits; with x.hi = -51540000771 and v = 34360000515 (about 2^35) it is not.
-  A diagnostic run on target master shows ref * l = (-1.7709144530346605e21, 131064.0)
+  On master, ref * l = (-1.7709144530346605e21, 131064.0)
   while the exact step term tp = (1.7709144530346605e21, -131063.0), so the sum is
   1.0. Line 312 dates from 708d1bdb36e (2023), the rest from 67a860503a2 (2017).
 possible_fix: |

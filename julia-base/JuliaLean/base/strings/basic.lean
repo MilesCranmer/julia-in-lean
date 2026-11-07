@@ -1,7 +1,52 @@
+import JuliaLean.base.char
+import JuliaLean.base.expr
+import JuliaLean.base.strings.string
 import JuliaLean.Core
 import JuliaLean.base.int
 import JuliaLean.base.operators
 import JuliaLean.base.anyall
+
+
+section
+
+/-!
+# The TOML lexer with comment capture (`base/toml/parser.jl`)
+
+Model, at master `bbfa0ce4150`, of the parser state and the character-level utilities of
+`base/toml/parser.jl` including line/column bookkeeping and comment capture
+(`comments !== nothing`), which `JuliaLean.Toml` leaves out; the comment containers
+`CommentBlock` and `Comments`; the `Parser` constructors, `startup` and `reinit!`; the
+`@try` macro; and `ParserError` with its formatting (`format_error_message_for_err_type`,
+`point_to_line`, `showerror`).
+
+Strings are their bytes and characters their raw `UInt32` values, as in `JuliaLean.Toml`
+(`Toml.iterate` decodes UTF-8 as `base/strings/string.jl`). The parsed document, needed by
+`path_traverses_array`, is a tree of tables, arrays and leaves. Every `while` loop consumes
+one unit of fuel per iteration (each iteration eats at least one byte).
+-/
+
+namespace JuliaLean.DocsSyntaxCov.TomlLex
+
+open JuliaLean JuliaLean.DocsSyntaxCov
+
+/-- `prevind(s, i)` (`prevind(s, i, 1)`, `base/strings/basic.jl`): the previous valid index, or
+`0`; a `BoundsError` unless `0 < i ≤ ncodeunits(s) + 1`. -/
+def prevind (s : List Nat) (i : Int) : DJ Int :=
+  if !(0 < i && i ≤ s.length + 1) then .error .boundsError
+  else go (i.toNat) i
+where
+  go : Nat → Int → DJ Int
+    | 0, _ => pure 0
+    | k + 1, i =>
+      if 1 < i then do
+        let j := i - 1
+        if (← thisind s j) == j then pure j else go k j
+      else pure (i - 1)
+
+end JuliaLean.DocsSyntaxCov.TomlLex
+
+end
+
 
 /-!
 # Model of `base/strings/basic.jl`
@@ -239,7 +284,8 @@ Julia source: base/strings/basic.jl:1-41 @ f755f49a9e41380d7da126b3c1db9fe7f83dd
 ```julia
 # This file is a part of Julia. License is MIT: https://julialang.org/license
 
-import Core: Symbol
+import Core
+: Symbol
 
 """
 The `AbstractString` type is the supertype of all string implementations in
@@ -1672,9 +1718,14 @@ Julia source: base/strings/basic.jl:794-794 @ f755f49a9e41380d7da126b3c1db9fe7f8
 @propagate_inbounds getindex(s::CodeUnits, i::Int) = codeunit(s.s, i)
 ```
 -/
+-- Source: base/strings/basic.jl:794 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+def codeUnitsGetindexWith {T S CU E : Type} (codeunit : S → Index → Except E CU)
+    (s : CodeUnits T S) (i : Index) : Except E CU :=
+  codeunit s.s i
+
 def codeUnitsGetindex {T S R C CU CT E : Type} (ops : StringOps S R C CU CT E)
     (s : CodeUnits T S) (i : Index) : Except E CU :=
-  ops.codeunit s.s i
+  codeUnitsGetindexWith ops.codeunit s i
 
 inductive ArrayIndexStyle where
   | linear
@@ -2077,3 +2128,994 @@ def islessString {S R C CU CT E : Type} (ops : StringOps S R C CU CT E)
     (a b : S) : Except E Bool :=
   isless ops a b
 end JuliaLean.base.strings.basic
+
+
+/-! Coverage models for `base/strings/basic.jl` at Julia `bbfa0ce4150`. -/
+
+
+/-!
+# Strings as UTF-8 code units
+
+Model of `String` from `base/strings/string.jl` and the generic index
+functions of `base/strings/basic.jl` (master `bbfa0ce4150`).
+
+* A `String` is its byte sequence (`JStr.bytes`), with no validity
+  requirement: overlong forms, surrogates, truncated sequences and stray
+  continuation bytes are all representable, exactly as in Julia
+  (`base/strings/string.jl:80-90`).
+* A `Char` is its 32-bit encoded bit pattern (`base/char.jl:39-52`): the
+  UTF-8 bytes of the character, left-aligned, padded with zero bytes.
+  Bit patterns are Lean `UInt8`/`UInt32`, whose operators are the
+  fixed-width wrapping operators Julia uses on those types.
+* Indices and counts are `Int` (`JInt64`) and use the wrapping `JInt`
+  operators, so overflow happens exactly where Julia overflows.
+* Julia's `while` loops are written as structural recursion on an explicit
+  bound on the number of remaining iterations (for example `n - i` when `i`
+  increases towards `n`). Each docstring states the bound; when it reaches
+  zero the loop condition is false, so the bound never truncates a run.
+-/
+
+namespace JuliaLean.Strings
+
+/-- The loop of `nextind(s, i, n)`, `base/strings/basic.jl:569-572`:
+`while n > 0 && i < z; n -= isvalid(s, i += 1); end; return i + n`.
+The first argument is `z - i`, so at `0` the condition `i < z` is false. -/
+def nextindNLoop (s : JStr) (z : JInt64) : Nat → JInt64 → JInt64 → JInt64
+  | 0, i, n => i + n
+  | k + 1, i, n =>
+    if decide (n.val > 0) && decide (i.val < z.val) then
+      let i := i + ix 1
+      nextindNLoop s z k i (n - bInt (isvalidAt s i))
+    else i + n
+
+/-- `nextind(s::AbstractString, i::Int, n::Int)`, `base/strings/basic.jl:564-573`. -/
+def nextindN (s : JStr) (i n : JInt64) : SJl JInt64 :=
+  if n.val < 0 then .error (.jl (.argumentError "n cannot be negative"))
+  else
+    let z := ncodeunits s
+    if !betweenI i (ix 0) z then .error boundsErr
+    else if n.val = 0 then
+      match thisind s i with
+      | .error e => .error e
+      | .ok j => if j.val = i.val then .ok i else .error (.stringIndexError i.val)
+    else .ok (nextindNLoop s z (z.val - i.val).toNat i n)
+
+/-- The loop of `prevind(s, i, n)`, `base/strings/basic.jl:510-513`:
+`while n > 0 && 1 < i; n -= isvalid(s, i -= 1); end; return i - n`.
+The first argument is `i - 1`, so at `0` the condition `1 < i` is false. -/
+def previndNLoop (s : JStr) : Nat → JInt64 → JInt64 → JInt64
+  | 0, i, n => i - n
+  | k + 1, i, n =>
+    if decide (n.val > 0) && decide (1 < i.val) then
+      let i := i - ix 1
+      previndNLoop s k i (n - bInt (isvalidAt s i))
+    else i - n
+
+/-- `prevind(s::AbstractString, i::Int, n::Int)`, `base/strings/basic.jl:505-514`.
+`prevind(s, i)` is `prevind(s, i, 1)` (`:503`). -/
+def previndN (s : JStr) (i n : JInt64) : SJl JInt64 :=
+  if n.val < 0 then .error (.jl (.argumentError "n cannot be negative"))
+  else
+    let z := ncodeunits s + ix 1
+    if !(decide (0 < i.val) && decide (i.val ≤ z.val)) then .error boundsErr
+    else if n.val = 0 then
+      match thisind s i with
+      | .error e => .error e
+      | .ok j => if j.val = i.val then .ok i else .error (.stringIndexError i.val)
+    else .ok (previndNLoop s (i.val - 1).toNat i n)
+
+/-- `prevind(s, i) = prevind(s, i, 1)`, `base/strings/basic.jl:503`. -/
+def prevind (s : JStr) (i : JInt64) : SJl JInt64 := previndN s i (ix 1)
+
+/-- `firstindex(s::AbstractString) = 1`, `base/strings/basic.jl:179`. -/
+def firstindex (_ : JStr) : JInt64 := ix 1
+
+end JuliaLean.Strings
+
+namespace JuliaLean.Strings
+
+/-- `min(x, y)` on Int: `ifelse(y < x, y, x)`. -/
+def imin (x y : JInt64) : JInt64 := if y.val < x.val then y else x
+/-- `max(x, y)` on Int: `ifelse(y < x, x, y)`. -/
+def imax (x y : JInt64) : JInt64 := if y.val < x.val then x else y
+
+/-- `first(s::AbstractString, n::Integer) = @inbounds s[1:min(end, nextind(s, 0, n))]`,
+`base/strings/basic.jl:700`. -/
+def firstN (s : JStr) (n : JInt64) : SJl JStr :=
+  match nextindN s (ix 0) n with
+  | .error e => .error e
+  | .ok k => getindexRange s (ix 1) (imin (lastindex s) k) false
+
+/-- `last(s::AbstractString, n::Integer) = @inbounds s[max(1, prevind(s, ncodeunits(s)+1, n)):end]`,
+`base/strings/basic.jl:719`. -/
+def lastN (s : JStr) (n : JInt64) : SJl JStr :=
+  match previndN s (ncodeunits s + ix 1) n with
+  | .error e => .error e
+  | .ok k => getindexRange s (imax (ix 1) k) (lastindex s) false
+
+/-- The loop of the generic `cmp(a::AbstractString, b::AbstractString)`,
+`base/strings/basic.jl:308-317`; Char `<` compares bit patterns (`base/char.jl:264`). -/
+def cmpLoop (a b : JStr) : Nat → Option (UInt32 × JInt64) → Option (UInt32 × JInt64) → Int
+  | k + 1, some (c, i), some (d, j) =>
+    if c != d then (if c < d then -1 else 1) else cmpLoop a b k (iterate a i) (iterate b j)
+  | _, none, none => 0
+  | _, none, some _ => -1
+  | _, some _, _ => 1
+
+def cmpGeneric (a b : JStr) : Int :=
+  if a = b then 0
+  else cmpLoop a b (a.bytes.length + 1) (iterate a (ix 1)) (iterate b (ix 1))
+
+end JuliaLean.Strings
+
+namespace JuliaLean.Strings
+
+/-- `_isascii(cu, first, last)`, `base/strings/basic.jl:622-628`: OR the bytes. -/
+def isasciiRange (bs : List UInt8) (a b : Int) : Bool :=
+  let r := ((bs.drop (a - 1).toNat).take (b - a + 1).toNat).foldl (· ||| ·) 0
+  decide (r < 0x80)
+
+/-- `_isascii_chunks`, `base/strings/basic.jl:631-638`. Bound: `(last - n) / cs + 1`. -/
+def isasciiChunksLoop (cs : Int) (bs : List UInt8) (last : Int) : Nat → Int → Bool
+  | 0, _ => isasciiRange bs (last - cs + 1) last
+  | k + 1, n =>
+    if n ≤ last - cs then
+      if !isasciiRange bs n (n + cs - 1) then false else isasciiChunksLoop cs bs last k (n + cs)
+    else isasciiRange bs (last - cs + 1) last
+
+instance : AsciiCodeUnitOps where
+  range := isasciiRange
+  chunks := isasciiChunksLoop
+
+end JuliaLean.Strings
+
+namespace JuliaLean.StringsCovA.Basic
+
+open JuliaLean JuliaLean.Strings
+
+/-- Integer fallbacks at lines 107-108,143-144,156-157. -/
+def integerFallback {α : Type} (isMachineInt : Bool) (dispatch : Int → SJl α) (i : Int) : SJl α :=
+  if isMachineInt then .error (.jl (.methodError "missing Int method")) else dispatch i
+
+/-- Generic scalar methods at lines 161,178-228. -/
+def eltypeString : String := "Char"
+def sizeof (ncu unitBytes : Int) : Int := ncu * unitBytes
+def firstindex : Int := 1
+def lastindex (this : Int → Int) (ncu : Int) : Int := this ncu
+def isempty (ncu : Int) : Bool := ncu == 0
+def first {α : Type} (get : Int → SJl α) := get firstindex
+def getindex {α : Type} (inbounds valid : Int → Bool) (iter : Int → α) (i : Int) : SJl α :=
+  if !inbounds i then .error (.jl .boundsError)
+  else if valid i then .ok (iter i) else .error (.stringIndexError i)
+def getindexColon {α : Type} (s : α) : α := s
+def getindexVector {α : Type} (get : Int → α) (is : List Int) : List α := is.map get
+def getindexBool : SJl Unit := .error (.jl (.argumentError "logical indexing not supported for strings"))
+def getDefault {α : Type} (inbounds : Int → Bool) (get : Int → α) (i : Int) (default : α) : α :=
+  if inbounds i then get i else default
+def checkboundsIndex (ncu i : Int) : Bool := decide (1 ≤ i ∧ i ≤ ncu)
+def checkboundsRange (ncu lo hi : Int) : Bool := hi < lo || decide (1 ≤ lo ∧ hi ≤ ncu)
+def checkboundsAll (check : Int → Bool) (is : List Int) : Bool := is.all check
+def checkboundsThrow (ok : Bool) : Jl Unit := if ok then .ok () else .error .boundsError
+def stringEmpty : List UInt8 := []
+def stringIdentity {α : Type} (s : α) : α := s
+def vectorBytes (toString : α → List UInt8) (s : α) : List UInt8 := toString s
+def vectorChars (collect : α → List β) (s : α) : List β := collect s
+def symbolString (intern : List UInt8 → Nat) (toString : α → List UInt8) (s : α) := intern (toString s)
+def symbolArgs (render : List α → List UInt8) (intern : List UInt8 → Nat) (xs : List α) := intern (render xs)
+def convertIdentity {α : Type} (s : α) : α := s
+def convertString (ctor : α → β) (s : α) : β := ctor s
+
+/-- Summary, concatenation, annotation, and comparison methods; lines 232-363. -/
+def summary (ncu : Nat) (typeName : String) : String :=
+  (if ncu = 0 then "empty" else toString ncu ++ "-codeunit") ++ " " ++ typeName
+def concat (annotated : Bool) (plain annotatedJoin : List α → β) (xs : List α) : β :=
+  if annotated then annotatedJoin xs else plain xs
+def oneString (empty : α) : α := empty
+def isannotatedType (isBottom isAnnotatedString isAnnotatedChar : Bool) : Bool :=
+  !isBottom && (isAnnotatedString || isAnnotatedChar)
+def isannotatedValue (typeCheck : α → Bool) (s : α) : Bool := typeCheck s
+def cmpString (a b : JStr) : Int := cmpGeneric a b
+def eqString (a b : JStr) : Bool := cmpString a b == 0
+def islessString (a b : JStr) : Bool := decide (cmpString a b < 0)
+def cmpSymbol (strcmp : Nat → Nat → Int) (a b : Nat) : Int := Int.sign (strcmp a b)
+def islessSymbol (strcmp : Nat → Nat → Int) (a b : Nat) : Bool := decide (cmpSymbol strcmp a b < 0)
+
+/-- Generic length and index arithmetic; lines 396-573. -/
+def lengthString (s : JStr) := Strings.length s
+def lengthBetween (s : JStr) (i j : JInt64) := Strings.lengthRange s i j
+def thisindInteger (s : JStr) (i : JInt64) := Strings.thisind s i
+def previndInteger (s : JStr) (i n : JInt64) := Strings.previndN s i n
+def previndOne (s : JStr) (i : JInt64) := Strings.prevind s i
+def nextindInteger (s : JStr) (i n : JInt64) := Strings.nextindN s i n
+def nextindOne (s : JStr) (i : JInt64) := Strings.nextind s i
+
+structure EachStringIndex where s : JStr
+
+def keys (s : JStr) : EachStringIndex := ⟨s⟩
+def eachLength (e : EachStringIndex) := Strings.length e.s
+def eachFirst (_e : EachStringIndex) := ix 1
+def eachLast (e : EachStringIndex) := Strings.lastindex e.s
+def eachIterate (e : EachStringIndex) (state : JInt64) : Option (JInt64 × JInt64) :=
+  if state.val > (Strings.ncodeunits e.s).val then none
+  else match Strings.nextind e.s state with | .ok n => some (state, n) | .error _ => none
+def eachEltype : String := "Int"
+def isasciiChar (c : UInt32) : Bool := decide (c < 0x80)
+def isasciiString (s : JStr) : Bool := Strings.isascii s
+def isasciiRange (bytes : List UInt8) (first last : Int) := Strings.isasciiRange bytes first last
+def isasciiChunks (chunk : Int) (bytes : List UInt8) (first last : Int) :=
+  Strings.isasciiChunksLoop chunk bytes last bytes.length first
+def isasciiVector (bytes : List UInt8) : Bool := bytes.all (· < 0x80)
+
+/-- Mapping, filtering, slicing, repetition, and reverse iteration; lines 657-776. -/
+def mapString (f : UInt32 → UInt32) (s : JStr) : SJl JStr := stringOfChars ((Strings.chars s).map f)
+def filterString (f : UInt32 → Bool) (s : JStr) : SJl JStr := stringOfChars ((Strings.chars s).filter f)
+def firstN (s : JStr) (n : JInt64) := Strings.firstN s n
+def lastN (s : JStr) (n : JInt64) := Strings.lastN s n
+def reverseind (this : Int → Int) (ncu i : Int) : Int := this (ncu - i + 1)
+def repeatString (toString : α → JStr) (s : α) (r : JInt64) := Strings.repeatStr (toString s) r
+def powerString (repeatFn : α → Int → β) (s : α) (r : Int) : β := repeatFn s r
+def reverseIterate {α : Type} (first get prev : Int → α) (i : Int) : Option (α × α) :=
+  if i < 1 then none else some (get i, prev i)
+
+structure CodeUnits where bytes : List UInt8
+
+def codeUnitsCtor (bytes : List UInt8) : CodeUnits := ⟨bytes⟩
+def cuSizeof (s : CodeUnits) : Nat := s.bytes.length
+def cuSize (s : CodeUnits) : Nat × Unit := (s.bytes.length, ())
+def cuElsize : Nat := 1
+def cuGetindex (s : CodeUnits) (i : Nat) : UInt8 := s.bytes.getD (i - 1) 0
+def cuIndexStyle : String := "IndexLinear"
+def cuCheckbounds (s : CodeUnits) (i : Int) : Bool := decide (1 ≤ i ∧ i ≤ s.bytes.length)
+def cuDataids (id : List UInt8 → List Nat) (s : CodeUnits) := id s.bytes
+def cuWrite (write : List UInt8 → Nat) (s : CodeUnits) := write s.bytes
+def cuCconvert (convert : List UInt8 → Nat) (s : CodeUnits) := convert s.bytes
+def cuSimilar (make : Nat → List UInt8) (n : Nat) := make n
+def codeunits (bytes : List UInt8) : CodeUnits := codeUnitsCtor bytes
+def splitRest (split : JStr → Int → JStr × JSub) (s : JStr) (n : Int) := split s n
+
+end JuliaLean.StringsCovA.Basic
+
+
+/-!
+Faithful per-method models for rows rejected by the fixed review of
+`base/strings/basic.jl` at Julia `bbfa0ce4150`.
+
+An `IntegerInput` or `AbstractStringInput` records the observable dispatches
+provided by an arbitrary Julia value.  This keeps conversion failures and
+custom `AbstractString` behavior explicit instead of assuming `String`.
+-/
+
+namespace JuliaLean.StringsCovA.BasicRebuilt
+
+open JuliaLean JuliaLean.Strings
+
+structure IntegerInput (I : Type) where
+  value : I
+  isMachineInt : Bool
+  toInt : SJl Int
+
+/-! Integer fallbacks, lines 107-108, 143-144, and 156-157. -/
+
+def codeunitInteger (s : S) (i : IntegerInput I)
+    (codeunitInt : S → Int → SJl C) : SJl C :=
+  if i.isMachineInt then .error (.jl (.methodError "codeunit(::AbstractString, ::Int) missing"))
+  else do
+    let converted ← i.toInt
+    codeunitInt s converted
+
+def isvalidInteger (s : S) (i : IntegerInput I)
+    (isvalidInt : S → Int → SJl Bool) : SJl Bool :=
+  if i.isMachineInt then .error (.jl (.methodError "isvalid(::AbstractString, ::Int) missing"))
+  else do
+    let converted ← i.toInt
+    isvalidInt s converted
+
+def iterateInteger (s : S) (i : IntegerInput I)
+    (iterateInt : S → Int → SJl (Option (C × Int))) : SJl (Option (C × Int)) :=
+  if i.isMachineInt then .error (.jl (.methodError "iterate(::AbstractString, ::Int) missing"))
+  else do
+    let converted ← i.toInt
+    iterateInt s converted
+
+/-! Scalar calls and bounds checks, lines 178-213. -/
+
+structure AbstractStringInput (S : Type) where
+  value : S
+  ncodeunits : SJl Int
+  codeunitSize : SJl Int
+  firstindex : SJl Int
+
+def sizeofString (s : AbstractStringInput S) : SJl Int := do
+  let count ← s.ncodeunits
+  let unitSize ← s.codeunitSize
+  return count * unitSize
+
+def lastindexString (s : AbstractStringInput S)
+    (thisind : S → Int → SJl Int) : SJl Int := do
+  let count ← s.ncodeunits
+  thisind s.value count
+
+def isemptyString (s : AbstractStringInput S) : SJl Bool := do
+  let count ← s.ncodeunits
+  return count == 0
+
+def firstString (s : AbstractStringInput S)
+    (getindex : S → Int → SJl C) : SJl C := do
+  let index ← s.firstindex
+  getindex s.value index
+
+structure ScalarIndexCalls (C : Type) where
+  checkbounds : SJl Unit
+  isvalid : SJl Bool
+  iterate : SJl (C × Int)
+  stringIndexError : SJl C
+
+def getindexInteger (calls : ScalarIndexCalls C) : SJl C := do
+  let _ ← calls.checkbounds
+  let valid ← calls.isvalid
+  if valid then
+    let pair ← calls.iterate
+    return pair.1
+  else calls.stringIndexError
+
+structure IndexVectorInput (I : Type) where
+  length : SJl Nat
+  values : SJl (List I)
+
+def collectIndices (getindex : I → SJl C) : List I → SJl (List C)
+  | [] => .ok []
+  | index :: rest => do
+      let character ← getindex index
+      let characters ← collectIndices getindex rest
+      return character :: characters
+
+def getindexVector (v : IndexVectorInput I)
+    (getindex : I → SJl C) : SJl (List C) := do
+  let _sizehint ← v.length
+  let indices ← v.values
+  collectIndices getindex indices
+
+structure GetCalls (A : Type) where
+  checkbounds : SJl Bool
+  getindex : SJl A
+
+def getDefault (calls : GetCalls A) (default : A) : SJl A := do
+  let inbounds ← calls.checkbounds
+  if inbounds then calls.getindex else return default
+
+structure BoundsIndex (I : Type) where
+  value : I
+  oneLe : SJl Bool
+  leCodeunits : Int → SJl Bool
+
+def checkboundsIndex (s : AbstractStringInput S) (i : BoundsIndex I) : SJl Bool := do
+  let lower ← i.oneLe
+  if !lower then return false
+  let count ← s.ncodeunits
+  i.leCodeunits count
+
+structure BoundsRange (I : Type) where
+  isempty : SJl Bool
+  minimum : SJl (BoundsIndex I)
+  maximum : SJl (BoundsIndex I)
+
+def checkboundsRange (s : AbstractStringInput S) (r : BoundsRange I) : SJl Bool := do
+  let empty ← r.isempty
+  if empty then return true
+  let lo ← r.minimum
+  let lower ← lo.oneLe
+  if !lower then return false
+  let hi ← r.maximum
+  let count ← s.ncodeunits
+  hi.leCodeunits count
+
+def checkboundsArrayLoop (check : I → SJl Bool) : List I → SJl Bool
+  | [] => .ok true
+  | index :: rest => do
+      let inbounds ← check index
+      if inbounds then checkboundsArrayLoop check rest else return false
+
+def checkboundsArray (values : SJl (List I))
+    (check : I → SJl Bool) : SJl Bool := do
+  let indices ← values
+  checkboundsArrayLoop check indices
+
+def checkboundsThrow (s : S) (indices : I) (check : SJl Bool) : SJl Unit := do
+  let inbounds ← check
+  if inbounds then return () else .error (.jl .boundsError)
+
+/-! Construction, conversion, summary, and concatenation, lines 220-271. -/
+
+structure ByteConversionInput (S : Type) where
+  value : S
+  string : SJl JStr
+
+def vectorUInt8 (s : ByteConversionInput S)
+    (unsafeWrap : JStr → SJl (List UInt8)) : SJl (List UInt8) := do
+  let concrete ← s.string
+  unsafeWrap concrete
+
+def arrayUInt8 (s : ByteConversionInput S)
+    (unsafeWrap : JStr → SJl (List UInt8)) : SJl (List UInt8) := do
+  let concrete ← s.string
+  unsafeWrap concrete
+
+def vectorAbstractChar (s : S) (collect : S → SJl (List C)) : SJl (List C) :=
+  collect s
+
+structure SymbolStringInput (S Sym : Type) where
+  value : S
+  string : SJl JStr
+  intern : JStr → SJl Sym
+
+def symbolAbstractString (s : SymbolStringInput S Sym) : SJl Sym := do
+  let concrete ← s.string
+  s.intern concrete
+
+structure SymbolArgsInput (Args Sym : Type) where
+  values : Args
+  render : Args → SJl JStr
+  intern : JStr → SJl Sym
+
+def symbolArgs (args : SymbolArgsInput Args Sym) : SJl Sym := do
+  let rendered ← args.render args.values
+  args.intern rendered
+
+structure ConvertInput (S T : Type) where
+  value : S
+  construct : S → SJl T
+  typeAssert : T → SJl T
+
+def convertAbstractString (input : ConvertInput S T) : SJl T := do
+  let converted ← input.construct input.value
+  input.typeAssert converted
+
+structure SummaryInput (S : Type) where
+  value : S
+  isempty : SJl Bool
+  ncodeunits : SJl Int
+  typeName : String
+  print : List String → SJl Unit
+
+def summary (input : SummaryInput S) : SJl Unit := do
+  let empty ← input.isempty
+  let summaryPrefix ← (if empty then .ok "empty" else do
+      let count ← input.ncodeunits
+      return toString count ++ "-codeunit")
+  input.print [summaryPrefix, " ", input.typeName]
+
+def anyAnnotated : List (SJl Bool) → SJl Bool
+  | [] => .ok false
+  | result :: rest => do
+      let annotated ← result
+      if annotated then return true else anyAnnotated rest
+
+structure ConcatInput (A R : Type) where
+  first : A
+  rest : List A
+  firstAnnotated : SJl Bool
+  restAnnotated : List (SJl Bool)
+  annotatedstring : A → List A → SJl R
+  string : A → List A → SJl R
+
+def concat (input : ConcatInput A R) : SJl R := do
+  let firstAnnotated ← input.firstAnnotated
+  let annotated ← if firstAnnotated then .ok true else anyAnnotated input.restAnnotated
+  if annotated then input.annotatedstring input.first input.rest
+  else input.string input.first input.rest
+
+def oneString (convert : SJl T) : SJl T := convert
+
+inductive StringTypeKind where
+  | bottom
+  | annotatedString
+  | annotatedChar
+  | other
+  deriving DecidableEq
+
+def isannotatedType : StringTypeKind → Bool
+  | .bottom => false
+  | .annotatedString => true
+  | .annotatedChar => true
+  | .other => false
+
+structure ValueTypeInput (V : Type) where
+  value : V
+  typeOf : V → StringTypeKind
+
+def isannotatedValue (input : ValueTypeInput V) : Bool :=
+  isannotatedType (input.typeOf input.value)
+
+/-! Generic string and Symbol comparison, lines 308-363. -/
+
+structure AbstractStringSequence (A : Type) where
+  identity : Nat
+  characters : List A
+
+def cmpCharacters [DecidableEq A] (lt : A → A → Bool) : List A → List A → Int
+  | [], [] => 0
+  | [], _ :: _ => -1
+  | _ :: _, [] => 1
+  | a :: as, b :: bs => if a = b then cmpCharacters lt as bs else if lt a b then -1 else 1
+
+def cmpString [DecidableEq A] (lt : A → A → Bool)
+    (a b : AbstractStringSequence A) : Int :=
+  if a.identity == b.identity then 0 else cmpCharacters lt a.characters b.characters
+
+def eqString [DecidableEq A] (lt : A → A → Bool)
+    (a b : AbstractStringSequence A) : Bool := cmpString lt a b == 0
+
+def islessString [DecidableEq A] (lt : A → A → Bool)
+    (a b : AbstractStringSequence A) : Bool := decide (cmpString lt a b < 0)
+
+def lexBytes : List UInt8 → List UInt8 → Int
+  | [], [] => 0
+  | [], _ :: _ => -1
+  | _ :: _, [] => 1
+  | a :: as, b :: bs => if a = b then lexBytes as bs else if a < b then -1 else 1
+
+def cmpSymbol (a b : List UInt8) : Int := Int.sign (lexBytes a b)
+
+def islessSymbol (a b : List UInt8) : Bool := decide (cmpSymbol a b < 0)
+
+/-! Generic length and index arithmetic, lines 396-585. -/
+
+structure IndexStringInput (S : Type) where
+  value : S
+  ncodeunits : SJl JInt64
+  firstindex : SJl JInt64
+  lastindex : SJl JInt64
+
+structure MachineIntegerInput (I : Type) where
+  value : I
+  toInt : SJl JInt64
+
+def lengthString (s : IndexStringInput S)
+    (lengthBetween : S → JInt64 → JInt64 → SJl JInt64) : SJl JInt64 := do
+  let last ← s.ncodeunits
+  lengthBetween s.value (ix 1) last
+
+def indexRange (first last : JInt64) : List JInt64 :=
+  if last.val < first.val then []
+  else (List.range (last.val - first.val + 1).toNat).map
+    (fun (offset : Nat) => first + ix (Int.ofNat offset))
+
+def countValid (isvalid : JInt64 → SJl Bool) : List JInt64 → SJl JInt64
+  | [] => .ok (ix 0)
+  | index :: rest => do
+      let valid ← isvalid index
+      let count ← countValid isvalid rest
+      return count + bInt valid
+
+structure LengthBetweenInput (S : Type) where
+  string : S
+  first : JInt64
+  last : JInt64
+  firstCodeunits : SJl JInt64
+  lastCodeunits : SJl JInt64
+  isvalid : S → JInt64 → SJl Bool
+
+def lengthBetween (input : LengthBetweenInput S) : SJl JInt64 := do
+  let firstCount ← input.firstCodeunits
+  if !(ix 0 < input.first && input.first ≤ firstCount + ix 1) then
+    .error (.jl .boundsError)
+  else
+    let lastCount ← input.lastCodeunits
+    if !(ix 0 ≤ input.last && input.last < lastCount + ix 1) then
+      .error (.jl .boundsError)
+    else countValid (input.isvalid input.string) (indexRange input.first input.last)
+
+def lengthInteger (s : S) (first : MachineIntegerInput I) (last : MachineIntegerInput J)
+    (lengthInt : S → JInt64 → JInt64 → SJl JInt64) : SJl JInt64 := do
+  let i ← first.toInt
+  let j ← last.toInt
+  lengthInt s i j
+
+def thisindInteger (s : S) (index : MachineIntegerInput I)
+    (thisindInt : S → JInt64 → SJl JInt64) : SJl JInt64 := do
+  let converted ← index.toInt
+  thisindInt s converted
+
+def thisindRewind (isvalid : JInt64 → SJl Bool) : Nat → JInt64 → SJl JInt64
+  | 0, index => .ok index
+  | fuel + 1, index =>
+      if ix 1 < index then do
+        let valid ← isvalid index
+        if valid then return index else thisindRewind isvalid fuel (index - ix 1)
+      else return index
+
+structure ThisindInput (S : Type) where
+  string : S
+  index : JInt64
+  ncodeunits : SJl JInt64
+  isvalid : S → JInt64 → SJl Bool
+
+def thisindInt (input : ThisindInput S) : SJl JInt64 := do
+  let count ← input.ncodeunits
+  let after := count + ix 1
+  if input.index == after then return input.index
+  if !(ix 0 ≤ input.index && input.index ≤ after) then .error (.jl .boundsError)
+  else thisindRewind (input.isvalid input.string) input.index.val.toNat input.index
+
+def previndIntegerN (s : S) (index : MachineIntegerInput I) (count : MachineIntegerInput N)
+    (previndInt : S → JInt64 → JInt64 → SJl JInt64) : SJl JInt64 := do
+  let i ← index.toInt
+  let n ← count.toInt
+  previndInt s i n
+
+def previndIntegerOne (s : S) (index : MachineIntegerInput I)
+    (previndInt : S → JInt64 → SJl JInt64) : SJl JInt64 := do
+  let i ← index.toInt
+  previndInt s i
+
+def previndOne (s : S) (index : JInt64)
+    (previndIntN : S → JInt64 → JInt64 → SJl JInt64) : SJl JInt64 :=
+  previndIntN s index (ix 1)
+
+def previndLoop (isvalid : JInt64 → SJl Bool) : Nat → JInt64 → JInt64 → SJl JInt64
+  | 0, index, count => .ok (index - count)
+  | fuel + 1, index, count =>
+      if ix 0 < count && ix 1 < index then do
+        let nextIndex := index - ix 1
+        let valid ← isvalid nextIndex
+        previndLoop isvalid fuel nextIndex (count - bInt valid)
+      else return index - count
+
+structure PrevindInput (S : Type) where
+  string : S
+  index : JInt64
+  count : JInt64
+  ncodeunits : SJl JInt64
+  thisind : S → JInt64 → SJl JInt64
+  isvalid : S → JInt64 → SJl Bool
+  stringIndexError : SJl JInt64
+
+def previndIntN (input : PrevindInput S) : SJl JInt64 :=
+  if input.count < ix 0 then .error (.jl (.argumentError "n cannot be negative"))
+  else do
+    let codeunits ← input.ncodeunits
+    let after := codeunits + ix 1
+    if !(ix 0 < input.index && input.index ≤ after) then .error (.jl .boundsError)
+    else if input.count == ix 0 then do
+      let current ← input.thisind input.string input.index
+      if current == input.index then return input.index else input.stringIndexError
+    else previndLoop (input.isvalid input.string) input.index.val.toNat input.index input.count
+
+def nextindIntegerN (s : S) (index : MachineIntegerInput I) (count : MachineIntegerInput N)
+    (nextindInt : S → JInt64 → JInt64 → SJl JInt64) : SJl JInt64 := do
+  let i ← index.toInt
+  let n ← count.toInt
+  nextindInt s i n
+
+def nextindIntegerOne (s : S) (index : MachineIntegerInput I)
+    (nextindInt : S → JInt64 → JInt64 → SJl JInt64) : SJl JInt64 := do
+  let i ← index.toInt
+  nextindInt s i (ix 1)
+
+def nextindOne (s : S) (index : JInt64)
+    (nextindIntN : S → JInt64 → JInt64 → SJl JInt64) : SJl JInt64 :=
+  nextindIntN s index (ix 1)
+
+def nextindLoop (isvalid : JInt64 → SJl Bool) (last : JInt64) :
+    Nat → JInt64 → JInt64 → SJl JInt64
+  | 0, index, count => .ok (index + count)
+  | fuel + 1, index, count =>
+      if ix 0 < count && index < last then do
+        let nextIndex := index + ix 1
+        let valid ← isvalid nextIndex
+        nextindLoop isvalid last fuel nextIndex (count - bInt valid)
+      else return index + count
+
+structure NextindInput (S : Type) where
+  string : S
+  index : JInt64
+  count : JInt64
+  ncodeunits : SJl JInt64
+  thisind : S → JInt64 → SJl JInt64
+  isvalid : S → JInt64 → SJl Bool
+  stringIndexError : SJl JInt64
+
+def nextindIntN (input : NextindInput S) : SJl JInt64 :=
+  if input.count < ix 0 then .error (.jl (.argumentError "n cannot be negative"))
+  else do
+    let last ← input.ncodeunits
+    if !(ix 0 ≤ input.index && input.index ≤ last) then .error (.jl .boundsError)
+    else
+      if input.count == ix 0 then do
+        let current ← input.thisind input.string input.index
+        if current == input.index then return input.index else input.stringIndexError
+      else
+        nextindLoop (input.isvalid input.string) last
+          (last.val - input.index.val).toNat input.index input.count
+
+structure EachStringIndex (S : Type) where
+  string : S
+
+def keys (s : S) : EachStringIndex S := ⟨s⟩
+
+def eachLength (index : EachStringIndex S) (length : S → SJl JInt64) : SJl JInt64 :=
+  length index.string
+
+def eachLast (index : EachStringIndex S) (lastindex : S → SJl JInt64) : SJl JInt64 :=
+  lastindex index.string
+
+structure EachIterateInput (S : Type) where
+  index : EachStringIndex S
+  state : Option JInt64
+  firstindex : S → SJl JInt64
+  ncodeunits : S → SJl JInt64
+  nextind : S → JInt64 → SJl JInt64
+
+def eachIterate (input : EachIterateInput S) : SJl (Option (JInt64 × JInt64)) := do
+  let state ← match input.state with
+    | some state => .ok state
+    | none => input.firstindex input.index.string
+  let last ← input.ncodeunits input.index.string
+  if last < state then return none
+  let next ← input.nextind input.index.string state
+  return some (state, next)
+
+/-! ASCII classification, lines 619-653. -/
+
+def allAscii (isascii : C → SJl Bool) : List C → SJl Bool
+  | [] => .ok true
+  | character :: rest => do
+      let ascii ← isascii character
+      if ascii then allAscii isascii rest else return false
+
+structure AsciiStringInput (C : Type) where
+  characters : SJl (List C)
+  isascii : C → SJl Bool
+
+def isasciiString (input : AsciiStringInput C) : SJl Bool := do
+  let characters ← input.characters
+  allAscii input.isascii characters
+
+def isasciiAbstractChar (toUInt32 : SJl UInt32) : SJl Bool := do
+  let value ← toUInt32
+  return value < 0x80
+
+structure CodeUnitOps (CU V : Type) where
+  vector : V
+  zero : CU
+  or : CU → CU → CU
+  nonnegative : CU → Bool
+  below80 : CU → Bool
+  getindex : V → JInt64 → SJl CU
+
+def isasciiRangeLoop (ops : CodeUnitOps CU V) (last : JInt64) :
+    Nat → JInt64 → CU → SJl CU
+  | 0, _, aggregate => .ok aggregate
+  | fuel + 1, index, aggregate =>
+      if last < index then .ok aggregate
+      else do
+        let value ← ops.getindex ops.vector index
+        isasciiRangeLoop ops last fuel (index + ix 1) (ops.or aggregate value)
+
+def isasciiRange (ops : CodeUnitOps CU V) (first last : JInt64) : SJl Bool := do
+  let aggregate ← isasciiRangeLoop ops last
+    (last.val - first.val + 1).toNat first ops.zero
+  return ops.nonnegative aggregate && ops.below80 aggregate
+
+def isasciiChunksLoop (range : JInt64 → JInt64 → SJl Bool)
+    (chunkSize last : JInt64) : Nat → JInt64 → SJl Bool
+  | 0, _ => range (last - chunkSize + ix 1) last
+  | fuel + 1, index =>
+      if index ≤ last - chunkSize then do
+        let ascii ← range index (index + chunkSize - ix 1)
+        if ascii then isasciiChunksLoop range chunkSize last fuel (index + chunkSize)
+        else return false
+      else range (last - chunkSize + ix 1) last
+
+def isasciiChunks (range : JInt64 → JInt64 → SJl Bool)
+    (chunkSize first last : JInt64) : SJl Bool :=
+  isasciiChunksLoop range chunkSize last
+    ((last.val - first.val + 1).toNat + 1) first
+
+structure AsciiVectorInput where
+  firstindex : SJl JInt64
+  lastindex : SJl JInt64
+  range : JInt64 → JInt64 → SJl Bool
+  chunks : JInt64 → JInt64 → JInt64 → SJl Bool
+
+def isasciiVector (input : AsciiVectorInput) : SJl Bool := do
+  let first ← input.firstindex
+  let last ← input.lastindex
+  let length := last - first + ix 1
+  let chunkSize := ix 1024
+  let threshold := ix 1536
+  if length < threshold then input.range first last
+  else input.chunks chunkSize first last
+
+/-! Map, filter, slice, repeat, and reverse iteration, lines 657-776. -/
+
+structure MapInput (S C M B : Type) where
+  string : S
+  sizeof : SJl JInt64
+  codeunitSize : SJl JInt64
+  characters : SJl (List C)
+  apply : C → SJl M
+  isAbstractChar : M → Bool
+  convertChar : M → SJl UInt32
+  allocate : JInt64 → SJl B
+  length : B → SJl JInt64
+  resize : B → JInt64 → SJl B
+  writeChar : B → UInt32 → JInt64 → SJl (B × JInt64)
+  sizehint : B → JInt64 → SJl B
+  makeString : B → SJl JStr
+
+def mapLoop (input : MapInput S C M B) : List C → B → JInt64 → SJl (B × JInt64)
+  | [], buffer, index => .ok (buffer, index)
+  | character :: rest, buffer, index => do
+      let mapped ← input.apply character
+      if !input.isAbstractChar mapped then
+        .error (.jl (.argumentError "map requires AbstractChar results"))
+      else
+        let length ← input.length buffer
+        let buffer ← if length < index + ix 3 then input.resize buffer (length * ix 2)
+          else .ok buffer
+        let converted ← input.convertChar mapped
+        let written ← input.writeChar buffer converted index
+        mapLoop input rest written.1 (index + written.2)
+
+def divStringInt (left right : JInt64) : SJl JInt64 :=
+  (JInt.div left right).mapError SErr.jl
+
+def mapString (input : MapInput S C M B) : SJl JStr := do
+  let bytes ← input.sizeof
+  let unitSize ← input.codeunitSize
+  let capacity ← divStringInt bytes unitSize
+  let capacity := if capacity < ix 4 then ix 4 else capacity
+  let buffer ← input.allocate capacity
+  let characters ← input.characters
+  let result ← mapLoop input characters buffer (ix 1)
+  let resized ← input.resize result.1 (result.2 - ix 1)
+  let hinted ← input.sizehint resized (result.2 - ix 1)
+  input.makeString hinted
+
+structure FilterInput (S C B : Type) where
+  string : S
+  sizeof : SJl JInt64
+  makeBuffer : JInt64 → SJl B
+  characters : SJl (List C)
+  predicate : C → SJl Bool
+  write : B → C → SJl B
+  takestring : B → SJl JStr
+
+def filterLoop (input : FilterInput S C B) : List C → B → SJl B
+  | [], buffer => .ok buffer
+  | character :: rest, buffer => do
+      let keep ← input.predicate character
+      let buffer ← if keep then input.write buffer character else .ok buffer
+      filterLoop input rest buffer
+
+def filterString (input : FilterInput S C B) : SJl JStr := do
+  let size ← input.sizeof
+  let buffer ← input.makeBuffer size
+  let characters ← input.characters
+  let result ← filterLoop input characters buffer
+  input.takestring result
+
+structure FirstNInput (S I R : Type) where
+  string : S
+  count : I
+  nextind : S → JInt64 → I → SJl JInt64
+  lastindex : S → SJl JInt64
+  slice : S → JInt64 → JInt64 → SJl R
+
+def firstN (input : FirstNInput S I R) : SJl R := do
+  let advanced ← input.nextind input.string (ix 0) input.count
+  let last ← input.lastindex input.string
+  let stop := if advanced < last then advanced else last
+  input.slice input.string (ix 1) stop
+
+structure LastNInput (S I R : Type) where
+  string : S
+  count : I
+  ncodeunits : S → SJl JInt64
+  prevind : S → JInt64 → I → SJl JInt64
+  slice : S → JInt64 → SJl R
+
+def lastN (input : LastNInput S I R) : SJl R := do
+  let count ← input.ncodeunits input.string
+  let first ← input.prevind input.string (count + ix 1) input.count
+  input.slice input.string (if first < ix 1 then ix 1 else first)
+
+def reverseind (ncodeunits : SJl JInt64) (index : MachineIntegerInput I)
+    (thisind : JInt64 → SJl JInt64) : SJl JInt64 := do
+  let count ← ncodeunits
+  let converted ← index.toInt
+  thisind (count - converted + ix 1)
+
+def repeatString (string : SJl JStr) (count : I)
+    (repeatFn : JStr → I → SJl JStr) : SJl JStr := do
+  let concrete ← string
+  repeatFn concrete count
+
+def powerString (value : A) (count : I) (repeatFn : A → I → SJl R) : SJl R :=
+  repeatFn value count
+
+structure ReverseIterateInput (S A : Type) where
+  string : S
+  state : Option JInt64
+  lastindex : S → SJl JInt64
+  firstindex : S → SJl JInt64
+  getindex : S → JInt64 → SJl A
+  prevind : S → JInt64 → SJl JInt64
+
+def reverseIterate (input : ReverseIterateInput S A) : SJl (Option (A × JInt64)) := do
+  let state ← match input.state with
+    | some state => .ok state
+    | none => input.lastindex input.string
+  let first ← input.firstindex input.string
+  if state < first then return none
+  let value ← input.getindex input.string state
+  let previous ← input.prevind input.string state
+  return some (value, previous)
+
+/-! CodeUnits and `_split_rest`, lines 788-840. -/
+
+structure CodeUnits (S T : Type) where
+  string : S
+
+def codeUnitsCtor (s : S) : CodeUnits S T := ⟨s⟩
+
+def cuSizeof (s : CodeUnits S T) (ncodeunits : S → SJl JInt64)
+    (sizeofType : SJl JInt64) : SJl JInt64 := do
+  let count ← ncodeunits s.string
+  let unitSize ← sizeofType
+  return count * unitSize
+
+def cuSize (s : CodeUnits S T) (ncodeunits : S → SJl JInt64) : SJl (JInt64 × Unit) := do
+  let count ← ncodeunits s.string
+  return (count, ())
+
+def cuElsize (sizeofType : SJl JInt64) : SJl JInt64 := sizeofType
+
+def cuGetindex (s : CodeUnits S T) (index : JInt64)
+    (codeunit : S → JInt64 → SJl T) : SJl T := codeunit s.string index
+
+def cuCheckbounds (s : CodeUnits S T) (index : I)
+    (checkbounds : S → I → SJl Bool) : SJl Bool := checkbounds s.string index
+
+def cuDataids (s : CodeUnits S T) (dataids : S → SJl R) : SJl R := dataids s.string
+
+def cuWrite (io : IOType) (s : CodeUnits S T)
+    (write : IOType → S → SJl R) : SJl R := write io s.string
+
+inductive PointerTarget (T : Type) where
+  | typed
+  | int8
+
+def cuCconvert (target : PointerTarget T) (s : CodeUnits S T)
+    (cconvert : PointerTarget T → S → SJl P) : SJl P := cconvert target s.string
+
+def cuSimilar (dims : Dims) (similarArray : Dims → SJl A) : SJl A := similarArray dims
+
+def codeunits (s : S) : CodeUnits S T := codeUnitsCtor s
+
+structure SplitRestInput (S R : Type) where
+  string : S
+  count : JInt64
+  lastindex : S → SJl JInt64
+  prevind : S → JInt64 → JInt64 → SJl JInt64
+  length : S → SJl JInt64
+  checkLength : JInt64 → JInt64 → SJl JInt64
+  nextind : S → JInt64 → SJl JInt64
+  substring : S → JInt64 → JInt64 → SJl R
+  front : S → JInt64 → SJl R
+
+def splitRest (input : SplitRestInput S R) : SJl (R × R) := do
+  let last ← input.lastindex input.string
+  let split ← match input.prevind input.string last input.count with
+    | .ok index => .ok index
+    | .error (.jl .boundsError) => do
+        let length ← input.length input.string
+        input.checkLength length input.count
+    | .error error => .error error
+  let suffixStart ← input.nextind input.string split
+  let suffix ← input.substring input.string suffixStart last
+  let frontResult ← input.front input.string split
+  return (frontResult, suffix)
+
+end JuliaLean.StringsCovA.BasicRebuilt

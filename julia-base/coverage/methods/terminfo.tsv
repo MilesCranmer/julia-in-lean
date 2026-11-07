@@ -1,27 +1,27 @@
 file	line	endline	name	signature	status	entry	note
-base/terminfo.jl	69	69	TermInfo	TermInfo()	todo		
-base/terminfo.jl	72	72	_terminfo_read_bytes	_terminfo_read_bytes(data::IO, nbytes::Integer)	todo		
-base/terminfo.jl	74	106	read	read(data::IO, ::Type{TermInfoRaw})	todo		
-base/terminfo.jl	117	154	extendedterminfo	extendedterminfo(data::IO, NumInt::Union{Type{Int16}, Type{Int32}})	todo		
-base/terminfo.jl	163	177	_terminfo_read_strings	_terminfo_read_strings(table::Vector{UInt8}, indices::Vector{Int16})	todo		
-base/terminfo.jl	185	227	TermInfo	TermInfo(raw::TermInfoRaw)	todo		
-base/terminfo.jl	209	209	longalias	longalias(key, value)	todo		
-base/terminfo.jl	229	229	get	get(ti::TermInfo, key::Symbol, default::Bool)	todo		
-base/terminfo.jl	230	230	get	get(ti::TermInfo, key::Symbol, default::Int)	todo		
-base/terminfo.jl	231	231	get	get(ti::TermInfo, key::Symbol, default::String)	todo		
-base/terminfo.jl	233	234	haskey	haskey(ti::TermInfo, key::Symbol)	todo		
-base/terminfo.jl	236	242	getindex	getindex(ti::TermInfo, key::Symbol)	todo		
-base/terminfo.jl	244	244	keys	keys(ti::TermInfo)	todo		
-base/terminfo.jl	246	252	show	"show(io::IO, ::MIME""text/plain"", ti::TermInfo)"	todo		
-base/terminfo.jl	255	262	_terminfo_stat_check	_terminfo_stat_check(check::Function, path::String)	todo		
-base/terminfo.jl	273	302	find_terminfo_file	find_terminfo_file(term::String)	todo		
-base/terminfo.jl	312	324	load_terminfo	load_terminfo(term::String)	todo		
-base/terminfo.jl	343	343	ttyhascolor	ttyhascolor()	todo		
-base/terminfo.jl	345	347	ttyhascolor	ttyhascolor()	todo		
-base/terminfo.jl	383	400	ttyhastruecolor	ttyhastruecolor()	todo		
-base/terminfo.jl	402	406	get_have_color	get_have_color()	todo		
-base/terminfo.jl	408	412	get_have_truecolor	get_have_truecolor()	todo		
-base/terminfo.jl	414	414	in	in(key_value::Pair{Symbol,Bool}, ::TTY)	todo		
-base/terminfo.jl	415	415	haskey	haskey(::TTY, key::Symbol)	todo		
-base/terminfo.jl	416	416	getindex	getindex(::TTY, key::Symbol)	todo		
-base/terminfo.jl	417	417	get	get(::TTY, key::Symbol, default)	todo		
+base/terminfo.jl	69	69	TermInfo	TermInfo()	modelled	terminfo-empty-capabilities	Reviewed against f755f49: empty fields.
+base/terminfo.jl	72	72	_terminfo_read_bytes	_terminfo_read_bytes(data::IO, nbytes::Integer)	modelled	terminfo-read-exact-size	Reviewed against f755f49: allocation then exact read! dispatch.
+base/terminfo.jl	74	106	read	read(data::IO, ::Type{TermInfoRaw})	modelled	terminfo-reject-unknown-magic	Reviewed against f755f49: magic, signed section checks, exact reads, NUL alignment, optional extension; complete diagnostics.
+base/terminfo.jl	117	154	extendedterminfo	extendedterminfo(data::IO, NumInt::Union{Type{Int16}, Type{Int32}})	modelled	terminfo-extended-alignment	Reviewed against f755f49: alignment, section checks, maximum present-string offset, checked Int16 name indices, zipped capabilities.
+base/terminfo.jl	163	177	_terminfo_read_strings	_terminfo_read_strings(table::Vector{UInt8}, indices::Vector{Int16})	modelled	terminfo-absent-string-slots	Reviewed against f755f49: NUL search, inclusive byte slice, -1/-2 sentinels, exact interpolated diagnostics.
+base/terminfo.jl	185	227	TermInfo	TermInfo(raw::TermInfoRaw)	modelled	terminfo-constructor-names	Reviewed against f755f49: ordered capability tables, absent strings, extended aliases and typed insertion; terminal names retained.
+base/terminfo.jl	209	209	longalias	longalias(key, value)	modelled	terminfo-user-alias	Reviewed against f755f49: typed TERM_USER lookup's first component.
+base/terminfo.jl	229	229	get	get(ti::TermInfo, key::Symbol, default::Bool)	modelled	terminfo-typed-capability-get	Reviewed against f755f49: resolve alias before Bool dictionary/default.
+base/terminfo.jl	230	230	get	get(ti::TermInfo, key::Symbol, default::Int)	modelled	terminfo-typed-capability-get	Reviewed against f755f49: resolve alias before Int dictionary/default.
+base/terminfo.jl	231	231	get	get(ti::TermInfo, key::Symbol, default::String)	modelled	terminfo-typed-capability-get	Reviewed against f755f49: resolve alias before String dictionary/default.
+base/terminfo.jl	233	234	haskey	haskey(ti::TermInfo, key::Symbol)	modelled	terminfo-key-membership	Reviewed against f755f49: union of all four dictionary domains.
+base/terminfo.jl	236	242	getindex	getindex(ti::TermInfo, key::Symbol)	modelled	terminfo-index-lookup	Reviewed against f755f49: flag/number/string precedence, alias recursion, KeyError.
+base/terminfo.jl	244	244	keys	keys(ti::TermInfo)	modelled	terminfo-keys-union	Reviewed against f755f49: duplicate-free union of all four key sets.
+base/terminfo.jl	246	252	show	"show(io::IO, ::MIME""text/plain"", ti::TermInfo)"	modelled	terminfo-display-counts	Reviewed against f755f49: three print calls, names and counts, optional extension count.
+base/terminfo.jl	255	262	_terminfo_stat_check	_terminfo_stat_check(check::Function, path::String)	modelled	terminfo-stat-errors	Reviewed against f755f49: false on IOError and rethrow otherwise.
+base/terminfo.jl	273	302	find_terminfo_file	find_terminfo_file(term::String)	modelled	terminfo-reject-path-escape	Reviewed against f755f49: separator rejection, environment/home/vendor/system directories, three ordered filename candidates, IOError handling.
+base/terminfo.jl	312	324	load_terminfo	load_terminfo(term::String)	modelled	terminfo-missing-file-fallback	Reviewed against f755f49: absent-file fallback, raw conversion, four caught exception classes, other errors rethrown.
+base/terminfo.jl	343	343	ttyhascolor	ttyhascolor()	modelled	terminfo-color-detection	Reviewed against f755f49: Windows true.
+base/terminfo.jl	345	347	ttyhascolor	ttyhascolor()	modelled	terminfo-color-detection	Reviewed against f755f49: Unix setaf membership.
+base/terminfo.jl	383	400	ttyhastruecolor	ttyhastruecolor()	modelled	terminfo-colorterm-truecolor	Reviewed against f755f49: ordered short-circuit checks for COLORTERM, capabilities, platform, versions and terminal names.
+base/terminfo.jl	402	406	get_have_color	get_have_color()	modelled	terminfo-cached-color	Reviewed against f755f49: detect only for nothing cache, assign then return Bool.
+base/terminfo.jl	408	412	get_have_truecolor	get_have_truecolor()	modelled	terminfo-cached-color	Reviewed against f755f49: detect only for nothing cache, assign then return Bool.
+base/terminfo.jl	414	414	in	in(key_value::Pair{Symbol,Bool}, ::TTY)	modelled	terminfo-tty-color-key	Reviewed against f755f49: color key check short-circuits detection.
+base/terminfo.jl	415	415	haskey	haskey(::TTY, key::Symbol)	modelled	terminfo-tty-color-key	Reviewed against f755f49: only color key.
+base/terminfo.jl	416	416	getindex	getindex(::TTY, key::Symbol)	modelled	terminfo-tty-color-key	Reviewed against f755f49: color detection or KeyError.
+base/terminfo.jl	417	417	get	get(::TTY, key::Symbol, default)	modelled	terminfo-tty-color-key	Reviewed against f755f49: color detection or unchanged default.

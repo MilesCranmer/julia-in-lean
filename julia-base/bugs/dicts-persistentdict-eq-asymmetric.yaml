@@ -1,64 +1,65 @@
 id: dicts-persistentdict-eq-asymmetric
-title: "== and isequal between PersistentDict and Dict are asymmetric (or throw MethodError)"
-priority: P3
-kind: wrong-result
-area: Dicts
-files: [base/abstractdict.jl, base/dict.jl]
-functions: ["==(::AbstractDict, ::AbstractDict)", "isequal(::AbstractDict, ::AbstractDict)"]
+title: "PersistentDict and Dict equality depends on argument order"
+priority: "P3"
+kind: "wrong-result"
+area: "Dicts"
+files:
+  - "base/abstractdict.jl"
+  - "base/dict.jl"
+functions:
+  - "==(::AbstractDict, ::AbstractDict)"
 summary: |
-  PersistentDict compares keys with === (it "behaves like an IdDict"), Dict
-  with isequal. The generic AbstractDict == and isequal test each pair of the
-  left argument with the right argument's lookup, so
-  PersistentDict{Any,Int}(1 => 1) == Dict{Any,Int}(1.0 => 1) is true and the
-  reverse is false. With concrete key types the reverse throws MethodError
-  because PersistentDict's get only accepts keys of its key type.
+  Two separately allocated [1] vectors compare equal by value and differ by identity. A PersistentDict keyed by the first vector compares equal to a Dict keyed by the second; reversing the arguments returns false. The reproducer checks == symmetry only.
 likelihood: |
-  PersistentDict is not exported or public (it backs ScopedValues);
-  comparing one with a Dict is rare.
+  Comparison of the internal PersistentDict type against a normal Dict with equal but separately allocated mutable keys.
 maybe_intended: |
-  IdDict has the same mismatch and the generic == avoids it by returning
-  false whenever exactly one argument is an IdDict; PersistentDict was
-  probably just not added to that check.
+  PersistentDict deliberately behaves like IdDict. Generic dictionary equality already rejects IdDict/non-IdDict comparisons, but does not classify PersistentDict with IdDict.
 reproducer: |
-  p = Base.PersistentDict{Any,Int}(1 => 1)
-  d = Dict{Any,Int}(1.0 => 1)
-  p == d, d == p                                          # (true, false)
-  Dict(1.0 => 1) == Base.PersistentDict(1 => 1)           # MethodError
+  a = [1]
+  b = [1]
+  p = Base.PersistentDict(a => 1)
+  d = Dict(b => 1)
+  @show a === b isequal(a, b)
+  @show p == d d == p
 output:
   release: |
-    PersistentDict{Any,Int}(1 => 1) == Dict{Any,Int}(1.0 => 1): true
-    Dict{Any,Int}(1.0 => 1) == PersistentDict{Any,Int}(1 => 1): false
-    isequal both ways: true false
-    Dict(1.0 => 1) == PersistentDict(1 => 1): MethodError; reverse: true
-    IdDict(1 => 1) == Dict(1.0 => 1): false; reverse: false
     REPRODUCED dicts-persistentdict-eq-asymmetric
   nightly: |
-    PersistentDict{Any,Int}(1 => 1) == Dict{Any,Int}(1.0 => 1): true
-    Dict{Any,Int}(1.0 => 1) == PersistentDict{Any,Int}(1 => 1): false
-    isequal both ways: true false
-    Dict(1.0 => 1) == PersistentDict(1 => 1): MethodError; reverse: true
-    IdDict(1 => 1) == Dict(1.0 => 1): false; reverse: false
     REPRODUCED dicts-persistentdict-eq-asymmetric
-reproduced: {release: true, nightly: true}
+reproduced:
+  release: true
+  nightly: true
 expected: |
-  The same Bool in both orders (false, as for IdDict vs Dict), and no
-  MethodError.
+  Equality should return the same result in both argument orders. A symmetric false result, as for IdDict versus Dict, would respect the different key relations.
 promised_by: |
-  base/operators.jl:152: "`isequal` is an equivalence relation - it is
-  reflexive (`===` implies `isequal`), symmetric and transitive"; == of
-  collections compares key sets and values (base/operators.jl:116).
+  base/operators.jl:118-124 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027:
+  "Generic equality operator. Falls back to [`===`](@ref)."
+  "Should be implemented for all types with a notion of equality, based on the abstract value"
+  "that an instance represents."
+  base/dict.jl:945-946 states "It behaves like an IdDict."
+  The == docstring does not separately spell out symmetry; symmetry is the property under review. The explicit isequal symmetry contract at base/operators.jl:152-154 concerns a different property.
 cause: |
-  base/abstractdict.jl:504-533 check `isa(l, IdDict) != isa(r, IdDict)` only
-  for IdDict and otherwise test `in(pair, r)` with r's own key comparison;
-  PersistentDict's in/get (base/dict.jl:1010-1031) use === and accept only
-  keys of type K.
+  base/abstractdict.jl:518-533 only guards mismatched IdDict instances and then looks up every left-hand pair in the right-hand dictionary. PersistentDict identity lookup and Dict value lookup give different answers.
 possible_fix: |
-  Treat PersistentDict like IdDict in the generic comparisons (or give it its
-  own ==/isequal), and add a get(::PersistentDict, key, default) method for
-  arbitrary keys.
+  Treat identity-keyed PersistentDict comparisons consistently in both argument orders, as is already done for IdDict.
 duplicates:
-  issues: []
-  queries: ["PersistentDict ==", "PersistentDict isequal", "PersistentDict MethodError get", "PersistentDict IdDict equality"]
+  issues:
+    - number: 54740
+      state: open
+      relation: related
+    - number: 53982
+      state: open
+      relation: related
+  prs:
+    - number: 52193
+      state: merged
+      relation: related
+  queries:
+    - "PersistentDict equality"
+    - "PersistentDict asymmetric"
+    - "PersistentDict Dict =="
+  search_evidence: |
+    Merged PR 52193 deliberately changes PersistentDict to identity key semantics but does not report this comparison asymmetry. No exact duplicate is known.
 lean:
-  property: JuliaLean.Dicts.PersistentDictEqSymmetric
-  theorem: JuliaLean.Dicts.persistentDictEqSymmetric_refuted
+  property: JuliaLean.Proofs.base.abstractdict.DictEqualitySymmetricSpec
+  theorem: JuliaLean.ChatGPT.Batch4.Group15.DictsPersistentdictEqAsymmetric_refuted

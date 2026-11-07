@@ -4,7 +4,7 @@ priority: P2
 kind: wrong-result
 area: DocsSyntaxCov
 files: [base/docs/Docs.jl]
-functions: ["Base.Docs.metadata(__source__, __module__, expr, ismodule)"]
+functions: ["@doc S", "Base.Docs.metadata(__source__, __module__, expr, ismodule)"]
 summary: |
     Field docstrings are collected only before `x` or `x::T` field declarations. A
     docstring before a `const x::T` (or `@atomic x::T`) field is dropped for that field and,
@@ -22,14 +22,15 @@ reproducer: |
         const a::Int
         b::Int
     end
-    Base.Docs.meta(Main)[Base.Docs.Binding(Main, :S)].docs[Union{}].data[:fields]
-    # Dict(:b => "doc for a")
+    d = (@doc S)
+    println("@doc S field docs = ", repr(d.data[:fields]))
+    d.data[:fields] == Dict(:b => "doc for a") && println("REPRODUCED docssyntaxcov-field-doc-const")
 output:
   release: |
-    fields = Dict{Symbol, Any}(:b => "doc for a")
+    @doc S field docs = Dict{Symbol, Any}(:b => "doc for a")
     REPRODUCED docssyntaxcov-field-doc-const
   nightly: |
-    fields = Dict{Symbol, Any}(:b => "doc for a")
+    @doc S field docs = Dict{Symbol, Any}(:b => "doc for a")
     REPRODUCED docssyntaxcov-field-doc-const
 reproduced: {release: true, nightly: true}
 expected: |

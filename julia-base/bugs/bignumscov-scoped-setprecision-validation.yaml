@@ -72,5 +72,5 @@ duplicates:
   issues: []
   queries: ["setprecision BigFloat scoped validation", "setprecision BigFloat DomainError", "PR setprecision BigFloat scoped validation", "PR setprecision BigFloat DomainError"]
 lean:
-  property: JuliaLean.BigNumsCov.Mpfr.ScopedPrecisionValidates
-  theorem: JuliaLean.BigNumsCov.Mpfr.scopedPrecisionValidates_refuted
+  property: JuliaLean.Proofs.base.mpfr.LegacyRetired.ScopedPrecisionValidates
+  theorem: JuliaLean.Proofs.base.mpfr.LegacyRetired.scopedPrecisionValidates_refuted

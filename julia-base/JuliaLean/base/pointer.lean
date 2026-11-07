@@ -71,12 +71,6 @@ def NativeInt.toUInt64 : NativeInt → U64
   | .signed value => int64ToUInt64 value
   | .unsigned value => value
 
-def convertPtrToInteger {T I : Type} (toInteger : U64 → PtrResult I)
-    (pointer : Ptr T) : PtrResult I :=
-  toInteger pointer.address
-
-def convertIntegerToPtr {T : Type} (value : NativeInt) : Ptr T :=
-  ⟨value.toUInt64⟩
 
 /-- `convert(Ptr{T}, p::Ptr{T})`: the pointer value is unchanged. -/
 def convertPtrSame {T : Type} (pointer : Ptr T) : Ptr T := pointer
@@ -101,8 +95,9 @@ Julia source: base/pointer.jl:23-23 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 convert(::Type{T}, x::Ptr) where {T<:Integer} = T(UInt(x))::T
 ```
 -/
-def convertPtrToIntegerMethod {T I : Type} (toInteger : U64 → PtrResult I)
-    (pointer : Ptr T) : PtrResult I := convertPtrToInteger toInteger pointer
+def convertPtrToIntegerMethod {T I : Type} (toUInt : Ptr T → U64)
+    (fromUInt : U64 → PtrResult I) (pointer : Ptr T) : PtrResult I :=
+  fromUInt (toUInt pointer)
 
 /--
 Julia source: base/pointer.jl:26-26 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -110,7 +105,8 @@ Julia source: base/pointer.jl:26-26 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 convert(::Type{Ptr{T}}, x::Union{Int,UInt}) where {T} = Ptr{T}(x)
 ```
 -/
-def convertIntegerToPtrMethod {T : Type} (value : NativeInt) : Ptr T := convertIntegerToPtr value
+def convertIntegerToPtrMethod {T : Type} (construct : NativeInt → Ptr T)
+    (value : NativeInt) : Ptr T := construct value
 
 /--
 Julia source: base/pointer.jl:29-29 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -118,7 +114,7 @@ Julia source: base/pointer.jl:29-29 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 convert(::Type{Ptr{T}}, p::Ptr{T}) where {T} = p
 ```
 -/
-def convertSamePtrMethod {T : Type} (pointer : Ptr T) : Ptr T := convertPtrSame pointer
+def convertSamePtrMethod {T : Type} (pointer : Ptr T) : Ptr T := pointer
 
 /--
 Julia source: base/pointer.jl:30-30 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -126,7 +122,8 @@ Julia source: base/pointer.jl:30-30 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 convert(::Type{Ptr{T}}, p::Ptr) where {T} = bitcast(Ptr{T}, p)::Ptr{T}
 ```
 -/
-def convertDifferentPtrMethod {S T : Type} (pointer : Ptr T) : Ptr S := convertPtrType pointer
+def convertDifferentPtrMethod {S T : Type} (bitcast : Ptr T → Ptr S)
+    (pointer : Ptr T) : Ptr S := bitcast pointer
 
 
 /-- Memory metadata used to resolve a `GenericMemoryRef` pointer or element offset. -/
@@ -140,7 +137,7 @@ abbrev PointerMemoryRef (T : Type) := GenericMemoryRef (PointerMemoryObject T) U
 /-- A pointer-compatible view of an array argument. -/
 inductive AbstractArrayPointerInput (T : Type) where
   | array (reference : PointerMemoryRef T)
-  | other (typeName : String)
+  | other {A : Type} (array : A) (typeof : A → String)
 
 /--
 Julia source: base/pointer.jl:58-58 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -228,7 +225,7 @@ function unsafe_convert(::Type{Ptr{Cvoid}}, a::GenericMemoryRef{<:Any,T,Core.CPU
 end
 ```
 -/
-def unsafeConvertMemoryRefCvoid {T : Type} (reference : PointerMemoryRef T) : Ptr Unit := Id.run do
+def unsafeConvertMemoryRefCvoid {T : Type} (reference : PointerMemoryRef T) : Ptr Unit :=
   let mem := reference.mem
   let offset := reference.ptr_or_offset
   let arrayelem := mem.arrayElement
@@ -236,8 +233,10 @@ def unsafeConvertMemoryRefCvoid {T : Type} (reference : PointerMemoryRef T) : Pt
   let isunion := 2
   if arrayelem == isunion || elsz.val == 0 then
     let byteOffset := offset * int64ToUInt64 elsz
-    return ⟨mem.ptr.address + byteOffset⟩
-  return ⟨offset⟩
+    let basePointer := unsafeConvertMemoryCvoid mem
+    ⟨basePointer.address + byteOffset⟩
+  else
+    ⟨offset⟩
 
 /--
 Julia source: base/pointer.jl:88-88 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -263,12 +262,13 @@ Julia source: base/pointer.jl:66-66 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 unsafe_convert(::Type{Ptr{T}}, a::AbstractArray{T}) where {T} = error("conversion to pointer not defined for $(typeof(a))")
 ```
 -/
-def unsafeConvertUnsupportedArray {T : Type} (typeName : String) : PtrResult (Ptr T) :=
-  .error (.errorException ("conversion to pointer not defined for " ++ typeName))
+def unsafeConvertUnsupportedArray {T A : Type} (typeof : A → String) (array : A) :
+    PtrResult (Ptr T) :=
+  .error (.errorException ("conversion to pointer not defined for " ++ typeof array))
 
 def unsafeConvertPtrArray {T : Type} : AbstractArrayPointerInput T → PtrResult (Ptr T)
   | .array reference => .ok (unsafeConvertArray reference)
-  | .other typeName => unsafeConvertUnsupportedArray typeName
+  | .other array typeof => unsafeConvertUnsupportedArray typeof array
 
 /--
 Julia source: base/pointer.jl:64-64 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -299,13 +299,16 @@ def ByteHeap.writeByte (heap : ByteHeap) (address : Nat) (value : Byte) : ByteHe
       if addressMod location == addressMod address then value else heap.byteAt location }
 
 def ByteHeap.readBytes (heap : ByteHeap) (address size : Nat) : List Byte :=
-  (List.range size).map (fun offset => heap.readByte (address + offset))
+  match size with
+  | 0 => []
+  | size + 1 => heap.readByte address :: heap.readBytes (address + 1) size
 
 def ByteHeap.writeBytes (heap : ByteHeap) (address : Nat) : List Byte → ByteHeap
   | [] => heap
   | value :: rest => (heap.writeByte address value).writeBytes (address + 1) rest
 
 def ByteHeap.validRange (heap : ByteHeap) (address size : Nat) : Prop :=
+  address + size ≤ 2 ^ 64 ∧
   ∀ offset, offset < size → heap.validByte (addressMod (address + offset)) = true
 
 /-- The typed byte representation used by loads, stores, and pointer-backed views. -/
@@ -368,6 +371,36 @@ inductive WrapTarget (T : Type) (N : Nat) where
   | array
   | memory (kind : MemoryKind)
 
+structure UnsafeWrapCalls where
+  arrayTuple : {T : Type} → {N : Nat} → (resultType : Type) →
+    Ptr T → TupleN I64 N → Bool → resultType
+  arrayTuple_result : ∀ {T : Type} {N : Nat} (pointer : Ptr T)
+      (dims : TupleN I64 N) (own : Bool),
+    let view : WrappedArray T N := arrayTuple (WrappedArray T N) pointer dims own
+    view.pointer.address = pointer.address ∧ view.dims = dims ∧ view.owns = own
+  arrayInteger : {T : Type} → (resultType : Type) →
+    Ptr T → U64 → Bool → resultType
+  arrayInteger_result : ∀ {T : Type} (pointer : Ptr T) (dimension : U64) (own : Bool),
+    let view : WrappedArray T 1 := arrayInteger (WrappedArray T 1) pointer dimension own
+    view.pointer.address = pointer.address ∧ view.owns = own ∧
+      view.dims.values = [i64 dimension.val]
+  memoryTuple : {T : Type} → MemoryKind → (resultType : Type) →
+    Ptr T → U64 → Bool → resultType
+  memoryTuple_result : ∀ {T : Type} (kind : MemoryKind) (pointer : Ptr T)
+      (dimension : U64) (own : Bool),
+    let view : WrappedMemory T :=
+      memoryTuple kind (WrappedMemory T) pointer dimension own
+    view.pointer.address = pointer.address ∧ view.length = dimension ∧
+      view.kind = kind ∧ view.owns = own
+  memoryInteger : {T : Type} → MemoryKind → (resultType : Type) →
+    Ptr T → U64 → Bool → resultType
+  memoryInteger_result : ∀ {T : Type} (kind : MemoryKind) (pointer : Ptr T)
+      (dimension : U64) (own : Bool),
+    let view : WrappedMemory T :=
+      memoryInteger kind (WrappedMemory T) pointer dimension own
+    view.pointer.address = pointer.address ∧ view.length = dimension ∧
+      view.kind = kind ∧ view.owns = own
+
 /--
 Julia source: base/pointer.jl:91-110 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 ```julia
@@ -393,8 +426,9 @@ function unsafe_wrap(::Union{Type{Array},Type{Array{T}},Type{Array{T,N}}},
 end
 ```
 -/
-def unsafeWrapArrayTuple {T : Type} {N : Nat} (pointer : Ptr T) (dims : TupleN I64 N)
-    (own : Bool := false) : WrappedArray T N := ⟨pointer, dims, own⟩
+def unsafeWrapArrayTuple {T : Type} {N : Nat} (calls : UnsafeWrapCalls)
+    (pointer : Ptr T) (dims : TupleN I64 N) (own : Bool := false) : WrappedArray T N :=
+  calls.arrayTuple (WrappedArray T N) pointer dims own
 
 /--
 Julia source: base/pointer.jl:111-115 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -406,9 +440,9 @@ function unsafe_wrap(::Union{Type{Array},Type{Array{T}},Type{Array{T,1}}},
 end
 ```
 -/
-def unsafeWrapArrayInteger {T I : Type} (pointer : Ptr T) (dimension : I)
-    (toSize : I → U64) (own : Bool := false) : WrappedArray T 1 :=
-  unsafeWrapArrayTuple pointer (TupleN.one (i64 (toSize dimension).val)) own
+def unsafeWrapArrayInteger {T I : Type} (calls : UnsafeWrapCalls) (pointer : Ptr T)
+    (dimension : I) (toSize : I → U64) (own : Bool := false) : WrappedArray T 1 :=
+  calls.arrayInteger (WrappedArray T 1) pointer (toSize dimension) own
 
 /--
 Julia source: base/pointer.jl:116-120 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -420,9 +454,9 @@ function unsafe_wrap(::Union{Type{GenericMemory{kind,<:Any,Core.CPU}},Type{Gener
 end
 ```
 -/
-def unsafeWrapMemoryTuple {T : Type} (kind : MemoryKind) (pointer : Ptr T)
-    (dims : TupleN I64 1) (own : Bool := false) : WrappedMemory T :=
-  ⟨pointer, int64ToUInt64 dims.first, kind, own⟩
+def unsafeWrapMemoryTuple {T : Type} (calls : UnsafeWrapCalls) (kind : MemoryKind)
+    (pointer : Ptr T) (dims : TupleN I64 1) (own : Bool := false) : WrappedMemory T :=
+  calls.memoryTuple kind (WrappedMemory T) pointer (int64ToUInt64 dims.first) own
 
 /--
 Julia source: base/pointer.jl:121-125 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -434,9 +468,10 @@ function unsafe_wrap(::Union{Type{GenericMemory{kind,<:Any,Core.CPU}},Type{Gener
 end
 ```
 -/
-def unsafeWrapMemoryInteger {T I : Type} (kind : MemoryKind) (pointer : Ptr T)
-    (dimension : I) (toSize : I → U64) (own : Bool := false) : WrappedMemory T :=
-  ⟨pointer, toSize dimension, kind, own⟩
+def unsafeWrapMemoryInteger {T I : Type} (calls : UnsafeWrapCalls) (kind : MemoryKind)
+    (pointer : Ptr T) (dimension : I) (toSize : I → U64)
+    (own : Bool := false) : WrappedMemory T :=
+  calls.memoryInteger kind (WrappedMemory T) pointer (toSize dimension) own
 
 /--
 Julia source: base/pointer.jl:126-128 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -446,19 +481,20 @@ unsafe_wrap(Atype::Union{Type{Array},Type{Array{T}},Type{Array{T,N}},Type{Generi
     unsafe_wrap(Atype, p, convert(Tuple{Vararg{Int}}, dims), own = own)
 ```
 -/
-def unsafeWrapGenericDims {T I : Type} {N : Nat} (target : WrapTarget T N)
+def unsafeWrapGenericDims {T I : Type} {N : Nat} (calls : UnsafeWrapCalls)
+    (target : WrapTarget T N)
     (convertDims : TupleN I N → PtrResult (TupleN I64 N))
-    (pointer : Ptr T) (dims : TupleN I N) (own : Bool := false) : PtrResult (WrappedView T N) := do
+    (pointer : Ptr T) (dims : TupleN I N) (own : Bool := false) :
+    PtrResult (WrappedView T N) := do
   let dimensions ← convertDims dims
   match target with
-  | .array => pure (.array (unsafeWrapArrayTuple pointer dimensions own))
+  | .array => pure (.array (unsafeWrapArrayTuple calls pointer dimensions own))
   | .memory kind =>
       if h : N = 1 then
         let oneDim : TupleN I64 1 := h ▸ dimensions
-        pure (.memory (unsafeWrapMemoryTuple kind pointer oneDim own))
+        pure (.memory (unsafeWrapMemoryTuple calls kind pointer oneDim own))
       else
         .error (.methodError "unsafe_wrap")
-
 /--
 Julia source: base/pointer.jl:131-151 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 ```julia
@@ -831,8 +867,15 @@ Julia source: base/pointer.jl:307-307 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 isequal(x::Ptr, y::Ptr) = (x === y)
 ```
 -/
-def isequalPtr {S T : Type} (typeId : Type → Nat) (left : Ptr S) (right : Ptr T) : Bool :=
-  (typeId S == typeId T) && (left.address.val == right.address.val)
+def ptrIdentity {S T : Type} (sameType : Decidable (S = T))
+    (left : Ptr S) (right : Ptr T) : Bool :=
+  match sameType with
+  | .isTrue _ => left.address.val == right.address.val
+  | .isFalse _ => false
+
+def isequalPtr {S T : Type} (sameType : Decidable (S = T))
+    (left : Ptr S) (right : Ptr T) : Bool :=
+  ptrIdentity sameType left right
 
 
 
@@ -917,3 +960,55 @@ signed(x::Ptr) = Int(x)
 def ptrSigned {T : Type} (pointer : Ptr T) : I64 := JInt.wrap .i64 pointer.address.val
 
 end JuliaLean.base.pointer
+
+namespace JuliaLean.NumMisc
+
+/-! ## Pointer arithmetic and Ref construction -/
+
+abbrev Ptr64 := JInt .u64
+
+/-- `+(::Ptr, ::Integer)`, `base/pointer.jl:315`. -/
+def ptrAdd (p : Ptr64) (offset : Int) : Ptr64 := JInt.wrap .u64 (p.val + offset)
+
+/-- `-(::Ptr, ::Integer)`, `base/pointer.jl:316`. -/
+def ptrSub (p : Ptr64) (offset : Int) : Ptr64 := JInt.wrap .u64 (p.val - offset)
+
+end JuliaLean.NumMisc
+
+namespace JuliaLean.NumMisc.Coverage
+
+open JuliaLean
+
+/-! ## `base/pointer.jl:23-303` -/
+
+inductive PointerEvent where
+  | convert | cconvertString | arrayRoot | memoryRoot | wrapArray | wrapMemory
+  | load | store | modify | replace | swap | objectRef | mutableObjectRef
+  deriving DecidableEq, Repr
+
+def pointerConvert (address : Nat) : Nat := address % 2^64
+
+def unsafeWrapRoute (memory : Bool) : PointerEvent := if memory then .wrapMemory else .wrapArray
+
+def pointerMemoryOffset (base offset elementBytes : Nat) (arrayElement unionLayout : Bool) : Nat :=
+  if arrayElement == unionLayout || elementBytes == 0 then base + offset * elementBytes else base + offset
+
+def pointerFromObject (mutable : Bool) (address : Nat) : Jl Nat :=
+  if mutable then .ok address else .error (.argumentError "pointer_from_objref cannot be used on immutable objects")
+
+def pointerAccessEvent (event : PointerEvent) (index order : Nat) : PointerEvent × Nat × Nat :=
+  (event, index, order)
+
+def pointerModifyEvents (index order : Nat) : List (PointerEvent × Nat × Nat) :=
+  [pointerAccessEvent .load index order, pointerAccessEvent .modify index order,
+   pointerAccessEvent .replace index order]
+
+/-! ## `base/pointer.jl:307-320` -/
+
+def pointerDifference (left right : Ptr64) : Ptr64 := JInt.wrap .u64 (left.val - right.val)
+def pointerEqual (left right : Ptr64) : Bool := left.val == right.val
+def pointerLess (left right : Ptr64) : Bool := decide (left.val < right.val)
+def pointerUnsigned (pointer : Ptr64) : Ptr64 := pointer
+def pointerSigned (pointer : Ptr64) : JInt .i64 := JInt.wrap .i64 pointer.val
+
+end JuliaLean.NumMisc.Coverage

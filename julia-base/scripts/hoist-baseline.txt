@@ -1,0 +1,103 @@
+JuliaLean/base/asyncevent.lean	if isNull (← f.handle t .plain) && !(← f.isopen t .plain) then return
+JuliaLean/base/asyncevent.lean	match ← guarded true (do pure (!set && !isNull (← f.handle t .plain))) with
+JuliaLean/base/asyncmap.lean	if state.collectorDone && (← storage.dictIsEmpty generator.collector.results) then
+JuliaLean/base/channels.lean	if (← isopen r c) || (← isready r c) then
+JuliaLean/base/deprecated.lean	if opts.val != 2 && (← ops.isInPureContext) then return
+JuliaLean/base/docs/Docs.lean	if as.isEmpty || as.all validcall then objectdoc src str .nothing def_ (← signature def_)
+JuliaLean/base/docs/Docs.lean	| f :: _ => if f.isExpr "curly" && tv.isEmpty then do pure (tv ++ (← tvars f.args.tail)) else pure tv
+JuliaLean/base/env.lean	if overwrite || !(← hasEnvWide ops wideName) then
+JuliaLean/base/errorshow.lean	else if (← r.hasmethod f argTypes none) && !(← r.hasmethod f argTypes (some ex.world)) then
+JuliaLean/base/errorshow.lean	if !r.equal candidate f && (← r.hasmethod candidate argTypes (some ex.world)) then
+JuliaLean/base/errorshow.lean	if ex.world.val = maxWorld.val || (← r.hasmethod f argTypes (some ex.world)) then
+JuliaLean/base/errorshow.lean	if hasRows && (← r.applicable f vecArgs) && kwargs.isEmpty then
+JuliaLean/base/errorshow.lean	issame := issame && (← o.tyEq x y)
+JuliaLean/base/errorshow.lean	let isRow := r.isArray arg && (← r.ndims arg).val = 2 && (← r.size arg (JInt.wrap .i64 1)).val = 1
+JuliaLean/base/errorshow.lean	warned := warned || (← undefVarErrorWarnfor p o (filteredModuleNext (o.iterateModules modules) accept) io var)
+JuliaLean/base/io.lean	if jnewline.val = 0 && !(← co.chunksIsempty chunks) then do
+JuliaLean/base/iobuffer.lean	if !io.writable || io.reinit then return (← source_ensureroom_reallocate a s ref count)
+JuliaLean/base/loading.lean	!(currentRequest && (← plain_coverage_cache_accepted o ops.coverage requiredBuildId)) then
+JuliaLean/base/loading.lean	else if project_names.contains (← basename o env) && (← isfile_casesensitive o env) then
+JuliaLean/base/loading.lean	if !(← ops.io.isReadable fixed) || !(← ops.io.sameFile fixed modspec.path) then
+JuliaLean/base/loading.lean	if !compiled && (← ops.warningsEnabled) then ops.warnInactive argtype
+JuliaLean/base/loading.lean	if !invalid && !(← state.generatingOutput) then state.rememberChecksum key
+JuliaLean/base/loading.lean	if !isprecompilable && (← ops.generatingOutput false) then
+JuliaLean/base/loading.lean	if !pathMayBeDir && !(← liftL o (o.fs.isfile path)) then
+JuliaLean/base/loading.lean	if !stat.isDirectory && ops.isReadOnly stat && (← ops.inPackageStore path) then
+JuliaLean/base/loading.lean	if (← anyHaskey o extensions wh.name) && wh.uuid == some (uuid5 o (← UUIDof o uuid) wh.name) then
+JuliaLean/base/loading.lean	if (← tget o entry (lit "path")).isNone && (← tget o entry (lit "git-tree-sha1")).isNone then
+JuliaLean/base/loading.lean	if (← thaskey o ex pkg.name) && some (uuid5 o (← UUIDof o u) pkg.name) == pkg.uuid then
+JuliaLean/base/loading.lean	if finished && loaded.isNone && (← ops.incremental).val != 0 then
+JuliaLean/base/loading.lean	if fixed != path && (← ops.io.isFile fixed) && ops.isStdlibPath fixed then
+JuliaLean/base/loading.lean	if hookAvailable && (← maybe_fetch_cache o ops.cacheFetch pkg path) then
+JuliaLean/base/loading.lean	if pathMayBeDir && !(← ops.isReadable path) then
+JuliaLean/base/loading.lean	if pkg_env.isNone && (← is_stdlib o wh) then
+JuliaLean/base/loading.lean	if staleCheck && (← register_reused_module o
+JuliaLean/base/loading.lean	if started_in_home && !(← startswith o parent_dir home_dir) then return some none
+JuliaLean/base/loading.lean	if underDir || (← path_is_tracked o ops tracked dir) then return true
+JuliaLean/base/lock.lean	if !(len.val ≤ currentLength.val && currentLength.val ≤ (← p.states.length newStates).val) then
+JuliaLean/base/meta.lean	if raise && (← _is_parse_error o ex) then
+JuliaLean/base/methodshow.lean	if file.take root.length == root || (← g.realpath file).take root.length == root then
+JuliaLean/base/multidimensional.lean	else if !S && ninds != ndims a then isassignedCartesian a (← toSubscripts a inds)
+JuliaLean/base/multidimensional.lean	if S && ninds != 1 then isassignedLinear a (← toLinear a inds)
+JuliaLean/base/park.lean	if sameOptEntry t (← t.cachedWaitEntry ct) w || sameOptEntry t (← t.cachedCancelEntry ct) w then
+JuliaLean/base/park.lean	let was_cancel := !was_plain && sameOptEntry t (← t.cachedCancelEntry ct) w
+JuliaLean/base/precompilation.lean	else if is_started job && (← o.sget s).interrupted_or_done then
+JuliaLean/base/precompilation.lean	if !(← e.isfile envpath) || (← e.project_file_manifest_path envpath).isNone then
+JuliaLean/base/precompilation.lean	if !(← o.sget s).fancyprint && (← o.sget s).pkg_queue.isEmpty then
+JuliaLean/base/precompilation.lean	if !liveprinting && !(← o.sget s).fancyprint then
+JuliaLean/base/precompilation.lean	if !loaded && (← o.sget s).interrupted_or_done then return none
+JuliaLean/base/precompilation.lean	if (← l.getActive).val ≥ w.max.val || !l.keyEq (← l.maximum (← l.getWaiting)) key then
+JuliaLean/base/precompilation.lean	if is_failed job && had_pid job then return some (← full_name o.D (← o.sget s).ext_to_parent dep)
+JuliaLean/base/precompilation.lean	if r.val == -1 || (← cancel) then
+JuliaLean/base/precompilation.lean	if request._from_loading && (← o.sget s).header_printed then
+JuliaLean/base/precompilation.lean	if setIn D pkg_uuids trigger_uuid || (← g.in_sysimage trigger_name) then
+JuliaLean/base/precompilation.lean	let busy ← st.tasks.anyM fun t => do return !(← o.istaskdone t) || (← o.istaskfailed t)
+JuliaLean/base/precompilation.lean	let key_controls := key_controls && (← o.stdinIsTTY)
+JuliaLean/base/precompilation.lean	| none => return .inr ((← unwrappedIsTTY io) && (← getENV (lit "CI")) != some (lit "true"))
+JuliaLean/base/process.lean	acc := acc && (← success f r q cancel)
+JuliaLean/base/process.lean	if !(← test_success f r p) && !(← f.cmd p).ignorestatus then
+JuliaLean/base/process.lean	if (← r.statusIsInit (← r.pipeIn stdio)) && (← r.statusIsInit (← r.pipeOut stdio)) then
+JuliaLean/base/process.lean	return (← f.exitcode proc).val == 0 && (← f.termsignal proc).val == 0
+JuliaLean/base/range.lean	if (← JIsempty.isempty r) || (← do JIsempty.isempty s) then
+JuliaLean/base/range.lean	if (← JIsempty.isempty r1) || (← do JIsempty.isempty r2) then
+JuliaLean/base/range.lean	if JType.isInteger T && !JIszero.iszero (← JMod.mod (stop - start) lendiv) then
+JuliaLean/base/range.lean	return (← JHasLengthOne.hasLengthOne s) && JEq.eq (← JFirst.first r) (← JFirst.first s)
+JuliaLean/base/range.lean	return a && JEq.eq (← JFirst.first r) (← JFirst.first s)
+JuliaLean/base/range.lean	unless JLe.le L1 offset && JLe.le offset (← JMax.max L1 len) do
+JuliaLean/base/reducedim.lean	let Rval ← if init && !empty then ops.fill Rval (← ops.firstInput A) else pure Rval
+JuliaLean/base/shell.lean	else if !first && (← ops.eqAscii c '=') then pure (.inr flags)
+JuliaLean/base/shell.lean	else if escapeDouble && (← ops.eqAscii c '"') then ops.writeString (ops.literal "\\\"")
+JuliaLean/base/shell.lean	if (← ops.eqAscii c '"') || (← ops.eqAscii c '$') || (← ops.eqAscii c '\\') then
+JuliaLean/base/shell.lean	if escapeSingle && (← ops.eqAscii c '\'') then ops.writeString (ops.literal "\\'")
+JuliaLean/base/stream.lean	if status.val == 0 || requested then p.scheduleCount task (← p.nwritten request)
+JuliaLean/base/strings/io.lean	if !ascii && (← isprint c) then printChar cio io c
+JuliaLean/base/strings/search.lean	let bloomMask := acc.1 ||| (← byteBloom ops.value (← vectorNth ops t j))
+JuliaLean/base/syntax.lean	if !(isa_lowering_ast_node e || isSym (← head ops s) "value") then
+JuliaLean/base/syntax.lean	if h == "escape" || h == "where" || h == "::" then do is_eventually_call (← firstArg ops e)
+JuliaLean/base/syntax.lean	if isSym h "globalref" && isNothing ops (← getprop ops st "mod") then
+JuliaLean/base/syntax.lean	if needs_val && !ops.isa (← getprop ops st "value") (bV ops valtype) then
+JuliaLean/base/syntax.lean	if ops.same sc2 st_sc && !isSyntax ops (← getprop ops st "source") then pure st
+JuliaLean/base/sysinfo.lean	if isEmpty (← get cpus index).model || (← get cpus index).model == unknown then
+JuliaLean/base/task.lean	if exception && throwException then throw (r.compositeException (← failedExceptions r tasks))
+JuliaLean/base/task.lean	if throwException && exception then throw (r.compositeException (← failedExceptions r doneTasks))
+JuliaLean/base/task.lean	if throwException && exception then throw (r.compositeException (← failedExceptions r tasks))
+JuliaLean/base/toml/parser.lean	found_fractional_digit := found_fractional_digit || (← accept o (.fn isdigit))
+JuliaLean/base/toml/parser.lean	if !multiline && (← peek o) == jc '\n' then
+JuliaLean/base/toml/parser.lean	if (match value with | .table _ => true | _ => false) && (o.dict.get (← getTable o d) last_key_part).isSome then
+JuliaLean/base/toml/parser.lean	if (read_digit || ate) && ok_end_value (← peek o) then
+JuliaLean/base/toml/parser.lean	if (← skip_ws_comment o) && (← getP o).comments.isSome then
+JuliaLean/base/toml/parser.lean	if first_element && !(← path_traverses_array o table_key.dropLast) then
+JuliaLean/base/toml/parser.lean	if skipped_comment && (← getP o).comments.isSome then
+JuliaLean/base/toml/printer.lean	else if c == 0x09 || !(← ops.controlChar c) then
+JuliaLean/base/toml/printer.lean	if c == 0x09 || (c != 0x0a && !(← ops.controlChar c)) then writeChar ops io c
+JuliaLean/base/version.lean	if (← versionSpecIsEmpty ops a) || (← versionSpecIsEmpty ops b) then
+JuliaLean/base/abstractarray.lean	b := b && (← checkindex inds i)
+JuliaLean/base/range.lean	if Num.eq (first s) (last s) then return decide (r.len.val = 1) && Num.eq (first s) (← countedFirst r)
+JuliaLean/base/range.lean	if r.len.val = 1 then return Num.eq (first s) (last s) && Num.eq (← countedFirst r) (first s)
+JuliaLean/base/toml/parser.lean	if !multiline && (← peek) == ch '\n' then perr .ErrNewLineInString
+JuliaLean/base/toml/parser.lean	if (readDigit || ate) && ok_end_value (← peek) then
+JuliaLean/base/toml/parser.lean	if (← isDict v) && memId v (← get).implicit_tables then perr .ErrDuplicatedKey
+JuliaLean/base/toml/parser.lean	if (← isDict value) && (← dictGet t lastKeyPart).isSome then perr .ErrInlineTableRedefine
+JuliaLean/base/toml/parser.lean	if defineImplicit && (← isDict d) then
+JuliaLean/stdlib/Printf/src/Printf.lean	else if s.hash && kind == .string then do pure (← put true [34] st, op - 1)
+JuliaLean/stdlib/Printf/src/Printf.lean	let (st, p) ← if s.hash && kind == .symbol then do pure (← put true [58] st, op - 1)

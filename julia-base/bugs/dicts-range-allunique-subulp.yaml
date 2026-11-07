@@ -1,66 +1,73 @@
 id: dicts-range-allunique-subulp
-title: "allunique/allequal/unique of float ranges with a step below one ulp give wrong results"
+title: "A nonzero floating range step can give repeated elements and wrong allunique/allequal results"
 priority: P2
 kind: wrong-result
 area: Dicts
 files: [base/set.jl]
-functions: ["allunique(::AbstractRange)", "allequal(::AbstractRange)", "unique(::AbstractRange)"]
+functions: ["allunique(::AbstractRange)", "allequal(::AbstractRange)"]
 summary: |
-  allunique(r::AbstractRange) returns !iszero(step(r)) || length(r) <= 1 and
-  allequal(r::AbstractRange) returns iszero(step(r)) || length(r) <= 1. For a
-  float range whose step is nonzero but smaller than the spacing of the
-  floats it produces, elements repeat: StepRangeLen(1.0, 1e-17, 3) collects
-  to [1.0, 1.0, 1.0] while allunique says true and allequal says false, and
-  unique(r) returns all 3 elements. LinRange(1.0, nextfloat(1.0), 5) has the
-  same problem.
+  range(1.0; step=eps(1.0)/4, length=2) has a nonzero step, but its two
+  elements are isequal because both round to 1.0. The range specializations
+  report allunique=true and allequal=false. The same predicates applied to
+  collect(r) report false and true, matching the documented comparison.
 likelihood: |
-  Needs a float range over an interval narrower than (length - 1) ulps, e.g.
-  a LinRange between two adjacent floats or a tiny step relative to the
-  start. Uncommon but possible in numeric code that builds grids from data.
-maybe_intended: ""
+  A floating-point grid with a step smaller than the spacing of representable
+  values near its starting point can repeat values. The example needs only
+  two elements and ordinary public range construction.
+maybe_intended: |
+  A nonzero step implies distinct elements in an exact arithmetic progression.
+  Floating-point rounding invalidates that assumption. Earlier issue #36849
+  and PR #36850 addressed a zero-step regression; they do not establish
+  correctness for this nonzero sub-spacing step.
 reproducer: |
-  r = StepRangeLen(1.0, 1e-17, 3)    # collect(r) == [1.0, 1.0, 1.0]
-  allunique(r), allequal(r)          # (true, false)
-  length(unique(r))                  # 3
+  r = range(1.0; step=eps(1.0)/4, length=2)
+  observed = collect(r)
+  @assert length(r) == 2 && !iszero(step(r))
+  @assert isequal(observed[1], observed[2])
+  @assert allunique(r) && !allunique(observed)
+  @assert !allequal(r) && allequal(observed)
+  println("REPRODUCED dicts-range-allunique-subulp")
 output:
   release: |
-    collect(StepRangeLen(1.0, 1e-17, 3)) = [1.0, 1.0, 1.0]
-    allunique(r) = true, allunique(collect(r)) = false
-    allequal(r) = false, allequal(collect(r)) = true
-    length(unique(r)) = 3, length(unique(collect(r))) = 1
-    collect(LinRange(1.0, nextfloat(1.0), 5)) = [1.0, 1.0, 1.0, 1.0000000000000002, 1.0000000000000002]
-    allunique(l) = true, allunique(collect(l)) = false
     REPRODUCED dicts-range-allunique-subulp
   nightly: |
-    collect(StepRangeLen(1.0, 1e-17, 3)) = [1.0, 1.0, 1.0]
-    allunique(r) = true, allunique(collect(r)) = false
-    allequal(r) = false, allequal(collect(r)) = true
-    length(unique(r)) = 3, length(unique(collect(r))) = 1
-    collect(LinRange(1.0, nextfloat(1.0), 5)) = [1.0, 1.0, 1.0, 1.0000000000000002, 1.0000000000000002]
-    allunique(l) = true, allunique(collect(l)) = false
     REPRODUCED dicts-range-allunique-subulp
-reproduced: {release: true, nightly: true}
+reproduced:
+  release: true
+  nightly: true
 expected: |
-  allunique(r) == false, allequal(r) == true and unique(r) == [1.0] for
-  StepRangeLen(1.0, 1e-17, 3); allunique(LinRange(1.0, nextfloat(1.0), 5)) == false.
+  allunique(r) should be false and allequal(r) should be true, agreeing with
+  the same predicates on the two iterated values.
 promised_by: |
-  allunique docstring, base/set.jl:484: "Return `true` if all values from
-  `itr` are distinct when compared with [`isequal`](@ref)." allequal
-  docstring, base/set.jl:613: "Return `true` if all values from `itr` are
-  equal when compared with [`isequal`](@ref)."
+  Julia commit f755f49a9e41380d7da126b3c1db9fe7f83dd027, base/set.jl:484:
+  "Return `true` if all values from `itr` are distinct when compared with [`isequal`](@ref)."
+  The same pinned file, base/set.jl:613:
+  "Return `true` if all values from `itr` are equal when compared with [`isequal`](@ref)."
 cause: |
-  base/set.jl:546 and base/set.jl:660 use step(r) alone. A nonzero step
-  implies distinct elements only for exact (e.g. integer) ranges; float
-  elements are rounded (base/range.jl:986-989 for StepRangeLen).
+  At the pinned commit, base/set.jl:546 defines allunique(r::AbstractRange)
+  as !iszero(step(r)) || length(r) <= 1. Line 660 defines allequal using
+  iszero(step(r)) || length(r) <= 1. Neither shortcut observes the rounded
+  elements, so both return the wrong answer for this two-element range.
 possible_fix: |
-  Keep the shortcut for ranges with integer (or otherwise exact) elements and
-  fall back to the generic methods, or compare adjacent elements, for
-  floating-point ranges.
+  Restrict the step-only shortcuts to range types for which distinctness
+  follows from a nonzero step. Use element comparisons for floating ranges
+  unless a stronger range-specific argument establishes the result.
 duplicates:
   issues:
-    - {number: 34997, state: closed, relation: related}
-    - {number: 36849, state: closed, relation: related}
-  queries: ["allunique range float", "allunique LinRange", "allunique StepRangeLen", "unique range float step", "allequal range"]
+    - number: 36849
+      state: closed
+      relation: related
+    - number: 34997
+      state: closed
+      relation: related
+  prs:
+    - number: 36850
+      state: merged
+      relation: related
+    - number: 35008
+      state: merged
+      relation: related
+  queries: ["issues: allunique range", "issues: allequal range", "issues: allunique floating", "prs: allunique range", "prs: allequal range", "prs: allunique iszero"]
 lean:
-  property: JuliaLean.Dicts.RangeAlluniqueElements
-  theorem: JuliaLean.Dicts.rangeAlluniqueElements_refuted
+  property: JuliaLean.Proofs.base.set.RangeUniqueSpec
+  theorem: JuliaLean.ChatGPT.Batch4.Group14.DictsRangeAlluniqueSubulp_refuted

@@ -43,9 +43,19 @@ cause: |
 possible_fix: |
   Compare with minimum(a.k) and maximum(a.k) instead of first(a.k) and last(a.k).
 duplicates:
-  issues:
+  issues: []
+  prs:
     - {number: 63228, state: merged, relation: related}
-  queries: ["issues: PartialQuickSort range", "issues: PartialQuickSort reverse", "issues/prs: PartialQuickSort", "issues: partialquicksort"]
+    - {number: 64364, state: merged, relation: duplicate}
+  search_notes: |
+    Merged PR #64364 fixes this exact descending-range case. The pinned nightly commit still reproduces the bug.
+  queries: ["issues: PartialQuickSort range", "issues: PartialQuickSort reverse", "issues/prs: PartialQuickSort", "issues: partialquicksort", "gh search issues 'PartialQuickSort reversed range' --repo JuliaLang/julia --limit 50 --json number,title,state,url", "gh search prs 'PartialQuickSort' --repo JuliaLang/julia --limit 100 --json number,title,state,url"]
 lean:
   property: JuliaLean.SortTuplesCov.PartialQuickSortCorrect
   theorem: JuliaLean.SortTuplesCov.partialQuickSortCorrect_refuted
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: true
+  output: |
+    [2, 1, 1]  expected: [2, 2, 1]
+    REPRODUCED sorttuplescov-partialquicksort-reversed-range

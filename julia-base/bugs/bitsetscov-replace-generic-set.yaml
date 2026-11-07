@@ -1,5 +1,5 @@
 id: bitsetscov-replace-generic-set
-title: "replace(f, s) on a BitSet or IdSet loses elements when a new value equals another old element"
+title: "replace loses elements or dictionary entries when replacements reuse original keys"
 priority: P1
 kind: wrong-result
 area: BitSetsCov
@@ -13,16 +13,23 @@ summary: |
   pushed, so replace(x -> x + 1, BitSet([1, 2])) returns BitSet([3]) instead
   of BitSet([2, 3]). replace! on the same set (res === A) collects all pairs
   first and is correct.
+  The same generic branch handles IdDict. Swapping the keys of
+  IdDict(1 => :one, 2 => :two) with replace returns only 2 => :one;
+  replace! returns both 1 => :two and 2 => :one. The nonmutating call
+  leaves its source unchanged but silently loses one result entry.
 likelihood: |
   Any replace on a BitSet or IdSet whose mapping sends some element onto
-  another element of the set, e.g. shifting a BitSet of consecutive
-  integers. The result is silently missing elements. Set and Dict have
-  their own method and are not affected.
+  another element of the set, or on an IdDict whose replacement keys reuse
+  original keys. Swapping two ordinary integer keys in an IdDict suffices.
+  Set and Dict have their own method and are not affected.
 maybe_intended: ""
 reproducer: |
   replace(x -> x + 1, BitSet([1, 2]))       # BitSet([3])
   replace!(x -> x + 1, BitSet([1, 2]))      # BitSet([2, 3])
   replace(BitSet([1, 2]), 1 => 2, 2 => 1)   # BitSet([1])
+  source = IdDict(1 => :one, 2 => :two)
+  replace(p -> (3 - first(p)) => last(p), source)  # only 2 => :one
+  replace!(p -> (3 - first(p)) => last(p), copy(source))  # both swapped pairs
 output:
   release: |
     replace(x -> x + 1, BitSet([1, 2]))  = BitSet([3])
@@ -39,7 +46,8 @@ output:
 reproduced: {release: true, nightly: true}
 expected: |
   BitSet([2, 3]) for the first call (the same as replace!), BitSet([1, 2])
-  for the pair call, and [2, 3] for the IdSet.
+  for the pair call, and [2, 3] for the IdSet. The IdDict key swap must
+  contain both 1 => :two and 2 => :one, as replace! does.
 promised_by: |
   replace docstring, base/set.jl:871: "Return a copy of A where each
   value x in A is replaced by new(x)", and base/set.jl:810-811 for the pair
@@ -49,6 +57,9 @@ cause: |
   _replace!(new, res::Union{AbstractDict,AbstractSet}, A, count) pops and
   pushes inside the loop over A. The res === A branch (base/set.jl:915-930)
   already does the two-phase pop-then-push that is needed here too.
+  For IdDict, the first push overwrites the value at the second original
+  key. Processing that original key then removes the first replacement.
+  This loses an entry regardless of which of the two keys is visited first.
 possible_fix: |
   Use the two-phase collection of replacement pairs in both branches (pop
   all replaced elements from res, then push all new values).
@@ -59,3 +70,24 @@ duplicates:
 lean:
   property: JuliaLean.BitSetsCov.ReplaceGenericSetSpec
   theorem: JuliaLean.BitSetsCov.replaceGenericSetSpec_refuted
+  notes: |
+    The existing refutation covers the set manifestation. The IdDict
+    manifestation is a direct runtime observation from the public replace API,
+    saved with exact runtime versions in repro/set-replace-iddict-key-swap.output.
+    JuliaLean.Proofs.base.set.ReplacementKeySwap.nonmutating_key_swap_loses_first
+    is a supporting source theorem conditional on ordinary pop! and push!
+    contracts; it is not a closed refutation of the native IdDict model.
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: true
+  output: |
+    JULIA 1.15.0-DEV.unknown COMMIT f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    replace(x -> x + 1, BitSet([1, 2]))  = BitSet([3])
+    replace!(x -> x + 1, BitSet([1, 2])) = BitSet([2, 3])
+    replace(BitSet([1, 2]), 1 => 2, 2 => 1) = BitSet([1])
+    collect(replace(x -> x + 1, IdSet{Int}([1, 2]))) = [3]
+    IdDict source = [1 => :one, 2 => :two]
+    replace IdDict key swap = [2 => :one]
+    replace! IdDict key swap = [1 => :two, 2 => :one]
+    expected IdDict key swap = [1 => :two, 2 => :one]
+    REPRODUCED bitsetscov-replace-generic-set

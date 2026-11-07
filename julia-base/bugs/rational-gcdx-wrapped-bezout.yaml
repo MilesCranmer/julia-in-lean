@@ -1,0 +1,78 @@
+id: rational-gcdx-wrapped-bezout
+title: "gcdx(::Rational) returns invalid Bezout coefficients after an intermediate wrap"
+priority: P2
+kind: wrong-result
+area: MathFuncs
+files: [base/rational.jl, base/intfuncs.jl]
+functions: ["gcdx(x::Rational, y::Rational)"]
+summary: |
+  gcdx on narrow Rational inputs can wrap while scaling its integer arguments,
+  then return coefficients that fail the Bezout identity. For example,
+  gcdx(Int8(100)//1, Int8(7)//3) returns (1//3, -3, 19), whose exact
+  coefficient sum is -767//3 rather than the gcd 1//3.
+likelihood: |
+  Finite Rational inputs with fixed-width component types can trigger the bug when
+  an intermediate product used to scale by the rational gcd exceeds the component
+  type's range. The method returns an incorrect result without an error.
+maybe_intended: |
+  A successful rational gcdx result should satisfy u*a + v*b = d exactly. For
+  these inputs, (-1, 43) is one valid coefficient pair for d = 1//3.
+reproducer: |
+  Stored at repro/rational-gcdx-wrapped-bezout.jl. It checks the returned
+  coefficients using BigInt rational arithmetic so the check itself cannot wrap.
+  Run with `julia repro/rational-gcdx-wrapped-bezout.jl`.
+output:
+  release: |
+    JULIA 1.13.2 COMMIT 45b6d15e34bbd2003a31acce0b1847b63dad029c
+    REPRODUCED rational-gcdx-wrapped-bezout
+    REPRODUCED rational-gcdx-bezout
+    gcdx = (1//3, -3, 19)
+    exact Bezout left-hand side = -767//3; gcd = 1//3
+  nightly: |
+    JULIA 1.15.0-DEV.unknown COMMIT f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    REPRODUCED rational-gcdx-wrapped-bezout
+    REPRODUCED rational-gcdx-bezout
+    gcdx = (1//3, -3, 19)
+    exact Bezout left-hand side = -767//3; gcd = 1//3
+reproduced: {release: true, nightly: true}
+expected: |
+  The returned coefficients satisfy the exact identity u*a + v*b = d. For this
+  input, gcdx may return (1//3, -1, 43), since -1*100 + 43*(7//3) = 1//3
+  in exact rational arithmetic.
+promised_by: |
+  base/intfuncs.jl:196-204 documents gcdx(a, b) as returning integer coefficients
+  u and v that satisfy u*a + v*b = gcd(a, b), and states that rational arguments
+  are supported.
+cause: |
+  base/rational.jl:670-671 defines idiv(x, c) as
+  div(x.num, c.num) * div(c.den, x.den), then passes the scaled values to integer
+  gcdx. For x = 100//1 and c = 1//3, the Int8 product 100 * 3 wraps from 300
+  to 44. The recursive call therefore solves gcdx(44, 7), returning (-3, 19),
+  instead of solving the exact pair (300, 7).
+possible_fix: |
+  Preserve the exact scaled integer arguments before calling the recursive gcdx,
+  rather than allowing the component-type multiplication to wrap.
+duplicates:
+  issues:
+    - {number: 27039, state: closed, relation: related}
+    - {number: 64141, state: closed, relation: related}
+  prs:
+    - {number: 33910, state: merged, relation: related}
+    - {number: 64497, state: merged, relation: related}
+  queries:
+    - "issues: gcdx Rational"
+    - "issues: gcdx Bezout"
+    - "issues: gcdx overflow"
+    - "issues: Rational gcdx Int8"
+    - "PRs: gcdx Rational"
+    - "PRs: gcdx Bezout"
+    - "PRs: gcdx overflow"
+    - "PRs: Rational gcdx Int8"
+    - "issues: \"gcdx\" \"Rational\" \"Bezout\""
+    - "issues: \"gcdx\" \"Rational\" overflow"
+    - "PRs: \"gcdx\" \"Rational\" \"Bezout\""
+    - "PRs: \"gcdx\" \"Rational\" overflow"
+covers: [rational-gcdx-bezout]
+lean:
+  property: JuliaLean.Statements.rational.Round14.gcdx_bezout
+  theorem: JuliaLean.Proofs.base.rational.Round14.gcdx_bezout_refuted

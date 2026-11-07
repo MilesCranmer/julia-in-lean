@@ -11,7 +11,7 @@ base/mpfr.jl	81	95	convert	convert(::Type{RoundingMode}, r::MPFRRoundingMode)	mo
 base/mpfr.jl	97	97	rounds_to_nearest	rounds_to_nearest(m::MPFRRoundingMode)	modelled	bignumscov-mpfr-setup-rounding	source-model: bignumscov-mpfr-setup-rounding
 base/mpfr.jl	98	109	rounds_away_from_zero	rounds_away_from_zero(m::MPFRRoundingMode, sign_bit::Bool)	modelled	bignumscov-mpfr-setup-rounding	source-model: bignumscov-mpfr-setup-rounding
 base/mpfr.jl	110	110	tie_breaker_is_to_even	tie_breaker_is_to_even(::MPFRRoundingMode)	modelled	bignumscov-mpfr-110	source-model: bignumscov-mpfr-setup-rounding; source-model: bignumscov-mpfr-110; source-model: bignumscov-mpfr-110
-base/mpfr.jl	149	152	_BigFloat	_BigFloat(d::Memory{Limb})	modelled	bignumscov-mpfr-149	source-model: bignumscov-mpfr-storage; source-model: bignumscov-mpfr-149; source-model: bignumscov-mpfr-149
+base/mpfr.jl	149	152	_BigFloat	_BigFloat(d::Memory{Limb})	todo		missing installed native Memory-backed _BigFloat constructor; retired bignumscov-mpfr-149; see registry/BigNumsCov.retired.tsv
 base/mpfr.jl	154	171	BigFloat	BigFloat(; precision::Integer=_precision_with_base_2(BigFloat))	modelled	bignumscov-mpfr-154	source-model: bignumscov-mpfr-storage; source-model: bignumscov-mpfr-154; source-model: bignumscov-mpfr-154
 base/mpfr.jl	183	197	Base.getproperty	Base.getproperty(x::BigFloat, s::Symbol)	modelled	bignumscov-mpfr-183	source-model: bignumscov-mpfr-storage; source-model: bignumscov-mpfr-183; source-model: bignumscov-mpfr-183
 base/mpfr.jl	201	211	Base.setproperty!	Base.setproperty!(x::BigFloat, s::Symbol, v)	modelled	bignumscov-mpfr-201	source-model: bignumscov-mpfr-storage; source-model: bignumscov-mpfr-201; source-model: bignumscov-mpfr-201

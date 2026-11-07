@@ -1,65 +1,123 @@
 id: bitarrays-vec-resize-alias
-title: "Resizing vec(M) or reshape(M, n) of a BitArray corrupts M: push! sets padding bits, pop! frees M's last chunk"
+title: Resizing vec(M) corrupts BitArray padding and can remove required storage
 priority: P0
 kind: crash
 area: BitArrays
-files: [base/bitarray.jl]
-functions: ["reshape(::BitArray, dims)", "vec(::BitArray)", "push!(::BitVector, x)", "pop!(::BitVector)", "append!(::BitVector, x)", "resize!(::BitVector, n)", "deleteat!(::BitVector, i)"]
+files:
+  - base/bitarray.jl
+functions:
+  - reshape(::BitArray, dims)
+  - vec(::BitArray)
+  - push!(::BitVector, x)
+  - pop!(::BitVector)
 summary: |
-  reshape and vec of a BitArray return a BitVector whose chunks field is the
-  same Vector{UInt64} object as the original's. Resizing that BitVector resizes
-  the original's storage too. After M = falses(2, 2); push!(vec(M), true), M
-  still shows four false elements but M == falses(2, 2) is false, count(M) == 1
-  and any(M) is true. After N = falses(65, 1); pop!(vec(N)), N has 65 elements
-  but only one chunk, so N[65], fill!(N, true) or N[65] = true read and write
-  past the end of the chunk vector under @inbounds (with --check-bounds=yes,
-  N[65] throws BoundsError for the chunk vector at index 2).
+  Starting with a 2-by-2 all-false BitMatrix, push!(vec(M), true) leaves its
+  four logical elements false but sets a bit beyond its logical extent.
+  count(M) becomes 1, any(M) becomes true, and equality with a fresh all-false
+  matrix becomes false. Converting both matrices to ordinary arrays still
+  produces equal arrays.
+  Shrinking an alias can also remove a chunk that its parent still needs.
+  Issue #64147 documents a 65-element parent left with only one 64-bit chunk
+  after pop!(vec(parent)); accessing its final logical element then reads
+  beyond that chunk vector unless forced bounds checking catches the access.
 likelihood: |
-  Needs resizing (push!, pop!, append!, deleteat!, resize!, splice!, ...) of a
-  vec or reshape of a BitMatrix or other BitArray while the original is still
-  used. Ordinary API calls, no extreme values. For Array the same code is safe:
-  the reshaped Vector gets its own storage when it grows.
+  Requires resizing a vector returned by vec or reshape while retaining its
+  parent BitArray. Growth can corrupt packed reductions and equality; shrinkage
+  across a chunk boundary can leave subsequent parent accesses without enough
+  storage. Both cases use ordinary small arrays and public calls.
 maybe_intended: |
-  reshape documents that the result shares data with the original, but sharing
-  elements does not license breaking the original's chunk invariant or its
-  memory safety; Array does neither.
+  Reshaping shares element storage, so changes to shared logical elements are
+  expected. The added vector element is outside the parent's logical extent.
+  Setting the parent's padding violates the explicit packed-storage invariant
+  on which its reductions and equality depend.
 reproducer: |
-  M = falses(2, 2); push!(vec(M), true)
-  M == falses(2, 2), count(M), any(M)  # (false, 1, true)
-  N = falses(65, 1); pop!(vec(N))
-  length(N), length(N.chunks)          # (65, 1): N[65] now reads out of bounds
+  M = falses(2, 2)
+  push!(vec(M), true)
+  expected = falses(2, 2)
+  actual = (count(M), M == expected, any(M), Array(M) == Array(expected))
+  println(repr(actual))
+  @assert actual == (1, false, true, true)
 output:
   release: |
-    (false, 1, true, true) (65, 1, 2) true
-    BoundsError: attempt to access 1-element Vector{UInt64} at index [2]
+    (1, false, true, true)
     REPRODUCED bitarrays-vec-resize-alias
   nightly: |
-    (false, 1, true, true) (65, 1, 2) true
-    BoundsError: attempt to access 1-element Vector{UInt64} at index [2]
+    (1, false, true, true)
     REPRODUCED bitarrays-vec-resize-alias
-reproduced: {release: true, nightly: true}
+reproduced:
+  release: true
+  nightly: true
 expected: |
-  M == falses(2, 2) and count(M) == 0 (as for Array{Bool}), and N keeps the two
-  chunks its 65 elements need, or the resize throws.
+  Resizing the reshaped vector should preserve the parent's storage invariant,
+  including its required chunk count, or reject the resize. Since every logical
+  element of the growth example remains false, count(M) should be 0, any(M)
+  false, and M equal to the fresh matrix.
+  This runtime reproducer tests padding corruption only; it does not execute
+  out-of-bounds accesses after shrinking an alias.
 promised_by: |
-  Invariant stated at base/bitarray.jl:5-6: "unused bits must always be set to
-  0"; ==, count, hash, any and all read whole chunks and rely on it
-  (base/bitarray.jl:1206-1209, 1439-1447, 1715-1736). Every BitArray must also
-  hold num_bit_chunks(length) chunks for its @inbounds reads to be safe.
+  Pinned source f755f49a9e41380d7da126b3c1db9fe7f83dd027.
+  base/bitarray.jl:8: "BitArray{N} <: AbstractArray{Bool, N}"
+  base/bitarray.jl:10: "Space-efficient `N`-dimensional boolean array, using just one bit for each boolean value."
+  base/bitarray.jl:5-6: "# notes: bits are stored in contiguous chunks
+  #        unused bits must always be set to 0"
+  The final quote is an implementation invariant, rather than a public
+  guarantee that resizing an alias is independently supported.
 cause: |
-  _bitreshape (base/bitarray.jl:476-485) sets Br.chunks = B.chunks (line 481),
-  so both headers share one Vector{UInt64}. push! grows it with _growend! and
-  stores bit length+1 (base/bitarray.jl:747-753), which lies in the original's
-  padding; pop! and deleteat! remove chunks with _deleteend!
-  (base/bitarray.jl:833, 935, 968) while the original keeps its len.
+  _bitreshape assigns Br.chunks = B.chunks at base/bitarray.jl:481, while each
+  BitArray retains its own len. push! increments only the vector's length and
+  writes its new true bit at lines 750-752. For the parent's shorter length,
+  that bit is padding. any scans complete chunks at lines 1736-1744 and sees it.
+  pop! at base/bitarray.jl:831-841 calls _deleteend!(B.chunks, 1) when the
+  vector's old length is one past a chunk boundary, then decrements only that
+  vector's len. The shared parent keeps its longer extent but loses the chunk.
 possible_fix: |
-  Give the reshaped BitArray its own Vector{UInt64} header over the same Memory
-  (as reshape does for Array since 1.11), so resizing it reallocates instead of
-  mutating the original's chunk vector; or throw when resizing a BitVector whose
-  chunks are shared.
+  Track shared packed storage and prevent structural mutation from violating
+  another header's length or padding invariant. Reject unsupported alias
+  resizes, or detach the resized vector's storage before changing its extent.
+  Masking only one reduction would leave the storage invariant broken.
 duplicates:
-  issues: []
-  queries: ["issues: reshape BitArray", "issues: BitArray resize!", "issues: BitVector reshape", "issues: vec push! shared", "issues: reshape push!", "issues: BitArray shared chunks", "prs: BitArray reshape"]
+  issues:
+    - number: 64147
+      state: open
+      relation: duplicate
+  prs: []
+  queries:
+    - 'gh search issues --repo JuliaLang/julia "BitArray reshape"'
+    - 'gh search issues --repo JuliaLang/julia "BitArray resize"'
+    - 'gh search issues --repo JuliaLang/julia "BitVector shared"'
+    - 'gh search prs --repo JuliaLang/julia "BitArray reshape"'
+    - 'gh search prs --repo JuliaLang/julia "BitArray resize"'
+    - 'gh search prs --repo JuliaLang/julia "BitVector shared"'
 lean:
-  property: JuliaLean.BitArrays.VecAliasKeepsParentValid
-  theorem: JuliaLean.BitArrays.vecAliasKeepsParentValid_refuted
+  property: JuliaLean.Proofs.base.bitarray.VecAliasKeepsParentValid
+  theorem: JuliaLean.ChatGPT.Batch4.Group8.BitarraysVecResizeAlias_refuted
+
+covers:
+  - bitarray-count-machine-residue
+  - bitarray-findmax-vector
+  - bitarray-findmin-vector
+  - bitarray-findnext-fixed-machine
+  - bitarray-findnext-machine
+  - bitarray-map-binary-bang
+  - bitarray-map-binary
+  - bitarray-map-identity-bang
+  - bitarray-map-not-bang
+  - bitarray-map-not
+  - bitarray-sum-colon
+  - bitarray-unary-minus
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: true
+  output: |
+    REPRODUCED bitarray-count-machine-residue
+    REPRODUCED bitarray-findmax-vector
+    REPRODUCED bitarray-findmin-vector
+    REPRODUCED bitarray-findnext-fixed-machine
+    REPRODUCED bitarray-findnext-machine
+    REPRODUCED bitarray-map-binary-bang
+    REPRODUCED bitarray-map-binary
+    REPRODUCED bitarray-map-identity-bang
+    REPRODUCED bitarray-map-not-bang
+    REPRODUCED bitarray-map-not
+    REPRODUCED bitarray-sum-colon
+    REPRODUCED bitarray-unary-minus

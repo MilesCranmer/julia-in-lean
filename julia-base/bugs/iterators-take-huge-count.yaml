@@ -1,39 +1,37 @@
 id: iterators-take-huge-count
-title: first(itr, n), last(itr, n) and take(itr, n) throw InexactError for n > typemax(Int)
+title: Generic first and take docs omit the intentional Int count limit
 priority: P3
-kind: wrong-exception
+kind: documentation
 area: Iterators
 files:
-- base/iterators.jl
-- base/abstractarray.jl
+  - base/iterators.jl
+  - base/abstractarray.jl
 functions:
-- take(xs, n)
-- drop(xs, n)
-- first(itr, n)
-- last(itr, n)
+  - take(xs, n)
+  - drop(xs, n)
+  - first(itr, n)
+  - last(itr, n)
 summary: |
-  take(xs, n::Integer) = Take(xs, Int(n)) converts the count, so counts beyond
-  typemax(Int) (typemax(UInt), big integers) throw InexactError. The generic
-  first(itr, n) and last(itr, n) inherit this, while the vector methods return
-  the whole vector: first((1,2,3), typemax(UInt)) throws but
-  first([1,2,3], typemax(UInt)) == [1, 2, 3].
+  first((1, 2, 3), typemax(UInt)), last on the same tuple, and taking that
+  count from 1:3 throw InexactError. The Take constructor converts the count
+  to Int before inspecting the finite input. first([1, 2, 3], typemax(UInt))
+  instead returns the complete vector, so the result depends on input type.
+  The public documentation does not state this intentional Int count limit.
 likelihood: |
-  Needs a count above typemax(Int), e.g. typemax(UInt) as "all". Rare; loud.
+  Requires a nonnegative Integer count above typemax(Int), for example an
+  unsigned maximum used to request all remaining elements. The failure is loud.
 maybe_intended: |
-  The Take and Drop structs store an Int count; one can consider counts above
-  typemax(Int) out of scope.
+  The Int conversion is intentional. In PR #19294, reviewers discussed
+  counts above typemax(Int) and possible InexactError, then accepted the
+  simpler conversion to Int. A comment concludes, "Okay, I've implemented
+  the simpler version that coverts to `Int`." The runtime failure alone is
+  therefore not evidence of an accidental implementation regression.
 reproducer: |
-  # take/first/last convert the count with Int(n), so counts above typemax(Int) throw
-  show_r(x) = x isa Exception ? sprint(showerror, x) : repr(x)
-  a = try first((1, 2, 3), typemax(UInt)) catch e; e end
-  b = try last((1, 2, 3), typemax(UInt)) catch e; e end
-  c = try collect(Iterators.take(1:3, typemax(UInt))) catch e; e end
-  d = first([1, 2, 3], typemax(UInt))
-  println("first((1,2,3), typemax(UInt)) = ", show_r(a))
-  println("last((1,2,3), typemax(UInt)) = ", show_r(b))
-  println("collect(take(1:3, typemax(UInt))) = ", show_r(c))
-  println("first([1,2,3], typemax(UInt)) = ", show_r(d))
-  a isa InexactError && b isa InexactError && d == [1, 2, 3] && println("REPRODUCED iterators-take-huge-count")
+  n = typemax(UInt)
+  first([1, 2, 3], n)       # [1, 2, 3]
+  first((1, 2, 3), n)      # throws InexactError
+  last((1, 2, 3), n)       # throws InexactError when run separately
+  Iterators.take(1:3, n)   # throws InexactError when run separately
 output:
   release: |
     first((1,2,3), typemax(UInt)) = InexactError: convert(Int64, 0xffffffffffffffff)
@@ -51,22 +49,44 @@ reproduced:
   release: true
   nightly: true
 expected: |
-  The whole collection: first((1,2,3), typemax(UInt)) == [1, 2, 3].
+  Document that generic take, drop, first, and last require a count convertible
+  to Int, including when the finite input is shorter. Explain the vector
+  specialization's different handling, or decide to make the APIs consistent.
 promised_by: |
-  first(itr, n) docstring, base/abstractarray.jl:481-484: "Get the first n
-  elements of the iterable collection itr, or fewer elements if itr is not long
-  enough"; take docstring, base/iterators.jl:788-790.
+  Pinned source f755f49a9e41380d7da126b3c1db9fe7f83dd027:
+  base/abstractarray.jl:481: "first(itr, n::Integer)"
+  base/abstractarray.jl:483-484: "Get the first `n` elements of the iterable collection `itr`, or fewer elements if `itr` is not
+  long enough."
+  base/iterators.jl:790: "An iterator that generates at most the first `n` elements of `iter`."
+  base/iterators.jl:849: "An iterator that generates all but the first `n` elements of `iter`."
 cause: |
-  base/iterators.jl:815 (and 871 for drop), Int(n); base/abstractarray.jl:505
-  and 555 call take.
+  base/iterators.jl:815 and 871 convert n using Int(n) when constructing Take
+  and Drop. Generic first and last at base/abstractarray.jl:505 and 555 call
+  take and inherit its conversion failure before reading the input.
 possible_fix: |
-  Clamp the count: Take(xs, n > typemax(Int) ? typemax(Int) : Int(n)).
+  State the Int count restriction in the public docstrings. Supporting larger
+  counts would be a deliberate API change; preserve arbitrary Integer counts
+  or use known finite lengths rather than silently saturating lazy iterators.
 duplicates:
-  issues: []
+  issues:
+    - number: 19214
+      state: closed
+      relation: related
+  prs:
+    - number: 19294
+      state: merged
+      relation: related
+      note: "intentionally converts accepted Integer counts to Int"
+  search_notes: |
+    PR #19294 names take and drop in its title. Its discussion explicitly
+    accepts the possible InexactError. The linked issue asks for wider Integer
+    signatures.
   queries:
-  - take typemax UInt
-  - first InexactError
-  - take InexactError
+    - take typemax UInt
+    - first InexactError
+    - take InexactError
+    - Iterators.take InexactError
+    - partition typemax
 lean:
-  property: JuliaLean.Iterators.FirstNAnyInteger
-  theorem: JuliaLean.Iterators.firstNAnyInteger_refuted
+  property: JuliaLean.Proofs.base.iterators.FirstNAnyInteger
+  theorem: JuliaLean.ChatGPT.Batch4.Group5.IteratorsTakeHugeCount_refuted

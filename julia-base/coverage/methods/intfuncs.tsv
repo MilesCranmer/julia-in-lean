@@ -1,111 +1,111 @@
 file	line	endline	name	signature	status	entry	note
-base/intfuncs.jl	44	51	gcd	gcd(a::T, b::T) where T<:Integer	todo		trivial: source-body equalities and forwarding identities
-base/intfuncs.jl	53	64	gcd	gcd(a::T, b::T) where T<:BitInteger	todo		trivial: source-body equalities and forwarding identities
-base/intfuncs.jl	65	66	__throw_gcd_overflow	__throw_gcd_overflow(a, b)	todo		trivial: source-body equalities and forwarding identities
-base/intfuncs.jl	68	71	absdiff	absdiff(x::T,y::T) where {T<:Unsigned}	todo		trivial: source-body equalities and forwarding identities
-base/intfuncs.jl	72	75	absdiff	absdiff(x::T,y::T) where {T<:Signed}	todo		trivial: source-body equalities and forwarding identities
-base/intfuncs.jl	80	95	_gcd	_gcd(ain::T, bin::T) where T<:BitInteger	todo		trivial: source-body equalities and forwarding identities
-base/intfuncs.jl	136	144	lcm	lcm(a::T, b::T) where T<:Integer	todo		trivial: source-body equalities and forwarding identities
+base/intfuncs.jl	44	51	gcd	gcd(a::T, b::T) where T<:Integer	modelled	intfuncs-gcd-open-dispatch-trace;intfuncs-gcd-integer-bits-mathematical	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.gcdInteger; reviewed against Julia f755f49.
+base/intfuncs.jl	53	64	gcd	gcd(a::T, b::T) where T<:BitInteger	modelled	intfuncs-gcd-exact	Source-mirrored model JuliaLean.base.intfuncs.gcd_BitInteger; reviewed against Julia f755f49.
+base/intfuncs.jl	65	66	__throw_gcd_overflow	__throw_gcd_overflow(a, b)	modelled	intfuncs-gcd-exact;intarith-number-gcd-typemin-overflow	Source-mirrored model JuliaLean.base.intfuncs.throwGcdOverflow; reviewed against Julia f755f49.
+base/intfuncs.jl	68	71	absdiff	absdiff(x::T,y::T) where {T<:Unsigned}	modelled	intfuncs-absdiff-unsigned	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.absdiffUnsigned; reviewed against Julia f755f49.
+base/intfuncs.jl	72	75	absdiff	absdiff(x::T,y::T) where {T<:Signed}	modelled	intfuncs-absdiff-signed	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.absdiffSigned; reviewed against Julia f755f49.
+base/intfuncs.jl	80	95	_gcd	_gcd(ain::T, bin::T) where T<:BitInteger	modelled	intfuncs-binary-gcd-internal	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.binaryGcd; reviewed against Julia f755f49.
+base/intfuncs.jl	136	144	lcm	lcm(a::T, b::T) where T<:Integer	modelled	intfuncs-lcm-integer-bits-mathematical;intfuncs-lcm-open-dispatch-accounting	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.lcmInteger; reviewed against Julia f755f49.
 base/intfuncs.jl	146	150	_promote_mixed_signs	_promote_mixed_signs(a::Signed, b::Unsigned)	modelled	intfuncscov-gcd-mixed-typemin	
-base/intfuncs.jl	152	152	gcd	gcd(a::Integer)	todo		trivial: source-body equalities and forwarding identities
-base/intfuncs.jl	153	153	gcd	gcd(a::Rational)	todo		trivial: source-body equalities and forwarding identities
-base/intfuncs.jl	154	154	lcm	lcm(a::Union{Integer,Rational})	todo		trivial: source-body equalities and forwarding identities
+base/intfuncs.jl	152	152	gcd	gcd(a::Integer)	modelled	intfuncs-gcd-unary-integer-magnitude	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.gcdUnaryInteger; reviewed against Julia f755f49.
+base/intfuncs.jl	153	153	gcd	gcd(a::Rational)	modelled	intfuncs-gcd-rational-dispatch-provenance;intfuncs-gcd-rational-native-numerator-gate	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.gcdUnaryRational; reviewed against Julia f755f49.
+base/intfuncs.jl	154	154	lcm	lcm(a::Union{Integer,Rational})	modelled	intfuncs-lcm-unary-integer-magnitude	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.lcmUnary; reviewed against Julia f755f49.
 base/intfuncs.jl	155	155	gcd	gcd(a::Unsigned, b::Signed)	modelled	intfuncscov-gcd-mixed-typemin	
 base/intfuncs.jl	156	156	gcd	gcd(a::Signed, b::Unsigned)	modelled	intfuncscov-gcd-mixed-typemin	
 base/intfuncs.jl	157	157	lcm	lcm(a::Unsigned, b::Signed)	modelled	intarith-number-lcm-mixed-typemin	
 base/intfuncs.jl	158	158	lcm	lcm(a::Signed, b::Unsigned)	modelled	intfuncscov-gcd-mixed-typemin	
-base/intfuncs.jl	159	159	gcd	gcd(a::Real, b::Real)	todo		trivial: source-body equalities and forwarding identities
-base/intfuncs.jl	160	160	lcm	lcm(a::Real, b::Real)	todo		trivial: source-body equalities and forwarding identities
-base/intfuncs.jl	161	161	gcd	gcd(a::Real, b::Real, c::Real...)	todo		trivial: source-body equalities and forwarding identities
-base/intfuncs.jl	162	162	lcm	lcm(a::Real, b::Real, c::Real...)	todo		trivial: source-body equalities and forwarding identities
-base/intfuncs.jl	163	163	gcd	gcd(a::T, b::T) where T<:Real	todo		trivial: source-body equalities and forwarding identities
-base/intfuncs.jl	164	164	lcm	lcm(a::T, b::T) where T<:Real	todo		trivial: source-body equalities and forwarding identities
-base/intfuncs.jl	166	166	gcd	gcd(abc::AbstractArray{<:Real})	todo		trivial: source-body equalities and forwarding identities
-base/intfuncs.jl	167	176	lcm	lcm(abc::AbstractArray{<:Real})	todo		trivial: source-body equalities and forwarding identities
+base/intfuncs.jl	159	159	gcd	gcd(a::Real, b::Real)	modelled	intfuncs-gcd-real-bits-mathematical;intfuncs-real-promotion-dispatch-provenance	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.gcdReal; reviewed against Julia f755f49.
+base/intfuncs.jl	160	160	lcm	lcm(a::Real, b::Real)	modelled	intfuncs-lcm-real-bits-mathematical;intfuncs-real-promotion-dispatch-provenance	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.lcmReal; reviewed against Julia f755f49.
+base/intfuncs.jl	161	161	gcd	gcd(a::Real, b::Real, c::Real...)	modelled	intfuncs-gcd-nary-native-all-inputs;intfuncs-nary-open-dispatch-accounting	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.gcdNary; reviewed against Julia f755f49.
+base/intfuncs.jl	162	162	lcm	lcm(a::Real, b::Real, c::Real...)	modelled	intfuncs-lcm-nary-native-all-inputs;intfuncs-nary-open-dispatch-accounting	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.lcmNary; reviewed against Julia f755f49.
+base/intfuncs.jl	163	163	gcd	gcd(a::T, b::T) where T<:Real	modelled	intfuncs-real-fallback-methoderror	Source-mirrored model JuliaLean.base.intfuncs.gcd_NoMethod; reviewed against Julia f755f49.
+base/intfuncs.jl	164	164	lcm	lcm(a::T, b::T) where T<:Real	modelled	intfuncs-real-fallback-methoderror	Source-mirrored model JuliaLean.base.intfuncs.lcm_NoMethod; reviewed against Julia f755f49.
+base/intfuncs.jl	166	166	gcd	gcd(abc::AbstractArray{<:Real})	modelled	intfuncs-gcd-array-dispatch-provenance	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.gcdArray; reviewed against Julia f755f49.
+base/intfuncs.jl	167	176	lcm	lcm(abc::AbstractArray{<:Real})	modelled	intfuncs-lcm-array-dispatch-provenance	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.lcmArray; reviewed against Julia f755f49.
 base/intfuncs.jl	178	187	gcd	gcd(abc::AbstractArray{<:Integer})	modelled	intfuncscov-gcd-array-typemin	
-base/intfuncs.jl	189	189	_gcdx_update	_gcdx_update(s0::T, q::T, s1::T) where {T<:Unsigned}	todo		trivial: source-body equalities and forwarding identities
-base/intfuncs.jl	190	190	_gcdx_update	_gcdx_update(s0, q, s1)	todo		trivial: source-body equalities and forwarding identities
-base/intfuncs.jl	235	260	gcdx	gcdx(a::T, b::T) where {T<:Integer}	todo		trivial: source-body equalities and forwarding identities
-base/intfuncs.jl	261	261	gcdx	gcdx(a::Real, b::Real)	todo		trivial: source-body equalities and forwarding identities
-base/intfuncs.jl	262	262	gcdx	gcdx(a::T, b::T) where T<:Real	todo		trivial: source-body equalities and forwarding identities
-base/intfuncs.jl	263	263	gcdx	gcdx(a::Real)	todo		trivial: source-body equalities and forwarding identities
+base/intfuncs.jl	189	189	_gcdx_update	_gcdx_update(s0::T, q::T, s1::T) where {T<:Unsigned}	modelled	intfuncs-gcdx-update-native-ideal;intfuncs-gcdx-integer-native-bezout	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.gcdxUpdateUnsigned; reviewed against Julia f755f49.
+base/intfuncs.jl	190	190	_gcdx_update	_gcdx_update(s0, q, s1)	modelled	intfuncs-gcdx-update-native-ideal;intfuncs-gcdx-integer-native-bezout	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.gcdxUpdateGeneric; reviewed against Julia f755f49.
+base/intfuncs.jl	235	260	gcdx	gcdx(a::T, b::T) where {T<:Integer}	modelled	intfuncs-gcdx-integer-native-bezout	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.gcdxInteger; reviewed against Julia f755f49.
+base/intfuncs.jl	261	261	gcdx	gcdx(a::Real, b::Real)	modelled	intfuncs-gcdx-real-native-bezout	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.gcdxReal; reviewed against Julia f755f49.
+base/intfuncs.jl	262	262	gcdx	gcdx(a::T, b::T) where T<:Real	modelled	intfuncs-gcdx-real-fallback-methoderror	Source-mirrored model JuliaLean.base.intfuncs.gcdx_NoMethod; reviewed against Julia f755f49.
+base/intfuncs.jl	263	263	gcdx	gcdx(a::Real)	modelled	intfuncs-gcdx-unary-native-bezout	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.gcdxUnary; reviewed against Julia f755f49.
 base/intfuncs.jl	264	274	gcdx	gcdx(a::Real, b::Real, cs::Real...)	todo		trivial: source-body equalities and forwarding identities
 base/intfuncs.jl	276	281	gcdx	gcdx(a::Signed, b::Unsigned)	modelled	intfuncscov-gcd-mixed-typemin	
 base/intfuncs.jl	282	285	gcdx	gcdx(a::Unsigned, b::Signed)	modelled	intfuncscov-gcd-mixed-typemin	
-base/intfuncs.jl	308	335	invmod	invmod(n::Integer, m::Integer)	todo		trivial: source-body equalities and forwarding identities
-base/intfuncs.jl	337	341	_bezout_coef	_bezout_coef(n, m)	todo		trivial: source-body equalities and forwarding identities
-base/intfuncs.jl	370	370	invmod	invmod(n::Integer, ::Type{T}) where {T<:BitInteger}	todo		trivial: source-body equalities and forwarding identities
-base/intfuncs.jl	371	371	invmod	invmod(n, ::Type{Union{}}, slurp...)	todo		trivial: source-body equalities and forwarding identities
-base/intfuncs.jl	373	382	invmod	invmod(n::T) where {T<:BitInteger}	todo		trivial: source-body equalities and forwarding identities
-base/intfuncs.jl	385	387	throw_domerr_powbysq	throw_domerr_powbysq(::Any, p)	todo		trivial: source-branch and forwarding identities
-base/intfuncs.jl	388	392	throw_domerr_powbysq	throw_domerr_powbysq(::Integer, p)	todo		trivial: source-branch and forwarding identities
-base/intfuncs.jl	393	397	throw_domerr_powbysq	throw_domerr_powbysq(::AbstractMatrix, p)	todo		trivial: source-branch and forwarding identities
-base/intfuncs.jl	399	443	power_by_squaring	power_by_squaring(x_, p::Integer; mul=*)	todo		trivial: source-branch and forwarding identities
-base/intfuncs.jl	444	444	power_by_squaring	power_by_squaring(x::Bool, p::Unsigned)	todo		trivial: source-branch and forwarding identities
-base/intfuncs.jl	445	448	power_by_squaring	power_by_squaring(x::Bool, p::Integer)	todo		trivial: source-branch and forwarding identities
-base/intfuncs.jl	450	450	^	^(x::T, p::T) where {T<:Integer}	todo		trivial: source-branch and forwarding identities
-base/intfuncs.jl	451	451	^	^(x::Number, p::Integer)	todo		trivial: source-branch and forwarding identities
-base/intfuncs.jl	460	460	literal_pow	literal_pow(f, x, ::Val{p}) where {p}	todo		trivial: source-branch and forwarding identities
-base/intfuncs.jl	470	470	literal_pow	literal_pow(::typeof(^), x::HWNumber, ::Val{0})	todo		trivial: source-branch and forwarding identities
-base/intfuncs.jl	471	471	literal_pow	literal_pow(::typeof(^), x::HWNumber, ::Val{1})	todo		trivial: source-branch and forwarding identities
-base/intfuncs.jl	472	472	literal_pow	literal_pow(::typeof(^), x::HWNumber, ::Val{2})	todo		trivial: source-branch and forwarding identities
-base/intfuncs.jl	473	473	literal_pow	literal_pow(::typeof(^), x::HWNumber, ::Val{3})	todo		trivial: source-branch and forwarding identities
-base/intfuncs.jl	474	474	literal_pow	literal_pow(::typeof(^), x::HWNumber, ::Val{-1})	todo		trivial: source-branch and forwarding identities
-base/intfuncs.jl	475	475	literal_pow	literal_pow(::typeof(^), x::HWNumber, ::Val{-2})	todo		trivial: source-branch and forwarding identities
-base/intfuncs.jl	478	478	literal_pow	literal_pow(::typeof(^), x::AbstractFloat, ::Val{p}) where {p}	todo		trivial: source-branch and forwarding identities
-base/intfuncs.jl	479	479	literal_pow	literal_pow(::typeof(^), x::AbstractFloat, ::Val{-1})	todo		trivial: source-branch and forwarding identities
-base/intfuncs.jl	483	493	literal_pow	literal_pow(f::typeof(^), x, ::Val{p}) where {p}	todo		trivial: source-branch and forwarding identities
-base/intfuncs.jl	524	579	powermod	powermod(x::Integer, p::Integer, m::T) where T<:Integer	todo		trivial: source-branch and forwarding identities
-base/intfuncs.jl	581	581	_powermod_mi_legal	_powermod_mi_legal(::Integer)	todo		trivial: source-branch and forwarding identities
-base/intfuncs.jl	582	584	_powermod_mi_legal	_powermod_mi_legal(mm::T) where {T<:Unsigned}	todo		trivial: source-branch and forwarding identities
+base/intfuncs.jl	308	335	invmod	invmod(n::Integer, m::Integer)	modelled	intfuncs-invmod-integer-dispatch-provenance	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.invmodInteger; reviewed against Julia f755f49.
+base/intfuncs.jl	337	341	_bezout_coef	_bezout_coef(n, m)	modelled	intfuncs-bezout-coef-dispatch-provenance	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.bezoutCoefGeneric; reviewed against Julia f755f49.
+base/intfuncs.jl	370	370	invmod	invmod(n::Integer, ::Type{T}) where {T<:BitInteger}	modelled	intfuncs-invmod-type-native-ring-law	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.invmodType; reviewed against Julia f755f49.
+base/intfuncs.jl	371	371	invmod	invmod(n, ::Type{Union{}}, slurp...)	modelled	intfuncs-invmod-bottom-error-identity	Source-mirrored model JuliaLean.base.intfuncs.invmod_Bottom; reviewed against Julia f755f49.
+base/intfuncs.jl	373	382	invmod	invmod(n::T) where {T<:BitInteger}	modelled	intarith-number-invmod-ring-uint8;intarith-number-invmod-ring-int8;intfuncs-invmod-type-native-ring-law	Source-mirrored model JuliaLean.base.intfuncs.invmod_Ring; reviewed against Julia f755f49.
+base/intfuncs.jl	385	387	throw_domerr_powbysq	throw_domerr_powbysq(::Any, p)	modelled	intfuncs-power-lazy-helper-domain	Source-mirrored model JuliaLean.base.intfuncs.throwPowerDomain_Any; reviewed against Julia f755f49.
+base/intfuncs.jl	388	392	throw_domerr_powbysq	throw_domerr_powbysq(::Integer, p)	modelled	intfuncs-power-integer-helper-native-domain;intfuncs-power-integer-helper-failure-provenance	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.throwPowerDomainInteger; reviewed against Julia f755f49.
+base/intfuncs.jl	393	397	throw_domerr_powbysq	throw_domerr_powbysq(::AbstractMatrix, p)	modelled	intfuncs-power-lazy-helper-domain	Source-mirrored model JuliaLean.base.intfuncs.throwPowerDomain_Matrix; reviewed against Julia f755f49.
+base/intfuncs.jl	399	443	power_by_squaring	power_by_squaring(x_, p::Integer; mul=*)	modelled	intfuncs-power-native-ring;intfuncs-power-custom-native-accounting	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.powerBySquaring; reviewed against Julia f755f49.
+base/intfuncs.jl	444	444	power_by_squaring	power_by_squaring(x::Bool, p::Unsigned)	modelled	intfuncs-bool-power-dispatch-provenance	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.powerBoolUnsigned; reviewed against Julia f755f49.
+base/intfuncs.jl	445	448	power_by_squaring	power_by_squaring(x::Bool, p::Integer)	modelled	intfuncs-bool-power-dispatch-provenance	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.powerBoolInteger; reviewed against Julia f755f49.
+base/intfuncs.jl	450	450	^	^(x::T, p::T) where {T<:Integer}	modelled	intfuncs-power-call-identity-effects	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.powInteger; reviewed against Julia f755f49.
+base/intfuncs.jl	451	451	^	^(x::Number, p::Integer)	modelled	intfuncs-power-call-identity-effects	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.powNumber; reviewed against Julia f755f49.
+base/intfuncs.jl	460	460	literal_pow	literal_pow(f, x, ::Val{p}) where {p}	modelled	intfuncs-power-call-identity-effects	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.literalPowFunction; reviewed against Julia f755f49.
+base/intfuncs.jl	470	470	literal_pow	literal_pow(::typeof(^), x::HWNumber, ::Val{0})	modelled	intfuncs-hardware-literal-provenance	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.literalHardwareZero; reviewed against Julia f755f49.
+base/intfuncs.jl	471	471	literal_pow	literal_pow(::typeof(^), x::HWNumber, ::Val{1})	modelled	intfuncs-hardware-literal-provenance	Source-mirrored model JuliaLean.base.intfuncs.literalPow_One; reviewed against Julia f755f49.
+base/intfuncs.jl	472	472	literal_pow	literal_pow(::typeof(^), x::HWNumber, ::Val{2})	modelled	intfuncs-hardware-literal-provenance	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.literalHardwareTwo; reviewed against Julia f755f49.
+base/intfuncs.jl	473	473	literal_pow	literal_pow(::typeof(^), x::HWNumber, ::Val{3})	modelled	intfuncs-hardware-literal-provenance	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.literalHardwareThree; reviewed against Julia f755f49.
+base/intfuncs.jl	474	474	literal_pow	literal_pow(::typeof(^), x::HWNumber, ::Val{-1})	modelled	intfuncs-hardware-literal-provenance	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.literalHardwareNegOne; reviewed against Julia f755f49.
+base/intfuncs.jl	475	475	literal_pow	literal_pow(::typeof(^), x::HWNumber, ::Val{-2})	modelled	intfuncs-hardware-literal-provenance	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.literalHardwareNegTwo; reviewed against Julia f755f49.
+base/intfuncs.jl	478	478	literal_pow	literal_pow(::typeof(^), x::AbstractFloat, ::Val{p}) where {p}	modelled	intfuncs-power-call-identity-effects	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.literalFloatPower; reviewed against Julia f755f49.
+base/intfuncs.jl	479	479	literal_pow	literal_pow(::typeof(^), x::AbstractFloat, ::Val{-1})	modelled	intfuncs-power-call-identity-effects	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.literalFloatNegOne; reviewed against Julia f755f49.
+base/intfuncs.jl	483	493	literal_pow	literal_pow(f::typeof(^), x, ::Val{p}) where {p}	modelled	intfuncs-literal-fallback-provenance;intfuncs-literal-native-exponent-wrapping	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.literalBasePower; reviewed against Julia f755f49.
+base/intfuncs.jl	524	579	powermod	powermod(x::Integer, p::Integer, m::T) where T<:Integer	modelled	intfuncs-powermod-open-loop-accounting;intfuncs-powermod-whole-outcome-provenance	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.powermodGeneric; reviewed against Julia f755f49.
+base/intfuncs.jl	581	581	_powermod_mi_legal	_powermod_mi_legal(::Integer)	modelled	intfuncs-powermod-open-loop-accounting;intfuncs-powermod-whole-outcome-provenance	Source-mirrored model JuliaLean.base.intfuncs.powermodMILegal_Integer; reviewed against Julia f755f49.
+base/intfuncs.jl	582	584	_powermod_mi_legal	_powermod_mi_legal(mm::T) where {T<:Unsigned}	modelled	intfuncs-powermod-native-legal-square-bound;intfuncs-powermod-whole-outcome-provenance	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.powermodMILegalUnsigned; reviewed against Julia f755f49.
 base/intfuncs.jl	587	587	powermod	powermod(x::Integer, p::Integer, m::Union{Int128,UInt128})	todo		trivial: source-branch and forwarding identities
-base/intfuncs.jl	589	589	_nextpow2	_nextpow2(x::Unsigned)	todo		trivial: source-branch and forwarding identities
-base/intfuncs.jl	590	590	_nextpow2	_nextpow2(x::Integer)	todo		trivial: source-branch and forwarding identities
-base/intfuncs.jl	591	591	_prevpow2	_prevpow2(x::Unsigned)	todo		trivial: source-branch and forwarding identities
-base/intfuncs.jl	592	592	_prevpow2	_prevpow2(x::Integer)	todo		trivial: source-branch and forwarding identities
-base/intfuncs.jl	622	622	ispow2	ispow2(x::Number)	todo		trivial: source-branch and forwarding identities
-base/intfuncs.jl	624	624	ispow2	ispow2(x::Integer)	todo		trivial: source-branch and forwarding identities
+base/intfuncs.jl	589	589	_nextpow2	_nextpow2(x::Unsigned)	modelled	intfuncs-nextpow2-unsigned-rounding;intfuncs-pow2-unsigned-effect-accounting	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.nextpow2Unsigned; reviewed against Julia f755f49.
+base/intfuncs.jl	590	590	_nextpow2	_nextpow2(x::Integer)	modelled	intfuncs-pow2-integer-recursive-frames	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.nextpow2Integer; reviewed against Julia f755f49.
+base/intfuncs.jl	591	591	_prevpow2	_prevpow2(x::Unsigned)	modelled	intfuncs-prevpow2-unsigned-rounding;intfuncs-pow2-unsigned-effect-accounting	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.prevpow2Unsigned; reviewed against Julia f755f49.
+base/intfuncs.jl	592	592	_prevpow2	_prevpow2(x::Integer)	modelled	intfuncs-pow2-integer-recursive-frames	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.prevpow2Integer; reviewed against Julia f755f49.
+base/intfuncs.jl	622	622	ispow2	ispow2(x::Number)	modelled	intfuncs-ispow2-number-recursive-accounting	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.ispow2Number; reviewed against Julia f755f49.
+base/intfuncs.jl	624	624	ispow2	ispow2(x::Integer)	modelled	intfuncs-ispow2-integer-effect-accounting;intfuncs-ispow2-integer-native-mathematical	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.ispow2Integer; reviewed against Julia f755f49.
 base/intfuncs.jl	649	669	nextpow	nextpow(a::Real, x::Real)	modelled	intarith-powers-log-seed-correction,intarith-powers-nextpow-overflow	
 base/intfuncs.jl	694	713	prevpow	prevpow(a::T, x::Real) where T <: Real	modelled	mathfuncs-prevpow-float32-overflow	
-base/intfuncs.jl	725	729	bit_ndigits0z	bit_ndigits0z(x::Base.BitUnsigned64)	todo		trivial: repeats digit-count, bitstring, and digits bodies
-base/intfuncs.jl	730	737	bit_ndigits0z	bit_ndigits0z(x::UInt128)	todo		trivial: repeats digit-count, bitstring, and digits bodies
-base/intfuncs.jl	739	739	ndigits0z	ndigits0z(x::BitSigned)	todo		trivial: repeats digit-count, bitstring, and digits bodies
-base/intfuncs.jl	740	740	ndigits0z	ndigits0z(x::BitUnsigned)	todo		trivial: repeats digit-count, bitstring, and digits bodies
-base/intfuncs.jl	741	741	ndigits0z	ndigits0z(x::Integer)	todo		trivial: repeats digit-count, bitstring, and digits bodies
-base/intfuncs.jl	746	758	ndigits0znb	ndigits0znb(x::Integer, b::Integer)	todo		trivial: repeats digit-count, bitstring, and digits bodies
-base/intfuncs.jl	761	761	ndigits0znb	ndigits0znb(x::Bool, b::Integer)	todo		trivial: repeats digit-count, bitstring, and digits bodies
-base/intfuncs.jl	764	796	ndigits0zpb	ndigits0zpb(x::Integer, b::Integer)	todo		trivial: repeats digit-count, bitstring, and digits bodies
-base/intfuncs.jl	798	798	ndigits0zpb	ndigits0zpb(x::Bool, b::Integer)	todo		trivial: repeats digit-count, bitstring, and digits bodies
-base/intfuncs.jl	829	838	ndigits0z	ndigits0z(x::Integer, b::Integer)	todo		trivial: repeats digit-count, bitstring, and digits bodies
-base/intfuncs.jl	842	842	top_set_bit	top_set_bit(x::Integer)	todo		trivial: repeats digit-count, bitstring, and digits bodies
+base/intfuncs.jl	725	729	bit_ndigits0z	bit_ndigits0z(x::Base.BitUnsigned64)	modelled	intfuncs-bit-decimal64-current-table	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.bitDigits64; reviewed against Julia f755f49.
+base/intfuncs.jl	730	737	bit_ndigits0z	bit_ndigits0z(x::UInt128)	modelled	intfuncs-bit-decimal128-current-table	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.bitDigits128; reviewed against Julia f755f49.
+base/intfuncs.jl	739	739	ndigits0z	ndigits0z(x::BitSigned)	modelled	intfuncs-decimal-signed-current-table	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.decimalSigned; reviewed against Julia f755f49.
+base/intfuncs.jl	740	740	ndigits0z	ndigits0z(x::BitUnsigned)	modelled	intfuncs-decimal-unsigned-current-table	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.decimalUnsigned; reviewed against Julia f755f49.
+base/intfuncs.jl	741	741	ndigits0z	ndigits0z(x::Integer)	modelled	intfuncs-digit-dispatch-decimal-invariant	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.digitsDecimal; reviewed against Julia f755f49.
+base/intfuncs.jl	746	758	ndigits0znb	ndigits0znb(x::Integer, b::Integer)	modelled	intfuncs-negative-digits-open-invariant	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.digitsNegative; reviewed against Julia f755f49.
+base/intfuncs.jl	761	761	ndigits0znb	ndigits0znb(x::Bool, b::Integer)	modelled	intfuncs-bool-digit-native-range	Source-mirrored model JuliaLean.base.intfuncs.ndigitsNegative_Bool; reviewed against Julia f755f49.
+base/intfuncs.jl	764	796	ndigits0zpb	ndigits0zpb(x::Integer, b::Integer)	modelled	intfuncs-positive-digits-open-invariant	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.digitsPositive; reviewed against Julia f755f49.
+base/intfuncs.jl	798	798	ndigits0zpb	ndigits0zpb(x::Bool, b::Integer)	modelled	intfuncs-bool-digit-native-range	Source-mirrored model JuliaLean.base.intfuncs.ndigitsPositive_Bool; reviewed against Julia f755f49.
+base/intfuncs.jl	829	838	ndigits0z	ndigits0z(x::Integer, b::Integer)	modelled	intfuncs-digit-dispatch-decimal-invariant	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.digitsZero; reviewed against Julia f755f49.
+base/intfuncs.jl	842	842	top_set_bit	top_set_bit(x::Integer)	modelled	intfuncs-top-set-bit-open-invariant	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.digitTopSetBit; reviewed against Julia f755f49.
 base/intfuncs.jl	874	874	ndigits	ndigits(x::Integer; base::Integer=10, pad::Integer=1)	modelled	intarith-powers-large-base,intarith-powers-negative-base-typemin	
-base/intfuncs.jl	878	903	bin	bin(x::Unsigned, pad::Int, neg::Bool)	todo		trivial: repeats digit-count, bitstring, and digits bodies
-base/intfuncs.jl	905	920	oct	oct(x::Unsigned, pad::Int, neg::Bool)	todo		trivial: repeats digit-count, bitstring, and digits bodies
-base/intfuncs.jl	938	952	append_c_digits	append_c_digits(olength::Int, digits::Unsigned, buf, pos::Int)	todo		trivial: repeats digit-count, bitstring, and digits bodies
-base/intfuncs.jl	954	963	append_nine_digits	append_nine_digits(digits::Unsigned, buf, pos::Int)	todo		trivial: repeats digit-count, bitstring, and digits bodies
-base/intfuncs.jl	965	980	append_c_digits_fast	append_c_digits_fast(olength::Int, digits::Unsigned, buf, pos::Int)	todo		trivial: repeats digit-count, bitstring, and digits bodies
-base/intfuncs.jl	983	1018	dec	dec(x::Unsigned, pad::Int, neg::Bool)	todo		trivial: repeats digit-count, bitstring, and digits bodies
-base/intfuncs.jl	1020	1042	hex	hex(x::Unsigned, pad::Int, neg::Bool)	todo		trivial: repeats digit-count, bitstring, and digits bodies
+base/intfuncs.jl	878	903	bin	bin(x::Unsigned, pad::Int, neg::Bool)	modelled	intfuncs-bin-oct-effect-accounting;intfuncs-bin-oct-sign-address;intfuncs-bin-packed-ascii;intfuncs-formatting-pointer-store-footprint	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.binUnsigned; reviewed against Julia f755f49.
+base/intfuncs.jl	905	920	oct	oct(x::Unsigned, pad::Int, neg::Bool)	modelled	intfuncs-bin-oct-effect-accounting;intfuncs-bin-oct-sign-address;intfuncs-formatting-pointer-store-footprint	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.octUnsigned; reviewed against Julia f755f49.
+base/intfuncs.jl	938	952	append_c_digits	append_c_digits(olength::Int, digits::Unsigned, buf, pos::Int)	modelled	intfuncs-append-c-positions-live-table	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.appendCDigits; reviewed against Julia f755f49.
+base/intfuncs.jl	954	963	append_nine_digits	append_nine_digits(digits::Unsigned, buf, pos::Int)	modelled	intfuncs-append-nine-branch-accounting	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.appendNineDigits; reviewed against Julia f755f49.
+base/intfuncs.jl	965	980	append_c_digits_fast	append_c_digits_fast(olength::Int, digits::Unsigned, buf, pos::Int)	modelled	intfuncs-append-fast-span-accounting	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.appendCDigitsFast; reviewed against Julia f755f49.
+base/intfuncs.jl	983	1018	dec	dec(x::Unsigned, pad::Int, neg::Bool)	modelled	intfuncs-dec-effect-accounting;intfuncs-dec-sign-address;intfuncs-dec-live-table-memory;intfuncs-dec-byte-table-alias;intfuncs-dec-store-validation-order	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.decUnsigned; reviewed against Julia f755f49.
+base/intfuncs.jl	1020	1042	hex	hex(x::Unsigned, pad::Int, neg::Bool)	modelled	intfuncs-hex-effect-accounting;intfuncs-hex-sign-address;intfuncs-hex-nibble-alphabet	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.hexUnsigned; reviewed against Julia f755f49.
 base/intfuncs.jl	1047	1070	_base	_base(base::Integer, x::Integer, pad::Int, neg::Bool)	modelled	parseprint-string-negative-base-unsigned	
-base/intfuncs.jl	1072	1072	split_sign	split_sign(n::Integer)	todo		trivial: repeats digit-count, bitstring, and digits bodies
-base/intfuncs.jl	1073	1073	split_sign	split_sign(n::Unsigned)	todo		trivial: repeats digit-count, bitstring, and digits bodies
-base/intfuncs.jl	1101	1119	string	string(n::Integer; base::Integer = 10, pad::Integer = 1)	todo		trivial: repeats digit-count, bitstring, and digits bodies
-base/intfuncs.jl	1121	1121	string	string(b::Bool)	todo		trivial: repeats digit-count, bitstring, and digits bodies
-base/intfuncs.jl	1140	1167	bitstring	bitstring(x::T) where {T}	todo		trivial: repeats digit-count, bitstring, and digits bodies
-base/intfuncs.jl	1207	1208	digits	digits(n::Integer; base::Integer = 10, pad::Integer = 1)	todo		trivial: repeats digit-count, bitstring, and digits bodies
-base/intfuncs.jl	1210	1212	digits	digits(T::Type{<:Integer}, n::Integer; base::Integer = 10, pad::Integer = 1)	todo		trivial: repeats digit-count, bitstring, and digits bodies
-base/intfuncs.jl	1219	1219	hastypemax	hastypemax(::Type{T}) where {T}	todo		trivial: repeats digit-count, bitstring, and digits bodies
-base/intfuncs.jl	1220	1220	hastypemax	hastypemax(::Type{Union{}})	todo		trivial: repeats digit-count, bitstring, and digits bodies
-base/intfuncs.jl	1221	1221	hastypemax	hastypemax(::Type{Union{}}, slurp...)	todo		trivial: repeats digit-count, bitstring, and digits bodies
+base/intfuncs.jl	1072	1072	split_sign	split_sign(n::Integer)	modelled	intfuncs-split-sign-dispatch-provenance;intfuncs-split-sign-native-magnitude	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.splitSignInteger; reviewed against Julia f755f49.
+base/intfuncs.jl	1073	1073	split_sign	split_sign(n::Unsigned)	modelled	intfuncs-split-sign	Source-mirrored model JuliaLean.base.intfuncs.splitSign_Unsigned; reviewed against Julia f755f49.
+base/intfuncs.jl	1101	1119	string	string(n::Integer; base::Integer = 10, pad::Integer = 1)	modelled	intfuncs-string-integer-dispatch-provenance	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.stringInteger; reviewed against Julia f755f49.
+base/intfuncs.jl	1121	1121	string	string(b::Bool)	modelled	intfuncs-bool-string	Source-mirrored model JuliaLean.base.intfuncs.string_Bool; reviewed against Julia f755f49.
+base/intfuncs.jl	1140	1167	bitstring	bitstring(x::T) where {T}	todo		Returned models2 group 16 proposal: The nonprimitive BitstringInput.other carries an arbitrary Except bitsize value for fixed Core.bitsizeof(T), instead of implementing that builtin and its exact errors.
+base/intfuncs.jl	1207	1208	digits	digits(n::Integer; base::Integer = 10, pad::Integer = 1)	modelled	intfuncs-digits-default-call-provenance	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.digitsDefault; reviewed against Julia f755f49.
+base/intfuncs.jl	1210	1212	digits	digits(T::Type{<:Integer}, n::Integer; base::Integer = 10, pad::Integer = 1)	modelled	intfuncs-digits-type-allocation-provenance	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.digitsType; reviewed against Julia f755f49.
+base/intfuncs.jl	1219	1219	hastypemax	hastypemax(::Type{T}) where {T}	modelled	intfuncs-hastypemax-applicability-provenance	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.hasTypeMaxType; reviewed against Julia f755f49.
+base/intfuncs.jl	1220	1220	hastypemax	hastypemax(::Type{Union{}})	modelled	intfuncs-hastypemax	Source-mirrored model JuliaLean.base.intfuncs.hasTypeMax_Bottom; reviewed against Julia f755f49.
+base/intfuncs.jl	1221	1221	hastypemax	hastypemax(::Type{Union{}}, slurp...)	modelled	intfuncs-hastypemax	Source-mirrored model JuliaLean.base.intfuncs.hasTypeMax_Bottom_Extra; reviewed against Julia f755f49.
 base/intfuncs.jl	1249	1281	digits!	digits!(a::AbstractVector{T}, n::Integer; base::Integer = 10) where T<:Integer	modelled	parseprint-digits-fill-low-order,parseprint-digits-typemin-base	
-base/intfuncs.jl	1293	1293	isqrt	isqrt(x::Integer)	todo		trivial: dispatch identities, including unrelated permutation methods; the factorial(21) docstring example is implemented by base/combinatorics.jl's BitInteger table methods, not the generic fallback
-base/intfuncs.jl	1295	1302	isqrt	isqrt(x::Union{Int64,UInt64,Int128,UInt128})	todo		trivial: dispatch identities, including unrelated permutation methods; the factorial(21) docstring example is implemented by base/combinatorics.jl's BitInteger table methods, not the generic fallback
+base/intfuncs.jl	1293	1293	isqrt	isqrt(x::Integer)	modelled	intfuncs-isqrt-open-provenance;intfuncs-isqrt-native-floor	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.isqrtInteger; reviewed against Julia f755f49.
+base/intfuncs.jl	1295	1302	isqrt	isqrt(x::Union{Int64,UInt64,Int128,UInt128})	modelled	intfuncs-isqrt-native-floor	Source-mirrored model JuliaLean.base.intfuncs.isqrt_Wide;JuliaLean.base.intfuncs.Models2Group16.isqrtWideNative; reviewed against Julia f755f49.
 base/intfuncs.jl	1330	1337	factorial	factorial(n::Integer)	todo		trivial: dispatch identities, including unrelated permutation methods; the factorial(21) docstring example is implemented by base/combinatorics.jl's BitInteger table methods, not the generic fallback
-base/intfuncs.jl	1373	1373	binomial	binomial(n::Integer, k::Integer)	todo		trivial: dispatch identities, including unrelated permutation methods; the factorial(21) docstring example is implemented by base/combinatorics.jl's BitInteger table methods, not the generic fallback
+base/intfuncs.jl	1373	1373	binomial	binomial(n::Integer, k::Integer)	modelled	intfuncs-binomial-mixed-provenance	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.binomialMixed; reviewed against Julia f755f49.
 base/intfuncs.jl	1375	1402	binomial	binomial(n::T, k::T) where T<:Integer	modelled	combinatorics-binomial-nonnegative-edges,combinatorics-binomial-typemin	
-base/intfuncs.jl	1428	1433	binomial	binomial(x::Number, k::Integer)	todo		trivial: dispatch identities, including unrelated permutation methods; the factorial(21) docstring example is implemented by base/combinatorics.jl's BitInteger table methods, not the generic fallback
-base/intfuncs.jl	1461	1464	clamp	clamp(x::X, lo::L, hi::H) where {X,L,H}	todo		trivial: repeats clamp branches and a reflexive final conjunct
-base/intfuncs.jl	1485	1492	clamp	clamp(x, ::Type{T}) where {T<:Integer}	todo		trivial: repeats clamp branches and a reflexive final conjunct
-base/intfuncs.jl	1493	1493	clamp	clamp(x, ::Type{Union{}}, slurp...)	todo		trivial: repeats clamp branches and a reflexive final conjunct
-base/intfuncs.jl	1518	1523	clamp!	clamp!(x::AbstractArray, lo, hi)	todo		trivial: repeats clamp branches and a reflexive final conjunct
-base/intfuncs.jl	1533	1533	clamp	clamp(x::Integer, r::AbstractUnitRange{<:Integer})	todo		trivial: repeats clamp branches and a reflexive final conjunct
+base/intfuncs.jl	1428	1433	binomial	binomial(x::Number, k::Integer)	modelled	intfuncs-binomial-number-effects	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.binomialNumberGeneric; reviewed against Julia f755f49.
+base/intfuncs.jl	1461	1464	clamp	clamp(x::X, lo::L, hi::H) where {X,L,H}	modelled	intfuncs-clamp-native-projection	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.clampGeneric; reviewed against Julia f755f49.
+base/intfuncs.jl	1485	1492	clamp	clamp(x, ::Type{T}) where {T<:Integer}	modelled	intfuncs-clamp-type-native-projection	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.clampType; reviewed against Julia f755f49.
+base/intfuncs.jl	1493	1493	clamp	clamp(x, ::Type{Union{}}, slurp...)	modelled	intfuncs-clamp-bottom-error-identity	Source-mirrored model JuliaLean.base.intfuncs.clamp_Bottom; reviewed against Julia f755f49.
+base/intfuncs.jl	1518	1523	clamp!	clamp!(x::AbstractArray, lo, hi)	modelled	intfuncs-clamp-bang-open-mutation	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.clampBangGeneric; reviewed against Julia f755f49.
+base/intfuncs.jl	1533	1533	clamp	clamp(x::Integer, r::AbstractUnitRange{<:Integer})	modelled	intfuncs-clamp-range-open-provenance	Source-mirrored model JuliaLean.base.intfuncs.Models2Group16.clampRange; reviewed against Julia f755f49.

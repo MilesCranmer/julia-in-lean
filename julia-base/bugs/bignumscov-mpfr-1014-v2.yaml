@@ -1,0 +1,79 @@
+id: bignumscov-mpfr-1014-v2
+title: Reverse Float64 BigFloat cmp also loses signed-zero order
+priority: P2
+kind: wrong-result
+area: BigNums
+files:
+  - base/mpfr.jl
+  - base/operators.jl
+functions:
+  - cmp(::Float64, ::BigFloat)
+summary: |
+  cmp(Float64(0.0), BigFloat(-0.0; precision=256)) returns zero, although
+  isless orders the second operand before the first. This reverse comparison
+  inherits the forward BigFloat/IEEE method's missing signed-zero distinction.
+likelihood: |
+  The defect appears when machine floats and BigFloat values are compared
+  with the machine float first. It affects cmp-based ordering of mixed data
+  just as the forward case does.
+maybe_intended: |
+  Negating a correct forward three-way comparison is valid. Here the forward
+  method compares zeros numerically, so negation cannot recover the lost sign
+  information. The intended cmp contract is explicitly based on isless.
+reproducer: |
+  x = Float64(0.0)
+  y = BigFloat(-0.0; precision=256)
+  @assert cmp(x, y) == 0 && isless(y, x)
+  println("REPRODUCED bignumscov-mpfr-1014-v2")
+output:
+  release: |
+    REPRODUCED bignumscov-mpfr-1014-v2
+  nightly: |
+    REPRODUCED bignumscov-mpfr-1014-v2
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  Return 1 because positive Float64 zero follows negative BigFloat zero.
+promised_by: |
+  At pinned source f755f49a9e41380d7da126b3c1db9fe7f83dd027,
+  base/operators.jl:510-511 says:
+  "Return -1, 0, or 1 depending on whether `x` is less than, equal to, or greater than `y`,
+  respectively. Uses the total order implemented by `isless`."
+  base/operators.jl:211-212 says:
+  "- If `isless(x, y)` is defined, then so is `isless(y, x)` and `isequal(x, y)`,
+    and exactly one of those three yields `true`."
+  The floating-pair isless method at line 240 distinguishes the zero signs.
+cause: |
+  base/mpfr.jl:1014 defines the reverse CdoubleMax/BigFloat method as
+  -cmp(y, x). Its forward method at lines 1009-1013 uses mpfr_cmp_d after
+  NaN checks and returns zero for the equal-valued zeros. Negating zero
+  leaves zero, so the reverse method inherits the same total-order defect.
+possible_fix: |
+  Correct the signed-zero handling in the forward method and retain reverse
+  negation. Cover both operand orders when checking agreement with isless.
+duplicates:
+  issues:
+    - number: 64167
+      state: open
+      relation: related
+      note: Rational/float signed-zero defect, not this MPFR overload
+  prs:
+    - number: 64575
+      state: open
+      relation: related
+      note: Rational/float correction, does not fix the MPFR path
+  queries:
+    - tool: gh search issues --repo JuliaLang/julia
+      query: cmp BigFloat
+    - tool: gh search issues --repo JuliaLang/julia
+      query: cmp isless zero
+    - tool: gh search issues --repo JuliaLang/julia
+      query: BigFloat "signed zero"
+    - tool: gh search prs --repo JuliaLang/julia
+      query: cmp zero
+    - tool: gh search prs --repo JuliaLang/julia
+      query: cmp BigFloat
+lean:
+  property: JuliaLean.Proofs.base.mpfr.Round1.IEEECmpTotalOrder
+  theorem: JuliaLean.ChatGPT.Batch4.Group3.BignumscovMpfr1014V2_refuted

@@ -25,9 +25,10 @@ output:
     error = BoundsError: attempt to access 10-element Memory{Int64} at index [11]
     REPRODUCED multidimcov-sizehint-first-empty
   nightly: |
-    error = BoundsError: attempt to access 10-element Memory{Int64} at index [11]
-    REPRODUCED multidimcov-sizehint-first-empty
-reproduced: {release: true, nightly: true}
+    result = Int64[]
+    NOT REPRODUCED
+    sizehint preservation and conversion error: OK
+reproduced: {release: true, nightly: false}
 expected: |
   The call returns a unchanged (still empty), possibly with less capacity.
 promised_by: |

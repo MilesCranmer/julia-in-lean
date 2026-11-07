@@ -55,5 +55,5 @@ duplicates:
   issues: []
   queries: ["SubString negative ncodeunits", "Val noshift negative SubString", "raw_substring negative"]
 lean:
-  property: JuliaLean.MemSafety.G1.DeprecatedSubstringValid
-  theorem: JuliaLean.MemSafety.G1.deprecatedSubstringValid_refuted
+  property: JuliaLean.Proofs.base.deprecated.DeprecatedSubstringValid
+  theorem: JuliaLean.Proofs.base.deprecated.deprecatedSubstringValid_refuted

@@ -4058,4 +4058,14 @@ def simpleIntersect (n : Nat) (T : Types) (ops : Ops) (a b : Val) (overesi : Nat
   let sorted ← isortUnion n T (temp.toList.drop i0 |>.take (ntEnd - i0))
   return buildUnion sorted
 
+structure MutableReference where
+  type : Val
+  address : UInt64
+
+def mutableValue (ref : MutableReference) : Val :=
+  .mutableRef ref.type ref.address
+
+def sameMutable (types : Types) (left right : MutableReference) : Except String Bool :=
+  ((egal 1 types (mutableValue left) (mutableValue right)).run 0).map Prod.fst
+
 end JuliaLean.C

@@ -351,8 +351,8 @@ def macroSomething (reverse : List Nat → List Nat)
   let mut expr := JuliaExpr.call something [noth]
   let indices ← JuliaLean.base.abstractarray.eachindexIterators tupleKeys args
   for i in reverse indices do
-    let arg ← (JuliaLean.base.tuple.getindexInteger args
-      (.big (Int.ofNat i))).mapError tupleErrorToArrayError
+    let arg ← (JuliaLean.base.tuple.getindexInteger args (.big (Int.ofNat i)) :
+      JuliaLean.base.tuple.R JuliaExpr).mapError tupleErrorToArrayError
     let val := inlineanonymous "val" i
     expr := .block [
       .assign val (esc arg),
@@ -426,3 +426,117 @@ def hashSome {T : PType} {α : Type} (width : UIntWidth)
   hash s.value (hash_some_seed width + h)
 
 end JuliaLean.base.some
+
+namespace JuliaLean.MissingChar
+
+/-- `isnothing(x) = x === nothing`, `base/some.jl:67`. -/
+def JV.isNothing : JV α → Bool
+  | .nothing => true
+  | _ => false
+
+/-- `something(x...)`, `base/some.jl:99-102`. -/
+def something : List (JV α) → Jl (JV α)
+  | [] => .error (.argumentError "No value arguments present")
+  | .nothing :: ys => something ys
+  | .some v :: _ => .ok v
+  | x :: _ => .ok x
+
+/-- `@something(x...)`, `base/some.jl:138-167`: the first value that is not
+`nothing` is passed to `something(val)`; the innermost expression is
+`something(nothing)`. -/
+def atSomething : List (JV α) → Jl (JV α)
+  | [] => something [.nothing]
+  | v :: rest => if !v.isNothing then something [v] else atSomething rest
+
+/-- `notnothing(x)`, `base/some.jl:54-55`. -/
+def notnothing : JV α → Jl (JV α)
+  | .nothing => .error (.argumentError "nothing passed to notnothing")
+  | x => .ok x
+
+/-- `isequal(a::Some, b::Some) = isequal(a.value, b.value)`, `base/some.jl:170`. -/
+def isequalSome (eqv : α → α → Bool) (a b : α) : Bool := eqv a b
+
+/-- `hash(s::Some, h) = hash(s.value, hash_some_seed +% h)`, `base/some.jl:171-172`. -/
+def hashSome (hash : α → UInt64 → UInt64) (a : α) (h : UInt64) : UInt64 :=
+  hash a (0xde5c997007a4ca3a + h)
+
+end JuliaLean.MissingChar
+
+namespace JuliaLean.ReduceCov.SomeRows
+
+open JuliaLean.MissingChar
+
+structure SomeV (α : Type) where
+  value : α
+  deriving Repr, DecidableEq
+
+/-- `Some(::Type{T}) where T`, `base/some.jl:15`. -/
+def m15 (T : α) : SomeV α := ⟨T⟩
+
+/-- `nonnothingtype(T) = typesplit(T, Nothing)`, `base/some.jl:17`. -/
+def m17 (typesplit : α → α → α) (nothing T : α) : α := typesplit T nothing
+
+/-- `promote_rule(::Type{Nothing}, S)`, `base/some.jl:18`. -/
+def m18 (unionNothing : α → α) (S : α) : α := unionNothing S
+
+/-- The general `Nothing` promotion rule, `base/some.jl:19-25`. -/
+def m19 (nonnothing : α → α) (supertype : α → α → Bool) (promote : α → α → α)
+    (unionNothing : α → α) (any T S : α) : α :=
+  let R := nonnothing T
+  if supertype R T then any else unionNothing (promote R S)
+
+/-- `nonnothingtype_checked`, including both ordered checks, `base/some.jl:27-32`. -/
+def m27 (nonnothing : α → α) (supertype isBottom : α → α → Bool) (T bottom : α) : RJ α :=
+  let R := nonnothing T
+  if supertype R T then .error (.errorException "could not compute non-nothing type")
+  else if isBottom R bottom then .error (.errorException "cannot convert a value to nothing for assignment")
+  else .ok R
+
+/-- Same-type conversion, `base/some.jl:34`. -/
+def m34 (x : α) : α := x
+
+/-- General conversion to a type containing `Nothing`, `base/some.jl:35`. -/
+def m35 (checked : τ → RJ σ) (convert : σ → α → RJ β) (T : τ) (x : α) : RJ β := do
+  convert (← checked T) x
+
+/-- Same-parameter `Some` conversion, `base/some.jl:36`. -/
+def m36 (x : SomeV α) : SomeV α := x
+
+/-- Converting between `Some` parameters, `base/some.jl:37`. -/
+def m37 (convert : α → RJ β) (x : SomeV α) : RJ (SomeV β) := do
+  pure ⟨← convert x.value⟩
+
+/-- `notnothing(x::Any)`, `base/some.jl:54`. -/
+def m54 (x : JV α) : Jl (JV α) := .ok x
+
+/-- `notnothing(::Nothing)`, `base/some.jl:55`. -/
+def m55 (α : Type) : Jl (JV α) := .error (.argumentError "nothing passed to notnothing")
+
+/-- `isnothing(x) = x === nothing`, `base/some.jl:67`. -/
+def m67 (x : JV α) : Bool := x.isNothing
+
+/-- Zero-argument `something`, `base/some.jl:99`. -/
+def m99 (α : Type) : Jl (JV α) := .error (.argumentError "No value arguments present")
+
+/-- `something(x::Nothing, y...)`, `base/some.jl:100`. -/
+def m100 (ys : List (JV α)) : Jl (JV α) := something ys
+
+/-- `something(x::Some, y...)`, `base/some.jl:101`. -/
+def m101 (x : JV α) (_ys : List (JV α)) : Jl (JV α) :=
+  match x with | .some value => .ok value | other => .ok other
+
+/-- `something(x::Any, y...)`, `base/some.jl:102`. -/
+def m102 (x : JV α) (_ys : List (JV α)) : Jl (JV α) := .ok x
+
+inductive SomethingExpr (α : Type) where
+  | fail
+  | branch (value : JV α) (rest : SomethingExpr α)
+
+/-- The reverse loop that builds `@something`'s nested expression, `base/some.jl:138-167`. -/
+def m138 (args : List (JV α)) : SomethingExpr α :=
+  args.reverse.foldl (fun expr value => .branch value expr) .fail
+
+/-- `==(a::Some, b::Some)`, `base/some.jl:169`. -/
+def m169 (eq : α → α → β) (a b : SomeV α) : β := eq a.value b.value
+
+end JuliaLean.ReduceCov.SomeRows

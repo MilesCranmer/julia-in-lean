@@ -1,6 +1,9 @@
 import JuliaLean.Core
+import JuliaLean.Runtime.Collections
+import JuliaLean.base.float
 import JuliaLean.base.tuple
 import JuliaLean.src.julia_h
+import JuliaLean.src.jltypes_c
 import JuliaLean.Registry.Types
 
 /-!
@@ -804,9 +807,12 @@ Julia source: base/operators.jl:914-914 @ f755f49a9e41380d7da126b3c1db9fe7f83dd0
 mod1(x::T, y::T) where {T<:Real} = (m = mod(x, y); iszero(m) ? y : m)
 ```
 -/
-def mod1 (mod : α → α → Jl α) (iszero : α → Jl Bool) (x y : α) : Jl α := do
-  let m ← mod x y
-  if ← iszero m then pure y else pure m
+def mod1 {m : Type → Type} [Monad m] {P : Type}
+    (mod : α → α → m β) (iszero : β → m P) (assertBool : P → m Bool)
+    (x y : α) : m (α ⊕ β) := do
+  let remainder ← mod x y
+  if ← assertBool (← iszero remainder) then pure (.inl y)
+  else pure (.inr remainder)
 
 /--
 Julia source: base/operators.jl:943-943 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -881,6 +887,9 @@ Julia source: base/operators.jl:1004-1004 @ f755f49a9e41380d7da126b3c1db9fe7f83d
 _stable_typeof(::Type{T}) where {T} = @isdefined(T) && !Core.has_free_typevars(T) ? Type{T} : DataType
 ```
 -/
+-- Source: base/operators.jl:1004-1004 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- _stable_typeof(::Type{T}) where {T} = @isdefined(T) && !Core.has_free_typevars(T) ? Type{T} : DataType
+-- /Source
 def stableTypeofType (isDefined hasFreeTypevars : α → Bool)
     (typeTag : α → β) (dataType : β) (t : α) : β :=
   if isDefined t then
@@ -898,7 +907,10 @@ Julia source: base/operators.jl:1031-1031 @ f755f49a9e41380d7da126b3c1db9fe7f83d
     Returns{V}(value) where {V} = new{V}(value)
 ```
 -/
-def returnsTyped (typeParam : τ) (value : α) : Returns τ α := ⟨typeParam, value⟩
+def returnsTyped {τ V α : Type} (convert : τ → α → Jl V) (typeParam : τ) (value : α) :
+    Jl (Returns τ V) := do
+  let v ← convert typeParam value
+  pure ⟨typeParam, v⟩
 
 /--
 Julia source: base/operators.jl:1032-1032 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -928,7 +940,11 @@ Julia source: base/operators.jl:1121-1121 @ f755f49a9e41380d7da126b3c1db9fe7f83d
     ComposedFunction{O, I}(outer, inner) where {O, I} = new{O, I}(outer, inner)
 ```
 -/
-def composedTyped (outer : α) (inner : β) : ComposedFunction α β := ⟨outer, inner⟩
+def composedTyped {O I α β : Type} (convertOuter : α → Jl O) (convertInner : β → Jl I)
+    (outer : α) (inner : β) : Jl (ComposedFunction O I) := do
+  let o ← convertOuter outer
+  let i ← convertInner inner
+  pure ⟨o, i⟩
 
 /--
 Julia source: base/operators.jl:1122-1122 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -1016,6 +1032,9 @@ Julia source: base/operators.jl:1126-1126 @ f755f49a9e41380d7da126b3c1db9fe7f83d
 unwrap_composed(c::ComposedFunction) = (unwrap_composed(c.outer)..., unwrap_composed(c.inner)...)
 ```
 -/
+  -- Source: base/operators.jl:1126-1126 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  -- unwrap_composed(c::ComposedFunction) = (unwrap_composed(c.outer)..., unwrap_composed(c.inner)...)
+  -- /Source
   def unwrapComposed {F T : Type} :
       ComposedFunction (Callee F T) (Callee F T) → List (PlainCallable F T)
     | c => unwrapComposedAny c.outer ++ unwrapComposedAny c.inner
@@ -1054,6 +1073,9 @@ Julia source: base/operators.jl:1128-1128 @ f755f49a9e41380d7da126b3c1db9fe7f83d
 call_composed(fs, x, kw) = (@inline; fs[1](call_composed(tail(fs), x, kw)))
 ```
 -/
+  -- Source: base/operators.jl:1128-1128 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  -- call_composed(fs, x, kw) = (@inline; fs[1](call_composed(tail(fs), x, kw)))
+  -- /Source
   def callComposed {F T V σ : Type} (m : CallMethods F T V σ)
       (fs : List (PlainCallable F T)) (x : List V) (kw : List (σ × V)) : Jl V :=
     match fs with
@@ -1113,6 +1135,9 @@ Julia source: base/operators.jl:1138-1138 @ f755f49a9e41380d7da126b3c1db9fe7f83d
 ∘(f, g, h...) = ∘(f ∘ g, h...)
 ```
 -/
+  -- Source: base/operators.jl:1138-1138 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  -- ∘(f, g, h...) = ∘(f ∘ g, h...)
+  -- /Source
   def composeMany {F T : Type} (f g : Callee F T) (h : List (Callee F T)) : Jl (Callee F T) :=
     composeAny (.composed (composeTwo f g) :: h)
   termination_by 2 * h.length + 3
@@ -1488,7 +1513,9 @@ Julia source: base/operators.jl:1417-1417 @ f755f49a9e41380d7da126b3c1db9fe7f83d
 splat(f::ComposedFunction{<:Any,typeof(tuple)}) = f.outer
 ```
 -/
-
+-- Source: base/operators.jl:1417-1417 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- splat(f::ComposedFunction{<:Any,typeof(tuple)}) = f.outer
+-- /Source
 def splatComposed (f : ComposedFunction α TupleFunction) : α := f.outer
 
 /--
@@ -1577,6 +1604,32 @@ def inTuple {τ β : Type} {Elem : τ → Type} {ts : List τ}
     (itr : HTuple Elem ts) : Truth :=
   inTupleHelper eq x itr .false
 
+/-- operators.lean `inTupleHelper` (operators.jl:1463-1471 `_in_tuple`) with `==` in a
+monad, so a throwing `itr[1] == x` propagates; `m := Id` is the installed definition. -/
+def inTupleHelperM {m : Type → Type} [Monad m] {τ β : Type} {Elem : τ → Type}
+    (eq : {t : τ} → Elem t → β → m Truth) (x : β) :
+    {ts : List τ} → HTuple Elem ts → Truth → m Truth
+  | [], .nil, result => pure result
+  | _ :: _, .cons v rest, result => do
+      match ← eq v x with
+      | .true => pure .true
+      | comparison => inTupleHelperM eq x rest (Truth.or result comparison)
+
+/-- operators.lean `inTuple` (operators.jl:1459). -/
+def inTupleM {m : Type → Type} [Monad m] {τ β : Type} {Elem : τ → Type} {ts : List τ}
+    (eq : {t : τ} → Elem t → β → m Truth) (x : β)
+    (itr : HTuple Elem ts) : m Truth :=
+  inTupleHelperM eq x itr .false
+
+/-- operators.lean `isequal` (operators.jl:196 `isequal(x, y) = (x == y)::Bool`) on the
+pair's three-valued `==`: a `missing` fails the `::Bool` assertion (`TypeError`). -/
+def isequalM {Q K E : Type} (typeError : E) (eq : Q → K → Except E Truth) (q : Q)
+    (k : K) : Except E Bool := do
+  match ← eq q k with
+  | .true => pure true
+  | .false => pure false
+  | .missing => throw typeError
+
 /--
 Julia source: base/operators.jl:1474-1474 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 ```julia
@@ -1641,3 +1694,1795 @@ def notContainsUnary {α β γ : Type} (notContains : α → β → γ) (x : β)
   ⟨fun a b _ => notContains a b, x⟩
 
 end JuliaLean.base.operators
+
+/- Additive recovery reconstruction for models batch 2, group 15.
+   These declarations were reconstructed from the exact pinned Julia source
+   and the recovered independent property interfaces after the transient
+   workspace disappeared. They do not include or replace any baseline file.
+   Julia commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027. -/
+
+namespace JuliaLean.base.operators.Models2Group15
+
+open JuliaLean JuliaLean.base.tuple
+
+/-- A complete separation of concrete Bool values from arbitrary other Julia
+values. Other is unrestricted and may carry reference identity, mutable state
+handles, abstract/custom values, and heterogeneous runtime tags. The bool tag
+is reserved for actual Julia Bool values; it is not a user predicate. -/
+inductive Value (Other : Type) where
+  | bool (value : Bool)
+  | other (value : Other)
+
+/-- The concrete ::Bool assertion used by the reached Julia methods. It does
+not invoke conversion or an arbitrary membership callback. Source assertion
+semantics: doc/src/manual/types.md:67-83 at the pinned commit. -/
+def assertBool {m : Type → Type} [Monad m] [MonadExceptOf TupleError m]
+    {Other : Type} : Value Other → m Bool
+  | .bool value => pure value
+  | .other _ => throwThe TupleError .typeError
+
+/-- Selected equality on the unfixed argument types of generic isequal.
+The action retains effects, arbitrary intermediate values, and exceptions. -/
+structure EqualityOps (m : Type → Type) (A B Other : Type) where
+  equal : A → B → m (Value Other)
+
+/-- Generic equality wrapper. The equality call is evaluated once, before the
+concrete assertion. Documentation: base/operators.jl:145-177 and
+doc/src/manual/types.md:67-83 at the pinned commit. -/
+-- Source: base/operators.jl:196-196 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- isequal(x, y) = (x == y)::Bool # all `missing` cases are handled in missing.jl
+-- /Source
+def isequal {m : Type → Type} [Monad m] [MonadExceptOf TupleError m]
+    {A B Other : Type} (ops : EqualityOps m A B Other) (x : A) (y : B) : m Bool := do
+  let value ← ops.equal x y
+  assertBool value
+
+/-- The two selected signbit methods can have different operand domains and
+arbitrary effects, exceptions, and dynamic results. -/
+structure SignOps (m : Type → Type) (A B Other : Type) where
+  signLeft : A → m (Value Other)
+  signRight : B → m (Value Other)
+
+/-- The selected same-type numeric equality fallback specialized to the
+closed concrete Bool domain. Its === compares immutable Bool bit patterns,
+represented by Bool BEq; no open equality callback is introduced.
+Identity semantics: base/operators.jl:343-350 at the pinned commit. -/
+-- Source: base/promotion.jl:665-665 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- (==)(x::T, y::T) where {T<:Number} = x === y
+-- /Source
+def boolEqual (left right : Bool) : Bool := left == right
+
+/-- Both assertions occur before concrete Bool equality. The second sign
+query is reached only after the first call and assertion succeed. -/
+-- Source: base/operators.jl:198-198 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- signequal(x, y) = signbit(x)::Bool == signbit(y)::Bool
+-- /Source
+def signequal {m : Type → Type} [Monad m] [MonadExceptOf TupleError m]
+    {A B Other : Type} (ops : SignOps m A B Other) (x : A) (y : B) : m Bool := do
+  let leftValue ← ops.signLeft x
+  let left ← assertBool leftValue
+  let rightValue ← ops.signRight y
+  let right ← assertBool rightValue
+  pure (boolEqual left right)
+
+/-- Eager sign order. Julia parses the right operand as !(signbit(y)::Bool):
+the assertion precedes concrete Bool negation. Both sign queries occur even
+when the first asserted sign is false; only an exception interrupts them.
+Concrete conjunction reuses the installed operator model. -/
+-- Source: base/operators.jl:199-199 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- signless(x, y) = signbit(x)::Bool & !signbit(y)::Bool
+-- /Source
+def signless {m : Type → Type} [Monad m] [MonadExceptOf TupleError m]
+    {A B Other : Type} (ops : SignOps m A B Other) (x : A) (y : B) : m Bool := do
+  let leftValue ← ops.signLeft x
+  let left ← assertBool leftValue
+  let rightValue ← ops.signRight y
+  let right ← assertBool rightValue
+  pure (JuliaLean.base.operators.bitAnd left (!right))
+
+/-- Open operations selected only when the arguments are not both fixed
+concrete Bool values. Their values, exceptions, and world changes are
+unrestricted. Non-Bool does not mean nonnumeric: Other may include every
+other concrete, abstract, and custom runtime value. -/
+structure BoolOps (m : Type → Type) (Other : Type) where
+  notOther : Other → m (Value Other)
+  andOther : Value Other → Value Other → m (Value Other)
+  orOther : Value Other → Value Other → m (Value Other)
+
+/-- Necessary concrete Bool negation uses the one-bit complement primitive.
+Every other runtime value is passed unchanged to its selected open method. -/
+-- Source: base/essentials.jl:1294-1294 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- !(x::Bool) = not_int(x)
+-- /Source
+def notValue {m : Type → Type} [Monad m] {Other : Type}
+    (ops : BoolOps m Other) : Value Other → m (Value Other)
+  | .bool value => pure (.bool (!value))
+  | .other value => ops.notOther value
+
+/-- Necessary concrete Bool conjunction reuses the installed Boolean
+operator model; all other combinations use selected open dispatch. -/
+-- Source: base/bool.jl:14-14 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- (&)(x::Bool, y::Bool) = and_int(x, y)
+-- /Source
+def andValue {m : Type → Type} [Monad m] {Other : Type}
+    (ops : BoolOps m Other) (left right : Value Other) : m (Value Other) :=
+  match left, right with
+  | .bool x, .bool y => pure (.bool (JuliaLean.base.operators.bitAnd x y))
+  | _, _ => ops.andOther left right
+
+/-- Necessary concrete Bool disjunction reuses the installed Boolean
+operator model; all other combinations use selected open dispatch. -/
+-- Source: base/bool.jl:15-15 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- (|)(x::Bool, y::Bool) = or_int(x, y)
+-- /Source
+def orValue {m : Type → Type} [Monad m] {Other : Type}
+    (ops : BoolOps m Other) (left right : Value Other) : m (Value Other) :=
+  match left, right with
+  | .bool x, .bool y => pure (.bool (JuliaLean.base.operators.bitOr x y))
+  | _, _ => ops.orOther left right
+
+/-- AbstractFloat and Real are not concrete dispatch types. These fields
+represent selected methods on the actual operands, including custom numeric
+subtypes and their effects. Only the explicit equality assertion fixes Bool.
+The Boolean operation helpers still perform the concrete Bool dispatch. -/
+structure FloatEqualOps (m : Type → Type) (A B Other : Type) where
+  nanLeft : A → m (Value Other)
+  nanRight : B → m (Value Other)
+  signEqual : A → B → m (Value Other)
+  equal : A → B → m (Value Other)
+  boolOps : BoolOps m Other
+
+/-- Full eager evaluation of AbstractFloat equality, including interleaved
+Boolean operations and terminal effects/errors. The method does not assert
+Bool for isnan or signequal and does not short-circuit either conjunction.
+Documentation: base/operators.jl:145-177; doc/src/manual/control-flow.md:
+264-268,361-376; doc/src/manual/types.md:67-83 at the pinned commit. -/
+-- Source: base/operators.jl:201-201 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- isequal(x::AbstractFloat, y::AbstractFloat) = (isnan(x) & isnan(y)) | signequal(x, y) & (x == y)::Bool
+-- /Source
+def isequalFloatFloat {m : Type → Type} [Monad m] [MonadExceptOf TupleError m]
+    {A B Other : Type} (ops : FloatEqualOps m A B Other)
+    (x : A) (y : B) : m (Value Other) := do
+  let leftNan ← ops.nanLeft x
+  let rightNan ← ops.nanRight y
+  let bothNan ← andValue ops.boolOps leftNan rightNan
+  let sameSign ← ops.signEqual x y
+  let equalValue ← ops.equal x y
+  let equalBool ← assertBool equalValue
+  let signedEqual ← andValue ops.boolOps sameSign (.bool equalBool)
+  orValue ops.boolOps bothNan signedEqual
+
+/-- The Real/AbstractFloat method retains independently typed operands and
+the same source evaluation order, including non-Bool intermediate results.
+There is no extra assertion or conversion at the abstract type boundary. -/
+-- Source: base/operators.jl:202-202 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- isequal(x::Real,          y::AbstractFloat) = (isnan(x) & isnan(y)) | signequal(x, y) & (x == y)::Bool
+-- /Source
+def isequalRealFloat {m : Type → Type} [Monad m] [MonadExceptOf TupleError m]
+    {A B Other : Type} (ops : FloatEqualOps m A B Other)
+    (x : A) (y : B) : m (Value Other) := do
+  let leftNan ← ops.nanLeft x
+  let rightNan ← ops.nanRight y
+  let bothNan ← andValue ops.boolOps leftNan rightNan
+  let sameSign ← ops.signEqual x y
+  let equalValue ← ops.equal x y
+  let equalBool ← assertBool equalValue
+  let signedEqual ← andValue ops.boolOps sameSign (.bool equalBool)
+  orValue ops.boolOps bothNan signedEqual
+
+/-- Open operand-level methods for the AbstractFloat ordering wrapper. None
+of the source intermediate predicates carries a concrete Bool assertion. -/
+structure FloatLessOps (m : Type → Type) (A B Other : Type) where
+  nanLeft : A → m (Value Other)
+  nanRight : B → m (Value Other)
+  signLess : A → B → m (Value Other)
+  less : A → B → m (Value Other)
+  boolOps : BoolOps m Other
+
+/-- Full eager evaluation of the floating ordering expression. Negation is
+evaluated immediately after the left NaN query; the inner disjunction and
+conjunction complete before the final less-than query. All selected methods
+share the surrounding monad and retain arbitrary effects and exceptions.
+Documentation: base/operators.jl:206-237; doc/src/manual/control-flow.md:
+264-268,361-376 at the pinned commit. -/
+-- Source: base/operators.jl:240-240 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- isless(x::AbstractFloat, y::AbstractFloat) = (!isnan(x) & (isnan(y) | signless(x, y))) | (x < y)
+-- /Source
+def islessFloatFloat {m : Type → Type} [Monad m]
+    {A B Other : Type} (ops : FloatLessOps m A B Other)
+    (x : A) (y : B) : m (Value Other) := do
+  let leftNan ← ops.nanLeft x
+  let leftOrdered ← notValue ops.boolOps leftNan
+  let rightNan ← ops.nanRight y
+  let signsLess ← ops.signLess x y
+  let rightOrSign ← orValue ops.boolOps rightNan signsLess
+  let orderedPart ← andValue ops.boolOps leftOrdered rightOrSign
+  let numericLess ← ops.less x y
+  orValue ops.boolOps orderedPart numericLess
+
+/-- The predicate values can be non-Bool and the comparison result R is
+entirely unrestricted. Forward and backward dispatch preserve the actual
+argument order, including heterogeneous operand domains. -/
+structure GreaterOps (m : Type → Type) (A B Other R : Type) where
+  unorderedLeft : A → m (Value Other)
+  unorderedRight : B → m (Value Other)
+  lessForward : A → B → m R
+  lessBackward : B → A → m R
+
+/-- Short-circuit unordered testing followed by one selected comparison.
+Only reached conditions are asserted Bool; the returned ordering value is
+not asserted. Documentation: base/operators.jl:252-294 and
+doc/src/manual/control-flow.md (short-circuit evaluation) at the pinned commit. -/
+-- Source: base/operators.jl:295-295 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- isgreater(x, y) = isunordered(x) || isunordered(y) ? isless(x, y) : isless(y, x)
+-- /Source
+def isgreater {m : Type → Type} [Monad m] [MonadExceptOf TupleError m]
+    {A B Other R : Type} (ops : GreaterOps m A B Other R)
+    (x : A) (y : B) : m R := do
+  let leftValue ← ops.unorderedLeft x
+  let left ← assertBool leftValue
+  if left then
+    ops.lessForward x y
+  else
+    let rightValue ← ops.unorderedRight y
+    let right ← assertBool rightValue
+    if right then ops.lessForward x y else ops.lessBackward y x
+
+/-- The isnan method is open for an unfixed AbstractFloat subtype, and its
+result is not constrained by the source wrapper. -/
+structure UnorderedFloatOps (m : Type → Type) (A R : Type) where
+  isnan : A → m R
+
+/-- Forward exactly one selected isnan call, without asserting Bool.
+Documentation: base/operators.jl:297-308 at the pinned commit. -/
+-- Source: base/operators.jl:310-310 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- isunordered(x::AbstractFloat) = isnan(x)
+-- /Source
+def isunorderedFloat {m : Type → Type} {A R : Type}
+    (ops : UnorderedFloatOps m A R) (x : A) : m R :=
+  ops.isnan x
+
+/-- Equality remains open on arbitrary inputs. Its dynamic returned value
+determines whether the following negation uses the concrete Bool primitive. -/
+structure NotEqualOps (m : Type → Type) (A B Other : Type) where
+  equal : A → B → m (Value Other)
+  boolOps : BoolOps m Other
+
+/-- Equality is evaluated before negation, with no source Bool assertion.
+Documentation: base/operators.jl:319-337 at the pinned commit. -/
+-- Source: base/operators.jl:338-338 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- !=(x, y) = !(x == y)
+-- /Source
+def notEqual {m : Type → Type} [Monad m] {A B Other : Type}
+    (ops : NotEqualOps m A B Other) (x : A) (y : B) : m (Value Other) := do
+  let equalValue ← ops.equal x y
+  notValue ops.boolOps equalValue
+
+/-- Arbitrary comparison results are retained so result-level | dispatch is
+concrete only when both actual returned values are Bool. -/
+structure LessEqualOps (m : Type → Type) (A B Other : Type) where
+  less : A → B → m (Value Other)
+  equal : A → B → m (Value Other)
+  boolOps : BoolOps m Other
+
+/-- Eager < followed by == and then result-level disjunction.
+Documentation: base/operators.jl:446-466 at the pinned commit. -/
+-- Source: base/operators.jl:467-467 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- <=(x, y) = (x < y) | (x == y)
+-- /Source
+def lessEqual {m : Type → Type} [Monad m] {A B Other : Type}
+    (ops : LessEqualOps m A B Other) (x : A) (y : B) : m (Value Other) := do
+  let lessValue ← ops.less x y
+  let equalValue ← ops.equal x y
+  orValue ops.boolOps lessValue equalValue
+
+/-- Real is abstract, so selected < dispatch is open; its actual result R
+can be arbitrary and need not be Bool. -/
+structure RealLessOps (m : Type → Type) (A B R : Type) where
+  less : A → B → m R
+
+/-- Forward exactly one selected < call on the original ordered operands.
+Documentation: base/operators.jl:206-237,503-505 at the pinned commit. -/
+-- Source: base/operators.jl:505-505 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- isless(x::Real, y::Real) = x<y
+-- /Source
+def islessReal {m : Type → Type} {A B R : Type}
+    (ops : RealLessOps m A B R) (x : A) (y : B) : m R :=
+  ops.less x y
+
+end JuliaLean.base.operators.Models2Group15
+
+
+namespace JuliaLean.base.operators.Models2Group15
+
+/-!
+Full-domain comparison and argument-fold models reconstructed from the pinned
+source. Open calls retain state, errors, unrestricted results and actual
+argument identities. All native literals and fold counters use 64-bit Int.
+-/
+
+-- Source: base/operators.jl:537-537 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- cmp(x::Integer, y::Integer) = ifelse(isless(x, y), -1, ifelse(isless(y, x), 1, 0))
+-- /Source
+/-- Comparison results distinguish native Int values from every other
+possible result type of an open ifelse method. -/
+inductive CmpValue (Other : Type) where
+  | integer (value : JInt .i64)
+  | other (value : Other)
+  deriving Repr, DecidableEq
+
+/-- Native Int minus one returned or supplied by the comparison bodies. -/
+def cmpMinusOne : JInt .i64 := JInt.lit .i64 (-1)
+
+/-- Native Int zero supplied by the comparison bodies. -/
+def cmpZero : JInt .i64 := JInt.lit .i64 0
+
+/-- Native Int one supplied by the comparison bodies. -/
+def cmpOne : JInt .i64 := JInt.lit .i64 1
+
+-- Source: base/operators.jl:537-537 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- cmp(x::Integer, y::Integer) = ifelse(isless(x, y), -1, ifelse(isless(y, x), 1, 0))
+-- /Source
+/-- Dispatched ifelse calls whose argument types are not all fixed by the
+source. Bool conditions with a non-native branch still allow user dispatch. -/
+structure IfelseOps (m : Type → Type) (CondOther Other : Type) where
+  other : CondOther → CmpValue Other → CmpValue Other → m (CmpValue Other)
+  boolOther : Bool → CmpValue Other → CmpValue Other → m (CmpValue Other)
+
+-- Source: base/operators.jl:537-537 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- cmp(x::Integer, y::Integer) = ifelse(isless(x, y), -1, ifelse(isless(y, x), 1, 0))
+-- /Source
+/-- Close only the fully concrete Bool/native-Int/native-Int call through the
+installed Base model. Every remaining argument-type combination is dispatched
+with the original condition and both evaluated branch values. -/
+def choose {m : Type → Type} [Monad m] {CondOther Other : Type}
+    (ops : IfelseOps m CondOther Other) (condition : Value CondOther)
+    (trueValue falseValue : CmpValue Other) : m (CmpValue Other) :=
+  match condition with
+  | .bool b =>
+      match trueValue, falseValue with
+      | .integer x, .integer y =>
+          pure (.integer (JuliaLean.base.operators.ifelseValue b x y))
+      | _, _ => ops.boolOther b trueValue falseValue
+  | .other c => ops.other c trueValue falseValue
+
+-- Source: base/operators.jl:526-526 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- cmp(x, y) = isless(x, y) ? -1 : ifelse(isless(y, x), 1, 0)
+-- /Source
+/-- Both selected isless calls and the potentially dispatched final ifelse.
+The two comparisons may have arbitrary results, failures and state changes. -/
+structure CmpOps (m : Type → Type) (A B CondOther Other : Type) where
+  lessForward : A → B → m (Value CondOther)
+  lessBackward : B → A → m (Value CondOther)
+  ifelseOps : IfelseOps m CondOther Other
+
+-- Source: base/operators.jl:526-526 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- cmp(x, y) = isless(x, y) ? -1 : ifelse(isless(y, x), 1, 0)
+-- /Source
+/-- Generic cmp first checks the forward result as a Bool. Only false reaches
+the reverse comparison, whose result is passed to ifelse without a Bool check. -/
+def cmp {m : Type → Type} [Monad m]
+    [MonadExceptOf JuliaLean.base.tuple.TupleError m]
+    {A B CondOther Other : Type}
+    (ops : CmpOps m A B CondOther Other) (x : A) (y : B) :
+    m (CmpValue Other) := do
+  let forward ← ops.lessForward x y
+  let before ← assertBool forward
+  if before then
+    pure (.integer cmpMinusOne)
+  else do
+    let backward ← ops.lessBackward y x
+    choose ops.ifelseOps backward (.integer cmpOne) (.integer cmpZero)
+
+-- Source: base/operators.jl:534-534 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- cmp(<, x, y) = (x < y) ? -1 : ifelse(y < x, 1, 0)
+-- /Source
+/-- Calls of the explicitly supplied comparison object in each argument
+order, together with the open cases of the final ifelse dispatch. -/
+structure CmpByOps (m : Type → Type) (F A B CondOther Other : Type) where
+  callForward : F → A → B → m (Value CondOther)
+  callBackward : F → B → A → m (Value CondOther)
+  ifelseOps : IfelseOps m CondOther Other
+
+-- Source: base/operators.jl:534-534 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- cmp(<, x, y) = (x < y) ? -1 : ifelse(y < x, 1, 0)
+-- /Source
+/-- Comparison using the original callable object in both directions.
+The source's conditional and final ifelse have distinct Bool behavior. -/
+def cmpBy {m : Type → Type} [Monad m]
+    [MonadExceptOf JuliaLean.base.tuple.TupleError m]
+    {F A B CondOther Other : Type}
+    (ops : CmpByOps m F A B CondOther Other) (less : F) (x : A) (y : B) :
+    m (CmpValue Other) := do
+  let forward ← ops.callForward less x y
+  let before ← assertBool forward
+  if before then
+    pure (.integer cmpMinusOne)
+  else do
+    let backward ← ops.callBackward less y x
+    choose ops.ifelseOps backward (.integer cmpOne) (.integer cmpZero)
+
+-- Source: base/operators.jl:537-537 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- cmp(x::Integer, y::Integer) = ifelse(isless(x, y), -1, ifelse(isless(y, x), 1, 0))
+-- /Source
+/-- Integer cmp eagerly evaluates both comparisons in source argument order,
+then the inner ifelse, then the outer ifelse. Neither comparison is Bool-checked
+by this body, and the inner call may return a value of another type. -/
+def cmpInteger {m : Type → Type} [Monad m]
+    {A B CondOther Other : Type}
+    (ops : CmpOps m A B CondOther Other) (x : A) (y : B) :
+    m (CmpValue Other) := do
+  let forward ← ops.lessForward x y
+  let backward ← ops.lessBackward y x
+  let inner ← choose ops.ifelseOps backward (.integer cmpOne) (.integer cmpZero)
+  choose ops.ifelseOps forward (.integer cmpMinusOne) inner
+
+-- Source: base/operators.jl:588-588 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- minmax(x,y) = isless(y, x) ? (y, x) : (x, y)
+-- /Source
+/-- The one selected comparison of minmax, in the source's reverse order. -/
+structure MinmaxOps (m : Type → Type) (A B Other : Type) where
+  lessBackward : B → A → m (Value Other)
+
+-- Source: base/operators.jl:588-588 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- minmax(x,y) = isless(y, x) ? (y, x) : (x, y)
+-- /Source
+/-- Return the two original values in comparison-selected order. Sum tags
+preserve their heterogeneous carriers; the comparison is checked as a Bool. -/
+def minmax {m : Type → Type} [Monad m]
+    [MonadExceptOf JuliaLean.base.tuple.TupleError m] {A B Other : Type}
+    (ops : MinmaxOps m A B Other) (x : A) (y : B) :
+    m ((A ⊕ B) × (A ⊕ B)) := do
+  let comparison ← ops.lessBackward y x
+  let reverse ← assertBool comparison
+  if reverse then
+    pure (.inr y, .inl x)
+  else
+    pure (.inl x, .inr y)
+
+-- Source: base/operators.jl:623-663 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function afoldl(op, a, bs...)
+--     @_terminates_locally_meta
+--     l = length(bs)
+--     i =  0; y = a;            l == i && return y
+--     #@nexprs 31 i -> (y = op(y, bs[i]); l == i && return y)
+--     i =  1; y = op(y, bs[i]); l == i && return y
+--     i =  2; y = op(y, bs[i]); l == i && return y
+--     i =  3; y = op(y, bs[i]); l == i && return y
+--     i =  4; y = op(y, bs[i]); l == i && return y
+--     i =  5; y = op(y, bs[i]); l == i && return y
+--     i =  6; y = op(y, bs[i]); l == i && return y
+--     i =  7; y = op(y, bs[i]); l == i && return y
+--     i =  8; y = op(y, bs[i]); l == i && return y
+--     i =  9; y = op(y, bs[i]); l == i && return y
+--     i = 10; y = op(y, bs[i]); l == i && return y
+--     i = 11; y = op(y, bs[i]); l == i && return y
+--     i = 12; y = op(y, bs[i]); l == i && return y
+--     i = 13; y = op(y, bs[i]); l == i && return y
+--     i = 14; y = op(y, bs[i]); l == i && return y
+--     i = 15; y = op(y, bs[i]); l == i && return y
+--     i = 16; y = op(y, bs[i]); l == i && return y
+--     i = 17; y = op(y, bs[i]); l == i && return y
+--     i = 18; y = op(y, bs[i]); l == i && return y
+--     i = 19; y = op(y, bs[i]); l == i && return y
+--     i = 20; y = op(y, bs[i]); l == i && return y
+--     i = 21; y = op(y, bs[i]); l == i && return y
+--     i = 22; y = op(y, bs[i]); l == i && return y
+--     i = 23; y = op(y, bs[i]); l == i && return y
+--     i = 24; y = op(y, bs[i]); l == i && return y
+--     i = 25; y = op(y, bs[i]); l == i && return y
+--     i = 26; y = op(y, bs[i]); l == i && return y
+--     i = 27; y = op(y, bs[i]); l == i && return y
+--     i = 28; y = op(y, bs[i]); l == i && return y
+--     i = 29; y = op(y, bs[i]); l == i && return y
+--     i = 30; y = op(y, bs[i]); l == i && return y
+--     i = 31; y = op(y, bs[i]); l == i && return y
+--     for i in (i + 1):l
+--         y = op(y, bs[i])
+--     end
+--     return y
+-- end
+-- /Source
+/-- An immutable Julia argument tuple represented in a universal value
+carrier. The bound is the native Int length bound of a constructible tuple;
+it does not require the represented Julia values to have one Julia type. -/
+structure Arguments (V : Type) where
+  values : List V
+  sizeFits : values.length ≤ (IntTy.max .i64).toNat
+
+-- Source: base/operators.jl:623-663 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function afoldl(op, a, bs...)
+--     @_terminates_locally_meta
+--     l = length(bs)
+--     i =  0; y = a;            l == i && return y
+--     #@nexprs 31 i -> (y = op(y, bs[i]); l == i && return y)
+--     i =  1; y = op(y, bs[i]); l == i && return y
+--     i =  2; y = op(y, bs[i]); l == i && return y
+--     i =  3; y = op(y, bs[i]); l == i && return y
+--     i =  4; y = op(y, bs[i]); l == i && return y
+--     i =  5; y = op(y, bs[i]); l == i && return y
+--     i =  6; y = op(y, bs[i]); l == i && return y
+--     i =  7; y = op(y, bs[i]); l == i && return y
+--     i =  8; y = op(y, bs[i]); l == i && return y
+--     i =  9; y = op(y, bs[i]); l == i && return y
+--     i = 10; y = op(y, bs[i]); l == i && return y
+--     i = 11; y = op(y, bs[i]); l == i && return y
+--     i = 12; y = op(y, bs[i]); l == i && return y
+--     i = 13; y = op(y, bs[i]); l == i && return y
+--     i = 14; y = op(y, bs[i]); l == i && return y
+--     i = 15; y = op(y, bs[i]); l == i && return y
+--     i = 16; y = op(y, bs[i]); l == i && return y
+--     i = 17; y = op(y, bs[i]); l == i && return y
+--     i = 18; y = op(y, bs[i]); l == i && return y
+--     i = 19; y = op(y, bs[i]); l == i && return y
+--     i = 20; y = op(y, bs[i]); l == i && return y
+--     i = 21; y = op(y, bs[i]); l == i && return y
+--     i = 22; y = op(y, bs[i]); l == i && return y
+--     i = 23; y = op(y, bs[i]); l == i && return y
+--     i = 24; y = op(y, bs[i]); l == i && return y
+--     i = 25; y = op(y, bs[i]); l == i && return y
+--     i = 26; y = op(y, bs[i]); l == i && return y
+--     i = 27; y = op(y, bs[i]); l == i && return y
+--     i = 28; y = op(y, bs[i]); l == i && return y
+--     i = 29; y = op(y, bs[i]); l == i && return y
+--     i = 30; y = op(y, bs[i]); l == i && return y
+--     i = 31; y = op(y, bs[i]); l == i && return y
+--     for i in (i + 1):l
+--         y = op(y, bs[i])
+--     end
+--     return y
+-- end
+-- /Source
+/-- The actual callable and two current values are retained at every fold
+step. The universal value carrier permits each application to change type. -/
+structure FoldOps (m : Type → Type) (F V : Type) where
+  apply : F → V → V → m V
+
+-- Source: base/operators.jl:623-663 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function afoldl(op, a, bs...)
+--     @_terminates_locally_meta
+--     l = length(bs)
+--     i =  0; y = a;            l == i && return y
+--     #@nexprs 31 i -> (y = op(y, bs[i]); l == i && return y)
+--     i =  1; y = op(y, bs[i]); l == i && return y
+--     i =  2; y = op(y, bs[i]); l == i && return y
+--     i =  3; y = op(y, bs[i]); l == i && return y
+--     i =  4; y = op(y, bs[i]); l == i && return y
+--     i =  5; y = op(y, bs[i]); l == i && return y
+--     i =  6; y = op(y, bs[i]); l == i && return y
+--     i =  7; y = op(y, bs[i]); l == i && return y
+--     i =  8; y = op(y, bs[i]); l == i && return y
+--     i =  9; y = op(y, bs[i]); l == i && return y
+--     i = 10; y = op(y, bs[i]); l == i && return y
+--     i = 11; y = op(y, bs[i]); l == i && return y
+--     i = 12; y = op(y, bs[i]); l == i && return y
+--     i = 13; y = op(y, bs[i]); l == i && return y
+--     i = 14; y = op(y, bs[i]); l == i && return y
+--     i = 15; y = op(y, bs[i]); l == i && return y
+--     i = 16; y = op(y, bs[i]); l == i && return y
+--     i = 17; y = op(y, bs[i]); l == i && return y
+--     i = 18; y = op(y, bs[i]); l == i && return y
+--     i = 19; y = op(y, bs[i]); l == i && return y
+--     i = 20; y = op(y, bs[i]); l == i && return y
+--     i = 21; y = op(y, bs[i]); l == i && return y
+--     i = 22; y = op(y, bs[i]); l == i && return y
+--     i = 23; y = op(y, bs[i]); l == i && return y
+--     i = 24; y = op(y, bs[i]); l == i && return y
+--     i = 25; y = op(y, bs[i]); l == i && return y
+--     i = 26; y = op(y, bs[i]); l == i && return y
+--     i = 27; y = op(y, bs[i]); l == i && return y
+--     i = 28; y = op(y, bs[i]); l == i && return y
+--     i = 29; y = op(y, bs[i]); l == i && return y
+--     i = 30; y = op(y, bs[i]); l == i && return y
+--     i = 31; y = op(y, bs[i]); l == i && return y
+--     for i in (i + 1):l
+--         y = op(y, bs[i])
+--     end
+--     return y
+-- end
+-- /Source
+/-- Tuple length as native Int. The Arguments bound prevents wraparound. -/
+def argumentLength {V : Type} (args : Arguments V) : JInt .i64 :=
+  JInt.lit .i64 (Int.ofNat args.values.length)
+
+-- Source: base/operators.jl:623-663 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function afoldl(op, a, bs...)
+--     @_terminates_locally_meta
+--     l = length(bs)
+--     i =  0; y = a;            l == i && return y
+--     #@nexprs 31 i -> (y = op(y, bs[i]); l == i && return y)
+--     i =  1; y = op(y, bs[i]); l == i && return y
+--     i =  2; y = op(y, bs[i]); l == i && return y
+--     i =  3; y = op(y, bs[i]); l == i && return y
+--     i =  4; y = op(y, bs[i]); l == i && return y
+--     i =  5; y = op(y, bs[i]); l == i && return y
+--     i =  6; y = op(y, bs[i]); l == i && return y
+--     i =  7; y = op(y, bs[i]); l == i && return y
+--     i =  8; y = op(y, bs[i]); l == i && return y
+--     i =  9; y = op(y, bs[i]); l == i && return y
+--     i = 10; y = op(y, bs[i]); l == i && return y
+--     i = 11; y = op(y, bs[i]); l == i && return y
+--     i = 12; y = op(y, bs[i]); l == i && return y
+--     i = 13; y = op(y, bs[i]); l == i && return y
+--     i = 14; y = op(y, bs[i]); l == i && return y
+--     i = 15; y = op(y, bs[i]); l == i && return y
+--     i = 16; y = op(y, bs[i]); l == i && return y
+--     i = 17; y = op(y, bs[i]); l == i && return y
+--     i = 18; y = op(y, bs[i]); l == i && return y
+--     i = 19; y = op(y, bs[i]); l == i && return y
+--     i = 20; y = op(y, bs[i]); l == i && return y
+--     i = 21; y = op(y, bs[i]); l == i && return y
+--     i = 22; y = op(y, bs[i]); l == i && return y
+--     i = 23; y = op(y, bs[i]); l == i && return y
+--     i = 24; y = op(y, bs[i]); l == i && return y
+--     i = 25; y = op(y, bs[i]); l == i && return y
+--     i = 26; y = op(y, bs[i]); l == i && return y
+--     i = 27; y = op(y, bs[i]); l == i && return y
+--     i = 28; y = op(y, bs[i]); l == i && return y
+--     i = 29; y = op(y, bs[i]); l == i && return y
+--     i = 30; y = op(y, bs[i]); l == i && return y
+--     i = 31; y = op(y, bs[i]); l == i && return y
+--     for i in (i + 1):l
+--         y = op(y, bs[i])
+--     end
+--     return y
+-- end
+-- /Source
+/-- Invoke the installed concrete Tuple/native-Int indexing model, preserving
+its exact value or TupleError. Indexing is not an open callback. -/
+def argumentAt {m : Type → Type} [Monad m]
+    [MonadExceptOf JuliaLean.base.tuple.TupleError m] {V : Type}
+    (args : Arguments V) (index : JInt .i64) : m V :=
+  match JuliaLean.base.tuple.getindexInt args.values index with
+  | .ok value => pure value
+  | .error error => throw error
+
+-- Source: base/operators.jl:623-663 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function afoldl(op, a, bs...)
+--     @_terminates_locally_meta
+--     l = length(bs)
+--     i =  0; y = a;            l == i && return y
+--     #@nexprs 31 i -> (y = op(y, bs[i]); l == i && return y)
+--     i =  1; y = op(y, bs[i]); l == i && return y
+--     i =  2; y = op(y, bs[i]); l == i && return y
+--     i =  3; y = op(y, bs[i]); l == i && return y
+--     i =  4; y = op(y, bs[i]); l == i && return y
+--     i =  5; y = op(y, bs[i]); l == i && return y
+--     i =  6; y = op(y, bs[i]); l == i && return y
+--     i =  7; y = op(y, bs[i]); l == i && return y
+--     i =  8; y = op(y, bs[i]); l == i && return y
+--     i =  9; y = op(y, bs[i]); l == i && return y
+--     i = 10; y = op(y, bs[i]); l == i && return y
+--     i = 11; y = op(y, bs[i]); l == i && return y
+--     i = 12; y = op(y, bs[i]); l == i && return y
+--     i = 13; y = op(y, bs[i]); l == i && return y
+--     i = 14; y = op(y, bs[i]); l == i && return y
+--     i = 15; y = op(y, bs[i]); l == i && return y
+--     i = 16; y = op(y, bs[i]); l == i && return y
+--     i = 17; y = op(y, bs[i]); l == i && return y
+--     i = 18; y = op(y, bs[i]); l == i && return y
+--     i = 19; y = op(y, bs[i]); l == i && return y
+--     i = 20; y = op(y, bs[i]); l == i && return y
+--     i = 21; y = op(y, bs[i]); l == i && return y
+--     i = 22; y = op(y, bs[i]); l == i && return y
+--     i = 23; y = op(y, bs[i]); l == i && return y
+--     i = 24; y = op(y, bs[i]); l == i && return y
+--     i = 25; y = op(y, bs[i]); l == i && return y
+--     i = 26; y = op(y, bs[i]); l == i && return y
+--     i = 27; y = op(y, bs[i]); l == i && return y
+--     i = 28; y = op(y, bs[i]); l == i && return y
+--     i = 29; y = op(y, bs[i]); l == i && return y
+--     i = 30; y = op(y, bs[i]); l == i && return y
+--     i = 31; y = op(y, bs[i]); l == i && return y
+--     for i in (i + 1):l
+--         y = op(y, bs[i])
+--     end
+--     return y
+-- end
+-- /Source
+/-- The actual tail loop after the 31 literal stages. Remaining is the exact
+number of elements still to consume and serves as the structural recursion
+measure; the source counter and endpoint check remain native Int. The endpoint
+returns before any further counter increment, even at typemax(Int). -/
+def afoldlTail {m : Type → Type} [Monad m]
+    [MonadExceptOf JuliaLean.base.tuple.TupleError m] {F V : Type}
+    (ops : FoldOps m F V) (op : F) (args : Arguments V) :
+    Nat → JInt .i64 → V → m V
+  | 0, _, accumulator => pure accumulator
+  | remaining + 1, index, accumulator => do
+      let value ← argumentAt args index
+      let next ← ops.apply op accumulator value
+      if index = argumentLength args then
+        pure next
+      else do
+        afoldlTail ops op args remaining (index + JInt.lit .i64 1) next
+
+-- Source: base/operators.jl:623-663 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function afoldl(op, a, bs...)
+--     @_terminates_locally_meta
+--     l = length(bs)
+--     i =  0; y = a;            l == i && return y
+--     #@nexprs 31 i -> (y = op(y, bs[i]); l == i && return y)
+--     i =  1; y = op(y, bs[i]); l == i && return y
+--     i =  2; y = op(y, bs[i]); l == i && return y
+--     i =  3; y = op(y, bs[i]); l == i && return y
+--     i =  4; y = op(y, bs[i]); l == i && return y
+--     i =  5; y = op(y, bs[i]); l == i && return y
+--     i =  6; y = op(y, bs[i]); l == i && return y
+--     i =  7; y = op(y, bs[i]); l == i && return y
+--     i =  8; y = op(y, bs[i]); l == i && return y
+--     i =  9; y = op(y, bs[i]); l == i && return y
+--     i = 10; y = op(y, bs[i]); l == i && return y
+--     i = 11; y = op(y, bs[i]); l == i && return y
+--     i = 12; y = op(y, bs[i]); l == i && return y
+--     i = 13; y = op(y, bs[i]); l == i && return y
+--     i = 14; y = op(y, bs[i]); l == i && return y
+--     i = 15; y = op(y, bs[i]); l == i && return y
+--     i = 16; y = op(y, bs[i]); l == i && return y
+--     i = 17; y = op(y, bs[i]); l == i && return y
+--     i = 18; y = op(y, bs[i]); l == i && return y
+--     i = 19; y = op(y, bs[i]); l == i && return y
+--     i = 20; y = op(y, bs[i]); l == i && return y
+--     i = 21; y = op(y, bs[i]); l == i && return y
+--     i = 22; y = op(y, bs[i]); l == i && return y
+--     i = 23; y = op(y, bs[i]); l == i && return y
+--     i = 24; y = op(y, bs[i]); l == i && return y
+--     i = 25; y = op(y, bs[i]); l == i && return y
+--     i = 26; y = op(y, bs[i]); l == i && return y
+--     i = 27; y = op(y, bs[i]); l == i && return y
+--     i = 28; y = op(y, bs[i]); l == i && return y
+--     i = 29; y = op(y, bs[i]); l == i && return y
+--     i = 30; y = op(y, bs[i]); l == i && return y
+--     i = 31; y = op(y, bs[i]); l == i && return y
+--     for i in (i + 1):l
+--         y = op(y, bs[i])
+--     end
+--     return y
+-- end
+-- /Source
+/-- Faithful argument-list fold: the zero-length check and all 31 literal
+read/application/endpoint stages precede the actual recursive native-index
+tail. No callback replaces the loop or the selected tuple indexing behavior. -/
+def afoldlMany {m : Type → Type} [Monad m]
+    [MonadExceptOf JuliaLean.base.tuple.TupleError m] {F V : Type}
+    (ops : FoldOps m F V) (op : F) (a : V) (args : Arguments V) : m V := do
+  let len := argumentLength args
+  if len = JInt.lit .i64 0 then
+    pure a
+  else do
+    let value1 ← argumentAt args (JInt.lit .i64 1)
+    let accumulator1 ← ops.apply op a value1
+    if len = JInt.lit .i64 1 then
+      pure accumulator1
+    else do
+      let value2 ← argumentAt args (JInt.lit .i64 2)
+      let accumulator2 ← ops.apply op accumulator1 value2
+      if len = JInt.lit .i64 2 then
+        pure accumulator2
+      else do
+        let value3 ← argumentAt args (JInt.lit .i64 3)
+        let accumulator3 ← ops.apply op accumulator2 value3
+        if len = JInt.lit .i64 3 then
+          pure accumulator3
+        else do
+          let value4 ← argumentAt args (JInt.lit .i64 4)
+          let accumulator4 ← ops.apply op accumulator3 value4
+          if len = JInt.lit .i64 4 then
+            pure accumulator4
+          else do
+            let value5 ← argumentAt args (JInt.lit .i64 5)
+            let accumulator5 ← ops.apply op accumulator4 value5
+            if len = JInt.lit .i64 5 then
+              pure accumulator5
+            else do
+              let value6 ← argumentAt args (JInt.lit .i64 6)
+              let accumulator6 ← ops.apply op accumulator5 value6
+              if len = JInt.lit .i64 6 then
+                pure accumulator6
+              else do
+                let value7 ← argumentAt args (JInt.lit .i64 7)
+                let accumulator7 ← ops.apply op accumulator6 value7
+                if len = JInt.lit .i64 7 then
+                  pure accumulator7
+                else do
+                  let value8 ← argumentAt args (JInt.lit .i64 8)
+                  let accumulator8 ← ops.apply op accumulator7 value8
+                  if len = JInt.lit .i64 8 then
+                    pure accumulator8
+                  else do
+                    let value9 ← argumentAt args (JInt.lit .i64 9)
+                    let accumulator9 ← ops.apply op accumulator8 value9
+                    if len = JInt.lit .i64 9 then
+                      pure accumulator9
+                    else do
+                      let value10 ← argumentAt args (JInt.lit .i64 10)
+                      let accumulator10 ← ops.apply op accumulator9 value10
+                      if len = JInt.lit .i64 10 then
+                        pure accumulator10
+                      else do
+                        let value11 ← argumentAt args (JInt.lit .i64 11)
+                        let accumulator11 ← ops.apply op accumulator10 value11
+                        if len = JInt.lit .i64 11 then
+                          pure accumulator11
+                        else do
+                          let value12 ← argumentAt args (JInt.lit .i64 12)
+                          let accumulator12 ← ops.apply op accumulator11 value12
+                          if len = JInt.lit .i64 12 then
+                            pure accumulator12
+                          else do
+                            let value13 ← argumentAt args (JInt.lit .i64 13)
+                            let accumulator13 ← ops.apply op accumulator12 value13
+                            if len = JInt.lit .i64 13 then
+                              pure accumulator13
+                            else do
+                              let value14 ← argumentAt args (JInt.lit .i64 14)
+                              let accumulator14 ← ops.apply op accumulator13 value14
+                              if len = JInt.lit .i64 14 then
+                                pure accumulator14
+                              else do
+                                let value15 ← argumentAt args (JInt.lit .i64 15)
+                                let accumulator15 ← ops.apply op accumulator14 value15
+                                if len = JInt.lit .i64 15 then
+                                  pure accumulator15
+                                else do
+                                  let value16 ← argumentAt args (JInt.lit .i64 16)
+                                  let accumulator16 ← ops.apply op accumulator15 value16
+                                  if len = JInt.lit .i64 16 then
+                                    pure accumulator16
+                                  else do
+                                    let value17 ← argumentAt args (JInt.lit .i64 17)
+                                    let accumulator17 ← ops.apply op accumulator16 value17
+                                    if len = JInt.lit .i64 17 then
+                                      pure accumulator17
+                                    else do
+                                      let value18 ← argumentAt args (JInt.lit .i64 18)
+                                      let accumulator18 ← ops.apply op accumulator17 value18
+                                      if len = JInt.lit .i64 18 then
+                                        pure accumulator18
+                                      else do
+                                        let value19 ← argumentAt args (JInt.lit .i64 19)
+                                        let accumulator19 ← ops.apply op accumulator18 value19
+                                        if len = JInt.lit .i64 19 then
+                                          pure accumulator19
+                                        else do
+                                          let value20 ← argumentAt args (JInt.lit .i64 20)
+                                          let accumulator20 ← ops.apply op accumulator19 value20
+                                          if len = JInt.lit .i64 20 then
+                                            pure accumulator20
+                                          else do
+                                            let value21 ← argumentAt args (JInt.lit .i64 21)
+                                            let accumulator21 ← ops.apply op accumulator20 value21
+                                            if len = JInt.lit .i64 21 then
+                                              pure accumulator21
+                                            else do
+                                              let value22 ← argumentAt args (JInt.lit .i64 22)
+                                              let accumulator22 ← ops.apply op accumulator21 value22
+                                              if len = JInt.lit .i64 22 then
+                                                pure accumulator22
+                                              else do
+                                                let value23 ← argumentAt args (JInt.lit .i64 23)
+                                                let accumulator23 ← ops.apply op accumulator22 value23
+                                                if len = JInt.lit .i64 23 then
+                                                  pure accumulator23
+                                                else do
+                                                  let value24 ← argumentAt args (JInt.lit .i64 24)
+                                                  let accumulator24 ← ops.apply op accumulator23 value24
+                                                  if len = JInt.lit .i64 24 then
+                                                    pure accumulator24
+                                                  else do
+                                                    let value25 ← argumentAt args (JInt.lit .i64 25)
+                                                    let accumulator25 ← ops.apply op accumulator24 value25
+                                                    if len = JInt.lit .i64 25 then
+                                                      pure accumulator25
+                                                    else do
+                                                      let value26 ← argumentAt args (JInt.lit .i64 26)
+                                                      let accumulator26 ← ops.apply op accumulator25 value26
+                                                      if len = JInt.lit .i64 26 then
+                                                        pure accumulator26
+                                                      else do
+                                                        let value27 ← argumentAt args (JInt.lit .i64 27)
+                                                        let accumulator27 ← ops.apply op accumulator26 value27
+                                                        if len = JInt.lit .i64 27 then
+                                                          pure accumulator27
+                                                        else do
+                                                          let value28 ← argumentAt args (JInt.lit .i64 28)
+                                                          let accumulator28 ← ops.apply op accumulator27 value28
+                                                          if len = JInt.lit .i64 28 then
+                                                            pure accumulator28
+                                                          else do
+                                                            let value29 ← argumentAt args (JInt.lit .i64 29)
+                                                            let accumulator29 ← ops.apply op accumulator28 value29
+                                                            if len = JInt.lit .i64 29 then
+                                                              pure accumulator29
+                                                            else do
+                                                              let value30 ← argumentAt args (JInt.lit .i64 30)
+                                                              let accumulator30 ← ops.apply op accumulator29 value30
+                                                              if len = JInt.lit .i64 30 then
+                                                                pure accumulator30
+                                                              else do
+                                                                let value31 ← argumentAt args (JInt.lit .i64 31)
+                                                                let accumulator31 ← ops.apply op accumulator30 value31
+                                                                if len = JInt.lit .i64 31 then
+                                                                  pure accumulator31
+                                                                else do
+                                                                  afoldlTail ops op args (args.values.length - 31) (JInt.lit .i64 32) accumulator31
+
+-- Source: base/operators.jl:666-676 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- for op in (:+, :(+%), :*, :(*%), :&, :|, :xor, :min, :max, :kron)
+--     @eval begin
+--         # note: these definitions must not cause a dispatch loop when +(a,b) is
+--         # not defined, and must only try to call 2-argument definitions, so
+--         # that defining +(a,b) is sufficient for full functionality.
+--         ($op)(a, b, c, xs...) = (@inline; afoldl($op, ($op)(($op)(a,b),c), xs...))
+--         # a further concern is that it's easy for a type like (Int,Int...)
+--         # to match many definitions, so we need to keep the number of
+--         # definitions down to avoid losing type information.
+--     end
+-- end
+-- /Source
+/-- The ten distinct operator objects named by the source generator. -/
+inductive NaryOperator where
+  | add
+  | wrappingAdd
+  | multiply
+  | wrappingMultiply
+  | bitAnd
+  | bitOr
+  | xor
+  | min
+  | max
+  | kron
+  deriving Repr, DecidableEq
+
+-- Source: base/operators.jl:666-676 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- for op in (:+, :(+%), :*, :(*%), :&, :|, :xor, :min, :max, :kron)
+--     @eval begin
+--         # note: these definitions must not cause a dispatch loop when +(a,b) is
+--         # not defined, and must only try to call 2-argument definitions, so
+--         # that defining +(a,b) is sufficient for full functionality.
+--         ($op)(a, b, c, xs...) = (@inline; afoldl($op, ($op)(($op)(a,b),c), xs...))
+--         # a further concern is that it's easy for a type like (Int,Int...)
+--         # to match many definitions, so we need to keep the number of
+--         # definitions down to avoid losing type information.
+--     end
+-- end
+-- /Source
+/-- Every generated method performs two initial binary applications of its
+original operator. The remaining argument tuple reaches the installed
+zero-rest afoldl method or the concrete afoldlMany body according to arity. -/
+def naryOperator {m : Type → Type} [Monad m]
+    [MonadExceptOf JuliaLean.base.tuple.TupleError m] {V : Type}
+    (ops : FoldOps m NaryOperator V) (op : NaryOperator)
+    (a b c : V) (args : Arguments V) : m V := do
+  let first ← ops.apply op a b
+  let second ← ops.apply op first c
+  if args.values.isEmpty then
+    pure (JuliaLean.base.operators.afoldlOne op second)
+  else do
+    afoldlMany ops op second args
+
+end JuliaLean.base.operators.Models2Group15
+
+
+
+/- Additive recovery reconstruction for the reached post-shift methods.
+   Reconstructed from Julia commit f755f49a9e41380d7da126b3c1db9fe7f83dd027
+   and the recovered independent property interfaces. The original baseline
+   declarations are neither included nor replaced. This fragment follows
+   NewEarlyModels15 and the fragment defining Arguments. -/
+
+namespace JuliaLean.base.operators.Models2Group15
+
+open JuliaLean JuliaLean.base.tuple
+
+/-- Same-type Real operands remain abstract at this method boundary. The
+selected mod and iszero calls retain their full effects and result domains. -/
+structure Mod1Ops (m : Type → Type) (A Rem Other : Type) where
+  modulus : A → A → m Rem
+  iszero : Rem → m (Value Other)
+
+/-- Reuse the installed effectful mod1 control flow with the concrete Bool
+assertion for the source condition. The result preserves the original divisor
+or the exact remainder object through distinct sum alternatives.
+Documentation: base/operators.jl:888-913 at the pinned commit. -/
+-- Source: base/operators.jl:914-914 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- mod1(x::T, y::T) where {T<:Real} = (m = mod(x, y); iszero(m) ? y : m)
+-- /Source
+def mod1 {m : Type → Type} [Monad m] [MonadExceptOf TupleError m]
+    {A Rem Other : Type} (ops : Mod1Ops m A Rem Other) (x y : A) : m (A ⊕ Rem) :=
+  JuliaLean.base.operators.mod1 ops.modulus ops.iszero assertBool x y
+
+/-- The two generic selected methods may have different result types and
+arbitrary effects, including exceptions after mutating the shared world. -/
+structure CldmodOps (m : Type → Type) (A B Quot Rem : Type) where
+  cld : A → B → m Quot
+  mod1 : A → B → m Rem
+
+/-- Construct the result tuple after cld and then mod1 have completed.
+Documentation: base/operators.jl:917-942 at the pinned commit. -/
+-- Source: base/operators.jl:943-943 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- cldmod1(x, y) = (cld(x, y), mod1(x, y))
+-- /Source
+def cldmod1 {m : Type → Type} [Monad m] {A B Quot Rem : Type}
+    (ops : CldmodOps m A B Quot Rem) (x : A) (y : B) : m (Quot × Rem) := do
+  let quotient ← ops.cld x y
+  let remainder ← ops.mod1 x y
+  pure (quotient, remainder)
+
+/-- The legacy spelling calls its own selected fld1 method, followed by
+selected mod1; no equivalence with cld is assumed. -/
+structure FldmodOps (m : Type → Type) (A B Quot Rem : Type) where
+  fld1 : A → B → m Quot
+  mod1 : A → B → m Rem
+
+/-- Preserve the source's ordered pair of calls and their actual results.
+Documentation: base/operators.jl:945-951 at the pinned commit. -/
+-- Source: base/operators.jl:952-952 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- fldmod1(x, y) = (fld1(x, y), mod1(x, y))
+-- /Source
+def fldmod1 {m : Type → Type} [Monad m] {A B Quot Rem : Type}
+    (ops : FldmodOps m A B Quot Rem) (x : A) (y : B) : m (Quot × Rem) := do
+  let quotient ← ops.fld1 x y
+  let remainder ← ops.mod1 x y
+  pure (quotient, remainder)
+
+/-- T is the method's actual type parameter. The type returned by widening
+and the converted value are unrestricted: the source has no assertions for
+either intermediate or final result. The original value retains its T index. -/
+structure WidenOps (m : Type → Type) (Ty : Type) (Values : Ty → Type)
+    (Widened R : Type) where
+  widenType : Ty → m Widened
+  convert : {T : Ty} → Widened → Values T → m R
+
+/-- Widen the actual type parameter before converting the original object.
+Documentation: base/operators.jl:954-974 at the pinned commit. -/
+-- Source: base/operators.jl:975-975 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- widen(x::T) where {T} = convert(widen(T), x)
+-- /Source
+def widenValue {m : Type → Type} [Monad m]
+    {Ty : Type} {Values : Ty → Type} {Widened R : Type}
+    (ops : WidenOps m Ty Values Widened R) (T : Ty) (value : Values T) : m R := do
+  let widened ← ops.widenType T
+  ops.convert (T := T) widened value
+
+/-- The explicit type fallback introduces the existing runtime error
+representation, with no open error-producing callback or world changes.
+Documentation: base/operators.jl:954-974 at the pinned commit. -/
+-- Source: base/operators.jl:976-976 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- widen(x::Type{T}) where {T} = throw(MethodError(widen, (T,)))
+-- /Source
+def widenTypeError {m : Type → Type} [Monad m] [MonadExceptOf TupleError m]
+    {Ty R : Type} (_T : Ty) : m R :=
+  throwThe TupleError (.julia (.methodError "widen"))
+
+/-- Bottom is a fixed singleton, represented by Unit. Every positional pack
+within the runtime tuple-size bound is accepted and ignored by this fallback.
+The existing error abstraction records the selected function's MethodError.
+Documentation: base/operators.jl:954-974 at the pinned commit. -/
+-- Source: base/operators.jl:977-977 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- widen(x::Type{Union{}}, slurp...) = throw(MethodError(widen, (Union{},)))
+-- /Source
+def widenBottomError {m : Type → Type} [Monad m] [MonadExceptOf TupleError m]
+    {Arg R : Type} (_bottom : Unit) (_slurp : Arguments Arg) : m R :=
+  throwThe TupleError (.julia (.methodError "widen"))
+
+/-- Bind the installed wrapper to the actual Core typeof implementation.
+typeof is a closed runtime operation and is not an arbitrary callback. -/
+-- Source: base/operators.jl:1003-1003 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- _stable_typeof(x) = typeof(x)
+-- /Source
+def stableTypeof (value : JuliaLean.C.Val) : JuliaLean.C.Val :=
+  JuliaLean.base.operators.stableTypeof JuliaLean.C.typeOf value
+
+/-- Bind the static-parameter type method to the installed Core free-typevar
+traversal, `Type{T}` constructor, and `DataType` object. When the static
+parameter `T` is undefined (`none`, as for `DataType` or an abstract `Type{T}`
+with unbound `T`), `@isdefined(T)` is false and the result is `DataType`. -/
+-- Source: base/operators.jl:1004-1004 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- _stable_typeof(::Type{T}) where {T} = @isdefined(T) && !Core.has_free_typevars(T) ? Type{T} : DataType
+-- /Source
+def stableTypeofType (t : Option JuliaLean.C.Val) : JuliaLean.C.Val :=
+  JuliaLean.base.operators.stableTypeofType
+    Option.isSome
+    (fun o => match o with | some T => JuliaLean.C.Val.hasFreeTypevars T | none => false)
+    (fun o => match o with | some T => JuliaLean.C.Val.typeeq T | none => JuliaLean.C.datatypeType)
+    JuliaLean.C.datatypeType t
+
+/-- The actual result of the closed field-membership test, with original
+values carried in both alternatives. Accepted values already belong to the
+declared field type; rejected values do not. This is a runtime tag, not an
+arbitrary predicate, and both value domains remain unrestricted. -/
+inductive FieldValue (Accepted Rejected : Type) where
+  | accepted (value : Accepted)
+  | rejected (value : Rejected)
+
+/-- Conditional field preparation used by typed new: preserve an already
+accepted object exactly, or run the selected conversion once. Conversion's
+result is still dynamically tagged and is checked by new only later.
+Necessary lowering semantics: base/essentials.jl:1468-1488 at the pinned commit. -/
+def prepareField {m : Type → Type} [Monad m] {Accepted Rejected : Type}
+    (convert : Rejected → m (FieldValue Accepted Rejected)) :
+    FieldValue Accepted Rejected → m (FieldValue Accepted Rejected)
+  | .accepted value => pure (.accepted value)
+  | .rejected value => convert value
+
+/-- The concrete new-field check. A conversion result of the wrong runtime
+type raises TypeError, without conversion retry or an arbitrary check callback.
+Necessary lowering semantics: base/essentials.jl:1468-1488 at the pinned commit. -/
+def finishField {m : Type → Type} [Monad m] [MonadExceptOf TupleError m]
+    {Accepted Rejected : Type} : FieldValue Accepted Rejected → m Accepted
+  | .accepted value => pure value
+  | .rejected _ => throwThe TupleError .typeError
+
+/-- Conversion is open on unfixed declared field types. Values and Invalid
+retain actual membership, custom value domains, and reference identity. -/
+structure ReturnsConstructorOps (m : Type → Type) (Ty : Type)
+    (Values Invalid : Ty → Type) where
+  convert : (T : Ty) → Invalid T → m (FieldValue (Values T) (Invalid T))
+
+/-- Explicitly typed Returns preserves the declared parameter. It bypasses
+conversion for accepted inputs; otherwise it converts once and performs the
+final concrete field check before storing the actual accepted object.
+Documentation: base/operators.jl:1006-1028; necessary new lowering:
+base/essentials.jl:1468-1488 at the pinned commit. -/
+-- Source: base/operators.jl:1031-1031 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+--     Returns{V}(value) where {V} = new{V}(value)
+-- /Source
+def returnsTyped {m : Type → Type} [Monad m] [MonadExceptOf TupleError m]
+    {Ty : Type} {Values Invalid : Ty → Type}
+    (ops : ReturnsConstructorOps m Ty Values Invalid) (T : Ty)
+    (value : FieldValue (Values T) (Invalid T)) :
+    m (JuliaLean.base.operators.Returns Ty (Values T)) := do
+  let prepared ← prepareField (ops.convert T) value
+  let stored ← finishField prepared
+  pure ⟨T, stored⟩
+
+/-- Both field conversions use the actual declared type and are open on
+unfixed parameter/value domains. Membership and final checks stay concrete. -/
+structure ComposedConstructorOps (m : Type → Type) (Ty : Type)
+    (Values Invalid : Ty → Type) where
+  convert : (T : Ty) → Invalid T → m (FieldValue (Values T) (Invalid T))
+
+/-- Julia prepares both fields before executing new. Consequently a rejected
+outer conversion result does not suppress the inner conversion; an inner
+conversion exception occurs before the pending outer field TypeError.
+Final field checks occur in outer/inner order and preserve accepted identity.
+Documentation: base/operators.jl:1087-1117; necessary new lowering:
+base/essentials.jl:1468-1488 at the pinned commit. -/
+-- Source: base/operators.jl:1121-1121 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+--     ComposedFunction{O, I}(outer, inner) where {O, I} = new{O, I}(outer, inner)
+-- /Source
+def composedTyped {m : Type → Type} [Monad m] [MonadExceptOf TupleError m]
+    {Ty : Type} {Values Invalid : Ty → Type}
+    (ops : ComposedConstructorOps m Ty Values Invalid) (O I : Ty)
+    (outer : FieldValue (Values O) (Invalid O))
+    (inner : FieldValue (Values I) (Invalid I)) :
+    m (JuliaLean.base.operators.ComposedFunction (Values O) (Values I)) := do
+  let preparedOuter ← prepareField (ops.convert O) outer
+  let preparedInner ← prepareField (ops.convert I) inner
+  let storedOuter ← finishField preparedOuter
+  let storedInner ← finishField preparedInner
+  pure ⟨storedOuter, storedInner⟩
+
+/-- maybeconstructor dispatch remains open on the fallback's unfixed value.
+The tuple construction itself is performed by the wrapper. -/
+structure UnwrapFallbackOps (m : Type → Type) (C R : Type) where
+  maybeconstructor : C → m R
+
+/-- Forward one maybeconstructor call, then construct the actual singleton.
+This is the nonrecursive fallback only; it contains no hidden unwrap recursion. -/
+-- Source: base/operators.jl:1127-1127 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- unwrap_composed(c) = (maybeconstructor(c),)
+-- /Source
+def unwrapFallback {m : Type → Type} [Monad m] {C R : Type}
+    (ops : UnwrapFallbackOps m C R) (value : C) : m (List R) := do
+  let constructor ← ops.maybeconstructor value
+  pure [constructor]
+
+/-- Constructor dispatch is open on both unfixed operands. The selected
+constructor result R is not forced to be the built-in field-pair result. -/
+structure ComposeTwoOps (m : Type → Type) (F G R : Type) where
+  construct : F → G → m R
+
+/-- Forward the binary composition's one selected constructor call.
+Documentation: base/operators.jl:1039-1083 at the pinned commit. -/
+-- Source: base/operators.jl:1137-1137 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- ∘(f, g) = ComposedFunction(f, g)
+-- /Source
+def composeTwo {m : Type → Type} {F G R : Type}
+    (ops : ComposeTwoOps m F G R) (outer : F) (inner : G) : m R :=
+  ops.construct outer inner
+
+/-- IO is abstract in the Julia signature. The selected print and helper
+methods may be custom and effectful; their return types are unrestricted. -/
+structure ShowNegatedOps (m : Type → Type) (IO Inner Printed R : Type) where
+  printChar : IO → Char → m Printed
+  showPart : IO → Inner → m R
+
+/-- The fixed outer ! singleton is represented by Unit. Ignore the print
+result and pass the same original IO object to the selected _showcomposed
+method; return that method's whole result. -/
+-- Source: base/operators.jl:1147-1150 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function show(io::IO, c::ComposedFunction{typeof(!)})
+--     print(io, '!')
+--     _showcomposed(io, c.inner)
+-- end
+-- /Source
+def showNegatedComposed {m : Type → Type} [Monad m]
+    {IO Inner Printed R : Type} (ops : ShowNegatedOps m IO Inner Printed R)
+    (io : IO) (value : JuliaLean.base.operators.ComposedFunction Unit Inner) : m R := do
+  let _ ← ops.printChar io '!'
+  ops.showPart io value.inner
+
+/-- The selected show method is open on abstract IO and arbitrary values.
+Escaped field spelling avoids Lean's reserved show keyword. -/
+structure ShowValueOps (m : Type → Type) (IO Value R : Type) where
+  «show» : IO → Value → m R
+
+/-- Forward one selected show call with the original IO and value objects. -/
+-- Source: base/operators.jl:1152-1152 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- _showcomposed(io::IO, x) = show(io, x)
+-- /Source
+def showComposedDefault {m : Type → Type} {IO Value R : Type}
+    (ops : ShowValueOps m IO Value R) (io : IO) (value : Value) : m R :=
+  ops.«show» io value
+
+/-- The IO subtype remains unfixed even though the value is a composition.
+Its selected show method and each print method can retain arbitrary effects. -/
+structure ShowNestedOps (m : Type → Type) (IO Outer Inner Shown Printed : Type) where
+  printChar : IO → Char → m Printed
+  «show» : IO → JuliaLean.base.operators.ComposedFunction Outer Inner → m Shown
+
+/-- Print an opening parenthesis, show the same composed object, and print a
+closing parenthesis on the original IO. Ignore the first two returned values
+and return the actual closing-print result. -/
+-- Source: base/operators.jl:1156-1156 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- _showcomposed(io::IO, f::ComposedFunction) = (print(io, '('); show(io, f); print(io, ')'))
+-- /Source
+def showNestedComposed {m : Type → Type} [Monad m]
+    {IO Outer Inner Shown Printed : Type}
+    (ops : ShowNestedOps m IO Outer Inner Shown Printed)
+    (io : IO) (value : JuliaLean.base.operators.ComposedFunction Outer Inner) : m Printed := do
+  let _ ← ops.printChar io '('
+  let _ ← ops.«show» io value
+  ops.printChar io ')'
+
+/-- The specialized nested form forwards show directly. The concrete !
+singleton outer field does not fix the actual abstract-IO show dispatch. -/
+-- Source: base/operators.jl:1158-1158 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- _showcomposed(io::IO, f::ComposedFunction{typeof(!)}) = show(io, f)
+-- /Source
+def showNestedNegatedComposed {m : Type → Type} {IO Inner R : Type}
+    (ops : ShowValueOps m IO
+      (JuliaLean.base.operators.ComposedFunction Unit Inner) R)
+    (io : IO) (value : JuliaLean.base.operators.ComposedFunction Unit Inner) : m R :=
+  ops.«show» io value
+
+/-- The left operator is the fixed canonical ! singleton. The argument's
+Function subtype is unfixed, so the selected binary composition can be custom. -/
+structure NegateFunctionOps (m : Type → Type) (F R : Type) where
+  compose : Unit → F → m R
+
+/-- Forward one selected composition call with canonical ! first and the
+original function second. The selected result is unrestricted.
+Documentation: base/operators.jl:1160-1181 at the pinned commit. -/
+-- Source: base/operators.jl:1182-1182 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- !(f::Function) = (!) ∘ f
+-- /Source
+def negateFunction {m : Type → Type} {F R : Type}
+    (ops : NegateFunctionOps m F R) (function : F) : m R :=
+  ops.compose () function
+
+end JuliaLean.base.operators.Models2Group15
+
+namespace JuliaLean.NumbersCov
+
+open JuliaLean
+
+namespace OperatorModel
+
+/-- `supertype(::DataType)` computes the deferred edge before reading it;
+`base/operators.jl:86-94`. -/
+def supertypeData (compute : α → Unit) (super : α → β) (t : α) : β :=
+  let _ := compute t
+  super t
+
+/-- `getproperty(::DataType, ::Symbol)` special-cases `:super`;
+`base/operators.jl:95-101`. -/
+def getpropertyData (isSuper : γ → Bool) (supertype : α → β)
+    (getfield : α → γ → β) (t : α) (s : γ) : β :=
+  if isSuper s then supertype t else getfield t s
+
+/-- UnionAll and Type-kind supertype methods; `base/operators.jl:102-105`. -/
+def supertypeUnionAll (wrap : α → β → γ) (supertype : β → β) (v : α) (body : β) : γ :=
+  wrap v (supertype body)
+def supertypeTypeEq (anyType : α) : α := anyType
+def supertypeTypeEgal (typeOf : α → β) (parameter : α) : β := typeOf parameter
+
+structure FloatOrder (α : Type) where
+  eq : α → α → Bool
+  lt : α → α → Bool
+  isnan : α → Bool
+  signbit : α → Bool
+
+def signequal (o : FloatOrder α) (x y : α) : Bool := o.signbit x == o.signbit y
+def signless (o : FloatOrder α) (x y : α) : Bool := o.signbit x && !o.signbit y
+
+/-- Float-aware `isequal`; `base/operators.jl:196-203`. -/
+def isequalFloat (o : FloatOrder α) (x y : α) : Bool :=
+  (o.isnan x && o.isnan y) || (signequal o x y && o.eq x y)
+
+/-- Float-aware `isless`; `base/operators.jl:240-242`. -/
+def islessFloat (o : FloatOrder α) (x y : α) : Bool :=
+  (!o.isnan x && (o.isnan y || signless o x y)) || o.lt x y
+
+/-- Optimized pair order; `base/operators.jl:248-249`. -/
+def pairIsless (lt eq : α → α → Bool) (a b : α × α) : Bool :=
+  lt a.1 b.1 || (eq a.1 b.1 && lt a.2 b.2)
+
+/-- Generic comparisons; `base/operators.jl:196,295,309-315,338,417-588`. -/
+def isequal (eq : α → α → Bool) (x y : α) : Bool := eq x y
+def isgreater (unordered : α → Bool) (lt : α → α → Bool) (x y : α) : Bool :=
+  if unordered x || unordered y then lt x y else lt y x
+def isunordered (_ : α) : Bool := false
+def isunorderedFloat (isnan : α → Bool) (x : α) : Bool := isnan x
+def typeEqual (typesEqual : α → α → Bool) (t s : α) : Bool := typesEqual t s
+def typeVarTypeEqual (_ : α) (_ : β) : Bool := false
+def ne (eq : α → α → Bool) (x y : α) : Bool := !eq x y
+def neGeneric (eq : α → α → β) (not : β → γ) (x y : α) : γ := not (eq x y)
+def ltFallback (lt : α → α → Bool) (x y : α) : Bool := lt x y
+def gtFallback (lt : α → α → Bool) (x y : α) : Bool := lt y x
+def leFallback (lt eq : α → α → Bool) (x y : α) : Bool := lt x y || eq x y
+def leGeneric (lt : α → α → β) (eq : α → α → γ) (bitOr : β → γ → δ)
+    (x y : α) : δ := bitOr (lt x y) (eq x y)
+def geFallback (le : α → α → Bool) (x y : α) : Bool := le y x
+def geGeneric (le : α → α → β) (x y : α) : β := le y x
+def cmp (lt : α → α → Bool) (x y : α) : Int :=
+  if lt x y then -1 else if lt y x then 1 else 0
+def max (lt : α → α → Bool) (x y : α) : α := if lt y x then x else y
+def min (lt : α → α → Bool) (x y : α) : α := if lt y x then y else x
+def minmax (lt : α → α → Bool) (x y : α) : α × α := if lt y x then (y, x) else (x, y)
+
+/-- Identity unary arithmetic methods; `base/operators.jl:605-611`. -/
+def identity (x : α) : α := x
+
+/-- `afoldl`; the source manually unrolls the first 31 applications and then
+continues with the same left fold; `base/operators.jl:622-663`. -/
+def afoldl (op : α → α → α) (a : α) (bs : List α) : α := bs.foldl op a
+
+/-- Generated n-ary arithmetic methods; `base/operators.jl:666-675`. -/
+def nary (op : α → α → α) (a b c : α) (xs : List α) : α :=
+  afoldl op (op (op a b) c) xs
+
+def intMin : Int := -(2^63)
+def intMax : Int := 2^63 - 1
+
+/-- Generic integer-count left shift; `base/operators.jl:735-740`. -/
+def shiftLeftInteger (shiftInt : α → Int → α) (zero negOne : α)
+    (nonnegative : α → Bool) (x : α) (c : Int) : α :=
+  if intMin ≤ c && c ≤ intMax then shiftInt x c
+  else if nonnegative x || 0 ≤ c then shiftInt zero 0 else negOne
+
+/-- Generic integer-count arithmetic right shift; `base/operators.jl:780-788`. -/
+def shiftRightInteger (shiftInt : α → Int → α) (zero negOne : α)
+    (nonnegative : α → Bool) (x : α) (c : Int) : α :=
+  if intMin ≤ c && c ≤ intMax then shiftInt x c
+  else if nonnegative x || c < 0 then shiftInt zero 0 else negOne
+
+/-- The `>>(x::Integer,c::Integer)` method rejects a machine `UInt` before its
+range test; `base/operators.jl:780-788`. -/
+def shiftRightGenericCount (shiftInt : α → Int → α) (zero negOne : α)
+    (nonnegative : α → Bool) (x : α) (c : Int) (isMachineUInt : Bool) : Jl α :=
+  if isMachineUInt then .error (.methodError ">>")
+  else .ok (shiftRightInteger shiftInt zero negOne nonnegative x c)
+
+/-- Generic integer-count logical right shift; `base/operators.jl:818-821`. -/
+def shiftUnsignedRightInteger (shiftInt : α → Int → α) (zero : α) (x : α) (c : Int) : α :=
+  if intMin ≤ c && c ≤ intMax then shiftInt x c else shiftInt zero 0
+
+/-- Signed Int count redirects negative counts to the opposite shift;
+`base/operators.jl:748,789,829`. -/
+def shiftSignedCount (forward backward : α → Nat → α) (x : α) (c : Int) : α :=
+  if 0 ≤ c then forward x c.toNat else backward x (-c).toNat
+
+/-- Unsigned-count overloads, including the deliberate UInt MethodError;
+`base/operators.jl:741-747,822-828`. -/
+def shiftUnsignedCount (fn : α → Nat → α) (zero : α) (x : α)
+    (c : Nat) (isMachineUInt : Bool) : Jl α :=
+  if isMachineUInt then .error (.methodError "shift")
+  else if c ≤ 2^64 - 1 then .ok (fn x c) else .ok (fn zero 0)
+
+/-- `mod1`, `cldmod1`, and `fldmod1`; `base/operators.jl:914-952`. -/
+def mod1 (mod : α → α → α) (iszero : α → Bool) (x y : α) : α :=
+  let m := mod x y
+  if iszero m then y else m
+def cldmod1 (cld : α → α → β) (mod1 : α → α → γ) (x y : α) : β × γ :=
+  (cld x y, mod1 x y)
+def fldmod1 (fld1 : α → α → β) (mod1 : α → α → γ) (x y : α) : β × γ :=
+  (fld1 x y, mod1 x y)
+
+/-- Generic left division; `base/operators.jl:709`. -/
+def leftDiv (adjoint : α → α) (div : α → α → α) (x y : α) : α :=
+  adjoint (div (adjoint y) (adjoint x))
+
+/-- `widen(x)`; `base/operators.jl:975`. -/
+def widenValue (widenType : α → β) (convert : β → α → γ) (typeOf : α → α) (x : α) : γ :=
+  convert (widenType (typeOf x)) x
+
+def widenTypeError (typeName : String) : Jl α := .error (.methodError typeName)
+
+/-- Function piping; `base/operators.jl:1001`. -/
+def pipe (x : α) (f : α → β) : β := f x
+
+/-- Stable type tags used by Returns and Fix constructors;
+`base/operators.jl:1003-1004`. -/
+def stableTypeof (typeOf : α → β) (x : α) : β := typeOf x
+def stableTypeofType (hasFreeVars : α → Bool) (typeTag dataType : β) (t : α) : β :=
+  if !hasFreeVars t then typeTag else dataType
+
+structure Returns (α : Type) where value : α
+def returnsTyped (value : α) : Returns α := ⟨value⟩
+def returnsStable (value : α) : Returns α := ⟨value⟩
+def Returns.call (r : Returns α) (_ : List β) : α := r.value
+
+structure Composed (α : Type) where
+  functions : List (α → α)
+
+/-- `call_composed` and the ComposedFunction call; `base/operators.jl:1125-1129`. -/
+def callComposed (fs : List (α → α)) (x : α) : α := fs.foldr (fun f x => f x) x
+def Composed.call (c : Composed α) (x : α) : α := callComposed c.functions x
+def compose1 (f : α → α) : Composed α := ⟨[f]⟩
+def compose2 (f g : α → α) : Composed α := ⟨[f, g]⟩
+def composeMany (f g : α → α) (hs : List (α → α)) : Composed α := ⟨f :: g :: hs⟩
+def unwrapComposed (c : Composed α) : List (α → α) := c.functions
+def unwrapSingle (f : α → α) : List (α → α) := [f]
+
+/-- `Constructor{F}` and `maybeconstructor` preserve the callable behaviour;
+`base/operators.jl:1131-1134`. -/
+def constructorCall (f : List α → β) (args : List α) : β := f args
+def maybeConstructorType (f : List α → β) : List α → β := f
+def maybeConstructorValue (f : List α → β) : List α → β := f
+
+/-- Observable text of composition show methods; `base/operators.jl:1140-1158`. -/
+def showComposed (render showPart : α → String) (outerIsComposed : Bool)
+    (outer inner : α) : String :=
+  (if outerIsComposed then render outer else showPart outer) ++ " ∘ " ++ showPart inner
+def showNegatedComposed (render : α → String) (inner : α) : String := "!" ++ render inner
+def showComposedPart (render : α → String) (isOperator isNested : Bool) (x : α) : String :=
+  if isOperator || isNested then "(" ++ render x ++ ")" else render x
+
+/-- Predicate negation and its double-negation specialization;
+`base/operators.jl:1182-1183`. -/
+def negatePredicate (f : α → Bool) : α → Bool := fun x => !f x
+def doubleNegationInner (f : α → Bool) : α → Bool := f
+
+structure Fix (α β : Type) where
+  n : Nat
+  f : List α → β
+  value : α
+
+/-- `Fix{N}(f,x)` validates that N is an Int and positive;
+`base/operators.jl:1206-1213`. -/
+def Fix.make (n : Option Int) (f : List α → β) (value : α) : Jl (Fix α β) :=
+  match n with
+  | none => .error (.argumentError "Fix index must be Int")
+  | some n =>
+    if n < 1 then .error (.argumentError "Fix index must be positive")
+    else .ok ⟨n.toNat, f, value⟩
+
+/-- General Fix insertion; `base/operators.jl:1206-1224`. -/
+def Fix.call (fix : Fix α β) (args : List α) : Jl β :=
+  if fix.n < 1 then .error (.argumentError "Fix position")
+  else if args.length < fix.n - 1 then .error (.argumentError "Fix arguments")
+  else .ok (fix.f (args.take (fix.n - 1) ++ [fix.value] ++ args.drop (fix.n - 1)))
+
+/-- Unary comparison constructors are `Fix2`; `base/operators.jl:1259-1335`. -/
+def fix2 (f : α → α → β) (x : α) : α → β := fun y => f y x
+def fixSecond (f : α → β → γ) (x : β) : α → γ := fun y => f y x
+
+def fix1Call (f : α → α → β) (fixed arg : α) : β := f fixed arg
+def fix2Call (f : α → α → β) (fixed arg : α) : β := f arg fixed
+
+def showFix (renderF : (List α → β) → String) (render : α → String) (fix : Fix α β) : String :=
+  "Fix{" ++ toString fix.n ++ "}(" ++ renderF fix.f ++ ", " ++ render fix.value ++ ")"
+
+structure Splat (α β : Type) where f : List α → β
+def Splat.call (s : Splat α β) (args : List α) : β := s.f args
+def splat (f : List α → β) : Splat α β := ⟨f⟩
+def unsplat (f : List α → β) : List α → β := fun args => f args
+def unsplatSplat (s : Splat α β) : List α → β := s.f
+def splatUnsplat (f : List α → β) : List α → β := f
+def showSplat (render : (List α → β) → String) (s : Splat α β) : String :=
+  "splat(" ++ render s.f ++ ")"
+
+/-- `tap(f)`; `base/operators.jl:1438`. -/
+def tap (f : α → β) : α → α := fun x => let _ := f x; x
+
+inductive Truth where | false | missing | true
+  deriving BEq, Repr
+
+def Truth.not : Truth → Truth
+  | .false => .true | .true => .false | .missing => .missing
+
+def Truth.or : Truth → Truth → Truth
+  | .true, _ | _, .true => .true
+  | .missing, _ | _, .missing => .missing
+  | .false, .false => .false
+
+/-- Generic iterable membership with three-valued equality;
+`base/operators.jl:1455`. -/
+def mem (eq : α → α → Truth) (x : α) : List α → Truth
+  | [] => .false
+  | y :: ys => Truth.or (eq y x) (mem eq x ys)
+
+/-- `∉`, `∋`, and `∌`; `base/operators.jl:1477-1500`. -/
+def notMem (m : α → β → Truth) (x : α) (ys : β) : Truth := (m x ys).not
+def contains (m : α → β → Truth) (ys : β) (x : α) : Truth := m x ys
+def notContains (m : α → β → Truth) (ys : β) (x : α) : Truth := (m x ys).not
+
+end OperatorModel
+
+end JuliaLean.NumbersCov
+
+namespace JuliaLean.NumbersCov.Rows.Operators
+
+open JuliaLean JuliaLean.NumbersCov JuliaLean.NumbersCov.Rows
+
+def m86 (compute : α → Unit) (super : α → β) (t : α) : β :=
+  let _ := compute t; super t
+def m95 (isSuper : σ → Bool) (super : α → β) (field : α → σ → β) (t : α) (s : σ) : β :=
+  if isSuper s then super t else field t s
+def m102 (wrap : α → β → γ) (super : β → β) (v : α) (body : β) : γ := wrap v (super body)
+def m104 (anyType : α) : α := anyType
+def m105 (typeOf : α → β) (p : α) : β := typeOf p
+def m196 (eq : α → β → Bool) (x : α) (y : β) : Bool := eq x y
+def m198 (signbit : α → Bool) (x y : α) : Bool := signbit x == signbit y
+def m199 (signbit : α → Bool) (x y : α) : Bool := signbit x && !signbit y
+def m201 (isnan : α → Bool) (signbit : α → Bool) (eq : α → α → Bool) (x y : α) : Bool :=
+  (isnan x && isnan y) || ((signbit x == signbit y) && eq x y)
+def m202 (isnanA : α → Bool) (isnanB : β → Bool) (signA : α → Bool)
+    (signB : β → Bool) (eq : α → β → Bool) (x : α) (y : β) : Bool :=
+  (isnanA x && isnanB y) || ((signA x == signB y) && eq x y)
+def m240 (isnan : α → Bool) (signbit : α → Bool) (lt : α → α → Bool) (x y : α) : Bool :=
+  (!isnan x && (isnan y || (signbit x && !signbit y))) || lt x y
+def m248 (lt eq : α → α → Bool) (a b : α × α) : Bool :=
+  lt a.1 b.1 || (eq a.1 b.1 && lt a.2 b.2)
+def m309 (_ : α) : Bool := false
+def m310 (isnan : α → Bool) (x : α) : Bool := isnan x
+def m313 (typesEqual : α → α → Bool) (t s : α) : Bool := typesEqual t s
+def m314 (_ : α) (_ : β) : Bool := false
+def m315 := @m314
+def m338 (eq : α → β → γ) (not : γ → δ) (x : α) (y : β) : δ := not (eq x y)
+def m417 (isless : α → β → Bool) (x : α) (y : β) := isless x y
+def m443 (lt : β → α → Bool) (x : α) (y : β) := lt y x
+def m467 (lt : α → β → γ) (eq : α → β → δ) (bitOr : γ → δ → ε) (x : α) (y : β) :=
+  bitOr (lt x y) (eq x y)
+def m499 (le : β → α → γ) (x : α) (y : β) := le y x
+def m526 (isless : α → α → Bool) (x y : α) : Int :=
+  if isless x y then -1 else if isless y x then 1 else 0
+def m534 (lt : α → α → Bool) (x y : α) : Int :=
+  if lt x y then -1 else if lt y x then 1 else 0
+def m588 (isless : α → α → Bool) (x y : α) : α × α := if isless y x then (y, x) else (x, y)
+def m605 (x : α) := x
+def m607 := @m605
+def m608 := @m605
+def m609 := @m605
+def m610 := @m605
+def m611 := @m605
+def m622 (_op : α → α → α) (a : α) : α := a
+def m623 (op : α → α → α) (a : α) (bs : List α) := bs.foldl op a
+def m671 (op : α → α → α) (a b c : α) (xs : List α) := xs.foldl op (op (op a b) c)
+def m709 (adj : α → α) (div : α → α → α) (x y : α) := adj (div (adj y) (adj x))
+def m735 (shift : α → Int → α) (zero negOne : α) (nonneg : α → Bool) x c :=
+  OperatorModel.shiftLeftInteger shift zero negOne nonneg x c
+def m741 (shift : α → Nat → α) (zero x : α) (c : Nat) (isUInt : Bool) : Jl α :=
+  if isUInt then .error (.methodError "<<")
+  else if c ≤ 2^64 - 1 then .ok (shift x c) else .ok (shift zero 0)
+def m748 (left right : α → Nat → α) x c := OperatorModel.shiftSignedCount left right x c
+def m780 (shift : α → Int → α) (zero negOne : α) (nonneg : α → Bool) x c isUInt :=
+  OperatorModel.shiftRightGenericCount shift zero negOne nonneg x c isUInt
+def m789 (right left : α → Nat → α) x c := OperatorModel.shiftSignedCount right left x c
+def m818 (shift : α → Int → α) zero x c := OperatorModel.shiftUnsignedRightInteger shift zero x c
+def m822 (shift : α → Nat → α) (zero x : α) (c : Nat) (isUInt : Bool) : Jl α :=
+  if isUInt then .error (.methodError ">>>")
+  else if c ≤ 2^64 - 1 then .ok (shift x c) else .ok (shift zero 0)
+def m829 (right left : α → Nat → α) x c := OperatorModel.shiftSignedCount right left x c
+def m914 (mod : α → α → α) (zero : α → Bool) x y := OperatorModel.mod1 mod zero x y
+def m943 (cld : α → α → β) (mod1 : α → α → γ) x y := (cld x y, mod1 x y)
+def m952 (fld1 : α → α → β) (mod1 : α → α → γ) x y := (fld1 x y, mod1 x y)
+def m975 (typeOf : α → β) (widenType : β → γ) (convert : γ → α → δ) x :=
+  convert (widenType (typeOf x)) x
+def m976 (name : String) : Jl α := .error (.methodError name)
+def m977 := @m976
+def m1001 (x : α) (f : α → β) := f x
+def m1003 (typeOf : α → β) x := typeOf x
+def m1004 (hasFree : α → Bool) (typeTag dataType : β) t := if !hasFree t then typeTag else dataType
+structure ReturnsF (α : Type) where value : α
+def m1031 (value : α) : ReturnsF α := ⟨value⟩
+def m1032 := @m1031
+def m1035 (r : ReturnsF α) (_args : β) (_kw : γ) : α := r.value
+structure ComposedF (O I : Type) where
+  outer : O
+  inner : I
+def m1121 (o : O) (i : I) : ComposedF O I := ⟨o, i⟩
+def m1122 := @m1121
+def m1125 (unwrap : ComposedF O I → F) (call : F → X → K → Y)
+    (c : ComposedF O I) (x : X) (kw : K) := call (unwrap c) x kw
+def m1126 (unwrapO : O → List F) (unwrapI : I → List F) (c : ComposedF O I) :=
+  unwrapO c.outer ++ unwrapI c.inner
+def m1127 (maybe : α → β) (x : α) : List β := [maybe x]
+def m1128 (head : F → A → B) (tailCall : Fs → X → K → A)
+    (fsHead : F) (fsTail : Fs) (x : X) (kw : K) :=
+  head fsHead (tailCall fsTail x kw)
+def m1129 (call : F → X → K → Y) (f : F) (x : X) (kw : K) := call f x kw
+def m1132 (call : F → A → K → Y) (f : F) (a : A) (kw : K) := call f a kw
+def m1133 (wrap : F → C) (f : F) := wrap f
+def m1134 (f : F) := f
+def m1136 (f : F) := f
+def m1137 (f : O) (g : I) := ComposedF.mk f g
+def m1138 (compose2 : A → B → C) (composeRest : C → H → R)
+    (f : A) (g : B) (rest : H) : R := composeRest (compose2 f g) rest
+def m1140 (showOuter showPartOuter : α → String) (showPartInner : β → String)
+    (nested : Bool) (outer : α) (inner : β) :=
+  (if nested then showOuter outer else showPartOuter outer) ++ " ∘ " ++ showPartInner inner
+def m1147 (showPart : α → String) (inner : α) := "!" ++ showPart inner
+def m1152 (render : α → String) (x : α) := render x
+def m1154 (operator : α → Bool) (render : α → String) (x : α) :=
+  if operator x then "(" ++ render x ++ ")" else render x
+def m1156 (render : α → String) (x : α) := "(" ++ render x ++ ")"
+def m1158 := @m1152
+def m1182 (f : α → Bool) : α → Bool := fun x => !f x
+def m1183 (inner : F) := inner
+structure FixF (F X : Type) where
+  f : F
+  x : X
+def m1206 (n : Option Int) (f : F) (x : X) : Jl (FixF F X) :=
+  match n with
+  | none => .error (.argumentError "Fix index must be Int")
+  | some n => if n < 1 then .error (.argumentError "Fix index must be positive") else .ok ⟨f, x⟩
+def m1216 (n m : Int) (split : Args → Int → L × R)
+    (call : F → L → X → R → K → Y) (f : FixF F X) (args : Args) (kw : K) : Jl Y :=
+  if m < n - 1 then .error (.argumentError "Fix arguments")
+  else let p := split args (n - 1); .ok (call f.f p.1 f.x p.2 kw)
+def m1223 (call : F → X → A → K → Y) (f : FixF F X) (arg : A) (kw : K) := call f.f f.x arg kw
+def m1224 (call : F → A → X → K → Y) (f : FixF F X) (arg : A) (kw : K) := call f.f arg f.x kw
+def m1226 (showF : F → String) (showX : X → String) (n : Int) (f : FixF F X) :=
+  "Fix{" ++ toString n ++ "}(" ++ showF f.f ++ ", " ++ showX f.x ++ ")"
+def fixSecond (f : α → β → γ) (x : β) : α → γ := fun y => f y x
+def m1259 := @fixSecond
+def m1270 := @fixSecond
+def m1283 := @fixSecond
+def m1296 := @fixSecond
+def m1309 := @fixSecond
+def m1322 := @fixSecond
+def m1335 := @fixSecond
+structure SplatF (F : Type) where f : F
+def m1366 (f : F) := SplatF.mk f
+def m1384 := @m1366
+def m1386 (apply : F → Args → Y) (s : SplatF F) (args : Args) := apply s.f args
+def m1387 (render : F → String) (s : SplatF F) := "splat(" ++ render s.f ++ ")"
+def m1415 (compose : F → TupleF → C) f tupleF := compose f tupleF
+def m1416 (s : SplatF F) := s.f
+def m1417 (outer : F) := outer
+def m1438 (f : α → β) : α → α := fun x => let _ := f x; x
+def m1453 := @fixSecond
+def m1455 (any : (α → γ) → I → γ) (eq : X → α → γ) x itr := any (eq x) itr
+def m1477 (mem : α → β → γ) (not : γ → δ) x y := not (mem x y)
+def m1478 := @fixSecond
+def m1486 (mem : α → β → γ) (itr : β) (x : α) := mem x itr
+def m1497 := @fixSecond
+def m1499 (contains : β → α → γ) (not : γ → δ) itr x := not (contains itr x)
+def m1500 := @fixSecond
+
+end JuliaLean.NumbersCov.Rows.Operators
+
+namespace JuliaLean.HashOps
+
+open JuliaLean
+
+structure FallbackOps (α : Type) where
+  eq : α → α → Bool
+  lt : α → α → Bool
+  zero : α → α
+  one : α → α
+  neg : α → α
+  add : α → α → α
+  mul : α → α → α
+  div : α → α → α
+  castOne : α → α
+
+def isequalFallback (o : FallbackOps α) (x y : α) : Bool := o.eq x y
+def islessFallback (o : FallbackOps α) (x y : α) : Bool := o.lt x y
+def cmpFallback (o : FallbackOps α) (x y : α) : Int :=
+  if islessFallback o x y then -1 else if islessFallback o y x then 1 else 0
+def neFallback (o : FallbackOps α) (x y : α) : Bool := !o.eq x y
+def leFallback (o : FallbackOps α) (x y : α) : Bool := o.lt x y || o.eq x y
+def geFallback (o : FallbackOps α) (x y : α) : Bool := leFallback o y x
+
+/-! ## `widen`, `base/operators.jl:955-977`, `base/int.jl:911-918` -/
+
+def widenTarget : IntTy → Option IntTy
+  | .i8 => some .i16 | .i16 => some .i32 | .i32 => some .i64 | .i64 => some .i128
+  | .u8 => some .u16 | .u16 => some .u32 | .u32 => some .u64 | .u64 => some .u128
+  | .i128 | .u128 => none
+
+def widenAdd (t : IntTy) (x y : JInt t) : Int :=
+  match widenTarget t with
+  | some s => wrapInt s (x.val + y.val)
+  | none => x.val + y.val
+
+def widenSub (t : IntTy) (x y : JInt t) : Int :=
+  match widenTarget t with
+  | some s => wrapInt s (x.val - y.val)
+  | none => x.val - y.val
+
+end JuliaLean.HashOps
+
+namespace JuliaLean.Promotion
+
+open JuliaLean.Float
+
+/-- `isequal(x::AbstractFloat, y::Real)`; `base/operators.jl:203`. -/
+def isequalFI {T : FTy} {t : IntTy} (x : FV T) (y : JInt t) : Bool :=
+  (x.signbit == decide (y.val < 0)) && cmpFI .eq x y
+
+/-- `isless(x::AbstractFloat, y::Real)`; `base/operators.jl:242`. -/
+def islessFI {T : FTy} {t : IntTy} (x : FV T) (y : JInt t) : Bool :=
+  (!x.isnan && (x.signbit && !decide (y.val < 0))) || cmpFI .lt x y
+
+/-- `isless(x::Real, y::AbstractFloat)`; `base/operators.jl:241`. -/
+def islessIF {T : FTy} {t : IntTy} (x : JInt t) (y : FV T) : Bool :=
+  (y.isnan || (decide (x.val < 0) && !y.signbit)) || cmpIF .lt x y
+
+/-- `cmp(x, y)`; `base/operators.jl:526`. -/
+def cmpOrderFI {T : FTy} {t : IntTy} (x : FV T) (y : JInt t) : Int :=
+  if islessFI x y then -1 else if islessIF y x then 1 else 0
+
+/-- `cmp(a, b)` on integers, `base/operators.jl:537`. -/
+def icmp (a b : Int) : Int := if a < b then -1 else if b < a then 1 else 0
+
+end JuliaLean.Promotion
+
+namespace JuliaLean.IntArith.Rational
+
+open JuliaLean
+
+/-- Generic `cmp`, through `isless(::Real,::Real)`;
+base/operators.jl:505,526. -/
+def cmp (lt : ∀ {t s : IntTy}, Rat t → Rat s → Bool) {t s} (x : Rat t) (y : Rat s) : JInt .i64 :=
+  JInt.lit .i64 (if lt x y then -1 else if lt y x then 1 else 0)
+
+end JuliaLean.IntArith.Rational
+
+namespace JuliaLean.ArrayOps
+
+open JuliaLean
+open JuliaLean.Float
+
+variable {α β : Type}
+
+/-- `isgreater(x, y)`, `base/operators.jl:295`, with `isunordered = isnan` for floats. -/
+def isgreater (x y : F64) : Bool :=
+  if F64.isnan x || F64.isnan y then F64.isless x y else F64.isless y x
+
+end JuliaLean.ArrayOps
+
+namespace JuliaLean.IdDicts
+
+/-- `isequal` on the universe (base/operators.jl; `isequal(1, 1.0)`,
+`isequal([1], [1.0])`). -/
+def isequal : JVal → JVal → Bool
+  | .int a, .int b => a == b
+  | .int a, .flt b => a == b
+  | .flt a, .int b => a == b
+  | .flt a, .flt b => a == b
+  | .sym a, .sym b => a == b
+  | .str a, .str b => a == b
+  | .vec _ a, .vec _ b => a == b
+  | .vec _ a, .fvec _ b => a == b
+  | .fvec _ a, .vec _ b => a == b
+  | .fvec _ a, .fvec _ b => a == b
+  | .nothing, .nothing => true
+  | _, _ => false
+
+end JuliaLean.IdDicts

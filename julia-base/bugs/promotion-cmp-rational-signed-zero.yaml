@@ -59,8 +59,9 @@ possible_fix: |
   (as Int) when both values are zero, or define cmp for these pairs through
   isless like the generic fallback at base/operators.jl:526.
 duplicates:
-  issues: []
+  issues:
+    - {number: 64167, state: open, relation: duplicate}
   queries: ["cmp rational float", "cmp -0.0", "cmp signed zero", "cmp isless inconsistent", "cmp Rational", "cmp zero", "cmp NaN Rational", "cmp float", "Rational -0.0", "isless rational float"]
 lean:
-  property: JuliaLean.Promotion.CmpRationalFloatIsless
-  theorem: JuliaLean.Promotion.cmpRationalFloatIsless_refuted
+  property: JuliaLean.Proofs.base.rational.Round22.cmpRationalFloatIsless
+  theorem: JuliaLean.Proofs.base.rational.cmpRationalFloatIsless_refuted

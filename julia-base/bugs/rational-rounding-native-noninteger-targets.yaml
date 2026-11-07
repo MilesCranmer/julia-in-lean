@@ -1,0 +1,73 @@
+id: rational-rounding-native-noninteger-targets
+title: "round(T, rational, r) ignores directed rounding at the target precision"
+priority: P2
+kind: wrong-result
+area: MathFuncs
+files: [base/rational.jl, base/rounding.jl, base/float.jl]
+functions: ["round(::Type{T}, x::Rational{Tr}, r::RoundingMode)"]
+summary: |
+  Directed rounding to Float16 can return a value on the wrong side of the exact
+  rational: RoundDown maps 2051 to 2052 and 4099 to 4100, while RoundUp maps
+  2049 to 2048.
+likelihood: |
+  Any Rational input near a Float16 integer boundary can fail for a directed
+  rounding mode. The inputs are ordinary finite rationals and the method is public.
+maybe_intended: |
+  The rounding mode should select the greatest representable target integer below
+  the input for RoundDown and the least one above it for RoundUp.
+reproducer: |
+  Stored at repro/rational-rounding-native-noninteger-targets.jl.
+  down_tie = round(Float16, Rational{Int64}(2051, 1), RoundDown)
+  down_nontie = round(Float16, Rational{Int64}(4099, 1), RoundDown)
+  up_tie = round(Float16, Rational{Int64}(2049, 1), RoundUp)
+  println("Float16 RoundDown 2051 => ", Float64(down_tie), " (expected 2050)")
+  println("Float16 RoundDown 4099 => ", Float64(down_nontie), " (expected 4096)")
+  println("Float16 RoundUp 2049 => ", Float64(up_tie), " (expected 2050)")
+  @assert Float64(down_tie) == 2052.0
+  @assert Float64(down_nontie) == 4100.0
+  @assert Float64(up_tie) == 2048.0
+  println("REPRODUCED rational-rounding-native-noninteger-targets")
+output:
+  release: |
+    Float16 RoundDown 2051 => 2052.0 (expected 2050)
+    Float16 RoundDown 4099 => 4100.0 (expected 4096)
+    Float16 RoundUp 2049 => 2048.0 (expected 2050)
+    REPRODUCED rational-rounding-native-noninteger-targets
+  nightly: |
+    Float16 RoundDown 2051 => 2052.0 (expected 2050)
+    Float16 RoundDown 4099 => 4100.0 (expected 4096)
+    Float16 RoundUp 2049 => 2048.0 (expected 2050)
+    REPRODUCED rational-rounding-native-noninteger-targets
+reproduced: {release: true, nightly: true}
+expected: |
+  RoundDown returns 2050 for 2051 and 4096 for 4099. RoundUp returns 2050
+  for 2049. These are the adjacent representable Float16 integers in the
+  requested directions.
+promised_by: |
+  base/rounding.jl:352 says rounding to a floating-point type rounds to integers
+  representable by that type rather than true integers. Lines 347-349 say the
+  rounding mode controls direction.
+cause: |
+  base/rational.jl:614-619 computes div(numerator(x), denominator(x), r) as an
+  integer, then converts that integer to T. The conversion rounds to nearest,
+  so it can undo the directed result of div. For Float16, 2051 and 4099 round
+  down to integers 2051 and 4099, then convert upward to 2052 and 4100; 2049
+  rounds up to 2049, then converts downward to 2048.
+possible_fix: |
+  Round directly to the target floating-point type's representable integers with
+  the requested mode, rather than converting a rounded source integer with the
+  default nearest mode.
+duplicates:
+  issues: []
+  prs:
+    - {number: 49749, state: open, relation: related}
+  queries:
+    - "issues: round Float16 Rational"
+    - "PRs: round Float16 Rational"
+    - "issues: Rational RoundDown float"
+    - "PRs: Rational RoundDown float"
+    - "issues: round rational float directed"
+    - "PRs: round rational float directed"
+lean:
+  property: JuliaLean.Proofs.base.rational.Round6.finite_noninteger_rounding
+  theorem: JuliaLean.Proofs.base.rational.Round6.finite_noninteger_rounding_refuted

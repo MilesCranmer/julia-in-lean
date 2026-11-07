@@ -10,41 +10,41 @@ base/precompilation.jl	132	143	Base.acquire	Base.acquire(w::WorkerLimiter; prior
 base/precompilation.jl	145	149	Base.release	Base.release(w::WorkerLimiter)	todo		
 base/precompilation.jl	151	158	Base.acquire	Base.acquire(f, w::WorkerLimiter; priority::Float64=0.0, cancel=Returns(false))	todo		
 base/precompilation.jl	183	183	PrecompileJob	PrecompileJob()	todo		
-base/precompilation.jl	186	186	is_pending	is_pending(j::PrecompileJob)	todo		
-base/precompilation.jl	187	187	is_started	is_started(j::PrecompileJob)	todo		
-base/precompilation.jl	188	188	is_recompiled	is_recompiled(j::PrecompileJob)	todo		
-base/precompilation.jl	189	189	is_soft_error	is_soft_error(j::PrecompileJob)	todo		
-base/precompilation.jl	190	190	is_failed	is_failed(j::PrecompileJob)	todo		
-base/precompilation.jl	191	191	is_dep_failed	is_dep_failed(j::PrecompileJob)	todo		
-base/precompilation.jl	192	192	has_pid	has_pid(j::PrecompileJob)	todo		
-base/precompilation.jl	193	193	had_pid	had_pid(j::PrecompileJob)	todo		
-base/precompilation.jl	194	194	is_locked	is_locked(j::PrecompileJob)	todo		
-base/precompilation.jl	195	195	is_waiting	is_waiting(j::PrecompileJob)	todo		
+base/precompilation.jl	186	186	is_pending	is_pending(j::PrecompileJob)	modelled	precompilation-job-status-partition	Source checked line by line against f755f49; independent public-contract properties registered as todo.
+base/precompilation.jl	187	187	is_started	is_started(j::PrecompileJob)	modelled	precompilation-job-status-partition	Source checked line by line against f755f49; independent public-contract properties registered as todo.
+base/precompilation.jl	188	188	is_recompiled	is_recompiled(j::PrecompileJob)	modelled	precompilation-job-status-partition	Source checked line by line against f755f49; independent public-contract properties registered as todo.
+base/precompilation.jl	189	189	is_soft_error	is_soft_error(j::PrecompileJob)	modelled	precompilation-job-status-partition	Source checked line by line against f755f49; independent public-contract properties registered as todo.
+base/precompilation.jl	190	190	is_failed	is_failed(j::PrecompileJob)	modelled	precompilation-job-status-partition	Source checked line by line against f755f49; independent public-contract properties registered as todo.
+base/precompilation.jl	191	191	is_dep_failed	is_dep_failed(j::PrecompileJob)	modelled	precompilation-job-status-partition	Source checked line by line against f755f49; independent public-contract properties registered as todo.
+base/precompilation.jl	192	192	has_pid	has_pid(j::PrecompileJob)	modelled	precompilation-positive-pid-only	Source checked line by line against f755f49; independent public-contract properties registered as todo.
+base/precompilation.jl	193	193	had_pid	had_pid(j::PrecompileJob)	modelled	precompilation-historical-pid-observation	Source checked line by line against f755f49; independent public-contract properties registered as todo.
+base/precompilation.jl	194	194	is_locked	is_locked(j::PrecompileJob)	modelled	precompilation-lock-holder-observation	Source checked line by line against f755f49; independent public-contract properties registered as todo.
+base/precompilation.jl	195	195	is_waiting	is_waiting(j::PrecompileJob)	modelled	precompilation-waiting-observation	Source checked line by line against f755f49; independent public-contract properties registered as todo.
 base/precompilation.jl	197	197	mark_started!	mark_started!(j::PrecompileJob, t::Float64=time())	todo		
-base/precompilation.jl	198	198	mark_recompiled!	mark_recompiled!(j::PrecompileJob)	todo		
-base/precompilation.jl	199	199	mark_soft_error!	mark_soft_error!(j::PrecompileJob)	todo		
-base/precompilation.jl	200	200	mark_failed!	mark_failed!(j::PrecompileJob, msg::String)	todo		
-base/precompilation.jl	202	202	mark_dep_failed!	mark_dep_failed!(j::PrecompileJob, root::String)	todo		
-base/precompilation.jl	203	203	set_pid!	set_pid!(j::PrecompileJob, pid::Int32)	todo		
-base/precompilation.jl	204	204	clear_pid!	clear_pid!(j::PrecompileJob)	todo		
+base/precompilation.jl	198	198	mark_recompiled!	mark_recompiled!(j::PrecompileJob)	modelled	precompilation-recompiled-update	Source checked line by line against f755f49; independent public-contract properties registered as todo. Canonical transition preserves the Julia return value; prior state-only API is a projection wrapper.
+base/precompilation.jl	199	199	mark_soft_error!	mark_soft_error!(j::PrecompileJob)	modelled	precompilation-soft-error-update	Source checked line by line against f755f49; independent public-contract properties registered as todo. Canonical transition preserves the Julia return value; prior state-only API is a projection wrapper.
+base/precompilation.jl	200	200	mark_failed!	mark_failed!(j::PrecompileJob, msg::String)	modelled	precompilation-failed-update	Source checked line by line against f755f49; independent public-contract properties registered as todo. Canonical transition preserves the Julia return value; prior state-only API is a projection wrapper.
+base/precompilation.jl	202	202	mark_dep_failed!	mark_dep_failed!(j::PrecompileJob, root::String)	modelled	precompilation-dependency-failed-update	Source checked line by line against f755f49; independent public-contract properties registered as todo. Canonical transition preserves the Julia return value; prior state-only API is a projection wrapper.
+base/precompilation.jl	203	203	set_pid!	set_pid!(j::PrecompileJob, pid::Int32)	modelled	precompilation-pid-update	Source checked line by line against f755f49; independent public-contract properties registered as todo. Canonical transition preserves the Julia return value; prior state-only API is a projection wrapper.
+base/precompilation.jl	204	204	clear_pid!	clear_pid!(j::PrecompileJob)	modelled	precompilation-cleared-pid-retains-history	Source checked line by line against f755f49; independent public-contract properties registered as todo. Canonical transition preserves the Julia return value; prior state-only API is a projection wrapper.
 base/precompilation.jl	206	210	clear_failure!	clear_failure!(j::PrecompileJob)	todo		
 base/precompilation.jl	336	336	Base.lock	Base.lock(f, bg::BackgroundPrecompileState)	todo		
 base/precompilation.jl	337	337	Base.lock	Base.lock(bg::BackgroundPrecompileState)	todo		
 base/precompilation.jl	338	338	Base.unlock	Base.unlock(bg::BackgroundPrecompileState)	todo		
 base/precompilation.jl	354	354	ansi_moveup	ansi_moveup(n::Int)	todo		
-base/precompilation.jl	359	359	Base.showerror	Base.showerror(io::IO, err::PkgPrecompileError)	todo		
-base/precompilation.jl	360	360	Base.showerror	Base.showerror(io::IO, err::PkgPrecompileError, bt; kw...)	todo		
-base/precompilation.jl	363	363	Base.show	Base.show(io::IO, err::PkgPrecompileError)	todo		
+base/precompilation.jl	359	359	Base.showerror	Base.showerror(io::IO, err::PkgPrecompileError)	modelled	precompilation-error-message-output	Source checked line by line against f755f49; independent public-contract properties registered as todo. Selected printers retain arbitrary return values and original vararg grouping; backtrace and keyword arguments are ignored as in the source.
+base/precompilation.jl	360	360	Base.showerror	Base.showerror(io::IO, err::PkgPrecompileError, bt; kw...)	modelled	precompilation-error-backtrace-hidden	Source checked line by line against f755f49; independent public-contract properties registered as todo. Selected printers retain arbitrary return values and original vararg grouping; backtrace and keyword arguments are ignored as in the source.
+base/precompilation.jl	363	363	Base.show	Base.show(io::IO, err::PkgPrecompileError)	modelled	precompilation-error-show-label	Source checked line by line against f755f49; independent public-contract properties registered as todo. Selected printers retain arbitrary return values and original vararg grouping; backtrace and keyword arguments are ignored as in the source.
 base/precompilation.jl	365	365	can_fancyprint	can_fancyprint(io::IO)	todo		
 base/precompilation.jl	371	371	unstable_iocontext	unstable_iocontext(io::IOContext{IO})	todo		
 base/precompilation.jl	372	372	unstable_iocontext	unstable_iocontext(io::IOContext)	todo		
 base/precompilation.jl	373	373	unstable_iocontext	unstable_iocontext(io::IO)	todo		
 base/precompilation.jl	375	380	printpkgstyle	printpkgstyle(io, header, msg; color=:green)	todo		
-base/precompilation.jl	382	382	timing_string	timing_string(t)	todo		
+base/precompilation.jl	382	382	timing_string	timing_string(t)	modelled	precompilation-timing-rounding-failure;precompilation-timing-padding-failure	Source checked line by line against f755f49; independent public-contract properties registered as todo. Generic selected calls retain unrestricted input/result types; the prior Float64 API is a thin specialization.
 base/precompilation.jl	390	438	format_verbose_timing	format_verbose_timing(payload::AbstractString, total_seconds::Float64, cache_bytes::Int, peak_rss_bytes::UInt64, hascolor::Bool)	todo		
 base/precompilation.jl	417	417	dim	dim(s, isz)	todo		
 base/precompilation.jl	418	427	col	col(x)	todo		
-base/precompilation.jl	442	442	format_verbose_timing_header	format_verbose_timing_header()	todo		
+base/precompilation.jl	442	442	format_verbose_timing_header	format_verbose_timing_header()	modelled	precompilation-timing-header-columns	Source checked line by line against f755f49; independent public-contract properties registered as todo.
 base/precompilation.jl	446	454	_precompile_cache_bytes	_precompile_cache_bytes(cf_jl::AbstractString, cf_so::Union{Nothing,AbstractString})	todo		
 base/precompilation.jl	458	466	color_string	color_string(cstr::String, col::Union{Int64, Symbol}, hascolor)	todo		
 base/precompilation.jl	486	486	start_progress	start_progress(io::IO, _::MiniProgressBar)	todo		

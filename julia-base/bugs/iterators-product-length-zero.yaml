@@ -1,30 +1,29 @@
 id: iterators-product-length-zero
-title: length(Iterators.product(...)) throws OverflowError for an empty product
+title: length of an empty Iterators.product throws when earlier dimensions overflow
 priority: P3
 kind: wrong-exception
 area: Iterators
 files:
-- base/iterators.jl
+  - base/iterators.jl
 functions:
-- length(::ProductIterator)
+  - length(::ProductIterator)
 summary: |
-  length(P) = reduce(checked_mul, size(P); init=1) multiplies the dimensions from
-  the left, so product(1:2^32, 1:2^32, 1:0) throws OverflowError although the
-  product has 0 elements; isempty and collect work, and the same factors in the
-  order (1:0, 1:2^32, 1:2^32) give length 0.
+  length(product(1:2^32, 1:2^32, 1:0)) throws OverflowError although the
+  product contains zero elements. Moving the empty factor to the front gives
+  length 0. isempty and collecting the empty product also give the expected
+  empty result. The checked multiplication overflows before reaching zero.
 likelihood: |
-  Needs a product of huge factors with an empty one. Rare.
+  Requires huge lazy factors followed by an empty factor. The inputs occupy
+  little memory, but this combination is uncommon.
 maybe_intended: |
-  OverflowError is the documented reaction to an unrepresentable product; one
-  can argue that the product of the sizes is computed before looking at zeros.
+  PR #43429 deliberately introduced checked multiplication for genuinely
+  unrepresentable product lengths. Here the final element count is exactly
+  zero and fits in Int; only an intermediate multiplication overflows.
 reproducer: |
-  # length(product(...)) throws OverflowError for an empty product whose earlier factors overflow
   p = Iterators.product(1:2^32, 1:2^32, 1:0)
-  l = try length(p) catch e; e end
-  println("length(product(1:2^32, 1:2^32, 1:0)) = ", l isa Exception ? sprint(showerror, l) : repr(l))
-  println("isempty = ", isempty(p), ", size = ", size(p), ", length(collect) = ", length(collect(p)))
-  println("length(product(1:0, 1:2^32, 1:2^32)) = ", length(Iterators.product(1:0, 1:2^32, 1:2^32)))
-  l isa OverflowError && isempty(p) && println("REPRODUCED iterators-product-length-zero")
+  isempty(p)  # true
+  length(Iterators.product(1:0, 1:2^32, 1:2^32))  # 0
+  length(p)   # throws OverflowError
 output:
   release: |
     length(product(1:2^32, 1:2^32, 1:0)) = OverflowError: 4294967296 * 4294967296 overflowed for type Int64
@@ -40,20 +39,37 @@ reproduced:
   release: true
   nightly: true
 expected: |
-  length(product(1:2^32, 1:2^32, 1:0)) == 0.
+  length(p) should return 0 regardless of where the empty factor occurs.
 promised_by: |
-  Invariant: length(itr) is the number of elements (IteratorSize docstring,
-  base/generator.jl:70-90); the count 0 is representable.
+  Pinned source f755f49a9e41380d7da126b3c1db9fe7f83dd027:
+  base/abstractarray.jl:285: "Return the number of elements in the collection."
+  The product's element count is zero, which is representable in Int.
 cause: |
-  base/iterators.jl:1186, a left fold of checked_mul that overflows before it
-  reaches the zero dimension.
+  base/iterators.jl:1186 defines length(P::ProductIterator) as
+  reduce(checked_mul, size(P); init=1). The initial dimensions overflow before
+  the reduction encounters the zero dimension.
 possible_fix: |
-  Return 0 if any dimension is 0 before the checked fold.
+  Return zero if any dimension is zero before reducing with checked_mul.
+  Keep checked multiplication for products whose nonzero count does not fit.
 duplicates:
-  issues: []
+  issues:
+    - number: 43422
+      state: closed
+      relation: related
+  prs:
+    - number: 43429
+      state: merged
+      relation: related
+      note: "introduced checked_mul but does not address a later zero dimension"
+  search_notes: |
+    The related issue and PR concern nonzero overflowing counts, not a
+    representable zero count after an overflowing prefix. No exact duplicate
+    is known.
   queries:
-  - product length overflow
-  - product length checked_mul
+    - product length overflow
+    - ProductIterator checked_mul
+    - product empty length
+    - ProductIterator zero
 lean:
-  property: JuliaLean.Iterators.ProductLengthExact
-  theorem: JuliaLean.Iterators.productLengthExact_refuted
+  property: JuliaLean.Proofs.base.iterators.ProductLengthExact
+  theorem: JuliaLean.ChatGPT.Batch4.Group5.IteratorsProductLengthZero_refuted

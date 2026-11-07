@@ -70,5 +70,5 @@ duplicates:
     - "issues: lcm"
     - "PRs: gcdx"
 lean:
-  property: JuliaLean.IntArith.NumberTheory.MixedLcmRepresentable
-  theorem: JuliaLean.IntArith.NumberTheory.mixedLcmRepresentable_refuted
+  property: JuliaLean.Proofs.base.intfuncs.MixedLcmRepresentable
+  theorem: JuliaLean.Proofs.base.intfuncs.mixedLcmRepresentable_refuted

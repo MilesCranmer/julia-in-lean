@@ -1,94 +1,120 @@
-import JuliaLean.Core
+import JuliaLean.src.idset_c
 import JuliaLean.base.iddict
-import JuliaLean.base.cmem
 
-/-!
-# Model of `base/idset.jl`
-
-Typed model of every method in Julia `f755f49a9e41380d7da126b3c1db9fe7f83dd027`.
-The list memory records assigned and unassigned `Any` slots; index memory and C table calls,
-allocation/copy, generic set calls, and type assertions are typed parameters. `IdDict.RuntimeOps`
-supplies the shared memory and `===` operations. `_zero!` threads index-memory state through
-the byte-level `MemsetLaw` of `base/cmem.jl`, lifted through `indexHeap` and `pointerView`.
-Julia `Int` fields use `JInt .i64`.
--/
-
+/-! IdSet objects, keys, and integer indices share the same native byte heap
+as the IdDict binding. C index algorithms are concrete; selected Julia/Core
+callees remain explicit. -/
 namespace JuliaLean.base.idset
+open JuliaLean
+open JuliaLean.src.identity_runtime (Word Memory Error GC M fail)
+namespace R
+export JuliaLean.src.identity_runtime (getWorld modifyWorld loadWord encodeWord datatypeAt
+  typeof typetag memoryOwner allocMemoryAny newLocal pushRoots popRoots gcWriteAtomic)
+end R
+namespace C
+export JuliaLean.src.idset_c (memoryAtAddress keyAt keySet signed unsigned jl_idset_peek_bp
+  jl_idset_put_key jl_idset_put_idx jl_idset_pop)
+end C
+namespace S
+export JuliaLean.src.smallintset_c (Primitives elementWidth copyBytes zeroBytes)
+end S
+namespace D
+export JuliaLean.base.iddict (storeHT storeIntField memoryAt)
+end D
 
-open JuliaLean JuliaLean.base.iddict
-open JuliaLean.base.pointer
-
-/--
-Julia source: base/idset.jl:29-33 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
-```julia
-mutable struct IdSet{K} <: AbstractSet{K}
-    list::Memory{Any}
-    idxs::Union{Memory{UInt8}, Memory{UInt16}, Memory{UInt32}}
-    count::Int
-    max::Int # n.b. always <= length(list)
-```
--/
-structure IdSet (K A I : Type) where
-  list : List (Option A)
-  idxs : I
+structure SetFields where
+  list : Memory
+  indices : Memory
   count : JInt .i64
-  max : JInt .i64
+  maximum : JInt .i64
+  elementType : Word
 
-structure Runtime (A I E Ptr Preserve : Type) where
-  iddict : JuliaLean.base.iddict.RuntimeOps A A A (List (Option A)) E Ptr Preserve
-  allocateIndices8 : Nat → Except E I
-  copyIndices : I → Except E I
-  peekBucket : List (Option A) → I → A → JInt .i64
-  putKey : List (Option A) → A → JInt .i64 →
-    Except E (List (Option A) × JInt .u64 × JInt .i64)
-  putIndex : List (Option A) → I → JInt .i64 → Except E I
-  popKey : List (Option A) → I → A →
-    Except E (List (Option A) × I × JInt .i64)
-  boundsError : E
-  assertionError : String → E
-  keyError : A → E
-  uintToInt : JInt .u64 → Except E (JInt .i64)
-  preserveBegin : I → Preserve
-  unsafeConvert : I → Ptr
-  eltype : I → IntTy
-  sizeof : IntTy → JInt .i64
-  memoryLength : I → JInt .i64
-  indexHeap : I → ByteHeap
-  pointerView : Ptr → JuliaLean.base.pointer.Ptr Unit
-  memset : I → Ptr → JuliaLean.base.cmem.CInt → JInt .u64 → I × Ptr
-  memsetStandard : ∀ memory p value size,
-    JuliaLean.base.cmem.validRange (indexHeap memory) (pointerView p) size →
-    let (after, result) := memset memory p value size
-    (pointerView result).address = (pointerView p).address ∧
-      JuliaLean.base.cmem.fillEffect (indexHeap memory) (indexHeap after)
-        (pointerView p) size (JInt.wrap .u8 value.val)
-  preserveEnd : Preserve → Unit
-  castTo : {K : Type} → A → Except E K
-  union : {K Itr : Type} → IdSet K A I → Itr → CallResult E (IdSet K A I) (IdSet K A I)
-  setdiff : {K Itr : Type} → IdSet K A I → Itr → CallResult E (IdSet K A I) (IdSet K A I)
-  unsafeFilter : {K : Type} → (A → Bool) → IdSet K A I →
-    CallResult E (IdSet K A I) (IdSet K A I)
+structure Callees where
+  gc : GC
+  indices : S.Primitives
+  newObject : Word → Memory → Memory → JInt .i64 → JInt .i64 → M Word
+  copyKeys : Memory → M Memory
+  isa : Word → Word → M Bool
+  union : Word → Word → M Word
+  setdiff : Word → Word → M Word
+  unsafeFilter : (Word → M Bool) → Word → M Word
 
-def memoryPosition (index : JInt .i64) : Option Nat :=
-  if index.val ≤ 0 then none else some (index.val.toNat - 1)
+def fields (address : Word) : M SetFields := do
+  let list ← C.memoryAtAddress (← R.loadWord address)
+  let indices ← C.memoryAtAddress (← R.loadWord (address+8))
+  let count ← R.loadWord (address+16)
+  let maximum ← R.loadWord (address+24)
+  let datatype ← R.datatypeAt (← R.typeof address)
+  let elementType ← R.loadWord (datatype.parameters+8)
+  pure ⟨list, indices, C.signed count, C.signed maximum, elementType⟩
 
-def isAssigned {A : Type} (memory : List (Option A)) (index : JInt .i64) : Bool :=
-  match memoryPosition index with
-  | none => false
-  | some position =>
-      match memory[position]? with
-      | none => false
-      | some value => value.isSome
+def registerMemory (memory : Memory) : M Unit := do
+  let owner := R.memoryOwner memory
+  R.modifyWorld fun world => { world with
+    memories := fun query => if query == owner then some memory else world.memories query }
 
-def setMemory {A E : Type} (boundsError : E) (memory : List (Option A))
-    (index : JInt .i64) (value : Option A) : Except E (List (Option A)) :=
-  match memoryPosition index with
-  | none => .error boundsError
-  | some position =>
-      match memory[position]? with
-      | none => .error boundsError
-      | some _ => .ok (memory.take position ++ [value] ++ memory.drop (position + 1))
+def storeIndices (address : Word) (memory : Memory) : M Unit := do
+  R.gcWriteAtomic address (address+8) (R.memoryOwner memory) .notAtomic
+  registerMemory memory
 
+def allocateBits (p : S.Primitives) (type : Word) (width : Nat) (empty : Memory) (length : Nat) : M Memory := do
+  let memory ← JuliaLean.base.array.allocGenericMemory (some ⟨width, false, false⟩)
+    (pure empty) (p.allocateBits type width) length
+  registerMemory memory
+  pure memory
+
+def allocateIndices8 (p : S.Primitives) (length : Nat) : M Memory :=
+  allocateBits p p.uint8Type 1 p.empty8 length
+
+/-- genericmemory.jl's copy path for the three IdSet index types: allocate
+same-type memory, then the installed native bits path copies its bytes. -/
+def copyIndices (p : S.Primitives) (memory : Memory) : M Memory := do
+  let type ← R.typetag (R.memoryOwner memory)
+  let width ← S.elementWidth p memory false
+  let empty := if width = 1 then p.empty8 else if width = 2 then p.empty16 else p.empty32
+  let fresh ← allocateBits p type width empty memory.length
+  if memory.length != 0 then
+    S.copyBytes (UInt64.ofNat fresh.ptr) (UInt64.ofNat memory.ptr)
+      (UInt64.ofNat memory.length * UInt64.ofNat width)
+  pure fresh
+
+def assertElement (calls : Callees) (value type : Word) : M Word := do
+  if type == (← R.getWorld).globals.anyType then return value
+  if ← calls.isa value type then pure value else fail (.typeAssertion type value)
+
+def isAssigned (memory : Memory) (index : JInt .i64) : M Bool := do
+  if index.val < 1 || index.val.toNat > memory.length then return false
+  return (← C.keyAt memory (UInt64.ofNat (index.val-1).toNat)) != 0
+
+def setMemory (memory : Memory) (index : JInt .i64) (value : Word) : M Unit := do
+  if index.val < 1 || index.val.toNat > memory.length then fail (.array .bounds)
+  JuliaLean.src.identity_runtime.writeCell memory (UInt64.ofNat (index.val-1).toNat) value .notAtomic
+
+def unsetMemory (memory : Memory) (index : JInt .i64) : M Unit := do
+  if index.val < 1 || index.val.toNat > memory.length then fail (.array .bounds)
+  let data := memory.ptr + 8*(index.val-1).toNat
+  match JuliaLean.src.genericmemory_c.memoryrefUnsetProgram memory.metadata data false with
+  | .error error => fail (.abort ("invalid Memory{Any} layout: " ++ reprStr error))
+  | .ok effects =>
+    R.modifyWorld fun world => { world with
+      raw := effects.foldl JuliaLean.src.genericmemory_c.interpretRawEffect world.raw }
+
+def checkedUnsigned (value : JInt .i64) : M Word := do
+  match JInt.convert "UInt64" .u64 value.val with
+  | .error error => fail (.julia error)
+  | .ok word => pure (UInt64.ofNat word.val.toNat)
+
+def checkedInt (value : Word) : M (JInt .i64) := do
+  match JInt.convert "Int64" .i64 (Int.ofNat value.toNat) with
+  | .error error => fail (.julia error)
+  | .ok word => pure word
+
+def construct (calls : Callees) (type : Word) (list indices : Memory)
+    (count maximum : JInt .i64) : M Word := do
+  let address ← calls.newObject type list indices count maximum
+  registerMemory list
+  registerMemory indices
+  pure address
 
 /--
 Julia source: base/idset.jl:34-34 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -96,11 +122,10 @@ Julia source: base/idset.jl:34-34 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
     IdSet{T}() where {T} = new(Memory{Any}(undef, 0), Memory{UInt8}(undef, 0), 0, 0)
 ```
 -/
-def emptyTyped {K A I E Ptr Preserve : Type} (ops : Runtime A I E Ptr Preserve) :
-    Except E (IdSet K A I) := do
-  let list ← ops.iddict.allocate 0
-  let idxs ← ops.allocateIndices8 0
-  .ok ⟨list, idxs, JInt.wrap .i64 0, JInt.wrap .i64 0⟩
+def emptyTyped (calls : Callees) (type : Word) : M Word := do
+  let list ← R.allocMemoryAny calls.gc 0
+  let indices ← allocateIndices8 calls.indices 0
+  construct calls type list indices (JInt.wrap .i64 0) (JInt.wrap .i64 0)
 
 /--
 Julia source: base/idset.jl:35-35 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -108,11 +133,13 @@ Julia source: base/idset.jl:35-35 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
     IdSet{T}(s::IdSet{T}) where {T} = new(copy(s.list), copy(s.idxs), s.count, s.max)
 ```
 -/
-def copyConstruct {K A I E Ptr Preserve : Type} (ops : Runtime A I E Ptr Preserve)
-    (s : IdSet K A I) : Except E (IdSet K A I) := do
-  let list ← ops.iddict.copyMemory s.list
-  let idxs ← ops.copyIndices s.idxs
-  .ok ⟨list, idxs, s.count, s.max⟩
+def copyConstruct (calls : Callees) (address : Word) : M Word := do
+  let first ← fields address
+  let list ← calls.copyKeys first.list
+  let second ← fields address
+  let indices ← copyIndices calls.indices second.indices
+  let last ← fields address
+  construct calls last.elementType list indices last.count last.maximum
 
 /--
 Julia source: base/idset.jl:37-37 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -120,13 +147,8 @@ Julia source: base/idset.jl:37-37 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 IdSet{T}(itr) where {T} = union!(IdSet{T}(), itr)
 ```
 -/
-def fromIterator {K A I E Ptr Preserve Itr : Type} (ops : Runtime A I E Ptr Preserve)
-    (itr : Itr) : Except E (IdSet K A I) := do
-  let s ← emptyTyped ops
-  let united := ops.union s itr
-  match united.result with
-  | .error e => .error e
-  | .ok _ => .ok united.state
+def fromIterator (calls : Callees) (type iterator : Word) : M Word := do
+  calls.union (← emptyTyped calls type) iterator
 
 /--
 Julia source: base/idset.jl:38-38 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -134,8 +156,7 @@ Julia source: base/idset.jl:38-38 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 IdSet() = IdSet{Any}()
 ```
 -/
-def emptyAny {A I E Ptr Preserve : Type} (ops : Runtime A I E Ptr Preserve) :
-    Except E (IdSet A A I) := emptyTyped ops
+def emptyAny (calls : Callees) : M Word := do emptyTyped calls (← R.getWorld).globals.anyType
 
 /--
 Julia source: base/idset.jl:40-40 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -143,8 +164,7 @@ Julia source: base/idset.jl:40-40 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 copymutable(s::IdSet) = typeof(s)(s)
 ```
 -/
-def copymutable {K A I E Ptr Preserve : Type} (ops : Runtime A I E Ptr Preserve)
-    (s : IdSet K A I) : Except E (IdSet K A I) := copyConstruct ops s
+def copymutable (calls : Callees) (address : Word) : M Word := copyConstruct calls address
 
 /--
 Julia source: base/idset.jl:41-41 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -152,17 +172,10 @@ Julia source: base/idset.jl:41-41 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 emptymutable(s::IdSet{T}, ::Type{U}=T) where {T,U} = IdSet{U}()
 ```
 -/
-def emptymutable {K A I E Ptr Preserve : Type} (ops : Runtime A I E Ptr Preserve)
-    (_s : IdSet K A I) : Except E (IdSet K A I) := emptyTyped ops
+def emptymutable (calls : Callees) (address : Word) : M Word := do
+  emptyTyped calls (← fields address).elementType
 
-/--
-Julia source: base/idset.jl:41-41 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
-```julia
-emptymutable(s::IdSet{T}, ::Type{U}=T) where {T,U} = IdSet{U}()
-```
--/
-def emptymutableAs {K A I E Ptr Preserve : Type} (ops : Runtime A I E Ptr Preserve)
-    (_s : IdSet K A I) (U : Type) : Except E (IdSet U A I) := emptyTyped ops
+def emptymutableAs (calls : Callees) (_address type : Word) : M Word := emptyTyped calls type
 
 /--
 Julia source: base/idset.jl:42-42 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -170,8 +183,7 @@ Julia source: base/idset.jl:42-42 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 copy(s::IdSet) = typeof(s)(s)
 ```
 -/
-def copy {K A I E Ptr Preserve : Type} (ops : Runtime A I E Ptr Preserve)
-    (s : IdSet K A I) : Except E (IdSet K A I) := copyConstruct ops s
+def copy (calls : Callees) (address : Word) : M Word := copyConstruct calls address
 
 /--
 Julia source: base/idset.jl:44-44 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -179,9 +191,9 @@ Julia source: base/idset.jl:44-44 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 haskey(s::IdSet, @nospecialize(key)) = ccall(:jl_idset_peek_bp, Int, (Any, Any, Any), s.list, s.idxs, key) != -1
 ```
 -/
-def haskey {K A I E Ptr Preserve : Type} (ops : Runtime A I E Ptr Preserve)
-    (s : IdSet K A I) (key : A) : Bool :=
-  decide (ops.peekBucket s.list s.idxs key ≠ JInt.wrap .i64 (-1))
+def haskey (calls : Callees) (address key : Word) : M Bool := do
+  let current ← fields address
+  return (← C.jl_idset_peek_bp calls.indices current.list current.indices key).val != -1
 
 /--
 Julia source: base/idset.jl:45-45 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -189,7 +201,7 @@ Julia source: base/idset.jl:45-45 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 isempty(s::IdSet) = s.count == 0
 ```
 -/
-def isempty {K A I : Type} (s : IdSet K A I) : Bool := s.count.val == 0
+def isempty (address : Word) : M Bool := do return (← fields address).count.val == 0
 
 /--
 Julia source: base/idset.jl:46-46 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -197,7 +209,7 @@ Julia source: base/idset.jl:46-46 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 length(s::IdSet)  = s.count
 ```
 -/
-def length {K A I : Type} (s : IdSet K A I) : JInt .i64 := s.count
+def length (address : Word) : M (JInt .i64) := do return (← fields address).count
 
 /--
 Julia source: base/idset.jl:47-47 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -205,8 +217,7 @@ Julia source: base/idset.jl:47-47 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 in(@nospecialize(x), s::IdSet) = haskey(s, x)
 ```
 -/
-def «in» {K A I E Ptr Preserve : Type} (ops : Runtime A I E Ptr Preserve)
-    (x : A) (s : IdSet K A I) : Bool := haskey ops s x
+def «in» (calls : Callees) (value address : Word) : M Bool := haskey calls address value
 
 /--
 Julia source: base/idset.jl:48-70 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -236,57 +247,46 @@ function push!(s::IdSet, @nospecialize(x))
 end
 ```
 -/
-def push! {K A I E Ptr Preserve : Type} (ops : Runtime A I E Ptr Preserve)
-    (s : IdSet K A I) (x : A) : CallResult E (IdSet K A I) (IdSet K A I) :=
-  let idx := ops.peekBucket s.list s.idxs x
-  if idx.val ≥ 0 then
-    match setMemory ops.boundsError s.list (idx + JInt.wrap .i64 1) (some x) with
-    | .error e => resultWithState (.error e) s
-    | .ok list =>
-        let updated := { s with list := list }
-        resultWithState (.ok updated) updated
+def push! (calls : Callees) (address value : Word) : M Word := do
+  let before ← fields address
+  let index ← C.jl_idset_peek_bp calls.indices before.list before.indices value
+  if index.val ≥ 0 then
+    let current ← fields address
+    setMemory current.list (index+JInt.wrap .i64 1) value
   else
-    let prepared : CallResult E (IdSet K A I) (IdSet K A I × JInt .i64) :=
-      if s.max.val < (JInt.wrap .i64 (Int.ofNat s.list.length)).val then
-        let idx := s.max
-        if isAssigned s.list (idx + JInt.wrap .i64 1) then
-          resultWithState (.error (ops.assertionError "bucket is already occupied")) s
-        else
-          match setMemory ops.boundsError s.list (idx + JInt.wrap .i64 1) (some x) with
-          | .error e => resultWithState (.error e) s
-          | .ok list =>
-              let updated := { s with list := list, max := idx + JInt.wrap .i64 1 }
-              resultWithState (.ok (updated, idx)) updated
-      else
-        match ops.putKey s.list x s.max with
-        | .error e => resultWithState (.error e) s
-        | .ok (list, newmax, newidx) =>
-            let withList := { s with list := list }
-            match ops.uintToInt newmax with
-            | .error e => resultWithState (.error e) withList
-            | .ok max =>
-                let updated := { withList with max := max }
-                resultWithState (.ok (updated, newidx)) updated
-    match prepared.result with
-    | .error e => resultWithState (.error e) prepared.state
-    | .ok (updated, idx) =>
-        match ops.iddict.memoryAt updated.list updated.max with
-        | .error e => resultWithState (.error e) updated
-        | .ok value =>
-            if ops.iddict.sameIdentity value x then
-              match ops.putIndex updated.list updated.idxs idx with
-              | .error e => resultWithState (.error e) updated
-              | .ok idxs =>
-                  let final := { updated with idxs := idxs, count := updated.count + JInt.wrap .i64 1 }
-                  resultWithState (.ok final) final
-            else resultWithState (.error (ops.assertionError "unexpected object in bucket")) updated
+    let current ← fields address
+    let index ← if current.maximum.val < Int.ofNat current.list.length then do
+        let index := current.maximum
+        if ← isAssigned current.list (index+JInt.wrap .i64 1) then
+          fail (.array (.assertion "bucket is already occupied"))
+        setMemory current.list (index+JInt.wrap .i64 1) value
+        D.storeIntField address 24 (index+JInt.wrap .i64 1)
+        pure index
+      else do
+        let maximum ← checkedUnsigned current.maximum
+        let (list, maximum, index) ← C.jl_idset_put_key calls.gc current.list value maximum
+        D.storeHT address list
+        let maximum ← checkedInt maximum
+        D.storeIntField address 24 maximum
+        pure index
+    let current ← fields address
+    let stored ← D.memoryAt current.list current.maximum
+    if !(← JuliaLean.src.builtins_identity_c.jl_egal_ stored value) then
+      fail (.array (.assertion "unexpected object in bucket"))
+    let current ← fields address
+    let indices ← C.jl_idset_put_idx calls.indices current.list current.indices index
+    storeIndices address indices
+    let current ← fields address
+    D.storeIntField address 16 (current.count+JInt.wrap .i64 1)
+  pure address
 
-def shrinkMax {A : Type} (list : List (Option A)) (max : JInt .i64) : Nat → JInt .i64
-  | 0 => max
-  | fuel + 1 =>
-      if max.val > 0 && !isAssigned list max then
-        shrinkMax list (max - JInt.wrap .i64 1) fuel
-      else max
+def shrinkMaximum (address : Word) : M Unit := do
+  let current ← fields address
+  if current.maximum.val > 0 then
+    if !(← isAssigned current.list current.maximum) then
+      D.storeIntField address 24 (current.maximum-JInt.wrap .i64 1)
+      shrinkMaximum address
+partial_fixpoint
 
 /--
 Julia source: base/idset.jl:71-80 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -303,17 +303,14 @@ function _pop!(s::IdSet, @nospecialize(x))
 end
 ```
 -/
-def _pop! {K A I E Ptr Preserve : Type} (ops : Runtime A I E Ptr Preserve)
-    (s : IdSet K A I) (x : A) : CallResult E (IdSet K A I) (JInt .i64) :=
-  match ops.popKey s.list s.idxs x with
-  | .error e => resultWithState (.error e) s
-  | .ok (list, idxs, removed) =>
-      let updated := { s with list := list, idxs := idxs }
-      if removed.val ≠ -1 then
-        let max := shrinkMax updated.list updated.max (updated.max.val.toNat + 1)
-        let final := { updated with count := updated.count - JInt.wrap .i64 1, max := max }
-        resultWithState (.ok removed) final
-      else resultWithState (.ok removed) updated
+def _pop! (calls : Callees) (address value : Word) : M (JInt .i64) := do
+  let current ← fields address
+  let removed ← C.jl_idset_pop calls.indices current.list current.indices value
+  if removed.val != -1 then
+    let current ← fields address
+    D.storeIntField address 16 (current.count-JInt.wrap .i64 1)
+    shrinkMaximum address
+  pure removed
 
 /--
 Julia source: base/idset.jl:81-81 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -321,14 +318,8 @@ Julia source: base/idset.jl:81-81 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 pop!(s::IdSet, @nospecialize(x)) = _pop!(s, x) == -1 ? throw(KeyError(x)) : x
 ```
 -/
-def pop! {K A I E Ptr Preserve : Type} (ops : Runtime A I E Ptr Preserve)
-    (s : IdSet K A I) (x : A) : CallResult E (IdSet K A I) A :=
-  let removed := _pop! ops s x
-  match removed.result with
-  | .error e => resultWithState (.error e) removed.state
-  | .ok index =>
-      if index.val == -1 then resultWithState (.error (ops.keyError x)) removed.state
-      else resultWithState (.ok x) removed.state
+def pop! (calls : Callees) (address value : Word) : M Word := do
+  if (← _pop! calls address value).val == -1 then fail (.keyError value) else pure value
 
 /--
 Julia source: base/idset.jl:82-82 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -336,14 +327,8 @@ Julia source: base/idset.jl:82-82 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 pop!(s::IdSet, @nospecialize(x), @nospecialize(default)) = _pop!(s, x) == -1 ? default : x
 ```
 -/
-def popDefault {K A I E Ptr Preserve : Type} (ops : Runtime A I E Ptr Preserve)
-    (s : IdSet K A I) (x default : A) : CallResult E (IdSet K A I) A :=
-  let removed := _pop! ops s x
-  match removed.result with
-  | .error e => resultWithState (.error e) removed.state
-  | .ok index =>
-      if index.val == -1 then resultWithState (.ok default) removed.state
-      else resultWithState (.ok x) removed.state
+def popDefault (calls : Callees) (address value fallback : Word) : M Word := do
+  if (← _pop! calls address value).val == -1 then pure fallback else pure value
 
 /--
 Julia source: base/idset.jl:83-83 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -351,12 +336,9 @@ Julia source: base/idset.jl:83-83 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 delete!(s::IdSet, @nospecialize(x)) = (_pop!(s, x); s)
 ```
 -/
-def delete! {K A I E Ptr Preserve : Type} (ops : Runtime A I E Ptr Preserve)
-    (s : IdSet K A I) (x : A) : CallResult E (IdSet K A I) (IdSet K A I) :=
-  let removed := _pop! ops s x
-  match removed.result with
-  | .error e => resultWithState (.error e) removed.state
-  | .ok _ => resultWithState (.ok removed.state) removed.state
+def delete! (calls : Callees) (address value : Word) : M Word := do
+  let _ ← _pop! calls address value
+  pure address
 
 /--
 Julia source: base/idset.jl:85-97 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -376,8 +358,7 @@ function sizehint!(s::IdSet, newsz::Integer)
 end
 ```
 -/
-def sizehint! {K A I E N : Type} (s : IdSet K A I) (_newsz : N) :
-    CallResult E (IdSet K A I) Unit := resultWithState (.ok ()) s
+def sizehint! (_address _size : Word) : M Unit := pure ()
 
 /--
 Julia source: base/idset.jl:99-106 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -392,14 +373,20 @@ function _zero!(a::Memory{<:BitInteger})
 end
 ```
 -/
-def _zero! {A I E Ptr Preserve : Type} (ops : Runtime A I E Ptr Preserve) (a : I) : I :=
-  let t := ops.preserveBegin a
-  let p := ops.unsafeConvert a
-  let T := ops.eltype a
-  let (after, _) := ops.memset a p (JInt.wrap .i32 0)
-    ((ops.sizeof T * ops.memoryLength a).rem .u64)
-  let _ := ops.preserveEnd t
-  after
+def _zero! (memory : Memory) : M Memory := do
+  let root ← R.newLocal (some memory)
+  R.pushRoots [root]
+  let width := JInt.wrap .i64 memory.metadata.memoryLayout.size.val
+  let count := width * JInt.wrap .i64 (Int.ofNat memory.length)
+  S.zeroBytes (UInt64.ofNat memory.ptr) (C.unsigned count)
+  R.popRoots
+  pure memory
+
+def clearList (list : Memory) (maximum index : Nat) : M Unit := do
+  if index > maximum then return ()
+  unsetMemory list (JInt.wrap .i64 (Int.ofNat index))
+  clearList list maximum (index+1)
+partial_fixpoint
 
 /--
 Julia source: base/idset.jl:108-117 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -416,32 +403,14 @@ function empty!(s::IdSet)
 end
 ```
 -/
-def clearSlots {A E : Type} (boundsError : E) (max : Int)
-    (slots : List (Option A)) (index fuel : Nat) : CallResult E (List (Option A)) Unit :=
-  match fuel with
-  | 0 => resultWithState (.ok ()) slots
-  | fuel + 1 =>
-      if Int.ofNat index > max then resultWithState (.ok ()) slots
-      else
-        match setMemory boundsError slots (JInt.wrap .i64 (Int.ofNat index)) none with
-        | .error e => resultWithState (.error e) slots
-        | .ok list => clearSlots boundsError max list (index + 1) fuel
-
-def clearList {K A I E Ptr Preserve : Type} (ops : Runtime A I E Ptr Preserve)
-    (s : IdSet K A I) (index fuel : Nat) : CallResult E (IdSet K A I) Unit :=
-  let cleared := clearSlots ops.boundsError s.max.val s.list index fuel
-  resultWithState cleared.result { s with list := cleared.state }
-
-def empty! {K A I E Ptr Preserve : Type} (ops : Runtime A I E Ptr Preserve)
-    (s : IdSet K A I) : CallResult E (IdSet K A I) (IdSet K A I) :=
-  let idxs := _zero! ops s.idxs
-  let before := { s with idxs := idxs }
-  let cleared := clearList ops before 1 s.max.val.toNat
-  match cleared.result with
-  | .error e => resultWithState (.error e) cleared.state
-  | .ok _ =>
-      let final := { cleared.state with count := JInt.wrap .i64 0, max := JInt.wrap .i64 0 }
-      resultWithState (.ok final) final
+def empty! (address : Word) : M Word := do
+  let current ← fields address
+  let _ ← _zero! current.indices
+  let current ← fields address
+  clearList current.list current.maximum.val.toNat 1
+  D.storeIntField address 16 (JInt.wrap .i64 0)
+  D.storeIntField address 24 (JInt.wrap .i64 0)
+  pure address
 
 /--
 Julia source: base/idset.jl:119-119 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -449,9 +418,8 @@ Julia source: base/idset.jl:119-119 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 filter!(f, d::IdSet) = unsafe_filter!(f, d)
 ```
 -/
-def filter! {K A I E Ptr Preserve : Type} (ops : Runtime A I E Ptr Preserve)
-    (f : A → Bool) (d : IdSet K A I) : CallResult E (IdSet K A I) (IdSet K A I) :=
-  ops.unsafeFilter f d
+def filter! (calls : Callees) (predicate : Word → M Bool) (address : Word) : M Word :=
+  calls.unsafeFilter predicate address
 
 /--
 Julia source: base/idset.jl:121-127 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -465,33 +433,180 @@ function iterate(s::IdSet{S}, state=0) where {S}
 end
 ```
 -/
-def findAssigned {A : Type} (slots : List (Option A)) (index fuel : Nat) : Option (A × Nat) :=
-  match fuel with
-  | 0 => none
-  | fuel + 1 =>
-      match slots with
-      | [] => none
-      | some value :: _ => some (value, index)
-      | none :: rest => findAssigned rest (index + 1) fuel
-
-def iterate {K A I E Ptr Preserve : Type} (ops : Runtime A I E Ptr Preserve)
-    (s : IdSet K A I) (state : JInt .i64 := JInt.wrap .i64 0) :
-    CallResult E (IdSet K A I) (Option (K × JInt .i64)) :=
-  let state := state + JInt.wrap .i64 1
-  if state.val > s.max.val then resultWithState (.ok none) s
-  else
-    let first := if state.val > 0 then state.val.toNat else 1
-    let fuel := (s.max.val - Int.ofNat first + 1).toNat
-    let slots := s.list.drop (first - 1)
-    match findAssigned slots first fuel with
-    | none => resultWithState (.ok none) s
-    | some (_, position) =>
-        let index := JInt.wrap .i64 (Int.ofNat position)
-        match ops.iddict.memoryAt s.list index with
-        | .error e => resultWithState (.error e) s
-        | .ok stored =>
-            match ops.castTo stored with
-            | .error e => resultWithState (.error e) s
-            | .ok typed => resultWithState (.ok (some (typed, index))) s
+def iterate (calls : Callees) (address : Word) (state : JInt .i64 := JInt.wrap .i64 0) :
+    M (Option (Word × JInt .i64)) := do
+  let state := state+JInt.wrap .i64 1
+  let current ← fields address
+  if state.val > current.maximum.val then return none
+  if ← isAssigned current.list state then
+    let value ← D.memoryAt current.list state
+    let value ← assertElement calls value current.elementType
+    pure (some (value, state))
+  else iterate calls address state
+partial_fixpoint
 
 end JuliaLean.base.idset
+
+namespace JuliaLean.BitSetsCov.Bugs
+
+structure IdValue where
+  identity : Nat
+  value : Nat
+  deriving DecidableEq
+
+end JuliaLean.BitSetsCov.Bugs
+
+namespace JuliaLean.BitSetsCov.Coll
+
+open Bugs
+
+/-! ## `base/idset.jl` -/
+
+abbrev IdState := List IdValue
+
+def idFind (identity : Nat) (s : IdState) : Option IdValue := s.find? (fun x => x.identity = identity)
+def idErase (identity : Nat) (s : IdState) : IdState := s.filter (fun x => x.identity != identity)
+def idPush (s : IdState) (x : IdValue) : IdState := idErase x.identity s ++ [x]
+def idOfList (xs : IdState) : IdState := xs.foldl idPush []
+def idEmpty : IdState := []
+def idCopy (s : IdState) : IdState := s
+def idHasKey (s : IdState) (x : IdValue) : Bool := decide (idFind x.identity s).isSome
+def idIsEmpty (s : IdState) : Bool := s.isEmpty
+def idPopInternal (s : IdState) (x : IdValue) : Int × IdState :=
+  if idHasKey s x then (0, idErase x.identity s) else (-1, s)
+def idPopKey (s : IdState) (x : IdValue) : Option (IdValue × IdState) :=
+  if idHasKey s x then some (x, idErase x.identity s) else none
+def idPopDefault (s : IdState) (x default : IdValue) : IdValue × IdState :=
+  if idHasKey s x then (x, idErase x.identity s) else (default, s)
+def idZero (a : List Nat) : List Nat := List.replicate a.length 0
+def idFilter (f : IdValue → Bool) (s : IdState) : IdState := s.filter f
+
+end JuliaLean.BitSetsCov.Coll
+/-!
+# `IdSet`, base/idset.jl (master `bbfa0ce4150`)
+
+`s.list::Memory{Any}` is modelled slot by slot (`none` = `#undef`), because
+the Julia code reads and writes it directly (`s.list[idx + 1] = x`,
+`isassigned`, the `s.max` scan, `iterate`). The hash index `s.idxs` is only
+touched by the C functions `jl_idset_peek_bp`, `jl_idset_put_idx` and
+`jl_idset_pop` (src/idset.c), modelled as a primitive with `===` semantics:
+`peek` returns the slot holding a `===` element, `put_idx` has no state of
+its own in the model. `jl_idset_put_key` (src/idset.c:83-108) is mirrored:
+stable compaction of the keys when the list is full, growth by 50% when less
+than a third is free afterwards, then the new key at the first free slot.
+
+Modelling decisions:
+* The `newidx` result of `jl_idset_put_key` only feeds `jl_idset_put_idx`,
+  i.e. the abstract index; it is not modelled.
+* `count` and `max` are `Nat` (indices of an in-memory list cannot wrap).
+* 1.13.2 differs only in how `push!` learns the new `max`
+  (`s.max = idx < 0 ? -idx : idx + 1`, base/idset.jl:62 in 1.13.2), which
+  computes the same value.
+-/
+
+namespace JuliaLean.IdDicts
+
+/-- `IdSet{T}` fields, base/idset.jl:29-36. -/
+structure IdSet where
+  T : JTy
+  list : List (Option JVal)
+  count : Nat
+  max : Nat
+
+/-- `IdSet{T}()`, base/idset.jl:34. -/
+def IdSet.new (T : JTy) : IdSet := ⟨T, [], 0, 0⟩
+
+/-- `jl_idset_peek_bp(list, idxs, x)`, src/idset.c:36-40: the 0-based slot of
+the element `=== x`, or `-1` (`none`). -/
+def peek : List (Option JVal) → JVal → Option Nat
+  | [], _ => none
+  | o :: t, x => if o = some x then some 0 else (peek t x).map (· + 1)
+
+/-- The compaction loop `idset_compact`, src/idset.c:51-68: the assigned slots
+moved to the front in order. -/
+def compact (l : List (Option JVal)) : List (Option JVal) :=
+  (l.filterMap id).map some ++ List.replicate (l.length - (l.filterMap id).length) none
+
+/-- `jl_idset_put_key(keys, key, &max, &newidx)`, src/idset.c:83-108: the new
+keys array and the new `max`. -/
+def putKey (keys : List (Option JVal)) (key : JVal) (max : Nat) : List (Option JVal) × Nat :=
+  let l := keys.length
+  let (keys, i) :=
+    if max = l then
+      let keys := compact keys
+      let i := (keys.filterMap id).length
+      if i ≥ l / 3 * 2 then
+        let nl := if l < 4 then 4 else (l * 3) / 2
+        (keys.take i ++ List.replicate (nl - i) none, i)
+      else (keys, i)
+    else (keys, max)
+  (keys.set i (some key), i + 1)
+
+/-- `push!(s, x)`, base/idset.jl:48-70. -/
+def IdSet.push (s : IdSet) (x : JVal) : Out IdSet Unit :=
+  match peek s.list x with
+  | some idx => ({ s with list := s.list.set idx (some x) }, .ok ())
+  | none =>
+    let r : Except IErr (List (Option JVal) × Nat) :=
+      if s.max < s.list.length then
+        -- `@assert !isassigned(s.list, idx + 1)`
+        if (s.list[s.max]?).join.isSome then .error .assertionError
+        else .ok (s.list.set s.max (some x), s.max + 1)
+      else .ok (putKey s.list x s.max)
+    match r with
+    | .error e => (s, .error e)
+    | .ok (list, max) =>
+      let s := { s with list := list, max := max }
+      -- `@assert s.list[s.max] === x`
+      if (s.list[s.max - 1]?).join != some x then (s, .error .assertionError)
+      else ({ s with count := s.count + 1 }, .ok ())
+
+/-- `while s.max > 0 && !isassigned(s.list, s.max); s.max -= 1; end`,
+base/idset.jl:75-77. -/
+def shrinkMax (l : List (Option JVal)) : Nat → Nat
+  | 0 => 0
+  | m + 1 => if (l[m]?).join.isNone then shrinkMax l m else m + 1
+
+/-- `_pop!(s, x)`, base/idset.jl:71-80; `jl_idset_pop` (src/idset.c:132-139)
+unsets the slot. Returns whether `x` was removed. -/
+def IdSet.pop! (s : IdSet) (x : JVal) : IdSet × Bool :=
+  match peek s.list x with
+  | none => (s, false)
+  | some idx =>
+    let l := s.list.set idx none
+    ({ s with list := l, count := s.count - 1, max := shrinkMax l s.max }, true)
+
+/-- `pop!(s, x)`, base/idset.jl:81. -/
+def IdSet.pop (s : IdSet) (x : JVal) : Out IdSet JVal :=
+  let r := s.pop! x
+  (r.1, if r.2 then .ok x else .error .keyError)
+
+/-- `delete!(s, x)`, base/idset.jl:83. -/
+def IdSet.delete (s : IdSet) (x : JVal) : IdSet := (s.pop! x).1
+
+/-- `for i = 1:m; unsetindex!(list, i); end` -/
+def unsetPrefix (l : List (Option JVal)) (m : Nat) : List (Option JVal) :=
+  List.replicate (min m l.length) none ++ l.drop m
+
+/-- `empty!(s)`, base/idset.jl:108-117 (`_zero!(s.idxs)` clears the index). -/
+def IdSet.empty (s : IdSet) : IdSet :=
+  { s with list := unsetPrefix s.list s.max, count := 0, max := 0 }
+
+/-- The slots `iterate` visits, base/idset.jl:121-126: `1:s.max`, assigned
+ones only, in order. -/
+def IdSet.elems (s : IdSet) : List JVal := (s.list.take s.max).filterMap id
+
+/-- `iterate(s)` to exhaustion, with the `s.list[state]::S` cast. -/
+def IdSet.iterate (s : IdSet) : Except IErr (List JVal) := s.elems.mapM (cast' s.T)
+where cast' (T : JTy) (x : JVal) : Except IErr JVal := if isa x T then .ok x else .error .typeError
+
+/-- `in(x, s)`, base/idset.jl:44,47. -/
+def IdSet.mem (s : IdSet) (x : JVal) : Bool := (peek s.list x).isSome
+
+/-- `length(s) = s.count`, base/idset.jl:46. -/
+def IdSet.length (s : IdSet) : Nat := s.count
+
+/-- `IdSet{T}(itr) = union!(IdSet{T}(), itr)`, base/idset.jl:37. -/
+def IdSet.ofList (union : IdSet → List JVal → Out IdSet Unit) (T : JTy) (xs : List JVal) : IdSet :=
+  (union (IdSet.new T) xs).1
+end JuliaLean.IdDicts

@@ -1,0 +1,95 @@
+id: bignums-gmp-factorial-exact
+title: BigInt factorial's exactness guidance omits the GMP argument limit
+priority: P3
+kind: documentation
+area: BigNums
+files:
+  - base/gmp.jl
+  - base/intfuncs.jl
+functions:
+  - factorial(::BigInt)
+summary: |
+  factorial(BigInt(2)^64) throws InexactError while converting the input to
+  GMP's Culong argument type. It fails before computing the factorial. This
+  contradicts any universal claim of an exact result for every nonnegative
+  BigInt, but does not demonstrate an incorrect feasible factorial. The public
+  arbitrary-precision guidance does not mention this argument limit.
+likelihood: |
+  The input is cheap to construct, but its factorial is infeasible to compute
+  or store. The practical concern is documenting and deliberately reporting
+  the supported argument domain when generic code forwards an enormous input.
+maybe_intended: |
+  A finite implementation cannot compute factorials for all nonnegative BigInts.
+  Even arguments accepted by Culong can require infeasible results. Rejecting
+  this input is reasonable; a universal exactness promise would be too strong.
+  The docs do not promise a particular exception for an unsupported argument, so
+  InexactError alone is not a demonstrated exception-contract violation. This
+  report classifies the missing qualification as documentation.
+reproducer: |
+  err = try
+      factorial(BigInt(2)^64)
+  catch e
+      e
+  end
+  @assert err isa InexactError
+  println("REPRODUCED bignums-gmp-factorial-exact")
+output:
+  release: |
+    REPRODUCED bignums-gmp-factorial-exact
+  nightly: |
+    REPRODUCED bignums-gmp-factorial-exact
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  Document the GMP input-type limit and practical resource limits rather than
+  promising an exact result for every nonnegative BigInt. The guidance needs
+  corresponding domain or resource caveats. An explicit limit check could give a
+  clearer error, but this example does not justify trying to compute this
+  factorial or mandate a specific replacement exception type.
+promised_by: |
+  Pinned source f755f49a9e41380d7da126b3c1db9fe7f83dd027.
+  base/intfuncs.jl:1307-1309 (factorial docstring):
+  "Factorial of `n`. If `n` is an [`Integer`](@ref), the factorial is computed as an
+  integer (promoted to at least 64 bits). Note that this may overflow if `n` is not small,
+  but you can use `factorial(big(n))` to compute the result exactly in arbitrary precision."
+  This guidance describes exact arithmetic, without stating the Culong argument
+  restriction. It does not guarantee success for infeasibly large results;
+  the universal success claim is stronger than what the docstring says.
+cause: |
+  base/gmp.jl:717 rejects negative inputs and otherwise calls MPZ.fac_ui(n).
+  The wrapper at base/gmp.jl:227-228 passes n to __gmpz_fac_ui as Culong.
+  The tested 2^64 argument does not fit that type on the tested 64-bit runtime,
+  so conversion raises InexactError before GMP computes any factorial.
+possible_fix: |
+  Qualify the arbitrary-precision guidance with the supported input domain and
+  resource limitations, and avoid promising success for every nonnegative
+  BigInt. If a clearer public error is desired, check n against typemax(Culong)
+  before the foreign call. Such a check cannot guarantee that every smaller
+  argument's factorial can be computed with available resources.
+duplicates:
+  issues:
+    - number: 51488
+      state: closed
+      relation: related
+      detail: Reports negative BigInt factorial returning zero; a different domain-error defect.
+      url: https://github.com/JuliaLang/julia/issues/51488
+  prs:
+    - number: 51497
+      state: merged
+      relation: related
+      detail: Fixes the negative-input issue 51488, not the positive Culong limit.
+      url: https://github.com/JuliaLang/julia/pull/51497
+    - number: 1397
+      state: merged
+      relation: related
+      detail: Introduced GMP-based factorial methods using unsigned machine arguments.
+      url: https://github.com/JuliaLang/julia/pull/1397
+  queries:
+    - 'issues and PRs: BigInt factorial InexactError'
+    - 'issues and PRs: factorial Culong'
+    - 'issues: factorial InexactError'
+    - 'issues and PRs: factorial BigInt'
+lean:
+  property: JuliaLean.Proofs.base.gmp.Round1.FactorialExactNaturalDomain
+  theorem: JuliaLean.ChatGPT.Batch4.Group7.BignumsGmpFactorialExact_refuted

@@ -45,6 +45,7 @@ inductive Val where
   | bits (ty : Val) (v : Int)
   /-- An immutable struct or tuple value with its field values, e.g. `(:a, :b)`. -/
   | imm (ty : Val) (fields : List Val)
+  | mutableRef (ty : Val) (address : UInt64)
   /-- A module object, e.g. `Core` in `AddrSpace{Core}`; modules are compared by name. -/
   | module (name : String)
   deriving Repr, Inhabited
@@ -64,6 +65,7 @@ def Val.beq : Val → Val → Bool
   | .symbol a, .symbol b => a == b
   | .bits t a, .bits u b => Val.beq t u && a == b
   | .imm t xs, .imm u ys => Val.beq t u && Val.beqList xs ys
+  | .mutableRef _ a, .mutableRef _ b => a == b
   | .module a, .module b => a == b
   | _, _ => false
 def Val.beqList : List Val → List Val → Bool
@@ -160,6 +162,7 @@ def typeOf : Val → Val
   | .symbol _ => symbolType
   | .bits ty _ => ty
   | .imm ty _ => ty
+  | .mutableRef ty _ => ty
   | .module _ => .datatype "Core.Module" []
 
 def Val.isDatatype : Val → Bool | .datatype .. => true | _ => false

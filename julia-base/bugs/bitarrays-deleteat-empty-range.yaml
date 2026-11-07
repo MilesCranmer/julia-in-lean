@@ -52,5 +52,5 @@ duplicates:
   issues: []
   queries: ["issues: deleteat! empty range BoundsError", "issues: deleteat! range empty", "issues: splice! empty", "issues: deleteat! BitVector", "prs: deleteat! BitVector", "prs: bitarray deleteat"]
 lean:
-  property: JuliaLean.BitArrays.DeleteatRangeAgrees
-  theorem: JuliaLean.BitArrays.deleteatRangeAgrees_refuted
+  property: JuliaLean.Proofs.base.bitarray.Round5.DeleteatRangeAgrees
+  theorem: JuliaLean.Proofs.base.bitarray.JuliaLean.ChatGPT.Batch3.Group1.BitarraysDeleteatEmptyRange_refuted

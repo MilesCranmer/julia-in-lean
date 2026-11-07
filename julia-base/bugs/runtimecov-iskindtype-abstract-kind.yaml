@@ -52,5 +52,5 @@ duplicates:
     - {number: 58774, state: merged, relation: related}
   queries: ["iskindtype", "AnyType abstract kind", "iskindtype docstring"]
 lean:
-  property: JuliaLean.RuntimeCov.TypePreds.KindsConcrete
-  theorem: JuliaLean.RuntimeCov.TypePreds.kindsConcrete_refuted
+  property: JuliaLean.Proofs.base.runtime_internals.LegacyRuntime.KindsConcrete
+  theorem: JuliaLean.Proofs.base.runtime_internals.LegacyRuntime.kindsConcrete_refuted

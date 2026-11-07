@@ -49,10 +49,12 @@ possible_fix: |
   Return i for i == sizeof(s)+1 and throw BoundsError above it, matching the
   generic method.
 duplicates:
-  issues: []
+  issues:
+    - {number: 39940, state: open, relation: related}
   queries:
-    - "issues: findprev empty string"
-    - "issues: findlast empty string"
+    - "gh search issues --repo JuliaLang/julia findprev"
+    - "gh search prs --repo JuliaLang/julia findprev"
 lean:
-  property: JuliaLean.Strings.FindprevLatest
-  theorem: JuliaLean.Strings.findprevLatest_refuted
+  property: JuliaLean.Proofs.base.strings.search.FindprevLatest
+  theorem: JuliaLean.Proofs.base.strings.search.findprevLatest_refuted
+covers: [strings-search-empty-pattern-start]

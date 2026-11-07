@@ -1,0 +1,60 @@
+id: floatintcov-divrem-roundup-typemin-v2
+title: "RoundUp divrem disagrees with separate rem when the divisor is signed typemin"
+priority: P2
+kind: wrong-result
+area: Div
+files:
+  - base/div.jl
+functions:
+  - "divrem(::Integer,::Integer,RoundUp)"
+  - "div(::Integer,::Integer,RoundUp)"
+  - "rem(::Integer,::Integer,RoundUp)"
+summary: |
+  For Int8(-127) and Int8(-128), divrem with RoundUp returns (1, 1). Separate div and rem return (1, -127). The documented equivalence of divrem to separate div and rem fails for these same-type inputs.
+likelihood: |
+  Any fixed-width signed minimum divisor can trigger negation overflow. Ordinary small Int8 values reproduce the discrepancy.
+maybe_intended: |
+  The mathematical remainder 1 is representable. The discrepancy is covered directly by open PR #62283; PR #62319 proposes broader exact remainder handling.
+reproducer: |
+  x, y = Int8(-127), typemin(Int8)
+  p = divrem(x, y, RoundUp)
+  s = (div(x, y, RoundUp), rem(x, y, RoundUp))
+  @assert p === (Int8(1), Int8(1)) && s === (Int8(1), Int8(-127))
+  println("REPRODUCED floatintcov-divrem-roundup-typemin-v2")
+output:
+  release: |
+    REPRODUCED floatintcov-divrem-roundup-typemin-v2
+  nightly: |
+    REPRODUCED floatintcov-divrem-roundup-typemin-v2
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  Separate rem should return Int8(1), so the separate pair agrees with divrem.
+promised_by: |
+  base/div.jl:258-260: "The quotient and remainder from Euclidean division. Equivalent to `(div(x, y, r), rem(x, y, r))`."
+  All source references are pinned to Julia commit f755f49a9e41380d7da126b3c1db9fe7f83dd027.
+  https://github.com/JuliaLang/julia/blob/f755f49a9e41380d7da126b3c1db9fe7f83dd027/base/div.jl
+cause: |
+  base/div.jl:129 computes RoundUp rem as mod(x, -y). Negating typemin(Int8) wraps to itself, retaining the wrong sign. The divrem branch reconstructs x - q*y and obtains 1.
+possible_fix: |
+  Compute the rounded remainder without negating the divisor in its original fixed-width type, as proposed in #62283 and #62319.
+duplicates:
+  issues: []
+  prs:
+    - number: 62283
+      state: open
+      relation: duplicate
+    - number: 62319
+      state: open
+      relation: related
+  queries:
+    - "issues: divrem RoundUp typemin"
+    - "prs: divrem RoundUp typemin"
+    - "issues: rem RoundUp"
+    - "prs: rem RoundUp"
+    - "issues: RoundUp remainder"
+    - "prs: RoundUp remainder"
+lean:
+  property: JuliaLean.Proofs.base.div.Round1.SameTypeDivremMatchesSeparateCalls
+  theorem: JuliaLean.ChatGPT.Batch4.Group17.FloatintcovDivremRoundupTypeminV2_refuted

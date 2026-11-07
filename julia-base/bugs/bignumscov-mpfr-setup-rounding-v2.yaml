@@ -1,0 +1,97 @@
+id: bignumscov-mpfr-setup-rounding-v2
+title: Public BigFloat rounding controls document global restoration for a lexical scope
+priority: P3
+kind: documentation
+area: BigNums
+files:
+  - base/mpfr.jl
+  - base/rounding.jl
+functions:
+  - rounding(::Type{BigFloat})
+  - setrounding(::Type{BigFloat}, ::RoundingMode)
+  - setrounding(::Function, ::Type{BigFloat}, ::RoundingMode)
+summary: |
+  The combined description of the public rounding controls fails for scoped
+  settings. Starting with RoundNearest, a RoundUp scope whose callback globally
+  sets RoundDown still reads RoundUp and leaves RoundDown after exit. The
+  documented sequential setter program would read RoundDown and restore
+  RoundNearest.
+likelihood: |
+  This requires mixing callback-scoped rounding with a global setter in that
+  callback. It can happen when independently written numerical routines nest.
+maybe_intended: |
+  The observed behavior follows the intended ScopedValues design introduced by
+  merged PR #51362. This report concerns the stale equivalence in the docs, not
+  a claim that lexical rounding must mutate or restore the global default. It is
+  the same documentation defect as bignumscov-mpfr-254-v2; this report covers
+  the combined documented contract rather than a second runtime defect.
+reproducer: |
+  old = rounding(BigFloat)
+  try
+      setrounding(BigFloat, RoundNearest)
+      result = setrounding(BigFloat, RoundUp) do
+          setrounding(BigFloat, RoundDown)
+          rounding(BigFloat)
+      end
+      @assert result == RoundUp && rounding(BigFloat) == RoundDown
+      println("REPRODUCED bignumscov-mpfr-setup-rounding-v2")
+  finally
+      setrounding(BigFloat, old)
+  end
+output:
+  release: |
+    REPRODUCED bignumscov-mpfr-setup-rounding-v2
+  nightly: |
+    REPRODUCED bignumscov-mpfr-setup-rounding-v2
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  Describe global default changes and lexical overrides as separate controls.
+  State what happens when a callback mutates the default and remove the claim
+  that the scoped operation is equivalent to global save/set/restore.
+promised_by: |
+  At pinned source f755f49a9e41380d7da126b3c1db9fe7f83dd027,
+  base/rounding.jl:228-234 says:
+  "Change the rounding mode of floating point type `T` for the duration of `f`. It is logically
+  equivalent to:
+
+      old = rounding(T)
+      setrounding(T, mode)
+      f()
+      setrounding(T, old)"
+cause: |
+  base/mpfr.jl:246 reads CURRENT_ROUNDING_MODE before falling back to
+  ROUNDING_MODE[]. Lines 247-250 write the global Ref for the two-argument
+  setter and create a lexical binding for the callback setter. These are
+  different state locations, so a callback can alter the default hidden by
+  its active scope without that alteration being undone on scope exit.
+possible_fix: |
+  Correct the callback setter documentation to explain lexical lookup,
+  task inheritance and the independent global default. Preserve ScopedValues
+  isolation rather than changing the implementation to match outdated prose.
+duplicates:
+  issues:
+    - number: 51277
+      state: open
+      relation: related
+      note: Floating-point task-state discussion, not an exact duplicate
+  prs:
+    - number: 51362
+      state: merged
+      relation: related
+      note: Change establishing the intended lexical implementation
+  queries:
+    - tool: gh search issues --repo JuliaLang/julia
+      query: setrounding
+    - tool: gh search issues --repo JuliaLang/julia
+      query: setrounding modes
+    - tool: gh search issues --repo JuliaLang/julia
+      query: setrounding scoped
+    - tool: gh search prs --repo JuliaLang/julia
+      query: setrounding ScopedValue
+    - tool: gh search prs --repo JuliaLang/julia
+      query: setrounding modes
+lean:
+  property: JuliaLean.Proofs.base.mpfr.Round1.PublicRoundingControlsCorrect
+  theorem: JuliaLean.ChatGPT.Batch4.Group3.BignumscovMpfrSetupRoundingV2_refuted

@@ -1,6 +1,24 @@
-# nth(A, n) computes begin + n - 1 in UInt when n is unsigned, so negative firstindex breaks
-A = Base.IdentityUnitRange(-5:-3)
-ri = Iterators.nth(A, 1)
-ru = try Iterators.nth(A, UInt(1)) catch e; e end
-println("nth(A, 1) = ", ri, ", nth(A, UInt(1)) = ", ru isa Exception ? sprint(showerror, ru) : repr(ru))
-ri == -5 && ru isa BoundsError && println("REPRODUCED iterators-nth-unsigned-offset")
+A = Base.IdentityUnitRange(-2:2)
+expected = A[firstindex(A)]
+
+function observes_nth(A, n, expected)
+    try
+        actual = Iterators.nth(A, n)
+        println("$(typeof(n)): returned $actual")
+        return actual == expected
+    catch err
+        err isa BoundsError || rethrow()
+        println("$(typeof(n)): BoundsError")
+        return false
+    end
+end
+
+println("expected first element: $expected")
+u64_ok = observes_nth(A, UInt64(1), expected)
+u128_ok = observes_nth(A, UInt128(1), expected)
+
+if !u64_ok || !u128_ok
+    println("REPRODUCED iterators-nth-unsigned-offset")
+else
+    println("NOT REPRODUCED iterators-nth-unsigned-offset")
+end

@@ -1,0 +1,65 @@
+id: intarith-division-fldmod-consistency-v2
+title: "Mixed fldmod returns UInt8(255) where separate mod returns Int8(-1)"
+priority: P2
+kind: wrong-result
+area: Div
+files:
+  - base/div.jl
+  - base/int.jl
+functions:
+  - "fldmod"
+  - "mod"
+  - "divrem(::Integer,::Integer,::typeof(RoundDown))"
+summary: |
+  fldmod(UInt8(1), Int8(-2)) returns (UInt8(255), UInt8(255)). Separate fld and mod calls return (UInt8(255), Int8(-1)). This exact mixed-input discrepancy contradicts the documented equivalence of fldmod to (fld, mod).
+likelihood: |
+  Small mixed unsigned/signed inputs with negative divisors and nonzero remainders are enough. Replacing mod with fldmod changes the observed remainder value.
+maybe_intended: |
+  The unsigned quotient wrap is a deliberate policy discussed in #57855 and documented by proposed PR #63557. That policy does not make UInt8(255) equal the separate mod result -1.
+reproducer: |
+  x, y = UInt8(1), Int8(-2)
+  p = fldmod(x, y)
+  @assert p === (UInt8(255), UInt8(255))
+  @assert (fld(x, y), mod(x, y)) === (UInt8(255), Int8(-1))
+  println("REPRODUCED intarith-division-fldmod-consistency-v2")
+output:
+  release: |
+    REPRODUCED intarith-division-fldmod-consistency-v2
+  nightly: |
+    REPRODUCED intarith-division-fldmod-consistency-v2
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  The pair should agree with the documented separate calls, including Int8(-1) as its second component.
+promised_by: |
+  base/div.jl:382-383: "The floored quotient and modulus after division. A convenience wrapper for
+  `divrem(x, y, RoundDown)`. Equivalent to `(fld(x, y), mod(x, y))`."
+  All source references are pinned to Julia commit f755f49a9e41380d7da126b3c1db9fe7f83dd027.
+  https://github.com/JuliaLang/julia/blob/f755f49a9e41380d7da126b3c1db9fe7f83dd027/base/div.jl
+cause: |
+  fldmod delegates to integer divrem RoundDown. Its a - d*b calculation inherits unsigned quotient arithmetic and wraps the negative remainder. The separate mixed mod method returns a signed value.
+possible_fix: |
+  Use the separate mixed mod result when constructing fldmod, with an explicit result-type policy.
+duplicates:
+  issues:
+    - number: 57855
+      state: open
+      relation: related
+  prs:
+    - number: 62319
+      state: open
+      relation: related
+    - number: 63557
+      state: open
+      relation: related
+  queries:
+    - "issues: fldmod unsigned"
+    - "prs: fldmod unsigned"
+    - "issues: fldmod mod"
+    - "prs: fldmod mod"
+    - "issues: divrem mixed signed"
+    - "prs: divrem mixed signed"
+lean:
+  property: JuliaLean.Proofs.base.div.Round1.MixedFldmodMatchesSeparateCalls
+  theorem: JuliaLean.ChatGPT.Batch4.Group17.IntarithDivisionFldmodConsistencyV2_refuted

@@ -1,0 +1,80 @@
+id: multidim-cartesianindices-view-step-overflow
+title: "CartesianIndices slicing drops two selected coordinates when the composed stride overflows"
+priority: P2
+kind: wrong-result
+area: Multidim
+files: [base/multidimensional.jl, base/range.jl]
+functions: ["view(::CartesianIndices, ::AbstractRange)", "getindex(::CartesianIndices, ::CartesianIndices)", "view(::CartesianIndices, ::CartesianIndices)"]
+summary: |
+  Selecting the first and third elements of a three-element CartesianIndices
+  can return an empty region. The source stride is 2^62 and the selector stride
+  is two, so their product wraps to typemin(Int). The selected coordinates are
+  representable, but rebuilding the range with the wrapped stride loses them.
+likelihood: |
+  This requires a very large native coordinate stride. The source has three
+  elements and the result should have two, so no large allocation is needed.
+maybe_intended: |
+  The mathematical output stride cannot fit in Int. An explicit overflow error
+  would be defensible; silently returning no selected elements is surprising.
+reproducer: |
+  source = CartesianIndices((typemin(Int):(Int(1) << 62):0,))
+  selector = 1:2:3
+  view(source, selector)
+  source[CartesianIndices((selector,))]
+  view(source, CartesianIndices((selector,)))
+output:
+  release: |
+    source length = 3; selector = 1:2:3; expected = CartesianIndex{1}[CartesianIndex(-9223372036854775808), CartesianIndex(0)]
+    view length = 0; region indexing length = 0; region view length = 0
+    REPRODUCED multidim-cartesianindices-view-step-overflow
+    REPRODUCED multidimensional-region-view
+    REPRODUCED multidimensional-region-selector-slicing
+  nightly: |
+    source length = 3; selector = 1:2:3; expected = CartesianIndex{1}[CartesianIndex(-9223372036854775808), CartesianIndex(0)]
+    view length = 0; region indexing length = 0; region view length = 0
+    REPRODUCED multidim-cartesianindices-view-step-overflow
+    REPRODUCED multidimensional-region-view
+    REPRODUCED multidimensional-region-selector-slicing
+reproduced: {release: true, nightly: true}
+expected: |
+  A two-element selection containing CartesianIndex(typemin(Int)) and
+  CartesianIndex(0), or an explicit error for the unrepresentable output stride.
+promised_by: |
+  base/subarray.jl:175-179 documents view as "Like getindex, but returns a
+  lightweight array that lazily references (or is effectively a view into)
+  the parent array A at the given index or indices". Array range indexing
+  selects the indexed elements. Both scalar source indices are valid here.
+cause: |
+  base/multidimensional.jl:413-420 maps each region component through range
+  indexing. Its CartesianIndices selector and view overloads delegate to this
+  path at lines 421-432. base/range.jl:1057 multiplies the two native steps
+  without checking overflow, then lines 1058-1061 reconstruct an empty range
+  from the selected endpoints and wrapped negative step.
+possible_fix: |
+  Detect overflow when composing steps. Preserve the selected sequence in a
+  representable result type, or raise an explicit overflow error.
+duplicates:
+  issues: []
+  prs:
+    - {number: 37829, state: merged, relation: related}
+  queries:
+    - "gh search issues 'CartesianIndices view overflow' --repo JuliaLang/julia --limit 100 --json number,title,state,url"
+    - "gh search issues 'StepRange view overflow' --repo JuliaLang/julia --limit 100 --json number,title,state,url"
+    - "gh search prs 'StepRange overflow' --repo JuliaLang/julia --limit 100 --json number,title,state,url"
+  search_notes: |
+    No matching issue is known. PR #37829 added StepRange support to
+    CartesianIndices; its description does not claim to fix composed-stride
+    overflow.
+lean:
+  property: JuliaLean.Proofs.base.multidimensional.Models1Group5.RegionViewCorrect
+  theorem: JuliaLean.Proofs.base.multidimensional.Models1Group5.Batch9Candidates.Models1G5RegionView_refuted
+covers: [multidimensional-region-view, multidimensional-region-selector-slicing]
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: true
+  output: |
+    source length = 3; selector = 1:2:3; expected = CartesianIndex{1}[CartesianIndex(-9223372036854775808), CartesianIndex(0)]
+    view length = 0; region indexing length = 0; region view length = 0
+    REPRODUCED multidim-cartesianindices-view-step-overflow
+    REPRODUCED multidimensional-region-view
+    REPRODUCED multidimensional-region-selector-slicing

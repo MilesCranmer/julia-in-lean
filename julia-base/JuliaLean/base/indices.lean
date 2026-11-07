@@ -1,6 +1,8 @@
 import JuliaLean.Core
 import JuliaLean.base.int
 import JuliaLean.base.promotion
+import JuliaLean.Runtime.Collections
+import JuliaLean.base.range
 
 /-!
 # Model of `base/indices.jl`
@@ -757,8 +759,9 @@ indexing behaviors. This must return either an `Int` or an `AbstractArray` of
 to_index(i::Integer) = convert(Int,i)::Int
 ```
 -/
-def to_index_Integer {I : Type} (convert_Int : I → IndexResult I64) (i : I) : IndexResult I64 :=
-  convert_Int i
+def to_index_Integer {m : Type → Type} [Monad m] {Index Value : Type} (convertInt : Index → m Value)
+    (assertInt : Value → m I64) (index : Index) : m I64 := do
+  assertInt (← convertInt index)
 
 /--
 Julia source: base/indices.jl:259-259 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -828,7 +831,7 @@ def convert_Int_BitInteger {t : IntTy} (i : JInt t) : IndexResult I64 :=
   (JuliaLean.base.int.convert .i64 i).mapError IndexError.core
 
 /-- *dispatch*: `to_index(i)` for a BitInteger `i`. -/
-def to_index {t : IntTy} (i : JInt t) : IndexResult I64 := to_index_Integer convert_Int_BitInteger i
+def to_index {t : IntTy} (i : JInt t) : IndexResult I64 := to_index_Integer convert_Int_BitInteger pure i
 
 /-- *dispatch*: `to_index(A, i)` for an `Array` `A` and a BitInteger `i`: `UInt` (`UInt64`)
 is reinterpreted, every other BitInteger goes through `to_index(A, i) = to_index(i)`. -/
@@ -1781,9 +1784,9 @@ Julia source: base/indices.jl:527-527 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 first(iter::LinearIndices{1}) = (@inline; first(axes1(iter.indices[1])))
 ```
 -/
-def first_LinearIndices_1 {R AX : Type} [Inhabited R] (axes1 : R → AX) (first : AX → I64)
-    (iter : LinearIndices R) : I64 :=
-  first (axes1 iter.indices[0]!)
+def first_LinearIndices_1 {m : Type → Type} [Monad m] {R Axes : Type} [Inhabited R]
+    (axes1 : R → m Axes) (first : Axes → m I64) (iter : LinearIndices R) : m I64 := do
+  first (← axes1 iter.indices[0]!)
 
 /--
 Julia source: base/indices.jl:528-528 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -1801,9 +1804,9 @@ Julia source: base/indices.jl:529-529 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 last(iter::LinearIndices{1}) = (@inline; last(axes1(iter.indices[1])))
 ```
 -/
-def last_LinearIndices_1 {R AX : Type} [Inhabited R] (axes1 : R → AX) (last : AX → I64)
-    (iter : LinearIndices R) : I64 :=
-  last (axes1 iter.indices[0]!)
+def last_LinearIndices_1 {m : Type → Type} [Monad m] {R Axes : Type} [Inhabited R]
+    (axes1 : R → m Axes) (last : Axes → m I64) (iter : LinearIndices R) : m I64 := do
+  last (← axes1 iter.indices[0]!)
 
 /--
 Julia source: base/indices.jl:530-533 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -1911,14 +1914,1094 @@ def getindex_Slice_Integer {T I : Type} (checkbounds : Slice T → I64 → Index
 /-- *dispatch*: `first(iter::LinearIndices)`: `base/indices.jl:527` for `LinearIndices{1}`,
 `:526` for every other rank. -/
 def first_LinearIndices_dispatch (C : RangeCallees) (iter : LinearIndices AxisRange) : I64 :=
-  if iter.indices.length = 1 then first_LinearIndices_1 (AxisRange.axes1 C) (AxisRange.first C) iter
+  if iter.indices.length = 1 then
+    first_LinearIndices_1 (m := Id) (AxisRange.axes1 C) (AxisRange.first C) iter
   else first_LinearIndices iter
 
 /-- *dispatch*: `last(iter::LinearIndices)`: `base/indices.jl:529` for `LinearIndices{1}`,
 `:528` for every other rank. -/
 def last_LinearIndices_dispatch (C : RangeCallees) (length : LinearIndices AxisRange → I64)
     (iter : LinearIndices AxisRange) : I64 :=
-  if iter.indices.length = 1 then last_LinearIndices_1 (AxisRange.axes1 C) (AxisRange.last C) iter
+  if iter.indices.length = 1 then
+    last_LinearIndices_1 (m := Id) (AxisRange.axes1 C) (AxisRange.last C) iter
   else last_LinearIndices length iter
 
 end JuliaLean.base.indices
+
+namespace JuliaLean.AbstractArraySpecs
+
+
+/-- Exceptions thrown by the modelled methods. -/
+inductive Err where
+  | boundsError
+  | argumentError
+  | dimensionMismatch
+  | divideError
+  | assertionError
+  | methodError
+  | canonicalIndexError
+  | inexactError
+  deriving DecidableEq, Repr
+
+abbrev R (α : Type) := Except Err α
+
+/-- `Int` bounds. -/
+def tmin : Int := -(2 ^ 63)
+def tmax : Int := 2 ^ 63 - 1
+
+inductive ScalarIndex where
+  | machineInt (value : I64)
+  | integer (value : Int)
+  | boolean (value : Bool)
+  deriving DecidableEq, Repr
+
+def ScalarIndex.value : ScalarIndex → Int
+  | .machineInt i => i.val
+  | .integer i => i
+  | .boolean b => if b then 1 else 0
+
+inductive AxisIndexing where
+  | unitRange
+  | identityRange
+  deriving DecidableEq, Repr
+
+structure GenericAxis where
+  first : ScalarIndex
+  last : ScalarIndex
+  indexing : AxisIndexing
+  length : Nat
+  deriving DecidableEq, Repr
+
+/-- Integer `to_index` on a non-Array, including the Bool specialization
+(base/indices.jl:243, 258-259). -/
+def scalarToIndex (i : ScalarIndex) : R Int :=
+  match i with
+  | .machineInt value => .ok value.val
+  | .boolean _ => .error .argumentError
+  | .integer value =>
+      if tmin ≤ value ∧ value ≤ tmax then .ok value else .error .inexactError
+
+def convertScalarIndices : List ScalarIndex → R (List Int)
+  | [] => .ok []
+  | i :: is => do
+      let j ← scalarToIndex i
+      let js ← convertScalarIndices is
+      .ok (j :: js)
+
+/-- Each axis of `LinearIndices(A)` is converted to an Int range, including
+both endpoints, before `first` examines the range's own indexing axes.
+UnitRange is indexed from 1; IdentityUnitRange is indexed from its first value
+(base/indices.jl:482-487, 525-527). -/
+def convertRangeEndpoint (i : ScalarIndex) : R Int :=
+  if tmin ≤ i.value ∧ i.value ≤ tmax then .ok i.value else .error .inexactError
+
+def convertLinearAxes : List GenericAxis → R (List (AxisIndexing × Int))
+  | [] => .ok []
+  | axis :: axes => do
+      let first ← convertRangeEndpoint axis.first
+      let _ ← convertRangeEndpoint axis.last
+      let rest ← convertLinearAxes axes
+      .ok ((axis.indexing, first) :: rest)
+
+def genericLinearStart (axes : List GenericAxis) : R Int := do
+  let converted ← convertLinearAxes axes
+  match converted with
+  | [(.identityRange, first)] => .ok first
+  | _ => .ok 1
+
+end JuliaLean.AbstractArraySpecs
+
+namespace JuliaLean.Multidim
+
+/-- An index argument. `urange lo hi` is `lo:hi` (it also stands for a `Vector{Int}` with
+those values); `slice n` is `Base.Slice(OneTo(n))`; `cart vs` is `CartesianIndex(vs...)`. -/
+inductive Idx where
+  | int (v : Int)
+  | bool (b : Bool)
+  | urange (lo hi : Int)
+  | colon
+  | slice (n : Nat)
+  | cart (vs : List Int)
+  deriving DecidableEq, Repr
+
+/-- Number of array dimensions an index consumes (`index_ndims`). -/
+def Idx.ndims : Idx → Nat
+  | .cart vs => vs.length
+  | _ => 1
+
+/-- `i == 1` in `_selectdim` (`Int`, `Bool`: numeric equality; ranges, `Colon`,
+`CartesianIndex`: `false`). -/
+def Idx.eqOne : Idx → Bool
+  | .int v => v == 1
+  | .bool b => b
+  | _ => false
+
+/-- `setindex_shape_check(X, shape)` (`base/indices.jl:216-225`) for an `Array` `X`. -/
+def setindexShapeCheck (sz shape : List Nat) : Bool :=
+  if sz.length = 1 ∨ shape.length = 1 then sz.foldl (· * ·) 1 == shape.foldl (· * ·) 1
+  else
+    let rec go : List Nat → List Nat → Bool
+      | [], [] => true
+      | a, [] => a.all (· == 1)
+      | [], b => b.all (· == 1)
+      | a :: as, b :: bs => a == b && go as bs
+    go sz shape
+
+end JuliaLean.Multidim
+
+namespace JuliaLean.AbstractArrays
+
+open JuliaLean
+
+abbrev I64 := JInt .i64
+
+def i64 (x : Int) : I64 := JInt.lit .i64 x
+
+/-- An integer axis with `len` elements beginning at `first`. -/
+structure Axis where
+  first : I64
+  len : Nat
+  deriving DecidableEq, Repr
+
+namespace Axis
+
+/-- Last index. Empty axes use `first - 1`, as a Julia unit range does. -/
+def last (a : Axis) : I64 := a.first + i64 ((a.len : Int) - 1)
+
+/-- Numeric membership in an axis. Source: `base/abstractarray.jl:751-753`. -/
+def contains (a : Axis) (i : I64) : Bool :=
+  decide (a.first.val ≤ i.val ∧ i.val < a.first.val + a.len)
+
+/-- `Base.OneTo(n)`. -/
+def oneTo (n : Nat) : Axis := ⟨i64 1, n⟩
+
+/-- Whether the axis begins at one. -/
+def isOneBased (a : Axis) : Bool := a.first.val == 1
+
+end Axis
+
+/-- Scalar `Real` indices seen by `checkindex`. `integer` is supported by
+`to_index`; `unsupportedReal` represents `Bool` and non-integer reals, which
+still reach the `i::Real` checkindex method. -/
+inductive ScalarIndex where
+  | integer (value : I64)
+  | unsupportedReal (value : I64)
+  deriving DecidableEq, Repr
+
+namespace ScalarIndex
+
+def value : ScalarIndex → I64
+  | .integer i | .unsupportedReal i => i
+
+/-- `to_index`, `base/indices.jl:243,258-266`. -/
+def toIndex : ScalarIndex → Jl I64
+  | .integer i => .ok i
+  | .unsupportedReal _ => .error (.argumentError "invalid index")
+
+end ScalarIndex
+
+/-- Range index. `empty` records Julia's `isempty(i)` before endpoint checks. -/
+structure RangeIndex where
+  first : I64
+  last : I64
+  empty : Bool
+  deriving DecidableEq, Repr
+
+/-- Raw indices accepted by `to_indices`. -/
+inductive RawIndex where
+  | scalar (i : ScalarIndex)
+  | cartesian (is : List ScalarIndex)
+  | colon
+  | mask (axes : List Axis)
+  deriving DecidableEq, Repr
+
+/-- Canonical indices produced by `to_indices`: integers, slices and logical
+indices. -/
+inductive CanonIndex where
+  | integer (i : I64)
+  | slice (axis : Axis)
+  | logical (axes : List Axis)
+  deriving DecidableEq, Repr
+
+/-- `to_indices`, `base/indices.jl:310-323` and
+`base/multidimensional.jl:928-939`: CartesianIndex is flattened, Colon becomes
+a slice of the current axis, and other scalars go through `to_index`. -/
+def toIndices : List Axis → List RawIndex → Jl (List CanonIndex)
+  | _, [] => .ok []
+  | _, [.cartesian is] => is.mapM (fun i => return .integer (← i.toIndex))
+  | axes, .cartesian is :: rest => do
+      let head ← is.mapM (fun i => return .integer (← i.toIndex))
+      let tail ← toIndices (axes.drop is.length) rest
+      return head ++ tail
+  | a :: axes, .colon :: rest => do
+      let tail ← toIndices axes rest
+      return .slice a :: tail
+  | [], .colon :: rest => do
+      let tail ← toIndices [] rest
+      return .slice (Axis.oneTo 1) :: tail
+  | axes, .scalar i :: rest => do
+      let j ← i.toIndex
+      let tail ← toIndices axes.tail rest
+      return .integer j :: tail
+  | axes, .mask maskAxes :: rest => do
+      let tail ← toIndices (axes.drop maskAxes.length) rest
+      return .logical maskAxes :: tail
+
+end JuliaLean.AbstractArrays
+
+namespace JuliaLean.AbstractArraySpecs
+
+
+/-- `Base.OneTo(n)` for `n ≥ 0`. -/
+def oneTo (n : I64) : Ax := ⟨.oneTo, i64 1, n⟩
+
+/-- Mathematical length of an axis. -/
+def Ax.len (r : Ax) : Int := r.hi.val - r.lo.val + 1
+
+/-- Product of the axis lengths. -/
+def totalLen : List Ax → Int
+  | [] => 1
+  | r :: rs => r.len * totalLen rs
+
+end JuliaLean.AbstractArraySpecs
+
+namespace JuliaLean.ReduceCov
+
+open JuliaLean
+
+/-! ## `IndexStyle`, `base/indices.jl:94-104, 505` -/
+
+inductive IndexStyleV where
+  | linear
+  | cartesian
+  deriving DecidableEq, Repr
+
+/-- Array types for `IndexStyle`: `Array`, ranges, `LinearIndices`, a type with
+the `AbstractArray` default, a type that defines its own style, `Union{}`. -/
+inductive ArrTy where
+  | array
+  | range
+  | linearIndices
+  | plain
+  | custom (s : IndexStyleV)
+  | bottom
+  deriving DecidableEq, Repr
+
+/-- `IndexStyle(::Type{Union{}}) = IndexLinear()`, `base/indices.jl:95`. -/
+def indexStyleBottom : IndexStyleV := .linear
+
+/-- `IndexStyle(::Type{<:AbstractArray}) = IndexCartesian()`, `base/indices.jl:97`. -/
+def indexStyleAbstractArray : IndexStyleV := .cartesian
+
+/-- `IndexStyle(::Type{<:Array}) = IndexLinear()`, `base/indices.jl:98`. -/
+def indexStyleArray : IndexStyleV := .linear
+
+/-- `IndexStyle(::Type{<:AbstractRange}) = IndexLinear()`, `base/indices.jl:99`. -/
+def indexStyleRange : IndexStyleV := .linear
+
+/-- `IndexStyle(::Type{<:LinearIndices}) = IndexLinear()`, `base/indices.jl:505`. -/
+def indexStyleLinearIndices : IndexStyleV := .linear
+
+/-- `IndexStyle(T)`, dispatching to the most specific method; a custom array type
+defines its own method. -/
+def indexStyleTy : ArrTy → IndexStyleV
+  | .bottom => indexStyleBottom
+  | .plain => indexStyleAbstractArray
+  | .array => indexStyleArray
+  | .range => indexStyleRange
+  | .linearIndices => indexStyleLinearIndices
+  | .custom s => s
+
+/-- `IndexStyle(A::AbstractArray) = IndexStyle(typeof(A))`, `base/indices.jl:94`. -/
+def indexStyle1 (a : ArrTy) : IndexStyleV := indexStyleTy a
+
+/-- `IndexStyle(::IndexLinear, ::IndexLinear) = IndexLinear()` and
+`IndexStyle(::IndexStyle, ::IndexStyle) = IndexCartesian()`, `base/indices.jl:103-104`. -/
+def indexStyleCombine : IndexStyleV → IndexStyleV → IndexStyleV
+  | .linear, .linear => .linear
+  | _, _ => .cartesian
+
+/-- `IndexStyle(A, B...)`, `base/indices.jl:101-102`:
+`IndexStyle(A, B) = IndexStyle(IndexStyle(A), IndexStyle(B))` and
+`IndexStyle(A, B...) = IndexStyle(IndexStyle(A), IndexStyle(B...))`. -/
+def indexStyleN : ArrTy → List ArrTy → IndexStyleV
+  | a, [] => indexStyle1 a
+  | a, b :: rest => indexStyleCombine (indexStyle1 a) (indexStyleN b rest)
+
+/-- `IndexStyle(::Type{Union{}}, slurp...)`, `base/indices.jl:96`. -/
+def indexStyleBottomSlurp : Jl IndexStyleV := .error (.methodError "IndexStyle")
+
+end JuliaLean.ReduceCov
+
+namespace JuliaLean.AbstractArraySpecs
+
+/-- `_shapes_match(a, b)` (base/indices.jl:217-220). -/
+def shapesMatch : List I64 → List I64 → Bool
+  | [], [] => true
+  | a, [] => a.all (· == i64 1)
+  | [], b => b.all (· == i64 1)
+  | a :: as, b :: bs => a == b && shapesMatch as bs
+
+/-- `setindex_shape_check(X, shape)` (base/indices.jl:214-225): with one index or a
+vector `X`, the element counts must agree, otherwise the shapes up to trailing ones. -/
+def shapeCheck (prodI : List I64 → I64) (xs js : List I64) : R Unit :=
+  let agrees := if xs.length = 1 ∨ js.length = 1 then prodI xs == prodI js else shapesMatch xs js
+  if agrees then .ok () else .error .dimensionMismatch
+
+end JuliaLean.AbstractArraySpecs
+
+namespace JuliaLean.ArrayOps
+
+open JuliaLean
+
+/-- `to_index(A::Array, i)` for a `BitInteger` index, `base/indices.jl:247, 258`:
+`UInt` is reinterpreted as `Int`, every other type is converted with
+`convert(Int, i)` (`InexactError` when not representable). -/
+def toIndexArray {t : IntTy} (i : JInt t) : Jl JInt64 :=
+  if t = .u64 then .ok (JInt.wrap .i64 i.val) else toInt i
+
+/-- `to_index(A, i)` for any other array (`base/indices.jl:243, 258`): `convert(Int, i)`. -/
+def toIndexGeneric {t : IntTy} (i : JInt t) : Jl JInt64 := toInt i
+
+/-- `LinearIndices(v)[i]` for a vector, `base/indices.jl:509-513`:
+`to_index` (generic, `convert(Int, i)`), bounds check, then `i` itself. -/
+def linearGet {t : IntTy} (n : Nat) (i : JInt t) : Jl JInt64 := do
+  let i ← toIndexGeneric i
+  if 1 ≤ i.val ∧ i.val ≤ n then pure i else throw .boundsError
+
+/-- `LinearIndices(v)[CartesianIndex(i)]` (`base/indices.jl:509` after
+`to_indices` splats the `CartesianIndex`): bounds check, then `i`. -/
+def linearOfCartesian (n : Nat) (i : JInt64) : Jl JInt64 :=
+  if 1 ≤ i.val ∧ i.val ≤ n then pure i else throw .boundsError
+
+end JuliaLean.ArrayOps
+
+
+/-!
+# `base/indices.jl`: index ranges, `LinearIndices`, shape checks, `to_index`
+
+Master `bbfa0ce4150`. A unit range with `Int` elements is a `UR`: `Base.OneTo(n)`,
+`a:b`, `IdentityUnitRange(r)` or `Slice(r)`. Its first and last elements are the
+`Int64` values of its fields; `len` is its element count and `vals` its elements
+in order (`Int` values in the model; every range here is an axis of fewer than
+`typemax(Int)` elements, so Julia's `length` does not wrap). An index argument is
+an `Ix`; Bool elements of a Bool range are `0`/`1`.
+-/
+
+namespace JuliaLean.ReduceCov.Indices
+
+open JuliaLean.ReduceCov
+
+/-- An `AbstractUnitRange{Int}`. -/
+inductive UR where
+  /-- `Base.OneTo(n)`, `n ≥ 0` (the constructor clamps at zero). -/
+  | oneTo (n : I64)
+  /-- `a:b`, with `b ≥ a - 1` (the constructor normalizes an empty range). -/
+  | unit (a b : I64)
+  | ident (r : UR)
+  | slice (r : UR)
+  deriving DecidableEq, Repr
+
+namespace UR
+
+/-- `first(r)`; `first(S::Slice) = first(S.indices)` (`base/indices.jl:347`),
+`first(S::IdentityUnitRange) = first(S.indices)` (`:374`). -/
+def first : UR → Int
+  | .oneTo _ => 1
+  | .unit a _ => a.val
+  | .ident r | .slice r => r.first
+
+/-- `last(r)`, `base/indices.jl:348, 375`. -/
+def last : UR → Int
+  | .oneTo n => n.val
+  | .unit _ b => b.val
+  | .ident r | .slice r => r.last
+
+/-- `length(r)`; `size(S) = (length(S.indices),)` (`base/indices.jl:349, 376`) and
+`unsafe_length(S::IdentityUnitRange) = unsafe_length(S.indices)` (`:377`). -/
+def len (r : UR) : Nat := (r.last - r.first + 1).toNat
+
+/-- The elements in iteration order: `iterate(S::Slice, s...) = iterate(S.indices, s...)`
+and likewise for `IdentityUnitRange` (`base/indices.jl:354, 417`). -/
+def vals (r : UR) : List Int := (List.range r.len).map fun (k : Nat) => r.first + (k : Int)
+
+/-- `axes1(r)`: `axes1(S::Slice) = IdentityUnitRange(S.indices)` and
+`axes1(S::Slice{<:AbstractOneTo}) = S.indices` (`base/indices.jl:344-345`),
+`axes1(S::IdentityUnitRange) = S` and `axes1(S::IdentityUnitRange{<:AbstractOneTo}) =
+S.indices` (`:371-372`); a plain range has `axes1 = OneTo(length(r))`. -/
+def axes1 : UR → UR
+  | .oneTo n => .oneTo n
+  | .unit a b => .oneTo (i64 (UR.unit a b).len)
+  | .ident (.oneTo n) => .oneTo n
+  | .ident r => .ident r
+  | .slice (.oneTo n) => .oneTo n
+  | .slice r => .ident r
+
+/-- `axes(S) = (axes1(S),)`, `base/indices.jl:343, 370`. -/
+def axes (r : UR) : List UR := [r.axes1]
+
+/-- `Slice(S::Slice) = S` (`base/indices.jl:340`); a `Slice` of any other range wraps it. -/
+def mkSlice : UR → UR
+  | .slice r => .slice r
+  | r => .slice r
+
+/-- `IdentityUnitRange(S::IdentityUnitRange) = S` (`base/indices.jl:366`). -/
+def mkIdent : UR → UR
+  | .ident r => .ident r
+  | r => .ident r
+
+/-- `T(r)` for `T = UnitRange{Int}`: the same elements as a plain range. -/
+def toUnitRange (r : UR) : UR := .unit (i64 r.first) (i64 r.last)
+
+/-- `Slice{UnitRange{Int}}(S::Slice) = Slice{T}(T(S.indices))` and the
+`IdentityUnitRange` analogue, `base/indices.jl:341, 367`. -/
+def convertWrapped : UR → UR
+  | .slice r => .slice r.toUnitRange
+  | .ident r => .ident r.toUnitRange
+  | r => r
+
+/-- `show(io, r)`: `Base.OneTo(n)`, `a:b`, `print(io, "Base.Slice(", r.indices, ")")` and
+`print(io, "Base.IdentityUnitRange(", r.indices, ")")`, `base/indices.jl:353, 416`. -/
+def str : UR → String
+  | .oneTo n => s!"Base.OneTo({n.val})"
+  | .unit a b => s!"{a.val}:{b.val}"
+  | .ident r => "Base.IdentityUnitRange(" ++ r.str ++ ")"
+  | .slice r => "Base.Slice(" ++ r.str ++ ")"
+
+end UR
+
+/-! ## Indexing `Slice` and `IdentityUnitRange`, `base/indices.jl:350-427` -/
+
+/-- An index argument. -/
+inductive Ix where
+  /-- `i::Int`. -/
+  | int (i : I64)
+  /-- `i::Integer` of another `BitInteger` type. -/
+  | integer (t : IntTy) (i : JInt t)
+  /-- `i::Bool`. -/
+  | bool (b : Bool)
+  /-- An `AbstractUnitRange{Int}`. -/
+  | urange (r : UR)
+  /-- `a:b::UnitRange{Bool}`. -/
+  | brange (a b : Bool)
+  /-- `a:s:b::StepRange{Int,Int}`, `s ≠ 0`. -/
+  | srange (a s b : I64)
+  /-- `StepRange(a, s, b)::StepRange{Bool,Int}`, `s ≠ 0`. -/
+  | bsrange (a : Bool) (s : I64) (b : Bool)
+  deriving DecidableEq, Repr
+
+/-- `Int(b)`. -/
+def bInt (b : Bool) : Int := if b then 1 else 0
+
+/-- The elements of `a:s:b`: `a, a + s, …` up to `b` (`s ≠ 0`). -/
+def stepVals (a s b : Int) : List Int :=
+  let n : Nat := if s > 0 then (if b < a then 0 else ((b - a) / s + 1).toNat)
+    else if s < 0 then (if a < b then 0 else ((a - b) / (-s) + 1).toNat) else 0
+  (List.range n).map fun (k : Nat) => a + (k : Int) * s
+
+/-- Whether an index is a Bool mask (an `AbstractRange{Bool}`). -/
+def Ix.isMask : Ix → Bool
+  | .brange .. | .bsrange .. => true
+  | _ => false
+
+/-- The elements of a non-scalar index. -/
+def Ix.elems : Ix → List Int
+  | .urange r => r.vals
+  | .brange a b => stepVals (bInt a) 1 (bInt b)
+  | .srange a s b => stepVals a.val s.val b.val
+  | .bsrange a s b => stepVals (bInt a) s.val (bInt b)
+  | _ => []
+
+/-- `range(start; length = n, step = s)`: `n` elements from `start` in steps of `s`. -/
+def rangeLen (start : Int) (n : Int) (s : Int) : List Int :=
+  (List.range n.toNat).map fun (k : Nat) => start + (k : Int) * s
+
+/-! ### The methods of `Slice` and `IdentityUnitRange`, one function each -/
+
+namespace SliceM
+
+/-- `Slice(S::Slice) = S`, `base/indices.jl:340`. -/
+def ofSlice (S : UR) : UR := S
+
+/-- `Slice{T}(S::Slice) = Slice{T}(T(S.indices))`, `base/indices.jl:341`, for
+`T = UnitRange{Int}`. -/
+def convert (indices : UR) : UR := .slice indices.toUnitRange
+
+/-- `axes(S::Slice) = (axes1(S),)`, `base/indices.jl:343`. -/
+def axes (S : UR) : List UR := [S.axes1]
+
+/-- `axes1(S::Slice) = IdentityUnitRange(S.indices)`, `base/indices.jl:344`. -/
+def axes1 (indices : UR) : UR := .ident indices
+
+/-- `axes1(S::Slice{<:AbstractOneTo{<:Integer}}) = S.indices`, `base/indices.jl:345`. -/
+def axes1OneTo (indices : UR) : UR := indices
+
+/-- `first(S::Slice) = first(S.indices)`, `base/indices.jl:347`. -/
+def first (indices : UR) : Int := indices.first
+
+/-- `last(S::Slice) = last(S.indices)`, `base/indices.jl:348`. -/
+def last (indices : UR) : Int := indices.last
+
+/-- `size(S::Slice) = (length(S.indices),)`, `base/indices.jl:349`. -/
+def size (indices : UR) : List Nat := [indices.len]
+
+/-- `getindex(S::Slice, i::Int) = (@boundscheck checkbounds(S, i); i)`, `base/indices.jl:350`. -/
+def getindexInt (checkbounds : UR → Ix → RJ Unit) (S : UR) (i : I64) : RJ (List Int) := do checkbounds S (.int i); pure [i.val]
+
+/-- `getindex(S::Slice, i::AbstractUnitRange{<:Integer})`, `base/indices.jl:351`: bounds
+check, then `i` (`i` is a unit range, possibly of `Bool`s). -/
+def getindexUnitRange (checkbounds : UR → Ix → RJ Unit) (S : UR) (i : Ix) : RJ (List Int) := do checkbounds S i; pure i.elems
+
+/-- `getindex(S::Slice, i::StepRange{<:Integer})`, `base/indices.jl:352`: bounds check,
+then `i`. -/
+def getindexStepRange (checkbounds : UR → Ix → RJ Unit) (S : UR) (i : Ix) : RJ (List Int) := do checkbounds S i; pure i.elems
+
+/-- `getindex(S::Slice{<:AbstractUnitRange{<:Integer}}, i::IdentityUnitRange)`,
+`base/indices.jl:410-415`: bounds check, then `i`. -/
+def getindexIdent (checkbounds : UR → Ix → RJ Unit) (S : UR) (I : UR) : RJ (List Int) := do
+  checkbounds S (.urange (.ident I)); pure (UR.ident I).vals
+
+/-- `show(io, r::Slice) = print(io, "Base.Slice(", r.indices, ")")`, `base/indices.jl:353`. -/
+def show_ (indices : UR) : String := "Base.Slice(" ++ indices.str ++ ")"
+
+/-- `iterate(S::Slice, s...) = iterate(S.indices, s...)`, `base/indices.jl:354`: the
+iterated values. -/
+def iterate (indices : UR) : List Int := indices.vals
+
+end SliceM
+
+namespace IdentM
+
+/-- `IdentityUnitRange(S::IdentityUnitRange) = S`, `base/indices.jl:366`. -/
+def ofIdent (S : UR) : UR := S
+
+/-- `IdentityUnitRange{T}(S::IdentityUnitRange) = IdentityUnitRange{T}(T(S.indices))`,
+`base/indices.jl:367`, for `T = UnitRange{Int}`. -/
+def convert (indices : UR) : UR := .ident indices.toUnitRange
+
+/-- `axes(S::IdentityUnitRange) = (axes1(S),)`, `base/indices.jl:370`. -/
+def axes (S : UR) : List UR := [S.axes1]
+
+/-- `axes1(S::IdentityUnitRange) = S`, `base/indices.jl:371`. -/
+def axes1 (indices : UR) : UR := .ident indices
+
+/-- `axes1(S::IdentityUnitRange{<:AbstractOneTo{<:Integer}}) = S.indices`,
+`base/indices.jl:372`. -/
+def axes1OneTo (indices : UR) : UR := indices
+
+/-- `first(S::IdentityUnitRange) = first(S.indices)`, `base/indices.jl:374`. -/
+def first (indices : UR) : Int := indices.first
+
+/-- `last(S::IdentityUnitRange) = last(S.indices)`, `base/indices.jl:375`. -/
+def last (indices : UR) : Int := indices.last
+
+/-- `size(S::IdentityUnitRange) = (length(S.indices),)`, `base/indices.jl:376`. -/
+def size (indices : UR) : List Nat := [indices.len]
+
+/-- `unsafe_length(S::IdentityUnitRange) = unsafe_length(S.indices)`, `base/indices.jl:377`. -/
+def unsafeLength (indices : UR) : Nat := indices.len
+
+/-- `getindex(S::IdentityUnitRange, i::Integer)`, `base/indices.jl:378`: bounds check,
+then `convert(eltype(S), i)`, i.e. `Int(i)`. -/
+def getindexInteger (checkbounds : UR → Ix → RJ Unit) (S : UR) (i : Ix) (k : Int) : RJ (List Int) := do checkbounds S i; pure [k]
+
+/-- `getindex(S::IdentityUnitRange, i::Bool)`, `base/indices.jl:379`. -/
+def getindexBool (b : Bool) : RJ (List Int) := .error (argErr s!"invalid index: {b} of type Bool")
+
+/-- `getindex(S::IdentityUnitRange, i::AbstractUnitRange{<:Integer})`,
+`base/indices.jl:380-384`: bounds check, then `convert(AbstractUnitRange{Int}, i)`. -/
+def getindexUnitRange (checkbounds : UR → Ix → RJ Unit) (S : UR) (i : Ix) : RJ (List Int) := do checkbounds S i; pure i.elems
+
+/-- `getindex(S::IdentityUnitRange, i::AbstractUnitRange{Bool})`, `base/indices.jl:385-389`:
+bounds check, then `range(first(i) ? first(S) : last(S), length = last(i))`. -/
+def getindexBoolUnitRange (checkbounds : UR → Ix → RJ Unit) (S : UR) (a b : Bool) : RJ (List Int) := do
+  checkbounds S (.brange a b); pure (rangeLen (if a then S.first else S.last) (bInt b) 1)
+
+/-- `getindex(S::IdentityUnitRange, i::StepRange{<:Integer})`, `base/indices.jl:390-394`:
+bounds check, then `convert(AbstractRange{Int}, i)`. -/
+def getindexStepRange (checkbounds : UR → Ix → RJ Unit) (S : UR) (i : Ix) : RJ (List Int) := do checkbounds S i; pure i.elems
+
+/-- `getindex(S::IdentityUnitRange, i::StepRange{Bool})`, `base/indices.jl:395-399`: bounds
+check, then `range(first(i) ? first(S) : last(S), length = last(i), step = Int(step(i)))`. -/
+def getindexBoolStepRange (checkbounds : UR → Ix → RJ Unit) (S : UR) (a : Bool) (s : I64) (b : Bool) : RJ (List Int) := do
+  checkbounds S (.bsrange a s b); pure (rangeLen (if a then S.first else S.last) (bInt b) s.val)
+
+/-- `getindex(S::IdentityUnitRange{<:AbstractUnitRange{<:Integer}}, i::IdentityUnitRange)`,
+`base/indices.jl:404-409`: bounds check, then `i`. -/
+def getindexIdent (checkbounds : UR → Ix → RJ Unit) (S : UR) (I : UR) : RJ (List Int) := do
+  checkbounds S (.urange (.ident I)); pure (UR.ident I).vals
+
+/-- `show(io, r::IdentityUnitRange)`, `base/indices.jl:416`. -/
+def show_ (indices : UR) : String := "Base.IdentityUnitRange(" ++ indices.str ++ ")"
+
+/-- `iterate(S::IdentityUnitRange, s...) = iterate(S.indices, s...)`, `base/indices.jl:417`. -/
+def iterate (indices : UR) : List Int := indices.vals
+
+end IdentM
+
+/-- `S[i]` for `S = Slice(r)`, dispatching to the methods above. -/
+def sliceGet (checkbounds : UR → Ix → RJ Unit) (rangeGetindexInteger : UR → Ix → Int → RJ (List Int)) (r : UR) (i : Ix) : RJ (List Int) :=
+  let S := UR.slice r
+  match i with
+  | .bool b => .error (argErr s!"invalid index: {b} of type Bool")
+  | .int k => (SliceM.getindexInt checkbounds) S k
+  | .integer _ k => rangeGetindexInteger S i k.val
+  | .urange (.ident I) => (SliceM.getindexIdent checkbounds) S I
+  | .urange _ | .brange .. => (SliceM.getindexUnitRange checkbounds) S i
+  | .srange .. | .bsrange .. => (SliceM.getindexStepRange checkbounds) S i
+
+/-- `S[i]` for `S = IdentityUnitRange(r)`, dispatching to the methods above. -/
+def identGet (checkbounds : UR → Ix → RJ Unit) (r : UR) (i : Ix) : RJ (List Int) :=
+  let S := UR.ident r
+  match i with
+  | .bool b => IdentM.getindexBool b
+  | .int k => (IdentM.getindexInteger checkbounds) S i k.val
+  | .integer _ k => (IdentM.getindexInteger checkbounds) S i k.val
+  | .urange (.ident I) => (IdentM.getindexIdent checkbounds) S I
+  | .urange _ => (IdentM.getindexUnitRange checkbounds) S i
+  | .brange a b => (IdentM.getindexBoolUnitRange checkbounds) S a b
+  | .srange .. => (IdentM.getindexStepRange checkbounds) S i
+  | .bsrange a s b => (IdentM.getindexBoolStepRange checkbounds) S a s b
+
+/-- `getindex(S::AbstractOneTo{<:Integer}, I::IdentityUnitRange)`,
+`base/indices.jl:423-427`: `checkbounds(S, I)`, then `I`. -/
+def oneToGetIdent (checkbounds : UR → Ix → RJ Unit) (n : I64) (I : UR) : RJ (List Int) := do
+  checkbounds (.oneTo n) (.urange (.ident I))
+  pure (UR.ident I).vals
+
+/-! ## Promotion rules, `base/indices.jl:492-502` -/
+
+/-- `promote_type(R1, R2)` of two `Int` range types. -/
+def RT.promote : RT → RT → RT
+  | .oneTo, .oneTo => .oneTo
+  | _, _ => .unitRange
+
+/-- `promote_rule(::Type{Slice{T1}}, ::Type{Slice{T2}}) = el_same(promote_type(T1, T2), a, b)`,
+`base/indices.jl:499-500`. -/
+def promoteRuleSlice (t1 t2 : RT) : WT := elSame (.range (t1.promote t2)) (.slice t1) (.slice t2)
+
+/-- `promote_rule` for `IdentityUnitRange`, `base/indices.jl:501-502`. -/
+def promoteRuleIdent (t1 t2 : RT) : WT := elSame (.range (t1.promote t2)) (.ident t1) (.ident t2)
+
+/-- `indices_promote_type` and `promote_rule(::Type{LinearIndices{N,R1}}, ...)`,
+`base/indices.jl:492-498`: the wrapped tuple types promote elementwise. -/
+def promoteRuleLinIdx (r1 r2 : List RT) : WT := .linIdx (List.zipWith RT.promote r1 r2)
+
+/-! ## `LinearIndices`, `base/indices.jl:429-533` -/
+
+/-- `LinearIndices{N,R}` with `indices::R`. -/
+structure LinIdx where
+  inds : List UR
+  deriving DecidableEq, Repr
+
+namespace LinIdx
+
+/-- `axes(iter) = map(axes1, iter.indices)`, `base/indices.jl:506`. -/
+def axes (L : LinIdx) : List UR := L.inds.map UR.axes1
+
+/-- `size(iter) = map(length, iter.indices)`, `base/indices.jl:507`. -/
+def size (L : LinIdx) : List Nat := L.inds.map UR.len
+
+/-- `length(iter) = prod(size(iter))`. -/
+def length (L : LinIdx) : Nat := L.size.foldl (· * ·) 1
+
+/-- `checkbounds(Bool, iter, i)` for one `Int` index (linear indexing): the index of a
+one-dimensional `LinearIndices` must be in its axis, otherwise in `1:length(iter)`. -/
+def inBounds (L : LinIdx) (i : Int) : Bool :=
+  match L.inds with
+  | [r] => decide (r.axes1.first ≤ i ∧ i ≤ r.axes1.last)
+  | _ => decide (1 ≤ i ∧ i ≤ L.length)
+
+/-- `isassigned(iter, i::Int) = checkbounds(Bool, iter, i)`, `base/indices.jl:508`. -/
+def isassigned (L : LinIdx) (i : I64) : Bool := L.inBounds i.val
+
+/-- `getindex(iter::LinearIndices, i::Int)`, `base/indices.jl:509-513`. -/
+def get (L : LinIdx) (i : I64) : RJ Int :=
+  if L.inBounds i.val then .ok i.val else .error boundsErr
+
+/-- `first(iter::LinearIndices) = 1`, `base/indices.jl:526`. -/
+def firstN (_L : LinIdx) : Int := 1
+
+/-- `first(iter::LinearIndices{1}) = first(axes1(iter.indices[1]))`, `base/indices.jl:527`. -/
+def first1 (r : UR) : Int := r.axes1.first
+
+/-- `last(iter::LinearIndices) = length(iter)`, `base/indices.jl:528`. -/
+def lastN (L : LinIdx) : Int := L.length
+
+/-- `last(iter::LinearIndices{1}) = last(axes1(iter.indices[1]))`, `base/indices.jl:529`. -/
+def last1 (r : UR) : Int := r.axes1.last
+
+/-- `first(iter)`, dispatching on the number of dimensions. -/
+def first (L : LinIdx) : Int :=
+  match L.inds with
+  | [r] => first1 r
+  | _ => firstN L
+
+/-- `last(iter)`, dispatching on the number of dimensions. -/
+def last (L : LinIdx) : Int :=
+  match L.inds with
+  | [r] => last1 r
+  | _ => lastN L
+
+/-- `getindex(iter::LinearIndices, i::AbstractRange{<:Integer})`, `base/indices.jl:514-518`:
+after `checkbounds`, `iter.indices[1][i]` for one dimension (indexing a unit range `r`
+at `k` gives `first(r) + (k - first(axes1(r)))`) and `(first(iter):last(iter))[i]`
+otherwise; `i` is a unit range of `Int`s. -/
+def getRange (L : LinIdx) (i : UR) : RJ (List Int) :=
+  let ok : Bool := match i.vals.head?, i.vals.getLast? with
+    | some x, some y => L.inBounds x && L.inBounds y
+    | _, _ => true
+  if !ok then .error boundsErr
+  else match L.inds with
+    | [r] => .ok (i.vals.map fun k => r.first + (k - r.axes1.first))
+    | _ => .ok (i.vals.map fun k => L.firstN + (k - 1))
+
+/-- `iterate(iter::LinearIndices, i=1) = i > length(iter) ? nothing : (i, i+1)`,
+`base/indices.jl:523`: the values from state `i`, `fuel` steps at most. -/
+def iterateN (L : LinIdx) : Nat → Int → List Int
+  | 0, _ => []
+  | fuel + 1, i => if i > L.length then [] else i :: iterateN L fuel (i + 1)
+
+/-- `iterate(iter::LinearIndices{1}, s...) = iterate(axes1(iter.indices[1]), s...)`,
+`base/indices.jl:522`: the iterated values. -/
+def iterate1 (r : UR) : List Int := r.axes1.vals
+
+/-- The iterated values, dispatching on the number of dimensions; the general method
+starts at state `1` and stops after `length(iter) + 1` calls. -/
+def collect (L : LinIdx) : List Int :=
+  match L.inds with
+  | [r] => iterate1 r
+  | _ => L.iterateN (L.length + 1) 1
+
+/-- `copy(iter::LinearIndices) = iter`, `base/indices.jl:519`. -/
+def copy (L : LinIdx) : LinIdx := L
+
+/-- `show(io, iter::LinearIndices)`: `LinearIndices(` then the tuple of indices,
+`base/indices.jl:531-533`. -/
+def str (L : LinIdx) : String :=
+  "LinearIndices((" ++ ", ".intercalate (L.inds.map UR.str) ++
+    (if L.inds.length = 1 then "," else "") ++ "))"
+
+end LinIdx
+
+/-- An argument of the `LinearIndices` constructor tuple: an integer or a unit range. -/
+inductive DimArg where
+  | int (n : I64)
+  | bool (b : Bool)
+  | range (r : UR)
+  deriving DecidableEq, Repr
+
+/-- `_convert2ind(i::Integer) = oneto(i)`, `base/indices.jl:489`: `OneTo(n)` clamps a
+negative `n` to `0` and rejects a `Bool`. -/
+def convert2indInt : DimArg → RJ UR
+  | .int n => .ok (.oneTo (if n.val < 0 then i64 0 else n))
+  | .bool b => .error (argErr s!"invalid index: {b} of type Bool")
+  | .range r => .ok r
+
+/-- `_convert2ind(ind::AbstractUnitRange) = first(ind):last(ind)`, `base/indices.jl:490`. -/
+def convert2indRange (r : UR) : UR := .unit (i64 r.first) (i64 r.last)
+
+/-- `_convert2ind(x)`, dispatching on the argument type. -/
+def convert2ind : DimArg → RJ UR
+  | .range r => .ok (convert2indRange r)
+  | a => convert2indInt a
+
+/-- `LinearIndices(::Tuple{}) = LinearIndices{0,typeof(())}(())`, `base/indices.jl:482`. -/
+def linearIndicesEmpty : LinIdx := ⟨[]⟩
+
+/-- `LinearIndices(inds::NTuple{N,AbstractUnitRange{<:Integer}})`, `base/indices.jl:483-484`:
+`LinearIndices(map(r->convert(AbstractUnitRange{Int}, r), inds))`, which keeps every
+range of `Int`s. -/
+def linearIndicesRanges (rs : List UR) : LinIdx := ⟨rs.map id⟩
+
+/-- `LinearIndices(inds::NTuple{N,Union{<:Integer,AbstractUnitRange{<:Integer}}})`,
+`base/indices.jl:485-486`: `LinearIndices(map(_convert2ind, inds))`. -/
+def linearIndicesMixed (args : List DimArg) : RJ LinIdx := (args.mapM convert2ind).map LinIdx.mk
+
+/-- `LinearIndices(A::Union{AbstractArray,SimpleVector}) = LinearIndices(axes(A))`,
+`base/indices.jl:487`: `axes` are the array's axes. -/
+def linearIndicesOf (axes : List UR) : LinIdx :=
+  if axes = [] then linearIndicesEmpty else linearIndicesRanges axes
+
+/-- `LinearIndices(inds)` for a tuple, dispatching to the most specific method. -/
+def linearIndices (args : List DimArg) : RJ LinIdx :=
+  if args = [] then .ok linearIndicesEmpty
+  else if args.all (fun a => match a with | .range _ => true | _ => false) then
+    .ok (linearIndicesRanges (args.filterMap fun a => match a with | .range r => some r | _ => none))
+  else linearIndicesMixed args
+
+/-- `convert(::Type{LinearIndices{N,R}}, inds::LinearIndices{N})`, `base/indices.jl:479-480`:
+the indices are converted to `R`; for `R = NTuple{N, UnitRange{Int}}` each becomes a
+plain range with the same elements. -/
+def convertToUnitRanges (L : LinIdx) : LinIdx := ⟨L.inds.map UR.toUnitRange⟩
+
+/-! ## `promote_shape`, `base/indices.jl:106-203` -/
+
+/-- A tuple as `print(io, t)` shows it: `(x1, x2)`, or `(x1,)` for one element. -/
+def tupleStr (xs : List String) : String :=
+  "(" ++ ", ".intercalate xs ++ (if xs.length = 1 then "," else "") ++ ")"
+
+/-- An argument of `throw_promote_shape_mismatch`: `Dims` or a tuple of axes. -/
+inductive Shape where
+  | dims (ds : List Int)
+  | axes (rs : List UR)
+
+namespace Shape
+
+/-- `s isa Tuple{Vararg{Base.OneTo}}` (the empty tuple included). -/
+def allOneTo : Shape → Bool
+  | .dims ds => ds.isEmpty
+  | .axes rs => rs.all fun r => match r with | .oneTo _ => true | _ => false
+
+/-- `s isa Dims`. -/
+def isDims : Shape → Bool
+  | .dims _ => true
+  | .axes rs => rs.isEmpty
+
+/-- `map(lastindex, s)::Dims` for a tuple of `OneTo`s. -/
+def toDims : Shape → Shape
+  | .axes rs => .dims (rs.map UR.last)
+  | s => s
+
+/-- `print(io, s)` after `_normalize(d) = map(x -> firstindex(x):lastindex(x), d)`
+when `normalize` holds. -/
+def str (normalize : Bool) : Shape → String
+  | .dims ds => tupleStr (ds.map toString)
+  | .axes rs => tupleStr (rs.map fun r =>
+      if normalize then s!"{r.axes1.first}:{r.axes1.last}" else r.str)
+
+end Shape
+
+/-- `throw_promote_shape_mismatch(a, b, i)`, `base/indices.jl:112-137` (with the nested
+`_normalize`, `:119`): tuples of `OneTo` are printed as sizes; unless both arguments
+are then `Dims`, both are printed as normalized axes. `b = nothing` and `i = nothing`
+leave out their parts of the message. -/
+def promoteShapeMismatch (a : Shape) (b : Option Shape) (i : Option Nat) : Err :=
+  let conv := a.allOneTo && b.all Shape.allOneTo
+  let a := if conv then a.toDims else a
+  let b := if conv then b.map Shape.toDims else b
+  let hasAxes := !(a.isDims && b.all Shape.isDims)
+  let things := if hasAxes then "axes " else "size "
+  .dimensionMismatch ("a has " ++ things ++ a.str hasAxes ++
+    (match b with | some b => ", b has " ++ things ++ b.str hasAxes | none => "") ++
+    (match i with | some i => s!", mismatch at dim {i}" | none => ""))
+
+/-- The loops of `promote_shape(a::Dims, b::Dims)`, `base/indices.jl:179-185`, once
+`a` has at least as many dimensions as `b`: `for i=1:length(b)` requires
+`a[i] == b[i]` and `for i=length(b)+1:length(a)` requires `a[i] == 1`; the first
+failing `i` is reported. -/
+def promoteShapeDimsGe (a b : List Int) : RJ (List Int) :=
+  if !(a.zip b).all (fun p => p.1 = p.2) then
+    .error (promoteShapeMismatch (.dims a) (some (.dims b))
+      (some (((a.zip b).findIdx fun p => p.1 ≠ p.2) + 1)))
+  else if !(a.drop b.length).all (· = 1) then
+    .error (promoteShapeMismatch (.dims a) none
+      (some (((a.drop b.length).findIdx (· ≠ 1)) + b.length + 1)))
+  else .ok a
+
+/-- `promote_shape(a::Dims, b::Dims)`, `base/indices.jl:175-186`:
+`length(a) < length(b)` returns `promote_shape(b, a)`. -/
+def promoteShapeDims (a b : List Int) : RJ (List Int) :=
+  if a.length < b.length then promoteShapeDimsGe b a else promoteShapeDimsGe a b
+
+/-- `promote_shape(::Tuple{}, ::Tuple{}) = ()`, `base/indices.jl:108`. -/
+def promoteShape00 : RJ (List Int) := .ok []
+
+/-- `promote_shape(a::Tuple{Int,}, b::Tuple{Int,})`, `base/indices.jl:139-142`. -/
+def promoteShape11 (a1 b1 : Int) : RJ (List Int) :=
+  if a1 ≠ b1 then .error (promoteShapeMismatch (.dims [a1]) (some (.dims [b1])) none) else .ok [a1]
+
+/-- `promote_shape(a::Tuple{Int,Int}, b::Tuple{Int,})`, `base/indices.jl:144-147`. -/
+def promoteShape21 (a1 a2 b1 : Int) : RJ (List Int) :=
+  if a1 ≠ b1 ∨ a2 ≠ 1 then .error (promoteShapeMismatch (.dims [a1, a2]) (some (.dims [b1])) none)
+  else .ok [a1, a2]
+
+/-- `promote_shape(a::Tuple{Int,}, b::Tuple{Int,Int}) = promote_shape(b, a)`,
+`base/indices.jl:149`. -/
+def promoteShape12 (a1 b1 b2 : Int) : RJ (List Int) := promoteShape21 b1 b2 a1
+
+/-- `promote_shape(a::Tuple{Int, Int}, b::Tuple{Int, Int})`, `base/indices.jl:151-154`. -/
+def promoteShape22 (a1 a2 b1 b2 : Int) : RJ (List Int) :=
+  if a1 ≠ b1 ∨ a2 ≠ b2 then .error (promoteShapeMismatch (.dims [a1, a2]) (some (.dims [b1, b2])) none)
+  else .ok [a1, a2]
+
+/-- `promote_shape` on `Dims`, dispatching to the most specific method. -/
+def promoteShape (a b : List Int) : RJ (List Int) :=
+  match a, b with
+  | [], [] => promoteShape00
+  | [a1], [b1] => promoteShape11 a1 b1
+  | [a1, a2], [b1] => promoteShape21 a1 a2 b1
+  | [a1], [b1, b2] => promoteShape12 a1 b1 b2
+  | [a1, a2], [b1, b2] => promoteShape22 a1 a2 b1 b2
+  | a, b => promoteShapeDims a b
+
+/-- The loops of `promote_shape(a::Indices, b::Indices)`, `base/indices.jl:196-202`:
+axes are compared as ranges (by their elements, `a[i] != b[i]`) and trailing axes
+must equal `1:1`. -/
+def promoteShapeAxesGe (a b : List UR) : RJ (List UR) :=
+  if !(a.zip b).all (fun p => p.1.vals = p.2.vals) then
+    .error (promoteShapeMismatch (.axes a) (some (.axes b))
+      (some (((a.zip b).findIdx fun p => p.1.vals ≠ p.2.vals) + 1)))
+  else if !(a.drop b.length).all (·.vals = [1]) then
+    .error (promoteShapeMismatch (.axes a) none
+      (some (((a.drop b.length).findIdx (·.vals ≠ [1])) + b.length + 1)))
+  else .ok a
+
+/-- `promote_shape(a::Indices, b::Indices)`, `base/indices.jl:192-203`:
+`length(a) < length(b)` returns `promote_shape(b, a)`. -/
+def promoteShapeAxes (a b : List UR) : RJ (List UR) :=
+  if a.length < b.length then promoteShapeAxesGe b a else promoteShapeAxesGe a b
+
+/-- `promote_shape(a::AbstractArray, b::AbstractArray) = promote_shape(axes(a), axes(b))`,
+`base/indices.jl:188-190`; `ax` and `bx` are the arrays' axes. -/
+def promoteShapeArrays (ax bx : List UR) : RJ (List UR) := promoteShapeAxes ax bx
+
+/-! ## `setindex_shape_check`, `base/indices.jl:205-228` -/
+
+/-- `_shapes_match(::Tuple{}, ::Tuple{}) = true`, `base/indices.jl:217`. -/
+def shapesMatch00 : Bool := true
+
+/-- `_shapes_match(a::Tuple, ::Tuple{}) = all(isone, a)`, `base/indices.jl:218`. -/
+def shapesMatchA0 (a : List Int) : Bool := a.all (· = 1)
+
+/-- `_shapes_match(::Tuple{}, b::Tuple) = all(isone, b)`, `base/indices.jl:219`. -/
+def shapesMatch0B (b : List Int) : Bool := b.all (· = 1)
+
+/-- `_shapes_match(a::Tuple, b::Tuple) = first(a) == first(b) && _shapes_match(tail(a),
+tail(b))`, `base/indices.jl:220`, with the dispatch to the three methods above. -/
+def shapesMatch : List Int → List Int → Bool
+  | [], [] => shapesMatch00
+  | x :: a, [] => shapesMatchA0 (x :: a)
+  | [], y :: b => shapesMatch0B (y :: b)
+  | x :: a, y :: b => x = y && shapesMatch a b
+
+/-- `throw_setindex_mismatch(X, I)`, `base/indices.jl:205-212`. -/
+def setindexMismatch (dims2string : List Int → String) (sx : List Int) (I : List Int) : Err :=
+  match I with
+  | [i] => .dimensionMismatch s!"tried to assign {sx.foldl (· * ·) 1} elements to {i} destinations"
+  | _ => .dimensionMismatch s!"tried to assign {dims2string sx} array to {dims2string I} destination"
+
+/-- `setindex_shape_check(X::AbstractArray, shape::Tuple{Vararg{Integer}})`,
+`base/indices.jl:222-225`. -/
+def setindexShapeCheck (dims2string : List Int → String) (sx : List Int) (shape : List Int) : RJ Bool :=
+  let ok : Bool := if sx.length = 1 ∨ shape.length = 1 then
+      decide (sx.foldl (· * ·) 1 = shape.foldl (· * ·) 1)
+    else shapesMatch sx shape
+  if ok then .ok true else .error (setindexMismatch dims2string sx shape)
+
+/-- `setindex_shape_check(X::AbstractArray, i::Integer) = (length(X) == i || throw...)`,
+`base/indices.jl:214-215`. -/
+def setindexShapeCheck1 (dims2string : List Int → String) (sx : List Int) (i : Int) : RJ Bool :=
+  if sx.foldl (· * ·) 1 = i then .ok true else .error (setindexMismatch dims2string sx [i])
+
+/-- `setindex_shape_check(::Any, ::Tuple)`, `base/indices.jl:227-228`: a non-array
+right-hand side. -/
+def setindexShapeCheckScalar : RJ Bool :=
+  .error (argErr "indexed assignment with a single value to possibly many locations is not supported")
+
+/-! ## `to_index`, `to_indices`, `base/indices.jl:230-323` -/
+
+/-- An index value given to `to_index`. -/
+inductive IV where
+  | int (i : I64)
+  | integer (t : IntTy) (i : JInt t)
+  | bool (b : Bool)
+  | boolArr (bs : List Bool)
+  | intArr (xs : List I64)
+  | bottomArr
+  | nestedArr
+  | colon
+  | other
+  deriving DecidableEq, Repr
+
+/-- A converted index: an `Int`, an array of `Int`s, or a `LogicalIndex` of a mask. -/
+inductive CI where
+  | int (i : I64)
+  | arr (xs : List I64)
+  | logical (mask : List Bool)
+  deriving DecidableEq, Repr
+
+/-- `to_index(i)`, `base/indices.jl:258-266`: `convert(Int, i)` for an integer (an
+`InexactError` when it does not fit), `ArgumentError` for a `Bool`,
+`LogicalIndex(I)` for a Bool array, an integer array or `Union{}[]` itself, and
+`ArgumentError` for arrays of arrays or colons, `:` and any other value. -/
+def toIndex : IV → RJ CI
+  | .int i => .ok (.int i)
+  | .integer t i =>
+    match JInt.convert (IntTy.i64.name) .i64 i.val with
+    | .ok j => .ok (.int j)
+    | .error _ => .error (.jl (.inexactError "convert"))
+  | .bool b => .error (argErr s!"invalid index: {b} of type Bool")
+  | .boolArr bs => .ok (.logical bs)
+  | .intArr xs => .ok (.arr xs)
+  | .bottomArr => .ok (.arr [])
+  | .nestedArr => .error (argErr "invalid index")
+  | .colon => .error (argErr "colons must be converted by to_indices(...)")
+  | .other => .error (argErr "invalid index")
+
+/-- `to_index(A, i) = to_index(i)` (`base/indices.jl:243`) and
+`to_index(A::Array, i::UInt) = reinterpret(Int, i)` (`:247`); `isArray` says whether
+`A` is an `Array`. -/
+def toIndexA (isArray : Bool) : IV → RJ CI
+  | .integer .u64 i => if isArray then .ok (.int (JInt.wrap .i64 i.val)) else toIndex (.integer .u64 i)
+  | i => toIndex i
+
+/-- `to_indices(A, inds, I)`, `base/indices.jl:321-323`:
+`(to_index(A, I[1]), to_indices(A, safe_tail(inds), tail(I))...)`. -/
+def toIndicesInds (isArray : Bool) : List IV → RJ (List CI)
+  | [] => .ok []
+  | i :: rest => do
+    let c ← toIndexA isArray i
+    let cs ← toIndicesInds isArray rest
+    pure (c :: cs)
+
+/-- `to_indices(A, I::Tuple)`, `base/indices.jl:310-320`: `()` gives `()`, a tuple of
+`Int`s is returned as is, a tuple of integers goes to `to_indices(A, (), I)`, and any
+other tuple is processed with `axes(A)` (or with linear indices for one index, after
+`_drop_zerodim`, which keeps every element of a tuple, `:314-315`). -/
+def toIndices (isArray : Bool) (I : List IV) : RJ (List CI) :=
+  if I.all (fun i => match i with | .int _ => true | _ => false) then
+    .ok (I.filterMap fun i => match i with | .int j => some (.int j) | _ => none)
+  else toIndicesInds isArray I
+
+end JuliaLean.ReduceCov.Indices
+
+
+/-! Row-level properties for `base/indices.jl` on master `bbfa0ce4150`. -/
+
+namespace JuliaLean.ReduceCov.IndicesEntries
+
+open JuliaLean.ReduceCov
+open JuliaLean.ReduceCov.Indices
+
+/-! Each `to_index` overload has its own model. -/
+
+def m243 (i : IV) : RJ CI := toIndex i
+def m259 (b : Bool) : RJ CI := .error (argErr s!"invalid index: {b} of type Bool")
+def m260 (bs : List Bool) : RJ CI := .ok (.logical bs)
+def m261 (xs : List I64) : RJ CI := .ok (.arr xs)
+def m262 : RJ CI := .ok (.arr [])
+def m263 : RJ CI := .error (argErr "invalid index")
+def m265 : RJ CI := .error (argErr "colons must be converted by to_indices(...)")
+def m266 : RJ CI := .error (argErr "invalid index")
+
+def m310 (drop : List IV → List IV) (route : List IV → List IV → RJ (List CI))
+    (I : List IV) : RJ (List CI) := route (drop I) I
+def m311 (linear : List IV) (route : List IV → List IV → RJ (List CI))
+    (I : List IV) : RJ (List CI) := route linear I
+def m312 (axes : List IV) (route : List IV → List IV → RJ (List CI))
+    (I : List IV) : RJ (List CI) := route axes I
+def m313 (fallback : List IV → RJ (List CI)) (J : List IV) : RJ (List CI) := fallback J
+def m314 : List IV := []
+def m315 : List IV → List IV
+  | [] => []
+  | i :: rest => i :: m315 rest
+def m318 : RJ (List CI) := .ok []
+def m319 (I : List I64) : RJ (List CI) := .ok (I.map CI.int)
+def m320 (isArray : Bool) (I : List IV) : RJ (List CI) := toIndicesInds isArray I
+def m321 : RJ (List CI) := .ok []
+def m322 (isArray : Bool) : List IV → RJ (List CI)
+  | [] => .ok []
+  | i :: rest => do pure ((← toIndexA isArray i) :: (← m322 isArray rest))
+
+end JuliaLean.ReduceCov.IndicesEntries

@@ -48,5 +48,5 @@ duplicates:
     - {number: 46732, state: merged, relation: related}
   queries: ["issues: ReverseOrdering Perm", "issues: ReverseOrdering docstring lt", "issues/prs: ReverseOrdering", "issues/prs: Order.Perm reverse"]
 lean:
-  property: JuliaLean.SortTuplesCov.ReverseOrderingLtSwap
-  theorem: JuliaLean.SortTuplesCov.reverseOrderingLtSwap_refuted
+  property: JuliaLean.Proofs.base.ordering.ReverseOrderingPermLtSwap
+  theorem: JuliaLean.Proofs.base.ordering.reverseOrderingPermLtSwap_refuted

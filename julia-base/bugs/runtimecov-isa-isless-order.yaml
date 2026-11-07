@@ -52,5 +52,5 @@ duplicates:
   issues: []
   queries: ["CPUID ISA isless", "ISA partial order isless", "prs: CPUID ISA"]
 lean:
-  property: JuliaLean.RuntimeCov.CpuId.IsaIslessStrictWeak
-  theorem: JuliaLean.RuntimeCov.CpuId.isaIslessStrictWeak_refuted
+  property: JuliaLean.Proofs.base.cpuid.IsaIslessStrictWeak
+  theorem: JuliaLean.Proofs.base.cpuid.isaIslessStrictWeak_refuted

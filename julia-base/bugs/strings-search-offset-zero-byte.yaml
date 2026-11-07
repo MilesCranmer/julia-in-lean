@@ -1,0 +1,85 @@
+id: strings-search-offset-zero-byte
+title: "Byte-pattern searches miss index zero in an offset-indexed vector"
+priority: P2
+kind: wrong-result
+area: Strings
+files: [base/strings/search.jl]
+functions: ["findnext(::AbstractVector{UInt8}, ::AbstractVector{UInt8}, ::Integer)", "findprev(::AbstractVector{UInt8}, ::AbstractVector{UInt8}, ::Integer)", "findfirst", "findall"]
+summary: |
+  A one-byte UInt8 vector whose sole valid index is zero loses its only match
+  when searched for the same one-byte pattern. findnext and findfirst return
+  nothing, findall with overlap=true returns no ranges, and findprev throws
+  BoundsError instead of returning 0:0.
+likelihood: |
+  Offset-indexed byte vectors are valid AbstractVector inputs. A zero origin
+  is useful when working with file offsets or byte-oriented protocols.
+maybe_intended: |
+  The overloads accept AbstractVector and document no one-based-index restriction.
+reproducer: |
+  Run repro/strings-search-offset-zero-byte.jl. OffsetBytes implements a checked
+  AbstractVector{UInt8} with axes 0:0 and the single value 0x41. Search for
+  UInt8[0x41] from index 0 in both directions and with findfirst/findall.
+output:
+  release: |
+    axes(source) = (0:0,); source[0] = 65
+    findnext = nothing; findfirst = nothing; findall(overlap=true) = UnitRange{Int64}[]
+    findprev = BoundsError
+    REPRODUCED strings-search-offset-zero-byte
+    REPRODUCED strings-search-byte-pattern-first
+    REPRODUCED strings-search-byte-pattern-last
+    REPRODUCED strings-search-first-last-byte-pattern
+    REPRODUCED strings-search-byte-pattern-all
+  nightly: |
+    axes(source) = (0:0,); source[0] = 65
+    findnext = nothing; findfirst = nothing; findall(overlap=true) = UnitRange{Int64}[]
+    findprev = BoundsError
+    REPRODUCED strings-search-offset-zero-byte
+    REPRODUCED strings-search-byte-pattern-first
+    REPRODUCED strings-search-byte-pattern-last
+    REPRODUCED strings-search-first-last-byte-pattern
+    REPRODUCED strings-search-byte-pattern-all
+reproduced: {release: true, nightly: true}
+expected: |
+  findnext, findprev and findfirst return 0:0. findall returns [0:0].
+promised_by: |
+  base/strings/search.jl:530-534 documents the AbstractVector overload and says
+  "Find the next occurrence of the sequence pattern in vector A starting at
+  position start." Lines 844-848 make the corresponding reverse-search promise.
+  Neither overload restricts valid vector axes to start at one.
+cause: |
+  _searchindex normalizes the requested index using firstindex(s)-1 at
+  base/strings/search.jl:404-407, then passes that relative position to the
+  generic scalar findnext at line 415. The scalar method expects the original
+  vector index. _rsearchindex makes the same error at lines 722-725 and 733.
+possible_fix: |
+  Pass the original absolute index to the one-byte scalar search, or restore
+  the source origin before calling findnext/findprev.
+duplicates:
+  issues:
+    - {number: 37280, state: closed, relation: related}
+  queries:
+    - "gh search issues 'findnext offset' --repo JuliaLang/julia --limit 100 --json number,title,state,url"
+    - "gh search prs 'findnext offset' --repo JuliaLang/julia --limit 100 --json number,title,state,url"
+    - "gh search issues 'byte search offset' --repo JuliaLang/julia --limit 100 --json number,title,state,url"
+    - "gh search issues '_searchindex' --repo JuliaLang/julia --limit 100 --json number,title,state,url"
+    - "gh search prs 'offset search' --repo JuliaLang/julia --limit 100 --json number,title,state,url"
+  search_notes: |
+    No matching issue is known. Issue #37280 introduced the public
+    AbstractVector overload and explicitly discussed non-one-based indexing.
+    It does not report the single-byte relative-index error reproduced here.
+lean:
+  property: JuliaLean.Proofs.base.strings.search.BytePatternForwardSpec
+  theorem: JuliaLean.ChatGPT.Batch9.Group15.StringsSearchBytePatternFirst_refuted
+covers: [strings-search-byte-pattern-first, strings-search-byte-pattern-last, strings-search-first-last-byte-pattern, strings-search-byte-pattern-all]
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: true
+  output: |
+    axes(source) = (0:0,); source[0] = 65
+    findnext = nothing; findfirst = nothing; findall(overlap=true) = UnitRange{Int64}[]
+    findprev = BoundsError
+    REPRODUCED strings-search-offset-zero-byte
+    REPRODUCED strings-search-byte-pattern-first
+    REPRODUCED strings-search-byte-pattern-last
+    REPRODUCED strings-search-first-last-byte-pattern
+    REPRODUCED strings-search-byte-pattern-all

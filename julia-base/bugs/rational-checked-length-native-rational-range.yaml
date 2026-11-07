@@ -1,0 +1,61 @@
+id: rational-checked-length-native-rational-range
+title: "Base.checked_length returns a negative count on a rational UnitRange ending at 1//0"
+priority: P2
+kind: wrong-result
+area: Ranges
+files: [base/rational.jl]
+functions: ["checked_length(r::AbstractUnitRange{T}) where T<:Rational"]
+summary: |
+  UnitRange(Int8(5)//Int8(1), Int8(1)//Int8(0)) is a non-empty rational range
+  whose upper endpoint is positive rational infinity, yet Base.checked_length
+  returns Int8(-3) without raising an error.
+likelihood: |
+  Affects rational unit ranges constructed with an infinite upper endpoint
+  when code queries Base.checked_length.
+maybe_intended: ""
+reproducer: |
+  r = UnitRange(Int8(5)//Int8(1), Int8(1)//Int8(0))
+  Base.checked_length(r) # Int8(-3)
+output:
+  release: |
+    JULIA_VERSION 1.13.2
+    JULIA_COMMIT 45b6d15e34bbd2003a31acce0b1847b63dad029c
+    GMP_VERSION 6.3.0
+    rational_range EMPTY false FIRST 5//1 LAST 1//0
+    rational_checked_length RETURN -3 :: Int8
+    REPRODUCED rational-checked-length-native-rational-range
+  nightly: |
+    JULIA_VERSION 1.15.0-DEV.unknown
+    JULIA_COMMIT f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    GMP_VERSION 6.3.0
+    rational_range EMPTY false FIRST 5//1 LAST 1//0
+    rational_checked_length RETURN -3 :: Int8
+    REPRODUCED rational-checked-length-native-rational-range
+reproduced: {release: true, nightly: true}
+expected: |
+  Throw OverflowError or DivideError rather than returning a negative element
+  count for a non-empty infinite rational range.
+promised_by: |
+  base/checked.jl:373-376 documents that checked_length calculates length(r)
+  while checking for overflow errors, and base/rational.jl:704-706 states that
+  the Rational range length specialization assumes first(r) and last(r) share
+  a common denominator.
+cause: |
+  base/rational.jl:713-720 assumes first(r).den == last(r).den and computes
+  div(checked_add(checked_sub(l.num, f.num), f.den), f.den). When last(r) is
+  1//0, l.den is 0 while f.den is 1, so checked_length divides 1 - 5 + 1 by 1
+  and returns -3.
+possible_fix: |
+  Check for a zero denominator on last(r) in length and checked_length for
+  AbstractUnitRange{<:Rational}.
+duplicates:
+  issues: []
+  prs:
+    - {number: 41479, state: closed, relation: related, url: "https://github.com/JuliaLang/julia/pull/41479"}
+  queries:
+    - "checked_length Rational"
+    - "UnitRange Rational 1//0"
+    - "length Rational UnitRange"
+lean:
+  property: JuliaLean.Proofs.base.rational.Models1Group20.CheckedLengthNativeRationalRangeCorrect
+  theorem: JuliaLean.Proofs.base.rational.Models1Group20.checkedLengthNativeRationalRange_refuted

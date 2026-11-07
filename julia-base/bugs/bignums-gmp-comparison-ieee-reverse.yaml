@@ -1,0 +1,72 @@
+id: bignums-gmp-comparison-ieee-reverse
+title: cmp(-0.0, BigInt(0)) ignores the documented signed-zero total order
+priority: P2
+kind: wrong-result
+area: BigNums
+files:
+  - base/gmp.jl
+  - base/operators.jl
+functions:
+  - cmp(::Float64, ::BigInt)
+summary: |
+  cmp(-0.0, BigInt(0)) returns 0, although isless(-0.0, BigInt(0)) is true.
+  The reverse floating-point/BigInt specialization negates the numeric GMP
+  comparison, retaining the forward specialization's signed-zero mismatch.
+likelihood: |
+  Requires a negative floating zero compared with BigInt zero through cmp.
+  Generic comparison code over mixed numeric types can encounter these values
+  and give an order inconsistent with isless.
+maybe_intended: |
+  The numerical values compare equal, so reversing GMP's result is natural
+  for a numeric comparison. The cmp docstring instead specifies the total
+  order implemented by isless. This is the reverse-direction example of
+  bignums-gmp-comparison-ieee, rather than a separate root cause.
+reproducer: |
+  x, y = BigInt(0), -0.0
+  @assert cmp(y, x) == 0 && isless(y, x) && !isless(x, y)
+  println("REPRODUCED bignums-gmp-comparison-ieee-reverse")
+output:
+  release: |
+    REPRODUCED bignums-gmp-comparison-ieee-reverse
+  nightly: |
+    REPRODUCED bignums-gmp-comparison-ieee-reverse
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  cmp(-0.0, BigInt(0)) should return -1, matching isless(-0.0, BigInt(0)).
+promised_by: |
+  Pinned source f755f49a9e41380d7da126b3c1db9fe7f83dd027.
+  base/operators.jl:510-511 (cmp docstring):
+  "Return -1, 0, or 1 depending on whether `x` is less than, equal to, or greater than `y`,
+  respectively. Uses the total order implemented by `isless`."
+  base/operators.jl:242 defines mixed AbstractFloat/Real isless using signless,
+  which puts this negative floating zero before integer zero.
+cause: |
+  base/gmp.jl:635 defines cmp(x::CdoubleMax, y::BigInt) = -cmp(y, x).
+  Its forward call reaches base/gmp.jl:634, where sign(MPZ.cmp_d(y, x)) is
+  zero for these inputs. Negating zero cannot recover the lost sign bit.
+possible_fix: |
+  Correct the forward BigInt/floating cmp specialization's signed-zero tie
+  handling so that the reverse method returns the opposite total-order result.
+duplicates:
+  issues:
+    - number: 64167
+      state: open
+      relation: related
+      detail: Reports the same total-order discrepancy for Rational/float pairs.
+      url: https://github.com/JuliaLang/julia/issues/64167
+  prs:
+    - number: 64575
+      state: open
+      relation: related
+      detail: Repairs both directions for Rational/float pairs, not BigInt/float pairs.
+      url: https://github.com/JuliaLang/julia/pull/64575
+  queries:
+    - 'issues and PRs: BigInt cmp'
+    - 'issues and PRs: cmp signed zero'
+    - 'issues and PRs: BigInt negative zero'
+    - 'issues and PRs: cmp isless'
+lean:
+  property: JuliaLean.Proofs.base.gmp.Round1.FloatIntegerTotalOrder
+  theorem: JuliaLean.ChatGPT.Batch4.Group7.BignumsGmpComparisonIeeeReverse_refuted

@@ -1,0 +1,78 @@
+id: intfuncs-lcm-nary-zero
+title: "Three-argument lcm throws OverflowError despite a leading zero"
+priority: P2
+kind: wrong-exception
+area: IntFuncsCov
+files: [base/intfuncs.jl]
+functions: ["lcm(a::Real, b::Real, c::Real...)"]
+summary: |
+  lcm(Int8(0), Int8(64), Int8(3)) throws OverflowError although its mathematical
+  result is zero, which Int8 can represent. Moving the same zero to either
+  other argument position returns Int8(0).
+  Confirmed on Julia 1.13.2, commit 45b6d15e34bbd2003a31acce0b1847b63dad029c,
+  and Julia 1.15.0-DEV.unknown, commit f755f49a9e41380d7da126b3c1db9fe7f83dd027.
+likelihood: |
+  Fixed-width integer code can encounter a zero together with two nonzero
+  arguments whose least common multiple does not fit. No minimum signed
+  value or mixed signedness is needed; 0, 64 and 3 suffice for Int8.
+maybe_intended: |
+  Pairwise checked arithmetic deliberately throws when its result does not
+  fit. A recursive implementation can expose that intermediate error even
+  when another argument makes the final result zero. The docstring explicitly
+  promises zero if any argument is zero, without stating an intermediate-
+  overflow exception.
+reproducer: |
+  a, b, c = Int8(0), Int8(64), Int8(3)
+  @assert lcm(b, a, c) === Int8(0)
+  @assert lcm(b, c, a) === Int8(0)
+  lcm(a, b, c)
+output:
+  release: |
+    lcm(64, 0, 3) = 0
+    lcm(64, 3, 0) = 0
+    lcm(0, 64, 3) = OverflowError: 64 * 3 overflowed for type Int8
+    REPRODUCED intfuncs-lcm-nary-zero
+  nightly: |
+    lcm(64, 0, 3) = 0
+    lcm(64, 3, 0) = 0
+    lcm(0, 64, 3) = OverflowError: 64 * 3 overflowed for type Int8
+    REPRODUCED intfuncs-lcm-nary-zero
+reproduced: {release: true, nightly: true}
+expected: |
+  Return Int8(0) for all three positions of zero, as the documented
+  zero-argument rule requires.
+promised_by: |
+  base/intfuncs.jl:98-101 documents lcm(x, y...) as:
+  "Least common (positive) multiple (or zero if any argument is zero).
+  The arguments may be integer and rational numbers."
+  All source references are at f755f49a9e41380d7da126b3c1db9fe7f83dd027:
+  https://github.com/JuliaLang/julia/blob/f755f49a9e41380d7da126b3c1db9fe7f83dd027/base/intfuncs.jl#L98-L101
+cause: |
+  base/intfuncs.jl:162 defines lcm(a, b, c...) as lcm(a, lcm(b, c...)).
+  Julia evaluates the inner call first, so lcm(Int8(64), Int8(3)) reaches
+  checked_mul at base/intfuncs.jl:142 and throws before the outer call can
+  apply its zero check at lines 139-140.
+possible_fix: |
+  Apply the documented zero rule before evaluating a potentially overflowing
+  recursive tail for ordinary fixed-width integer arguments.
+duplicates:
+  issues:
+    - {number: 33911, state: closed, relation: related}
+    - {number: 59660, state: open, relation: related}
+  prs: []
+  search_notes: |
+    No matching three-argument zero issue or PR was found. Issue 33911 concerns
+    missing pairwise overflow checks; issue 59660 concerns signed minimum
+    values. The existing intfuncs-lcm-array-real report concerns a different
+    method: a left reduction of rational arrays with a later zero. This report
+    concerns right recursion on ordinary fixed-width integer scalar arguments.
+  queries:
+    - "gh search issues 'lcm zero' --repo JuliaLang/julia --limit 30 --json number,title,state,url"
+    - "gh search issues 'lcm' --repo JuliaLang/julia --limit 40 --json number,title,state,url"
+    - "gh search prs 'lcm overflow' --repo JuliaLang/julia --limit 30 --json number,title,state,url"
+    - "gh search prs 'lcm zero' --repo JuliaLang/julia --limit 30 --json number,title,state,url"
+lean:
+  property: JuliaLean.Proofs.base.intfuncs.lcm_zero_absorption.LcmZeroAbsorption
+  theorem: JuliaLean.Proofs.base.intfuncs.lcm_zero_absorption.lcmZeroAbsorption_refuted
+  notes: |
+    The source model and refutation pass the full Lean build and registry audit.

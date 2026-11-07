@@ -6,47 +6,49 @@ area: IntArith
 files: [base/rational.jl]
 functions: ["-(::Rational,::Rational)", "-(::Rational{<:Unsigned})"]
 summary: |
-  UInt8(1)//UInt8(0) - UInt8(1)//UInt8(1) throws OverflowError.
-  Positive infinity is representable by the same type. Both versions reproduce.
+  The pinned source negates a finite unsigned rational while subtracting it from
+  positive infinity. The resulting OverflowError prevents a representable
+  result. Exact duplicate PR #64305 is merged; this report concerns the source
+  at the pinned commit.
 likelihood: |
-  Requires unsigned rational infinity, so ordinary finite arithmetic is unaffected.
-  Generic code accepting signed and unsigned rationals can encounter the inconsistency.
+  Requires unsigned rational positive infinity and a nonzero finite rational.
 maybe_intended: |
-  Rejecting unsigned unary negation is intended. Evaluating that negation on a
-  finite operand merely to detect opposite infinities appears accidental.
+  Unary negation of nonzero unsigned rationals intentionally throws. The binary
+  subtraction shortcut needlessly invokes that operation on its finite operand.
 reproducer: |
   x = UInt8(1) // UInt8(0)
   y = UInt8(1) // UInt8(1)
-  observed = try x - y catch e; e end
+  @assert x - 1 == x
+  observed = try x - y catch err; err end
   @assert observed isa OverflowError
-  println("actual: ", typeof(observed), "; expected: ", x)
   println("REPRODUCED intarith-rational-infinity-sub")
 output:
   release: |
-    actual: OverflowError; expected: 0x01//0x00
     REPRODUCED intarith-rational-infinity-sub
   nightly: |
-    actual: OverflowError; expected: 0x01//0x00
     REPRODUCED intarith-rational-infinity-sub
 reproduced: {release: true, nightly: true}
 expected: |
-  UInt8(1)//UInt8(0), positive infinity. The equivalent rational-minus-integer
-  method returns this value because it does not negate the finite rational.
+  Return positive infinity UInt8(1)//UInt8(0), as rational-minus-integer does.
 promised_by: |
-  Arithmetic invariant: positive infinity minus a finite value remains positive infinity.
-  The Rational Numbers manual says "Constructing infinite rational values is acceptable."
-  https://docs.julialang.org/en/v1/manual/complex-and-rational-numbers/#Rational-Numbers
+  Arithmetic invariant: positive infinity minus a finite value remains infinity.
+  Pinned base/rational.jl:433-440 explicitly handles rational infinities.
+  PR #64305 confirms the exact input should return positive infinity.
+  https://github.com/JuliaLang/julia/pull/64305
 cause: |
-  base/rational.jl:433-440 checks isinf(x) && x == -y before ordinary subtraction.
-  Evaluating -y invokes lines 408-411 and rejects every nonzero unsigned numerator.
-  Release has the same checked subtraction branch as master.
+  At f755f49a9e41380d7da126b3c1db9fe7f83dd027, the subtraction shortcut tests
+  isinf(x) && x == -y. Unsigned unary negation at lines 408-411 throws for y.num != 0.
 possible_fix: |
-  Detect opposite infinities by checking both denominators and numerator signs.
-  Do not negate a finite operand merely to decide whether the shortcut applies.
+  Check isinf(y) and opposite signs without negating y, as merged PR #64305 does.
 duplicates:
   issues:
+    - {number: 64305, state: merged, relation: duplicate}
     - {number: 16111, state: closed, relation: related}
-  queries: ["Rational unsigned infinity subtraction", "rational infinity", "rational unsigned"]
+  queries:
+    - 'gh search issues --repo JuliaLang/julia "rational unsigned infinity" --limit 30'
+    - 'gh search prs --repo JuliaLang/julia "rational unsigned infinity" --limit 30'
+    - 'gh search issues --repo JuliaLang/julia rational infinity --limit 40'
+    - 'gh search prs --repo JuliaLang/julia rational unsigned infinity --limit 30'
 lean:
-  property: JuliaLean.IntArith.Rational.InfinitySub
-  theorem: JuliaLean.IntArith.Rational.infinitySub_refuted
+  property: JuliaLean.Proofs.base.rational.Round4.infinity_sub
+  theorem: JuliaLean.ChatGPT.Batch4.Group19.IntarithRationalInfinitySub_refuted

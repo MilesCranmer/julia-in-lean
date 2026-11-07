@@ -61,5 +61,5 @@ duplicates:
     - {number: 5072, state: closed, relation: related}
   queries: ["complex division accuracy", "complex division underflow", "complex division subnormal", "robust complex division", "complex division Baudin"]
 lean:
-  property: JuliaLean.Complex.DivComponentAccurate
-  theorem: JuliaLean.Complex.divComponentAccurate_refuted
+  property: JuliaLean.Proofs.base.complex.DivComponentAccurate
+  theorem: JuliaLean.Proofs.base.complex.divComponentAccurate_refuted

@@ -1,0 +1,87 @@
+id: sort-searchsorted-equivalent-range
+title: "searchsorted wraps the insertion boundary at typemax(Int) on an AbstractVector axis"
+priority: P2
+kind: wrong-result
+area: Sort
+files: [base/sort.jl]
+functions: ["searchsortedfirst(v, x; kws...)", "searchsorted(v, x, lo, hi, o)", "searchsorted(v, x; kws...)", "insorted(x, v::AbstractVector; kw...)"]
+covers: [sort-vector-search-correct, sort-insorted-vector-correct]
+summary: |
+  A one-element AbstractVector can have typemax(Int) as its only valid index. For
+  the vector containing 0 on that axis, searchsortedfirst(v, 1) wraps its
+  insertion boundary to typemin(Int). searchsorted(v, 1) then returns a
+  nonempty range, and insorted(1, v) returns true even though 1 is absent. These
+  results share the same overflowing search-boundary arithmetic.
+likelihood: |
+  Low: this requires a custom AbstractVector whose sole index is typemax(Int).
+  Such vectors are unusual, but the methods accept AbstractVector inputs and
+  return incorrect results for this valid axis.
+maybe_intended: |
+  An insertion point after typemax(Int) cannot be represented as Int. The
+  documentation does not specify how this limit is reported, but wrapping to a
+  boundary that makes an absent value appear present is incorrect.
+reproducer: |
+  struct MaxAxisIntVector <: AbstractVector{Int}
+      value::Int
+  end
+
+  Base.size(::MaxAxisIntVector) = (1,)
+  Base.axes(::MaxAxisIntVector) = (typemax(Int):typemax(Int),)
+  Base.IndexStyle(::Type{MaxAxisIntVector}) = IndexLinear()
+  Base.getindex(v::MaxAxisIntVector, i::Int) =
+      i == typemax(Int) ? v.value : throw(BoundsError(v, i))
+
+  v = MaxAxisIntVector(0)
+  first = searchsortedfirst(v, 1)
+  result = searchsorted(v, 1)
+  found = insorted(1, v)
+
+  if first <= lastindex(v)
+      println("REPRODUCED sort-vector-search-correct")
+  end
+  if !isempty(result)
+      println("REPRODUCED sort-searchsorted-equivalent-range")
+  end
+  if found
+      println("REPRODUCED sort-insorted-vector-correct")
+  end
+output:
+  release: |
+    REPRODUCED sort-vector-search-correct
+    REPRODUCED sort-searchsorted-equivalent-range
+    REPRODUCED sort-insorted-vector-correct
+  nightly: |
+    REPRODUCED sort-vector-search-correct
+    REPRODUCED sort-searchsorted-equivalent-range
+    REPRODUCED sort-insorted-vector-correct
+reproduced: {release: true, nightly: true}
+expected: |
+  searchsorted(v, 1) must not return a nonempty range when 1 is absent, and
+  insorted(1, v) must return false. If the insertion boundary cannot be
+  represented as Int, report overflow rather than wrapping it.
+promised_by: |
+  The searchsorted contract at base/sort.jl:313-322 returns the range of indices
+  containing elements equivalent to the query. The searchsortedfirst contract
+  at base/sort.jl:353-360 defines the insertion boundary for a missing query.
+cause: |
+  The binary searches form a sentinel one past the last index using Int
+  arithmetic. When the only valid index is typemax(Int), adding one wraps to
+  typemin(Int). searchsortedfirst returns the wrapped boundary, and searchsorted
+  combines the wrapped endpoints into a nonempty range. insorted trusts that
+  range and reports the absent query as present.
+possible_fix: |
+  Use checked or widened intermediate arithmetic for search boundaries so an
+  unrepresentable insertion point cannot wrap into a valid-looking result.
+duplicates:
+  issues: []
+  prs: []
+  queries:
+    - "issues: searchsorted typemax"
+    - "issues: searchsorted offset axis"
+    - "issues: searchsorted overflow"
+    - "PRs: searchsorted typemax"
+    - "PRs: searchsorted offset axis"
+    - "PRs: searchsorted overflow"
+lean:
+  property: JuliaLean.Proofs.base.sort.SearchsortedEquivalentRange
+  theorem: JuliaLean.Proofs.base.sort.searchsortedEquivalentRange_refuted

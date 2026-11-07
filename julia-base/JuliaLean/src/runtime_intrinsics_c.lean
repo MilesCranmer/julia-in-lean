@@ -1,5 +1,5 @@
 import Std
-import JuliaLean.Promotion.IEEE
+import JuliaLean.Runtime.Float
 
 namespace JuliaLean.C
 open JuliaLean JuliaLean.Promotion

@@ -54,5 +54,15 @@ duplicates:
   issues: []
   queries: ["filter TypeError empty", "filter IndexCartesian", "filter map AbstractArray{Bool}", "filter empty view TypeError", "filter non-linear empty", "filter typeassert map", "filter TypeError", "filter view TypeError", "filter SubArray", "filter AbstractArray{Bool}", "filter cartesian", "filter empty array", "filter IndexStyle", "filter map typeassert"]
 lean:
-  property: JuliaLean.MultidimCov.ArrayV2.P3032
-  theorem: JuliaLean.MultidimCov.ArrayV2.p3032_refuted
+  property: JuliaLean.Proofs.base.array.LegacyCartesianFilter.EmptyCartesianFilter
+  theorem: JuliaLean.Proofs.base.array.LegacyCartesianFilter.emptyCartesianFilter_proven
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: false
+  proof: JuliaLean.Proofs.base.array.LegacyCartesianFilter.emptyCartesianFilter_proven
+  output: |
+    IndexStyle = IndexCartesian(), isempty = true
+    filter on empty cartesian view: Any[]
+    filter on empty linear view: Any[]
+    filter on nonempty cartesian view: Any[1]
+    NOT REPRODUCED

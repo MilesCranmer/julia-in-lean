@@ -10,7 +10,7 @@ summary: |
   denominator, so the result can be one ulp away from the closest float.
   Float64(9007199254740995//3) returns 3.002399751580332e15 although
   prevfloat of that is closer to the exact value; Float16(6322//8583) returns
-  0.7363 although 0.737 is closer. The model and a random search find such inputs
+  0.7363 although 0.737 is closer. A random search finds such inputs
   for every component type and every float type.
 likelihood: |
   Silent last-ulp errors on ordinary inputs: any numerator or denominator above
@@ -70,6 +70,7 @@ duplicates:
     - {number: 49749, state: open, relation: duplicate}
     - {number: 45213, state: open, relation: related}
   queries: ["Rational Float64 conversion correctly rounded", "Float64 Rational rounding", "rational float conversion", "Float32 Rational", "Rational correctly rounded", "Float16 Rational", "rational to float inaccurate"]
+covers: [rational-small-float-no-spurious-overflow]
 lean:
-  property: JuliaLean.Promotion.RationalToFloatNearest
-  theorem: JuliaLean.Promotion.rationalToFloatNearest_refuted
+  property: JuliaLean.Proofs.base.rational.Round4.to_float_nearest
+  theorem: JuliaLean.Proofs.base.rational.Round4.to_float_nearest_refuted

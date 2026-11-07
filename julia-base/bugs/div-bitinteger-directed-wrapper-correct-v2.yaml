@@ -1,0 +1,75 @@
+id: div-bitinteger-directed-wrapper-correct-v2
+title: "Mixed fld returns UInt8(255) instead of the mathematical floor -1"
+priority: P3
+kind: documentation
+area: Div
+files:
+  - base/div.jl
+  - base/int.jl
+functions:
+  - "fld"
+  - "cld"
+  - "fld1"
+  - "div(::BitInteger,::BitInteger,RoundDown)"
+  - "div(::BitInteger,::BitInteger,RoundUp)"
+summary: |
+  fld(UInt8(1), Int8(-2)) returns UInt8(255), whereas floor(1 / -2) is -1. This contradicts the documented mathematical description of the all-types wrapper. The finding concerns a known wrapping policy omitted from that description.
+likelihood: |
+  An unsigned dividend with a negative signed divisor can produce an unsigned wrapped quotient. Small mixed Int8 and UInt8 inputs suffice.
+maybe_intended: |
+  Issue #57855 and PR #63557 record the decision to document existing wrapping behavior. This is a documentation mismatch, not a claim that the same-width unsigned result must be changed.
+reproducer: |
+  x, y = UInt8(1), Int8(-2)
+  f = fld(x, y)
+  @assert f === UInt8(255)
+  @assert fld(BigInt(x), BigInt(y)) == -1 && BigInt(f) != -1
+  println("REPRODUCED div-bitinteger-directed-wrapper-correct-v2")
+output:
+  release: |
+    REPRODUCED div-bitinteger-directed-wrapper-correct-v2
+  nightly: |
+    REPRODUCED div-bitinteger-directed-wrapper-correct-v2
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  Document the mixed-signedness wrapping exception to mathematical floor, or revise result types if the library chooses exact integer values.
+promised_by: |
+  base/div.jl:154: "Largest integer less than or equal to `x / y`. Equivalent to `div(x, y, RoundDown)`." base/div.jl:8-13 defines div as rounding x/y "without any intermediate rounding."
+  All source references are pinned to Julia commit f755f49a9e41380d7da126b3c1db9fe7f83dd027.
+  https://github.com/JuliaLang/julia/blob/f755f49a9e41380d7da126b3c1db9fe7f83dd027/base/div.jl
+cause: |
+  The mixed unsigned/signed division path retains the dividend signedness. The negative floored quotient wraps into UInt8 before its integer-valued observation.
+possible_fix: |
+  Document the shared mixed-signedness quotient policy for fld and related wrappers, consistent with the pending #63557 documentation proposal.
+duplicates:
+  issues:
+    - number: 57855
+      state: open
+      relation: duplicate
+    - number: 64440
+      state: open
+      relation: related
+  prs:
+    - number: 63557
+      state: open
+      relation: related
+    - number: 64418
+      state: merged
+      relation: related
+  queries:
+    - "issues: fld unsigned signed"
+    - "prs: fld unsigned signed"
+    - "issues: div unsigned negative"
+    - "prs: div unsigned negative"
+    - "issues: mixed signed unsigned division"
+    - "prs: mixed signed unsigned division"
+    - "issues: fld"
+    - "prs: fld"
+    - "issues: unsigned division"
+    - "prs: unsigned division"
+    - "issues: signed unsigned"
+    - "prs: signed unsigned"
+lean:
+  property: JuliaLean.Proofs.base.div.Round1.AllBitIntegerDirectedWrappers
+  theorem: JuliaLean.ChatGPT.Batch4.Group17.DivBitintegerDirectedWrapperCorrectV2_refuted

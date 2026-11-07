@@ -1,0 +1,73 @@
+id: bignums-gmp-comparison-ieee
+title: cmp(BigInt(0), -0.0) ignores the documented signed-zero total order
+priority: P2
+kind: wrong-result
+area: BigNums
+files:
+  - base/gmp.jl
+  - base/operators.jl
+functions:
+  - cmp(::BigInt, ::Float64)
+summary: |
+  cmp(BigInt(0), -0.0) returns 0, although isless(-0.0, BigInt(0)) is true
+  and isless(BigInt(0), -0.0) is false. The specialized GMP comparison
+  collapses signed zeros instead of following cmp's documented total order.
+likelihood: |
+  Requires a BigInt zero and a negative floating zero in a cmp call. Negative
+  zero can arise in ordinary floating-point arithmetic. Mixed numeric sorting
+  or comparison code that explicitly uses cmp can disagree with isless.
+maybe_intended: |
+  Numeric equality treats these zeros as equal, and GMP's numeric comparison
+  naturally returns zero. That explains the implementation, but cmp explicitly
+  promises the isless total order. This report concerns signed zero, not the
+  other NaN and infinity cases of comparing BigInt with floating-point values.
+reproducer: |
+  x, y = BigInt(0), -0.0
+  @assert cmp(x, y) == 0 && isless(y, x) && !isless(x, y)
+  println("REPRODUCED bignums-gmp-comparison-ieee")
+output:
+  release: |
+    REPRODUCED bignums-gmp-comparison-ieee
+  nightly: |
+    REPRODUCED bignums-gmp-comparison-ieee
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  cmp(BigInt(0), -0.0) should return 1, matching the documented isless order.
+promised_by: |
+  Pinned source f755f49a9e41380d7da126b3c1db9fe7f83dd027.
+  base/operators.jl:510-511 (cmp docstring):
+  "Return -1, 0, or 1 depending on whether `x` is less than, equal to, or greater than `y`,
+  respectively. Uses the total order implemented by `isless`."
+  base/operators.jl:241-242 implements mixed Real/AbstractFloat isless with
+  signless, which distinguishes the negative zero in this example.
+cause: |
+  base/gmp.jl:634 defines cmp(x::BigInt, y::CdoubleMax) as
+  isnan(y) ? -1 : sign(MPZ.cmp_d(x, y)). After its NaN check it uses GMP's
+  numeric comparison, which loses the floating zero's sign. The generic
+  isless-based cmp at base/operators.jl:526 would return 1.
+possible_fix: |
+  Preserve the isless signed-zero order in the BigInt/floating specialization,
+  including the reverse specialization, while retaining its NaN handling.
+duplicates:
+  issues:
+    - number: 64167
+      state: open
+      relation: related
+      detail: Same signed-zero cmp/isless disagreement for Rational/float pairs.
+      url: https://github.com/JuliaLang/julia/issues/64167
+  prs:
+    - number: 64575
+      state: open
+      relation: related
+      detail: Fixes Rational/float signed-zero comparisons, not BigInt/float comparisons.
+      url: https://github.com/JuliaLang/julia/pull/64575
+  queries:
+    - 'issues and PRs: BigInt cmp'
+    - 'issues and PRs: cmp signed zero'
+    - 'issues and PRs: BigInt negative zero'
+    - 'issues and PRs: cmp isless'
+lean:
+  property: JuliaLean.Proofs.base.gmp.Round1.IntegerFloatTotalOrder
+  theorem: JuliaLean.ChatGPT.Batch4.Group7.BignumsGmpComparisonIeee_refuted

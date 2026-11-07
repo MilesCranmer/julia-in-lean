@@ -19,9 +19,11 @@ reproducer: |
   println("Formal C11 data-race counterexample only; no deterministic Julia trigger is known.")
 output:
   release: |
-    NOT RUN: formal C11 counterexample only.
+    NOT REPRODUCED c-runtime-mark-actual-capacity-slot-data-race
+    Formal C11 data-race counterexample only; no deterministic Julia trigger is known.
   nightly: |
-    NOT RUN: formal C11 counterexample only.
+    NOT REPRODUCED c-runtime-mark-actual-capacity-slot-data-race
+    Formal C11 data-race counterexample only; no deterministic Julia trigger is known.
 reproduced: {release: false, nightly: false}
 expected: |
   Queue slot storage must remain data-race-free while any thief can retain the

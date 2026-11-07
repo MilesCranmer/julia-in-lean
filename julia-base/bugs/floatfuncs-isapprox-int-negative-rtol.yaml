@@ -1,5 +1,5 @@
 id: floatfuncs-isapprox-int-negative-rtol
-title: "isapprox(1, 2; rtol=-1) throws InexactError on master (regression from #63022)"
+title: "Integer isapprox disagrees with its exact formula for negative relative tolerances"
 priority: P3
 kind: wrong-exception
 area: FloatFuncs
@@ -13,6 +13,8 @@ summary: |
   isapprox(1, 3; atol=2, rtol=-1) and isapprox(UInt(1), UInt(3); rtol=-1) all throw.
   Julia 1.13.2 returns false, false-or-true per the formula, and a Float64 rtol=-1.0 still
   returns false on master.
+  With typemin(Int64), zero absolute tolerance and rtol=-1, release returns
+  true instead of the exact formula's false, while master throws InexactError.
 likelihood: |
   Low: a negative relative tolerance is meaningless, but it is accepted by the rtol::Real
   signature and the docstring formula gives a well-defined answer (the bound is atol).
@@ -37,19 +39,41 @@ reproducer: |
   if r isa InexactError
       println("REPRODUCED floatfuncs-isapprox-int-negative-rtol")
   end
+  let x = typemin(Int64), y = Int64(0), atol = Int64(0), rtol = Int64(-1)
+      expected = x == y || abs(big(x) - big(y)) <=
+          max(big(atol), big(rtol) * max(abs(big(x)), abs(big(y))))
+      outcome = try
+          isapprox(x, y; atol=atol, rtol=rtol, norm=abs)
+      catch err
+          err
+      end
+      println("typemin case = ", repr(outcome))
+      println("exact formula = ", expected)
+      @assert expected === false
+      @assert outcome === true || outcome isa InexactError
+      println("REPRODUCED floatfuncs-isapprox-int-negative-rtol-v2")
+  end
 output:
   release: |
     isapprox(1, 2; rtol=-1) = false
     isapprox(1, 2; rtol=-1.0) = false
     isapprox(Int8(1), Int8(2); rtol=Int8(-2)) = false
+    typemin case = true
+    exact formula = false
+    REPRODUCED floatfuncs-isapprox-int-negative-rtol-v2
   nightly: |
     isapprox(1, 2; rtol=-1) = InexactError(:convert, (UInt64, -1))
     isapprox(1, 2; rtol=-1.0) = false
     isapprox(Int8(1), Int8(2); rtol=Int8(-2)) = InexactError(:convert, (UInt8, -2))
     REPRODUCED floatfuncs-isapprox-int-negative-rtol
-reproduced: {release: false, nightly: true}
+    typemin case = InexactError(:convert, (UInt64, -1))
+    exact formula = false
+    REPRODUCED floatfuncs-isapprox-int-negative-rtol-v2
+reproduced: {release: true, nightly: true}
 expected: |
-  false, as on Julia 1.13.2 and as for rtol=-1.0: |1 - 2| = 1 > max(0, -1 * 2).
+  false for both tested unequal-input cases under the exact formula. For
+  typemin(Int64) versus zero with atol=0 and rtol=-1, the absolute difference
+  is 2^63 and the tolerance bound is zero.
 promised_by: |
   base/floatfuncs.jl:166-170: isapprox(x, y; atol::Number=0, rtol::Real=...) "returns true
   if norm(x-y) <= max(atol, rtol*max(norm(x), norm(y)))".
@@ -58,6 +82,8 @@ cause: |
   mul_with_overflow(promote(rtol, scale)...). scale = max(uabs(x), uabs(y)) is unsigned,
   so promote(rtol, scale) calls convert(UInt64, -1). The comment at line 298 ("Overflow
   implies rtol >= 2") also assumes rtol >= 0. Introduced by #63022.
+  The release path computes abs on fixed-width typemin, whose wrapped
+  negative value makes the comparison succeed instead of returning false.
 possible_fix: |
   Return x == y || abs-difference <= atol when rtol <= 0 before calling _scaled_rtol (the
   relative term then cannot exceed zero), or only take the BitInteger path for rtol >= 0.
@@ -65,12 +91,18 @@ duplicates:
   issues:
     - {number: 55814, state: closed, relation: related}
     - {number: 50380, state: closed, relation: related}
+  search_notes: |
+    No existing issue or PR matches this report. The additional typemin case
+    extends this existing report.
   queries:
     - "issues: isapprox (found closed #55814 and #50380 on integer overflow, fixed by #63022)"
     - "issues: isapprox rtol"
     - "issues: isapprox InexactError"
     - "issues: isapprox integer"
     - "pull requests: isapprox integer"
+    - "gh search issues 'isapprox negative rtol' --repo JuliaLang/julia --limit 100 --json number,title,state,url"
+    - "gh search prs 'isapprox integer' --repo JuliaLang/julia --limit 100 --json number,title,state,url"
 lean:
   property: JuliaLean.FloatFuncs.IntIsapproxFormula
   theorem: JuliaLean.FloatFuncs.intIsapproxFormula_refuted
+covers: [floatfuncs-isapprox-int-negative-rtol-v2]

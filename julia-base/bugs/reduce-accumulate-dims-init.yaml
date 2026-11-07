@@ -22,17 +22,11 @@ reproducer: |
   sum([1 2; 3 4]; dims=3, init=10)              # [11 12; 13 14]
 output:
   release: |
-    JULIA 1.13.2 COMMIT 45b6d15e34bbd2003a31acce0b1847b63dad029c
     [1, 2] [1 2; 3 4] [11 12; 13 14]
     REPRODUCED reduce-accumulate-dims-init
   nightly: |
-    [1, 2] [1 2; 3 4] [11 12; 13 14]
-    REPRODUCED reduce-accumulate-dims-init
-    accumulate(+, [1 2; 3 4]; dims = 3, init = 10)               => [1 2; 3 4]
-    accumulate(+, [1, 2]; dims = 2, init = 10)                   => [1, 2]
-    accumulate(+, [1, 2]; dims = 1, init = 10)                   => [11, 13]
-    sum([1 2; 3 4]; dims = 3, init = 10)                         => [11 12; 13 14]
-reproduced: {release: true, nightly: true}
+    [11, 12] [11 12; 13 14] [11 12; 13 14]
+reproduced: {release: true, nightly: false}
 expected: |
   [11, 12] and [11 12; 13 14].
 promised_by: |

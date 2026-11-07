@@ -1,484 +1,484 @@
 file	line	endline	name	signature	status	entry	note
-base/abstractarray.jl	16	16	convert	convert(::Type{T}, a::T) where {T<:AbstractArray}	todo		
-base/abstractarray.jl	17	17	convert	convert(::Type{AbstractArray{T}}, a::AbstractArray) where {T}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	18	18	convert	convert(::Type{AbstractArray{T,N}}, a::AbstractArray{<:Any,N}) where {T,N}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	42	46	size	size(t::AbstractArray, dim)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	79	82	axes	axes(A::AbstractArray{T,N}, d) where {T,N}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	100	103	axes	axes(A)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	114	114	has_offset_axes	has_offset_axes()	todo		
-base/abstractarray.jl	115	115	has_offset_axes	has_offset_axes(A)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	116	116	has_offset_axes	has_offset_axes(A::AbstractVector)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	117	117	has_offset_axes	has_offset_axes(::Colon)	todo		
-base/abstractarray.jl	118	118	has_offset_axes	has_offset_axes(::Array)	todo		
-base/abstractarray.jl	122	122	has_offset_axes	has_offset_axes(A, As...)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	135	135	require_one_based_indexing	require_one_based_indexing(A...)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	140	140	axes1	axes1(A::AbstractArray{<:Any,0})	todo		
-base/abstractarray.jl	141	141	axes1	axes1(A::AbstractArray)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	142	142	axes1	axes1(iter)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	169	169	keys	keys(a::AbstractArray)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	170	170	keys	keys(a::AbstractVector)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	192	192	keytype	keytype(a::AbstractArray)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	193	193	keytype	keytype(::Type{Union{}}, slurp...)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	195	195	keytype	keytype(A::Type{<:AbstractArray})	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	196	196	keytype	keytype(A::Type{<:AbstractVector})	todo		
-base/abstractarray.jl	198	198	valtype	valtype(a::AbstractArray)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	199	199	valtype	valtype(::Type{Union{}}, slurp...)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	217	217	valtype	valtype(A::Type{<:AbstractArray})	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	219	219	prevind	prevind(::AbstractArray, i::Integer)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	220	220	nextind	nextind(::AbstractArray, i::Integer)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	243	243	eltype	eltype(::Type)	todo		
-base/abstractarray.jl	244	244	eltype	eltype(::Type{Bottom}, slurp...)	todo		
-base/abstractarray.jl	245	245	eltype	eltype(x)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	246	246	eltype	eltype(::Type{<:AbstractArray{E}}) where {E}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	261	261	elsize	elsize(A::AbstractArray)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	278	278	ndims	ndims(::AbstractArray{T,N}) where {T,N}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	279	279	ndims	ndims(::Type{<:AbstractArray{<:Any,N}}) where {N}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	280	280	ndims	ndims(::Type{Union{}}, slurp...)	todo		
-base/abstractarray.jl	322	322	eachindex	eachindex(itrs...)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	325	325	eachindex	eachindex(A::AbstractVector)	todo		
-base/abstractarray.jl	329	329	_join_comma_and	_join_comma_and(indsA, indsB)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	330	330	_join_comma_and	_join_comma_and(indsA, indsB, indsC...)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	331	335	throw_eachindex_mismatch_indices	throw_eachindex_mismatch_indices(indices_str, indsA, indsBs...)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	384	384	eachindex	eachindex(A::AbstractArray)	todo		
-base/abstractarray.jl	386	389	eachindex	eachindex(A::AbstractArray, B::AbstractArray)	todo		
-base/abstractarray.jl	390	393	eachindex	eachindex(A::AbstractArray, B::AbstractArray...)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	394	394	eachindex	eachindex(::IndexLinear, A::Union{Array, Memory})	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	395	395	eachindex	eachindex(::IndexLinear, A::AbstractArray)	todo		
-base/abstractarray.jl	396	396	eachindex	eachindex(::IndexLinear, A::AbstractVector)	todo		
-base/abstractarray.jl	397	404	eachindex	eachindex(::IndexLinear, A::AbstractArray, B::AbstractArray...)	todo		
-base/abstractarray.jl	407	407	keys	keys(s::IndexStyle, A::AbstractArray, B::AbstractArray...)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	429	429	lastindex	lastindex(a::AbstractArray)	todo		
-base/abstractarray.jl	430	430	lastindex	lastindex(a, d)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	452	452	firstindex	firstindex(a::AbstractArray)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	453	453	firstindex	firstindex(a, d)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	455	455	first	first(a::AbstractArray)	todo		
-base/abstractarray.jl	474	478	first	first(itr)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	505	505	first	first(itr, n::Integer)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	507	510	first	first(v::AbstractVector, n::Integer)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	530	530	last	last(a)	todo		
-base/abstractarray.jl	555	555	last	last(itr, n::Integer)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	557	560	last	last(v::AbstractVector, n::Integer)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	577	577	strides	strides	todo		
-base/abstractarray.jl	597	607	stride	stride(A::AbstractArray, k::Integer)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	609	609	size_to_strides	size_to_strides(s, d, sz...)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	610	610	size_to_strides	size_to_strides(s, d)	todo		
-base/abstractarray.jl	611	611	size_to_strides	size_to_strides(s)	todo		
-base/abstractarray.jl	613	616	isstored	isstored(A::AbstractArray{<:Any,N}, I::Vararg{Integer,N}) where {N}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	619	625	trailingsize	trailingsize(A, n)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	626	632	trailingsize	trailingsize(inds::Indices, n)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	634	637	trailingsize	trailingsize(inds::Indices)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	682	685	checkbounds	checkbounds(::Type{Bool}, A::AbstractArray, I...)	todo		
-base/abstractarray.jl	690	693	checkbounds	checkbounds(::Type{Bool}, A::AbstractArray, i)	todo		
-base/abstractarray.jl	722	726	checkbounds_indices	checkbounds_indices(::Type{Bool}, inds::Tuple, I::Tuple{Any, Vararg})	todo		
-base/abstractarray.jl	728	728	checkbounds_indices	checkbounds_indices(::Type{Bool}, inds::Tuple, ::Tuple{})	todo		
-base/abstractarray.jl	750	750	checkindex	checkindex(::Type{Bool}, inds, i)	todo		
-base/abstractarray.jl	751	751	checkindex	checkindex(::Type{Bool}, inds::AbstractUnitRange, i::Real)	todo		
-base/abstractarray.jl	752	752	checkindex	checkindex(::Type{Bool}, inds::IdentityUnitRange, i::Real)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	753	753	checkindex	checkindex(::Type{Bool}, inds::OneTo{T}, i::T) where {T<:BitInteger}	todo		
-base/abstractarray.jl	754	754	checkindex	checkindex(::Type{Bool}, inds::AbstractUnitRange, ::Colon)	todo		
-base/abstractarray.jl	755	755	checkindex	checkindex(::Type{Bool}, inds::AbstractUnitRange, ::Slice)	todo		
-base/abstractarray.jl	756	757	checkindex	checkindex(::Type{Bool}, inds::AbstractUnitRange, i::AbstractRange)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	759	760	checkindex	checkindex(::Type{Bool}, inds::AbstractUnitRange, i::LinearIndices)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	762	769	checkindex	checkindex(::Type{Bool}, inds, I::AbstractArray)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	819	819	similar	similar(a::AbstractArray{T}) where {T}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	820	820	similar	similar(a::AbstractArray, ::Type{T}) where {T}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	821	821	similar	similar(a::AbstractArray{T}, dims::Tuple) where {T}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	822	822	similar	similar(a::AbstractArray{T}, dims::DimOrInd...) where {T}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	823	823	similar	similar(a::AbstractArray, ::Type{T}, dims::DimOrInd...) where {T}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	829	829	similar	similar(a::AbstractArray, ::Type{T}, dims::Tuple{Union{Integer, AbstractOneTo}, Vararg{Union{Integer, AbstractOneTo}}}) where {T}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	832	832	similar	similar(a::AbstractArray, ::Type{T}, dims::Tuple{Union{Integer, OneTo}, Vararg{Union{Integer, OneTo}}}) where {T}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	834	834	similar	similar(a::AbstractArray, ::Type{T}, dims::Dims{N}) where {T,N}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	836	836	to_shape	to_shape(::Tuple{})	todo		
-base/abstractarray.jl	837	837	to_shape	to_shape(dims::Dims)	todo		
-base/abstractarray.jl	838	838	to_shape	to_shape(dims::DimsOrInds)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	840	840	to_shape	to_shape(i::Int)	todo		
-base/abstractarray.jl	841	841	to_shape	to_shape(i::Integer)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	842	842	to_shape	to_shape(r::AbstractOneTo)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	843	843	_to_shape	_to_shape(x::Integer)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	844	844	_to_shape	_to_shape(x)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	845	845	to_shape	to_shape(r::AbstractUnitRange)	todo		
-base/abstractarray.jl	869	869	similar	similar(::Type{T}, dims::DimOrInd...) where {T<:AbstractArray}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	870	870	similar	similar(::Type{T}, shape::Tuple{Union{Integer, AbstractOneTo}, Vararg{Union{Integer, AbstractOneTo}}}) where {T<:AbstractArray}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	872	872	similar	similar(::Type{T}, shape::Tuple{Union{Integer, OneTo}, Vararg{Union{Integer, OneTo}}}) where {T<:AbstractArray}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	873	873	similar	similar(::Type{T}, dims::Dims) where {T<:AbstractArray}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	892	892	empty	empty(a::AbstractVector{T}, ::Type{U}=T) where {T,U}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	895	895	emptymutable	emptymutable(a::AbstractVector{T}, ::Type{U}=T) where {T,U}	todo		
-base/abstractarray.jl	896	896	emptymutable	emptymutable(itr, ::Type{U}) where {U}	todo		
-base/abstractarray.jl	920	927	copy!	copy!(dst::AbstractVector, src::AbstractVector)	todo		
-base/abstractarray.jl	929	933	copy!	copy!(dst::AbstractArray, src::AbstractArray)	todo		
-base/abstractarray.jl	939	939	copyto!	copyto!	todo		
-base/abstractarray.jl	941	951	copyto!	copyto!(dest::AbstractArray, src)	todo		
-base/abstractarray.jl	953	971	copyto!	copyto!(dest::AbstractArray, dstart::Integer, src)	todo		
-base/abstractarray.jl	974	1000	copyto!	copyto!(dest::AbstractArray, dstart::Integer, src, sstart::Integer)	todo		
-base/abstractarray.jl	1003	1037	copyto!	copyto!(dest::AbstractArray, dstart::Integer, src, sstart::Integer, n::Integer)	todo		
-base/abstractarray.jl	1072	1080	copyto!	copyto!(dest::AbstractArray, src::AbstractArray)	todo		
-base/abstractarray.jl	1082	1086	copyto!	copyto!(deststyle::IndexStyle, dest::AbstractArray, srcstyle::IndexStyle, src::AbstractArray)	todo		
-base/abstractarray.jl	1088	1123	copyto_unaliased!	copyto_unaliased!(deststyle::IndexStyle, dest::AbstractArray, srcstyle::IndexStyle, src::AbstractArray)	todo		
-base/abstractarray.jl	1125	1127	copyto!	copyto!(dest::AbstractArray, dstart::Integer, src::AbstractArray)	todo		
-base/abstractarray.jl	1129	1133	copyto!	copyto!(dest::AbstractArray, dstart::Integer, src::AbstractArray, sstart::Integer)	todo		
-base/abstractarray.jl	1135	1152	copyto!	copyto!(dest::AbstractArray, dstart::Integer, src::AbstractArray, sstart::Integer, n::Integer)	todo		
-base/abstractarray.jl	1154	1157	copy	copy(a::AbstractArray)	todo		
-base/abstractarray.jl	1159	1182	copyto!	copyto!(B::AbstractVecOrMat{R}, ir_dest::AbstractRange{Int}, jr_dest::AbstractRange{Int}, A::AbstractVecOrMat{S}, ir_src::AbstractRange{Int}, jr_src::AbstractRange{Int}) where {R,S}	todo		
-base/abstractarray.jl	1184	1184	_checkaxs	_checkaxs(axd, axs)	todo		
-base/abstractarray.jl	1186	1189	copyto_axcheck!	copyto_axcheck!(dest, src)	todo		
-base/abstractarray.jl	1211	1214	copymutable	copymutable(a::AbstractArray)	todo		
-base/abstractarray.jl	1215	1215	copymutable	copymutable(itr)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1216	1216	copymutable	copymutable(a::Array)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1218	1218	zero	zero(x::AbstractArray{T}) where {T<:Number}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1219	1219	zero	zero(x::AbstractArray{S}) where {S<:Union{Missing, Number}}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1220	1220	zero	zero(x::AbstractArray)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1222	1234	_one	_one(unit::T, mat::AbstractMatrix) where {T}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1236	1236	one	one(x::AbstractMatrix{T}) where {T}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1237	1237	oneunit	oneunit(x::AbstractMatrix{T}) where {T}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1245	1245	iterate_starting_state	iterate_starting_state(A)	todo		
-base/abstractarray.jl	1246	1246	iterate_starting_state	iterate_starting_state(A, ::IndexLinear)	todo		
-base/abstractarray.jl	1247	1247	iterate_starting_state	iterate_starting_state(A, ::IndexStyle)	todo		
-base/abstractarray.jl	1250	1250	iterate	iterate(A::AbstractArray, state = iterate_starting_state(A))	todo		
-base/abstractarray.jl	1251	1255	_iterate_abstractarray	_iterate_abstractarray(A::AbstractArray, state::Tuple)	todo		
-base/abstractarray.jl	1256	1259	_iterate_abstractarray	_iterate_abstractarray(A::AbstractArray, state::Integer)	todo		
-base/abstractarray.jl	1262	1262	isempty	isempty(a::AbstractArray)	todo		
-base/abstractarray.jl	1267	1267	map	map(::Type{T}, r::StepRange) where {T<:Real}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1268	1268	map	map(::Type{T}, r::UnitRange) where {T<:Real}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1269	1269	map	map(::Type{T}, r::StepRangeLen) where {T<:AbstractFloat}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1270	1272	map	map(::Type{T}, r::LinRange) where T<:AbstractFloat	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1279	1279	pointer	pointer(x::AbstractArray{T}) where {T}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1280	1283	pointer	pointer(x::AbstractArray{T}, i::Integer) where T	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1286	1286	_memory_offset	_memory_offset(x::DenseArray, I::Vararg{Any,N}) where {N}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1287	1290	_memory_offset	_memory_offset(x::AbstractArray, I::Vararg{Any,N}) where {N}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1293	1293	getindex	getindex	todo		
-base/abstractarray.jl	1294	1294	setindex!	setindex!	todo		
-base/abstractarray.jl	1363	1367	getindex	getindex(A::AbstractArray, I...)	todo		
-base/abstractarray.jl	1369	1369	getindex	getindex(A::Array, i1::Integer, I::Integer...)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1371	1371	unsafe_getindex	unsafe_getindex(A::AbstractArray, I...)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1376	1376	CanonicalIndexError	CanonicalIndexError(func::String, @nospecialize(type))	todo		
-base/abstractarray.jl	1379	1380	error_if_canonical_getindex	error_if_canonical_getindex(::IndexLinear, A::AbstractArray, ::Int)	todo		
-base/abstractarray.jl	1381	1382	error_if_canonical_getindex	error_if_canonical_getindex(::IndexCartesian, A::AbstractArray{T,N}, ::Vararg{Int,N}) where {T,N}	todo		
-base/abstractarray.jl	1383	1383	error_if_canonical_getindex	error_if_canonical_getindex(::IndexStyle, ::AbstractArray, ::Any...)	todo		
-base/abstractarray.jl	1386	1387	_getindex	_getindex(::IndexStyle, A::AbstractArray, I...)	todo		
-base/abstractarray.jl	1390	1390	_getindex	_getindex(::IndexLinear, A::AbstractVector, i::Int)	todo		
-base/abstractarray.jl	1391	1391	_getindex	_getindex(::IndexLinear, A::AbstractArray, i::Int)	todo		
-base/abstractarray.jl	1392	1397	_getindex	_getindex(::IndexLinear, A::AbstractArray, I::Vararg{Int,M}) where M	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1398	1398	_to_linear_index	_to_linear_index(A::AbstractArray, i::Integer)	todo		
-base/abstractarray.jl	1399	1399	_to_linear_index	_to_linear_index(A::AbstractVector, i::Integer, I::Integer...)	todo		
-base/abstractarray.jl	1400	1400	_to_linear_index	_to_linear_index(A::AbstractArray)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1401	1401	_to_linear_index	_to_linear_index(A::AbstractArray, I::Integer...)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1404	1409	_getindex	_getindex(::IndexCartesian, A::AbstractArray, I::Vararg{Int,M}) where M	todo		
-base/abstractarray.jl	1410	1413	_getindex	_getindex(::IndexCartesian, A::AbstractArray{T,N}, I::Vararg{Int, N}) where {T,N}	todo		
-base/abstractarray.jl	1414	1414	_to_subscript_indices	_to_subscript_indices(A::AbstractArray, i::Integer)	todo		
+base/abstractarray.jl	16	16	convert	convert(::Type{T}, a::T) where {T<:AbstractArray}	modelled	abstractarray-unaliascopy-typed-provenance	
+base/abstractarray.jl	17	17	convert	convert(::Type{AbstractArray{T}}, a::AbstractArray) where {T}	modelled	abstractarray-convert-abstract-type-safety	Source-mirrored model at existing explicit runtime boundaries; property remains todo.
+base/abstractarray.jl	18	18	convert	convert(::Type{AbstractArray{T,N}}, a::AbstractArray{<:Any,N}) where {T,N}	modelled	abstractarray-convert-abstract-n-type-safety	Source-mirrored model at existing explicit runtime boundaries; property remains todo.
+base/abstractarray.jl	42	46	size	size(t::AbstractArray, dim)	modelled	abstractarray-size-dim-typed-metadata	Source-mirrored model at existing explicit runtime boundaries; property remains todo.
+base/abstractarray.jl	79	82	axes	axes(A::AbstractArray{T,N}, d) where {T,N}	modelled	abstractarray-axes-noninteger-first	Source-mirrored model at existing explicit runtime boundaries; property remains todo.
+base/abstractarray.jl	100	103	axes	axes(A)	modelled	abstractarray-default-axes-typed-components	Source-mirrored model at existing explicit runtime boundaries; property remains todo.
+base/abstractarray.jl	114	114	has_offset_axes	has_offset_axes()	modelled	abstractarrays-source-fixed-one-based	
+base/abstractarray.jl	115	115	has_offset_axes	has_offset_axes(A)	modelled	abstractarray-offset-generic-observation	Source-mirrored model at existing explicit runtime boundaries; property remains todo.
+base/abstractarray.jl	116	116	has_offset_axes	has_offset_axes(A::AbstractVector)	modelled	abstractarrays-require-one-based-large-axis	Unverified AbstractArrayRepair entry removed; source and contract need review.
+base/abstractarray.jl	117	117	has_offset_axes	has_offset_axes(::Colon)	modelled	abstractarrays-source-fixed-one-based	
+base/abstractarray.jl	118	118	has_offset_axes	has_offset_axes(::Array)	modelled	abstractarrays-source-fixed-one-based	
+base/abstractarray.jl	122	122	has_offset_axes	has_offset_axes(A, As...)	modelled	abstractarray-offset-many-observation	Source-mirrored model at existing explicit runtime boundaries; property remains todo.
+base/abstractarray.jl	135	135	require_one_based_indexing	require_one_based_indexing(A...)	modelled	abstractarray-require-one-based-observation	Source-mirrored model at existing explicit runtime boundaries; property remains todo.
+base/abstractarray.jl	140	140	axes1	axes1(A::AbstractArray{<:Any,0})	modelled	abstractarray-completion-140	Source mirror JuliaLean.base.abstractarray.Completion20261105.axes1Zero; independent property Axes1ZeroSingleton is proven.
+base/abstractarray.jl	141	141	axes1	axes1(A::AbstractArray)	modelled	abstractarrays-checkbounds-linear	Unverified AbstractArrayRepair entry removed; source and contract need review.
+base/abstractarray.jl	142	142	axes1	axes1(iter)	modelled	abstractarray-axes1-iterator-typed-length	Source-mirrored model at existing explicit runtime boundaries; property remains todo.
+base/abstractarray.jl	169	169	keys	keys(a::AbstractArray)	modelled	abstractarray-completion-169	Full source-mirrored model JuliaLean.base.abstractarray.Completion20261105.keysArray; independent property is proven.
+base/abstractarray.jl	170	170	keys	keys(a::AbstractVector)	modelled	abstractarray-completion-170	Full source-mirrored model JuliaLean.base.abstractarray.Completion20261105.keysVector; independent property is proven.
+base/abstractarray.jl	192	192	keytype	keytype(a::AbstractArray)	modelled	abstractarray-completion-192	Source mirror JuliaLean.base.abstractarray.Completion20261105.keytypeValue; independent property KeytypeValueSelected is proven.
+base/abstractarray.jl	193	193	keytype	keytype(::Type{Union{}}, slurp...)	modelled	abstractarray-keytype-bottom-rejected	Source-mirrored model at existing explicit runtime boundaries; property remains todo.
+base/abstractarray.jl	195	195	keytype	keytype(A::Type{<:AbstractArray})	modelled	abstractarray-keytype-array-rank-provenance	Source-mirrored model at existing explicit runtime boundaries; property remains todo.
+base/abstractarray.jl	196	196	keytype	keytype(A::Type{<:AbstractVector})	modelled	abstractarray-completion-196	Source mirror JuliaLean.base.abstractarray.keytypeVector; independent property KeytypeVectorNative is proven.
+base/abstractarray.jl	198	198	valtype	valtype(a::AbstractArray)	modelled	abstractarray-completion-198	Source mirror JuliaLean.base.abstractarray.Completion20261105.valtypeValue; independent property ValtypeValueSelected is proven.
+base/abstractarray.jl	199	199	valtype	valtype(::Type{Union{}}, slurp...)	modelled	abstractarray-valtype-bottom-rejected	Source-mirrored model at existing explicit runtime boundaries; property remains todo.
+base/abstractarray.jl	217	217	valtype	valtype(A::Type{<:AbstractArray})	modelled	abstractarray-valtype-selected-eltype-provenance	Source-mirrored model at existing explicit runtime boundaries; property remains todo.
+base/abstractarray.jl	219	219	prevind	prevind(::AbstractArray, i::Integer)	modelled	abstractarrays-source-neighbor-index-positions	Unverified AbstractArrayRepair entry removed; source and contract need review.
+base/abstractarray.jl	220	220	nextind	nextind(::AbstractArray, i::Integer)	modelled	abstractarrays-source-neighbor-index-positions	Unverified AbstractArrayRepair entry removed; source and contract need review.
+base/abstractarray.jl	243	243	eltype	eltype(::Type)	modelled	abstractarray-completion-243	Full source-mirrored model JuliaLean.base.abstractarray.Completion20261105.eltypeDefault; independent property is proven.
+base/abstractarray.jl	244	244	eltype	eltype(::Type{Bottom}, slurp...)	modelled	abstractarrays-source-bottom-metadata-rejected	
+base/abstractarray.jl	245	245	eltype	eltype(x)	modelled	abstractarray-eltype-value-selected-type-provenance	Source-mirrored model at existing explicit runtime boundaries; property remains todo.
+base/abstractarray.jl	246	246	eltype	eltype(::Type{<:AbstractArray{E}}) where {E}	modelled	abstractarray-eltype-static-binding-provenance	Source-mirrored model at existing explicit runtime boundaries; property remains todo.
+base/abstractarray.jl	261	261	elsize	elsize(A::AbstractArray)	modelled	abstractarray-completion-261	Source mirror JuliaLean.base.abstractarray.Completion20261105.elsizeValue; independent property ElsizeSelected is proven.
+base/abstractarray.jl	278	278	ndims	ndims(::AbstractArray{T,N}) where {T,N}	modelled	abstractarray-ndims-value-native-type	Source-mirrored model at existing explicit runtime boundaries; property remains todo.
+base/abstractarray.jl	279	279	ndims	ndims(::Type{<:AbstractArray{<:Any,N}}) where {N}	modelled	abstractarray-ndims-type-binding-exceptions;abstractarray-ndims-type-state-isolation	Source-mirrored model JuliaLean.base.abstractarray.Models2Group6.ndimsType; reviewed against Julia f755f49.
+base/abstractarray.jl	280	280	ndims	ndims(::Type{Union{}}, slurp...)	modelled	abstractarrays-source-bottom-metadata-rejected	
+base/abstractarray.jl	322	322	eachindex	eachindex(itrs...)	modelled	abstractarray-homogeneous-hcat	Unverified AbstractArrayRepair entry removed; source and contract need review.
+base/abstractarray.jl	325	325	eachindex	eachindex(A::AbstractVector)	modelled	abstractarrays-get-scattered-default	
+base/abstractarray.jl	329	329	_join_comma_and	_join_comma_and(indsA, indsB)	modelled	abstractarrays-source-bounds-interface-rejections,abstractarrayspecs-eachindex-size-mismatch	Reviewed line by line against pinned f755f49 source.
+base/abstractarray.jl	330	330	_join_comma_and	_join_comma_and(indsA, indsB, indsC...)	modelled	abstractarrays-source-bounds-interface-rejections	Reviewed line by line against pinned f755f49 source.
+base/abstractarray.jl	331	335	throw_eachindex_mismatch_indices	throw_eachindex_mismatch_indices(indices_str, indsA, indsBs...)	modelled	memsafety-abstractarray-iteration,abstractarrays-source-keepat-mask,abstractarrays-source-bounds-interface-rejections	Reviewed line by line against pinned f755f49 source.
+base/abstractarray.jl	384	384	eachindex	eachindex(A::AbstractArray)	modelled	abstractarrayspecs-map-inplace	
+base/abstractarray.jl	386	389	eachindex	eachindex(A::AbstractArray, B::AbstractArray)	modelled	abstractarrayspecs-eachindex-size-mismatch	
+base/abstractarray.jl	390	393	eachindex	eachindex(A::AbstractArray, B::AbstractArray...)	modelled	abstractarray-completion-390	Source mirror JuliaLean.base.abstractarray.Completion20261105.eachindexMany; independent property EachindexStyleFailure is proven.
+base/abstractarray.jl	394	394	eachindex	eachindex(::IndexLinear, A::Union{Array, Memory})	modelled	abstractarrayspecs-eachindex-size-mismatch	Unverified AbstractArrayRepair entry removed; source and contract need review.
+base/abstractarray.jl	395	395	eachindex	eachindex(::IndexLinear, A::AbstractArray)	modelled	abstractarray-eachindex-linear-typed-length	Source-mirrored model at existing explicit runtime boundaries; property remains todo.
+base/abstractarray.jl	396	396	eachindex	eachindex(::IndexLinear, A::AbstractVector)	modelled	abstractarrays-checkbounds-linear	
+base/abstractarray.jl	397	404	eachindex	eachindex(::IndexLinear, A::AbstractArray, B::AbstractArray...)	modelled	abstractarrayspecs-eachindex-size-mismatch	
+base/abstractarray.jl	407	407	keys	keys(s::IndexStyle, A::AbstractArray, B::AbstractArray...)	modelled	abstractarray-completion-407	Source mirror JuliaLean.base.abstractarray.Completion20261105.keysStyle; independent property KeysStyleSelected is proven.
+base/abstractarray.jl	429	429	lastindex	lastindex(a::AbstractArray)	modelled	abstractarrayspecs-first-last	
+base/abstractarray.jl	430	430	lastindex	lastindex(a, d)	modelled	abstractarray-completion-430	Source mirror JuliaLean.base.abstractarray.Completion20261105.lastindexDim; independent property LastindexAxisFailure is proven.
+base/abstractarray.jl	452	452	firstindex	firstindex(a::AbstractArray)	modelled	iterators-first-last-vector	Unverified AbstractArrayRepair entry removed; source and contract need review.
+base/abstractarray.jl	453	453	firstindex	firstindex(a, d)	modelled	abstractarray-completion-453	Source mirror JuliaLean.base.abstractarray.Completion20261105.firstindexDim; independent property FirstindexAxisFailure is proven.
+base/abstractarray.jl	455	455	first	first(a::AbstractArray)	modelled	abstractarrayspecs-first-last	
+base/abstractarray.jl	474	478	first	first(itr)	modelled	abstractarrays-source-first-empty-error	Unverified AbstractArrayRepair entry removed; source and contract need review.
+base/abstractarray.jl	505	505	first	first(itr, n::Integer)	modelled	iterators-first-n-tuple	Unverified AbstractArrayRepair entry removed; source and contract need review.
+base/abstractarray.jl	507	510	first	first(v::AbstractVector, n::Integer)	modelled	abstractarray-first-vector-typed-slice	Source-mirrored model at existing explicit runtime boundaries; property remains todo.
+base/abstractarray.jl	530	530	last	last(a)	modelled	iterators-first-last-vector	
+base/abstractarray.jl	555	555	last	last(itr, n::Integer)	modelled	abstractarray-last-iterable-distinct-result	Source-mirrored model at existing explicit runtime boundaries; property remains todo.
+base/abstractarray.jl	557	560	last	last(v::AbstractVector, n::Integer)	modelled	abstractarray-last-vector-typed-slice	Source-mirrored model at existing explicit runtime boundaries; property remains todo.
+base/abstractarray.jl	577	577	strides	strides	excluded		no-behaviour: Generic function declaration without a callable method body.
+base/abstractarray.jl	597	607	stride	stride(A::AbstractArray, k::Integer)	modelled	abstractarray-stride-dispatch-accumulator-provenance	Source-mirrored model JuliaLean.base.abstractarray.Models2Group6.stride; reviewed against Julia f755f49.
+base/abstractarray.jl	609	609	size_to_strides	size_to_strides(s, d, sz...)	modelled	abstractarray-size-to-strides-tuple-structure	Source-mirrored model at existing explicit runtime boundaries; property remains todo. Independent internal tuple-structure invariant.
+base/abstractarray.jl	610	610	size_to_strides	size_to_strides(s, d)	modelled	abstractarray-completion-610	Source mirror JuliaLean.base.abstractarray.sizeToStridesLast; independent property TerminalStrideSingleton is proven.
+base/abstractarray.jl	611	611	size_to_strides	size_to_strides(s)	modelled	abstractarray-completion-611	Source mirror JuliaLean.base.abstractarray.sizeToStridesEmpty; independent property EmptyStrides is proven.
+base/abstractarray.jl	613	616	isstored	isstored(A::AbstractArray{<:Any,N}, I::Vararg{Integer,N}) where {N}	modelled	abstractarrays-source-canonical-stored-coordinates	Unverified AbstractArrayRepair entry removed; source and contract need review.
+base/abstractarray.jl	619	625	trailingsize	trailingsize(A, n)	modelled	abstractarray-trailingsize-dispatch-product-provenance	Source-mirrored model JuliaLean.base.abstractarray.Models2Group6.trailingSize; reviewed against Julia f755f49.
+base/abstractarray.jl	626	632	trailingsize	trailingsize(inds::Indices, n)	modelled	abstractarray-trailingsize-indices-dispatch-product-provenance	Source-mirrored model JuliaLean.base.abstractarray.Models2Group6.trailingSizeIndices; reviewed against Julia f755f49.
+base/abstractarray.jl	634	637	trailingsize	trailingsize(inds::Indices)	modelled	abstractarray-trailingsize-heterogeneous-map	Source-mirrored model at existing explicit runtime boundaries; property remains todo.
+base/abstractarray.jl	682	685	checkbounds	checkbounds(::Type{Bool}, A::AbstractArray, I...)	modelled	abstractarrays-checkbounds-cartesian	
+base/abstractarray.jl	690	693	checkbounds	checkbounds(::Type{Bool}, A::AbstractArray, i)	modelled	abstractarrays-checkbounds-linear	
+base/abstractarray.jl	722	726	checkbounds_indices	checkbounds_indices(::Type{Bool}, inds::Tuple, I::Tuple{Any, Vararg})	modelled	abstractarrayspecs-cartesian-indexing,abstractarrayspecs-checkbounds,abstractarrays-source-coordinate-default-get-contents	Reviewed line by line against pinned f755f49 source.
+base/abstractarray.jl	728	728	checkbounds_indices	checkbounds_indices(::Type{Bool}, inds::Tuple, ::Tuple{})	modelled	abstractarray-checkbounds-empty-indices-trace	Source-mirrored model JuliaLean.base.abstractarray.Models2Group6.BoundsNil.checkboundsIndicesNil; reviewed against Julia f755f49.
+base/abstractarray.jl	750	750	checkindex	checkindex(::Type{Bool}, inds, i)	modelled	abstractarrays-source-bounds-interface-rejections	Reviewed line by line against pinned f755f49 source.
+base/abstractarray.jl	751	751	checkindex	checkindex(::Type{Bool}, inds::AbstractUnitRange, i::Real)	modelled	abstractarrays-checkbounds-real-index	
+base/abstractarray.jl	752	752	checkindex	checkindex(::Type{Bool}, inds::IdentityUnitRange, i::Real)	modelled	abstractarray-completion-752	Source mirror JuliaLean.base.abstractarray.Completion20261105.checkindexIdentity; independent property IdentityBoundsSelected is proven.
+base/abstractarray.jl	753	753	checkindex	checkindex(::Type{Bool}, inds::OneTo{T}, i::T) where {T<:BitInteger}	modelled	abstractarrays-checkbounds-linear	
+base/abstractarray.jl	754	754	checkindex	checkindex(::Type{Bool}, inds::AbstractUnitRange, ::Colon)	modelled	abstractarrays-checkindex-forms	
+base/abstractarray.jl	755	755	checkindex	checkindex(::Type{Bool}, inds::AbstractUnitRange, ::Slice)	modelled	abstractarray-completion-755	Source mirror JuliaLean.base.abstractarray.checkindexSlice; independent property SliceAlwaysAccepted is proven.
+base/abstractarray.jl	756	757	checkindex	checkindex(::Type{Bool}, inds::AbstractUnitRange, i::AbstractRange)	modelled	abstractarrays-checkindex-forms	Unverified AbstractArrayRepair entry removed; source and contract need review.
+base/abstractarray.jl	759	760	checkindex	checkindex(::Type{Bool}, inds::AbstractUnitRange, i::LinearIndices)	modelled	abstractarrays-source-linear-indices-bounds-contents	Unverified AbstractArrayRepair entry removed; source and contract need review.
+base/abstractarray.jl	762	769	checkindex	checkindex(::Type{Bool}, inds, I::AbstractArray)	modelled	abstractarrays-source-array-index-bounds-all	Unverified AbstractArrayRepair entry removed; source and contract need review.
+base/abstractarray.jl	819	819	similar	similar(a::AbstractArray{T}) where {T}	modelled	abstractarray-completion-819	Source mirror JuliaLean.base.abstractarray.similarDefault; independent property SimilarDefaultSelected is proven.
+base/abstractarray.jl	820	820	similar	similar(a::AbstractArray, ::Type{T}) where {T}	modelled	abstractarrayspecs-cat-similar-empty-vector	Unverified AbstractArrayRepair entry removed; source and contract need review.
+base/abstractarray.jl	821	821	similar	similar(a::AbstractArray{T}, dims::Tuple) where {T}	modelled	abstractarrays-similar-fallback	Unverified AbstractArrayRepair entry removed; source and contract need review.
+base/abstractarray.jl	822	822	similar	similar(a::AbstractArray{T}, dims::DimOrInd...) where {T}	modelled	abstractarrays-similar-fallback	Unverified AbstractArrayRepair entry removed; source and contract need review.
+base/abstractarray.jl	823	823	similar	similar(a::AbstractArray, ::Type{T}, dims::DimOrInd...) where {T}	modelled	abstractarrays-similar-fallback	Unverified AbstractArrayRepair entry removed; source and contract need review.
+base/abstractarray.jl	829	829	similar	similar(a::AbstractArray, ::Type{T}, dims::Tuple{Union{Integer, AbstractOneTo}, Vararg{Union{Integer, AbstractOneTo}}}) where {T}	modelled	abstractarrayspecs-cat-similar-empty-vector	Unverified AbstractArrayRepair entry removed; source and contract need review.
+base/abstractarray.jl	832	832	similar	similar(a::AbstractArray, ::Type{T}, dims::Tuple{Union{Integer, OneTo}, Vararg{Union{Integer, OneTo}}}) where {T}	todo		Needed callee: to_shape(::DimsOrInds) at 838 with complete tuple map for every arity, followed by runtime similar(a,T,converted). splitRestSimilarUInt64 in bitarray.lean covers only one OneTo{Int} axis and cannot justify this full-domain row.
+base/abstractarray.jl	834	834	similar	similar(a::AbstractArray, ::Type{T}, dims::Dims{N}) where {T,N}	modelled	abstractarrays-similar-fallback	Unverified AbstractArrayRepair entry removed; source and contract need review.
+base/abstractarray.jl	836	836	to_shape	to_shape(::Tuple{})	modelled	abstractarray-completion-836	Source mirror JuliaLean.base.abstractarray.toShapeEmpty; independent property EmptyShapeRank is proven.
+base/abstractarray.jl	837	837	to_shape	to_shape(dims::Dims)	modelled	abstractarray-completion-837	Source mirror JuliaLean.base.abstractarray.toShapeDims; independent property NativeShapeComponents is proven.
+base/abstractarray.jl	838	838	to_shape	to_shape(dims::DimsOrInds)	modelled	abstractarray-shape-map-before-assertion	Source-mirrored model at existing explicit runtime boundaries; property remains todo.
+base/abstractarray.jl	840	840	to_shape	to_shape(i::Int)	modelled	abstractarrayspecs-cat-similar-empty-vector	
+base/abstractarray.jl	841	841	to_shape	to_shape(i::Integer)	modelled	abstractarray-completion-841	Source mirror JuliaLean.base.abstractarray.Completion20261105.toShapeInteger; independent property IntegerShapeSelected is proven.
+base/abstractarray.jl	842	842	to_shape	to_shape(r::AbstractOneTo)	modelled	abstractarrayspecs-cat-similar-empty-vector	Unverified AbstractArrayRepair entry removed; source and contract need review.
+base/abstractarray.jl	843	843	_to_shape	_to_shape(x::Integer)	modelled	abstractarray-completion-843	Source mirror JuliaLean.base.abstractarray.Completion20261105.toShapeIntegerHelper; independent property IntegerShapeHelperSelected is proven.
+base/abstractarray.jl	844	844	_to_shape	_to_shape(x)	modelled	abstractarray-completion-844	Source mirror JuliaLean.base.abstractarray.Completion20261105.toShapeOtherHelper; independent property OtherShapeHelperSelected is proven.
+base/abstractarray.jl	845	845	to_shape	to_shape(r::AbstractUnitRange)	modelled	abstractarray-completion-845	Source mirror JuliaLean.base.abstractarray.toShapeUnitRange; independent property RangeShapeIdentity is proven.
+base/abstractarray.jl	869	869	similar	similar(::Type{T}, dims::DimOrInd...) where {T<:AbstractArray}	modelled	abstractarray-completion-869	Source mirror JuliaLean.base.abstractarray.similarStorageVarargs; independent property SimilarStorageVarargsSelected is proven.
+base/abstractarray.jl	870	870	similar	similar(::Type{T}, shape::Tuple{Union{Integer, AbstractOneTo}, Vararg{Union{Integer, AbstractOneTo}}}) where {T<:AbstractArray}	todo		Needed callee: to_shape(::DimsOrInds) at 838, including AbstractOneTo last/_to_shape dispatch and tuple map allocation for arities >=32, before runtime similar(T,converted).
+base/abstractarray.jl	872	872	similar	similar(::Type{T}, shape::Tuple{Union{Integer, OneTo}, Vararg{Union{Integer, OneTo}}}) where {T<:AbstractArray}	todo		Needed callee: to_shape(::DimsOrInds) at 838 for mixed Integer/OneTo tuples of every arity; then runtime similar(T,converted). The installed one-axis BitArray specialization does not close the general tuple path.
+base/abstractarray.jl	873	873	similar	similar(::Type{T}, dims::Dims) where {T<:AbstractArray}	modelled	abstractarray-completion-873	Source mirror JuliaLean.base.abstractarray.Completion20261105.similarStorageDims; independent property SimilarStorageDimsSelected is proven.
+base/abstractarray.jl	892	892	empty	empty(a::AbstractVector{T}, ::Type{U}=T) where {T,U}	modelled	abstractarrays-source-empty-allocation-contents	Unverified AbstractArrayRepair entry removed; source and contract need review.
+base/abstractarray.jl	895	895	emptymutable	emptymutable(a::AbstractVector{T}, ::Type{U}=T) where {T,U}	modelled	abstractarrays-source-empty-allocation-contents	
+base/abstractarray.jl	896	896	emptymutable	emptymutable(itr, ::Type{U}) where {U}	modelled	abstractarrays-source-empty-allocation-contents	
+base/abstractarray.jl	920	927	copy!	copy!(dst::AbstractVector, src::AbstractVector)	modelled	abstractarray-completion-920	Source mirror JuliaLean.base.abstractarray.Completion20261105.copyBangVector; independent property CopyVectorFirstFailure is proven.
+base/abstractarray.jl	929	933	copy!	copy!(dst::AbstractArray, src::AbstractArray)	modelled	abstractarrays-source-copy-bang-contents	
+base/abstractarray.jl	939	939	copyto!	copyto!	excluded		no-behaviour: Compiler max_methods metadata assignment, with no callable method body.
+base/abstractarray.jl	941	951	copyto!	copyto!(dest::AbstractArray, src)	modelled	abstractarrayspecs-copyto-iter	
+base/abstractarray.jl	953	971	copyto!	copyto!(dest::AbstractArray, dstart::Integer, src)	modelled	abstractarray-completion-953	Full source-mirrored model JuliaLean.base.abstractarray.Completion20261105.copytoIterableAt; independent property is proven.
+base/abstractarray.jl	974	1000	copyto!	copyto!(dest::AbstractArray, dstart::Integer, src, sstart::Integer)	modelled	abstractarray-completion-974	Full source-mirrored model JuliaLean.base.abstractarray.Completion20261105.copytoIterableFrom; independent property is proven.
+base/abstractarray.jl	1003	1037	copyto!	copyto!(dest::AbstractArray, dstart::Integer, src, sstart::Integer, n::Integer)	modelled	abstractarray-completion-1003	One authoritative source body Completion20261105.copytoIterableN retains typed nonrendered LazyString parts, original BoundsError destination/index fields, selected arithmetic effects before errors, fixed Int conversion result types and native post-conversion arithmetic. Every old caller now invokes that source body directly; native contents proofs explicitly observe exception classes. Original-destination return is proven without callback correctness assumptions.
+base/abstractarray.jl	1072	1080	copyto!	copyto!(dest::AbstractArray, src::AbstractArray)	modelled	abstractarrays-source-copy-bang-contents	
+base/abstractarray.jl	1082	1086	copyto!	copyto!(deststyle::IndexStyle, dest::AbstractArray, srcstyle::IndexStyle, src::AbstractArray)	modelled	abstractarrays-source-copyto-snapshot	
+base/abstractarray.jl	1088	1123	copyto_unaliased!	copyto_unaliased!(deststyle::IndexStyle, dest::AbstractArray, srcstyle::IndexStyle, src::AbstractArray)	modelled	abstractarrays-source-copy-bang-contents	
+base/abstractarray.jl	1125	1127	copyto!	copyto!(dest::AbstractArray, dstart::Integer, src::AbstractArray)	modelled	abstractarray-completion-1125	Full source-mirrored model JuliaLean.base.abstractarray.Completion20261105.copytoArrayAt; independent property is proven.
+base/abstractarray.jl	1129	1133	copyto!	copyto!(dest::AbstractArray, dstart::Integer, src::AbstractArray, sstart::Integer)	modelled	abstractarrays-source-copy-from-invalid-start	
+base/abstractarray.jl	1135	1152	copyto!	copyto!(dest::AbstractArray, dstart::Integer, src::AbstractArray, sstart::Integer, n::Integer)	modelled	abstractarray-completion-1135	Full source-mirrored model JuliaLean.base.abstractarray.Completion20261105.copytoArrayN; independent property is proven.
+base/abstractarray.jl	1154	1157	copy	copy(a::AbstractArray)	modelled	abstractarray-completion-1154	Source mirror JuliaLean.base.abstractarray.copyArray; independent property CopyArraySelected is proven.
+base/abstractarray.jl	1159	1182	copyto!	copyto!(B::AbstractVecOrMat{R}, ir_dest::AbstractRange{Int}, jr_dest::AbstractRange{Int}, A::AbstractVecOrMat{S}, ir_src::AbstractRange{Int}, jr_src::AbstractRange{Int}) where {R,S}	modelled	abstractarray-completion-1159	Full source-mirrored model JuliaLean.base.abstractarray.Completion20261105.copytoBlock; independent property is proven.
+base/abstractarray.jl	1184	1184	_checkaxs	_checkaxs(axd, axs)	modelled	abstractarray-axes-guard-copy-provenance	models1 group2 translation JuliaLean.base.abstractarray.Models1Group2.checkAxesEffectful. Effectful equality and interpolation preserve errors and source order at the existing axes/show interface.
+base/abstractarray.jl	1186	1189	copyto_axcheck!	copyto_axcheck!(dest, src)	modelled	abstractarray-axes-guard-copy-provenance	models1 group2 translation JuliaLean.base.abstractarray.Models1Group2.copytoAxesCheckLinked. Same-file _checkaxs is wired to checkAxesEffectful; axes and selected copyto! retain the existing mutable-array dispatch boundary.
+base/abstractarray.jl	1211	1214	copymutable	copymutable(a::AbstractArray)	modelled	abstractarray-completion-1211	Source mirror JuliaLean.base.abstractarray.copyMutableArray; independent property CopyMutableAllocationFailure is proven.
+base/abstractarray.jl	1215	1215	copymutable	copymutable(itr)	modelled	abstractarray-completion-1215	Source mirror JuliaLean.base.abstractarray.copyMutableIterator; independent property CopyMutableIteratorSelected is proven.
+base/abstractarray.jl	1216	1216	copymutable	copymutable(a::Array)	modelled	abstractarray-completion-1216	Full source-mirrored model JuliaLean.base.abstractarray.Completion20261105.copyMutableDense; independent property is proven.
+base/abstractarray.jl	1218	1218	zero	zero(x::AbstractArray{T}) where {T<:Number}	modelled	abstractarrays-source-zero-shape-contents	Unverified AbstractArrayRepair entry removed; source and contract need review.
+base/abstractarray.jl	1219	1219	zero	zero(x::AbstractArray{S}) where {S<:Union{Missing, Number}}	modelled	abstractarrays-source-zero-shape-contents	Unverified AbstractArrayRepair entry removed; source and contract need review.
+base/abstractarray.jl	1220	1220	zero	zero(x::AbstractArray)	modelled	abstractarray-completion-1220	Full source-mirrored model JuliaLean.base.abstractarray.Completion20261105.zeroArray; independent property is proven.
+base/abstractarray.jl	1222	1234	_one	_one(unit::T, mat::AbstractMatrix) where {T}	modelled	abstractarray-one-construction	models1 group2 translation JuliaLean.base.abstractarray.Models1Group2.oneMatrixChecked. Explicit zero type assertion and Array/fallback/specialized offset-check dispatch; generic index type and explicit allocation type; all effects remain in m.
+base/abstractarray.jl	1236	1236	one	one(x::AbstractMatrix{T}) where {T}	modelled	abstractarray-one-construction	models1 group2 translation JuliaLean.base.abstractarray.Models1Group2.oneArrayChecked. Existing public caller reused with actual oneMatrixChecked; numeric identity type may differ from matrix element type; no callee correctness law.
+base/abstractarray.jl	1237	1237	oneunit	oneunit(x::AbstractMatrix{T}) where {T}	modelled	abstractarray-one-construction	models1 group2 translation JuliaLean.base.abstractarray.Models1Group2.oneunitArrayChecked. Existing public caller reused with actual oneMatrixChecked; numeric identity type may differ from matrix element type; no callee correctness law.
+base/abstractarray.jl	1245	1245	iterate_starting_state	iterate_starting_state(A)	modelled	abstractarray-iterate-default-read-provenance	models1 group2 translation JuliaLean.base.abstractarray.Models1Group2.iterateStartingStateLinked. Starting-state dispatch composed with existing linear and Cartesian method bodies; runtime IndexStyle classification remains explicit.
+base/abstractarray.jl	1246	1246	iterate_starting_state	iterate_starting_state(A, ::IndexLinear)	modelled	abstractarrays-source-linear-iteration-positions	
+base/abstractarray.jl	1247	1247	iterate_starting_state	iterate_starting_state(A, ::IndexStyle)	modelled	abstractarrays-source-cartesian-iteration-order	
+base/abstractarray.jl	1250	1250	iterate	iterate(A::AbstractArray, state = iterate_starting_state(A))	modelled	abstractarray-iterate-default-read-provenance	models1 group2 translation JuliaLean.base.abstractarray.Models1Group2.iterateDefault; JuliaLean.base.abstractarray.iterateArray. New optional-argument entry composes actual local starting-state/helper bodies; original explicit-state iterateArray is reused. Well-formed iterator protocol boundary retained.
+base/abstractarray.jl	1251	1255	_iterate_abstractarray	_iterate_abstractarray(A::AbstractArray, state::Tuple)	modelled	abstractarrays-source-cartesian-iteration-order	
+base/abstractarray.jl	1256	1259	_iterate_abstractarray	_iterate_abstractarray(A::AbstractArray, state::Integer)	modelled	abstractarrays-source-linear-iteration-positions	
+base/abstractarray.jl	1262	1262	isempty	isempty(a::AbstractArray)	modelled	abstractarray-completion-1262	Source mirror JuliaLean.base.abstractarray.Completion20261105.isemptyArray; independent property IsEmptyLengthFailure is proven.
+base/abstractarray.jl	1267	1267	map	map(::Type{T}, r::StepRange) where {T<:Real}	modelled	abstractarrays-source-range-map-constructed-contents	Unverified AbstractArrayRepair entry removed; source and contract need review.
+base/abstractarray.jl	1268	1268	map	map(::Type{T}, r::UnitRange) where {T<:Real}	modelled	abstractarrays-source-range-map-constructed-contents	Unverified AbstractArrayRepair entry removed; source and contract need review.
+base/abstractarray.jl	1269	1269	map	map(::Type{T}, r::StepRangeLen) where {T<:AbstractFloat}	todo		Needed callee: convert(StepRangeLen{T},r), including full ref/step/length/offset representations and conversion dispatch for every AbstractFloat target. The wrapper alone does not close this fixed range constructor.
+base/abstractarray.jl	1270	1272	map	map(::Type{T}, r::LinRange) where T<:AbstractFloat	modelled	abstractarray-completion-1270	Full source-mirrored model JuliaLean.base.abstractarray.Completion20261105.mapLinRange; independent property is proven.
+base/abstractarray.jl	1279	1279	pointer	pointer(x::AbstractArray{T}) where {T}	modelled	abstractarrays-source-dense-pointer-byte-positions	Unverified AbstractArrayRepair entry removed; source and contract need review.
+base/abstractarray.jl	1280	1283	pointer	pointer(x::AbstractArray{T}, i::Integer) where T	modelled	abstractarrays-source-dense-pointer-byte-positions	Unverified AbstractArrayRepair entry removed; source and contract need review.
+base/abstractarray.jl	1286	1286	_memory_offset	_memory_offset(x::DenseArray, I::Vararg{Any,N}) where {N}	modelled	abstractarrays-source-dense-pointer-byte-positions	Unverified AbstractArrayRepair entry removed; source and contract need review.
+base/abstractarray.jl	1287	1290	_memory_offset	_memory_offset(x::AbstractArray, I::Vararg{Any,N}) where {N}	modelled	abstractarray-completion-1287	Full source-mirrored model JuliaLean.base.abstractarray.Completion20261105.memoryOffsetArray; independent property is proven.
+base/abstractarray.jl	1293	1293	getindex	getindex	excluded		no-behaviour: Compiler constprop metadata assignment, with no callable method body.
+base/abstractarray.jl	1294	1294	setindex!	setindex!	excluded		no-behaviour: Compiler constprop metadata assignment, with no callable method body.
+base/abstractarray.jl	1363	1367	getindex	getindex(A::AbstractArray, I...)	modelled	abstractarrays-source-indexing-checks	
+base/abstractarray.jl	1369	1369	getindex	getindex(A::Array, i1::Integer, I::Integer...)	todo		Needed callees: to_indices(A,(i1,I...)) and the concrete Array getindex overload selected after splatting the converted tuple, preserving integer conversion errors and inbounds context.
+base/abstractarray.jl	1371	1371	unsafe_getindex	unsafe_getindex(A::AbstractArray, I...)	modelled	abstractarray-unsafe-getindex-call-provenance	Source-mirrored model JuliaLean.base.abstractarray.Models2Group6.unsafeGetindexContext; reviewed against Julia f755f49.
+base/abstractarray.jl	1376	1376	CanonicalIndexError	CanonicalIndexError(func::String, @nospecialize(type))	modelled	abstractarrays-source-write-checks	
+base/abstractarray.jl	1379	1380	error_if_canonical_getindex	error_if_canonical_getindex(::IndexLinear, A::AbstractArray, ::Int)	modelled	abstractarrays-source-indexing-checks	
+base/abstractarray.jl	1381	1382	error_if_canonical_getindex	error_if_canonical_getindex(::IndexCartesian, A::AbstractArray{T,N}, ::Vararg{Int,N}) where {T,N}	modelled	abstractarray-completion-1381	Source mirror JuliaLean.base.abstractarray.errorCanonicalGetindexCartesian; independent property CanonicalGetindexErrorClass is proven.
+base/abstractarray.jl	1383	1383	error_if_canonical_getindex	error_if_canonical_getindex(::IndexStyle, ::AbstractArray, ::Any...)	modelled	iterators-first-last-vector	
+base/abstractarray.jl	1386	1387	_getindex	_getindex(::IndexStyle, A::AbstractArray, I...)	modelled	abstractarray-unsupported-index-failure	models1 group2 translation JuliaLean.base.abstractarray.Models1Group2.getindexUnsupportedEffectful. Captures runtime type tokens, renders them effectfully in source order, and reuses the existing ErrorException body only after both renderings succeed. Renderer effects and original exceptions are preserved.
+base/abstractarray.jl	1390	1390	_getindex	_getindex(::IndexLinear, A::AbstractVector, i::Int)	modelled	abstractarray-completion-1390	Source mirror JuliaLean.base.abstractarray.Completion20261105.getindexLinearVector; independent property LinearVectorGetindexSelected is proven.
+base/abstractarray.jl	1391	1391	_getindex	_getindex(::IndexLinear, A::AbstractArray, i::Int)	modelled	abstractarrays-source-indexing-checks	
+base/abstractarray.jl	1392	1397	_getindex	_getindex(::IndexLinear, A::AbstractArray, I::Vararg{Int,M}) where M	modelled	abstractarray-completion-1392	Full source-mirrored model JuliaLean.base.abstractarray.Completion20261105.getindexLinearMany; independent property is proven.
+base/abstractarray.jl	1398	1398	_to_linear_index	_to_linear_index(A::AbstractArray, i::Integer)	modelled	abstractarray-integer-index-projection	models1 group2 translation JuliaLean.base.abstractarray.Models1Group2.toLinearScalarInteger. Generic identity/projection extends the baseline BitInteger-only input to every represented Integer subtype; no arithmetic or conversion.
+base/abstractarray.jl	1399	1399	_to_linear_index	_to_linear_index(A::AbstractVector, i::Integer, I::Integer...)	modelled	abstractarray-integer-index-projection	models1 group2 translation JuliaLean.base.abstractarray.Models1Group2.toLinearVectorInteger. Generic identity/projection extends the baseline BitInteger-only input to every represented Integer subtype; no arithmetic or conversion.
+base/abstractarray.jl	1400	1400	_to_linear_index	_to_linear_index(A::AbstractArray)	modelled	abstractarrays-source-write-checks	Unverified AbstractArrayRepair entry removed; source and contract need review.
+base/abstractarray.jl	1401	1401	_to_linear_index	_to_linear_index(A::AbstractArray, I::Integer...)	modelled	abstractarrayspecs-cartesian-indexing	Unverified AbstractArrayRepair entry removed; source and contract need review.
+base/abstractarray.jl	1404	1409	_getindex	_getindex(::IndexCartesian, A::AbstractArray, I::Vararg{Int,M}) where M	modelled	abstractarrays-source-indexing-checks	
+base/abstractarray.jl	1410	1413	_getindex	_getindex(::IndexCartesian, A::AbstractArray{T,N}, I::Vararg{Int, N}) where {T,N}	modelled	abstractarrays-source-block-copy-size-mismatch	
+base/abstractarray.jl	1414	1414	_to_subscript_indices	_to_subscript_indices(A::AbstractArray, i::Integer)	modelled	abstractarray-completion-1414	Source mirror JuliaLean.base.abstractarray.Completion20261105.toSubscriptsScalar; independent property ScalarSubscriptsSelected is proven.
 base/abstractarray.jl	1415	1415	_to_subscript_indices	_to_subscript_indices(A::AbstractArray{T,N}) where {T,N}	modelled	abstractarrayspecs-axis-starts	Independent target-source review passed for the heterogeneous axis-start helper.
-base/abstractarray.jl	1416	1416	_to_subscript_indices	_to_subscript_indices(A::AbstractArray{T,0}) where {T}	todo		
-base/abstractarray.jl	1417	1417	_to_subscript_indices	_to_subscript_indices(A::AbstractArray{T,0}, i::Integer) where {T}	todo		
-base/abstractarray.jl	1418	1418	_to_subscript_indices	_to_subscript_indices(A::AbstractArray{T,0}, I::Integer...) where {T}	todo		
-base/abstractarray.jl	1419	1423	_to_subscript_indices	_to_subscript_indices(A::AbstractArray{T,N}, I::Integer...) where {T,N}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1424	1425	_to_subscript_indices	_to_subscript_indices(A::AbstractArray, J::Tuple, Jrem::Tuple{})	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1426	1430	__to_subscript_indices	__to_subscript_indices(A::AbstractArray, ::Tuple{AbstractUnitRange,Vararg{AbstractUnitRange}}, J::Tuple, Jrem::Tuple{})	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1431	1431	_to_subscript_indices	_to_subscript_indices(A, J::Tuple, Jrem::Tuple)	todo		
-base/abstractarray.jl	1432	1432	_to_subscript_indices	_to_subscript_indices(A::AbstractArray{T,N}, I::Vararg{Int,N}) where {T,N}	todo		
-base/abstractarray.jl	1433	1433	_remaining_size	_remaining_size(::Tuple{Any}, t::Tuple)	todo		
-base/abstractarray.jl	1434	1434	_remaining_size	_remaining_size(h::Tuple, t::Tuple)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1435	1435	_unsafe_ind2sub	_unsafe_ind2sub(::Tuple{}, i)	todo		
-base/abstractarray.jl	1436	1436	_unsafe_ind2sub	_unsafe_ind2sub(sz, i)	todo		
-base/abstractarray.jl	1464	1468	setindex!	setindex!(A::AbstractArray, v, I...)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1469	1473	unsafe_setindex!	unsafe_setindex!(A::AbstractArray, v, I...)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1475	1476	error_if_canonical_setindex	error_if_canonical_setindex(::IndexLinear, A::AbstractArray, ::Int)	todo		
-base/abstractarray.jl	1477	1478	error_if_canonical_setindex	error_if_canonical_setindex(::IndexCartesian, A::AbstractArray{T,N}, ::Vararg{Int,N}) where {T,N}	todo		
-base/abstractarray.jl	1479	1479	error_if_canonical_setindex	error_if_canonical_setindex(::IndexStyle, ::AbstractArray, ::Any...)	todo		
-base/abstractarray.jl	1482	1483	_setindex!	_setindex!(::IndexStyle, A::AbstractArray, v, I...)	todo		
-base/abstractarray.jl	1486	1486	_setindex!	_setindex!(::IndexLinear, A::AbstractArray, v, i::Int)	todo		
-base/abstractarray.jl	1487	1492	_setindex!	_setindex!(::IndexLinear, A::AbstractArray, v, I::Vararg{Int,M}) where M	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1495	1498	_setindex!	_setindex!(::IndexCartesian, A::AbstractArray{T,N}, v, I::Vararg{Int, N}) where {T,N}	todo		
-base/abstractarray.jl	1499	1504	_setindex!	_setindex!(::IndexCartesian, A::AbstractArray, v, I::Vararg{Int,M}) where M	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1518	1518	unsetindex!	unsetindex!	todo		
-base/abstractarray.jl	1546	1546	parent	parent	todo		
-base/abstractarray.jl	1548	1548	parent	parent(a::AbstractArray)	todo		
-base/abstractarray.jl	1566	1566	unalias	unalias(dest, A::AbstractArray)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1567	1567	unalias	unalias(dest, A::AbstractRange)	todo		
-base/abstractarray.jl	1568	1568	unalias	unalias(dest, A)	todo		
-base/abstractarray.jl	1582	1582	unaliascopy	unaliascopy(A::Array)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1583	1583	unaliascopy	unaliascopy(A::AbstractArray)::typeof(A)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1584	1584	_unaliascopy	_unaliascopy(A::T, C::T) where {T}	todo		
-base/abstractarray.jl	1585	1592	_unaliascopy	_unaliascopy(A, C)	todo		
-base/abstractarray.jl	1593	1593	unaliascopy	unaliascopy(A)	todo		
-base/abstractarray.jl	1603	1603	mightalias	mightalias(A::AbstractArray, B::AbstractArray)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1604	1604	mightalias	mightalias(x, y)	todo		
-base/abstractarray.jl	1606	1606	_isdisjoint	_isdisjoint(as::Tuple{}, bs::Tuple{})	todo		
-base/abstractarray.jl	1607	1607	_isdisjoint	_isdisjoint(as::Tuple{}, bs::Tuple{UInt})	todo		
-base/abstractarray.jl	1608	1608	_isdisjoint	_isdisjoint(as::Tuple{}, bs::Tuple)	todo		
-base/abstractarray.jl	1609	1609	_isdisjoint	_isdisjoint(as::Tuple{UInt}, bs::Tuple{})	todo		
-base/abstractarray.jl	1610	1610	_isdisjoint	_isdisjoint(as::Tuple{UInt}, bs::Tuple{UInt})	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1611	1611	_isdisjoint	_isdisjoint(as::Tuple{UInt}, bs::Tuple)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1612	1612	_isdisjoint	_isdisjoint(as::Tuple, bs::Tuple{})	todo		
-base/abstractarray.jl	1613	1613	_isdisjoint	_isdisjoint(as::Tuple, bs::Tuple{UInt})	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1614	1614	_isdisjoint	_isdisjoint(as::Tuple, bs::Tuple)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1626	1626	dataids	dataids(A::AbstractArray)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1627	1627	dataids	dataids(A::Memory)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1628	1628	dataids	dataids(A::Array)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1629	1629	dataids	dataids(::AbstractRange)	todo		
-base/abstractarray.jl	1630	1630	dataids	dataids(x)	todo		
-base/abstractarray.jl	1637	1637	get	get(A::AbstractArray, i::Integer, default)	todo		
-base/abstractarray.jl	1638	1638	get	get(A::AbstractArray, I::Tuple{}, default)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1639	1639	get	get(A::AbstractArray, I::Dims, default)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1640	1640	get	get(f::Callable, A::AbstractArray, i::Integer)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1641	1641	get	get(f::Callable, A::AbstractArray, I::Tuple{})	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1642	1642	get	get(f::Callable, A::AbstractArray, I::Dims)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1644	1652	get!	get!(X::AbstractVector{T}, A::AbstractVector, I::Union{AbstractRange,AbstractVector{Int}}, default::T) where T	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1653	1660	get!	get!(X::AbstractArray{T}, A::AbstractArray, I::Union{AbstractRange,AbstractVector{Int}}, default::T) where T	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1662	1662	get	get(A::AbstractArray, I::AbstractRange, default)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1664	1669	get!	get!(X::AbstractArray{T}, A::AbstractArray, I::RangeVecIntList, default::T) where T	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1671	1672	get	get(A::AbstractArray, I::RangeVecIntList, default)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1675	1675	replace_in_print_matrix	replace_in_print_matrix(A::AbstractMatrix,i::Integer,j::Integer,s::AbstractString)	todo		
-base/abstractarray.jl	1676	1676	replace_in_print_matrix	replace_in_print_matrix(A::AbstractVector,i::Integer,j::Integer,s::AbstractString)	todo		
-base/abstractarray.jl	1679	1679	eltypeof	eltypeof(x)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1680	1680	eltypeof	eltypeof(x::AbstractArray)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1682	1682	promote_eltypeof	promote_eltypeof()	todo		
-base/abstractarray.jl	1683	1683	promote_eltypeof	promote_eltypeof(v1)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1684	1684	promote_eltypeof	promote_eltypeof(v1, v2)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1685	1685	promote_eltypeof	promote_eltypeof(v1, v2, vs...)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1686	1686	promote_eltypeof	promote_eltypeof(v1::T, vs::T...) where {T}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1687	1687	promote_eltypeof	promote_eltypeof(v1::AbstractArray{T}, vs::AbstractArray{T}...) where {T}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1689	1689	promote_eltype	promote_eltype()	todo		
-base/abstractarray.jl	1690	1690	promote_eltype	promote_eltype(v1)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1691	1691	promote_eltype	promote_eltype(v1, v2)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1692	1692	promote_eltype	promote_eltype(v1, v2, vs...)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1693	1693	promote_eltype	promote_eltype(v1::T, vs::T...) where {T}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1694	1694	promote_eltype	promote_eltype(v1::AbstractArray{T}, vs::AbstractArray{T}...) where {T}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1697	1697	_cat	_cat(catdim::Int)	todo		
-base/abstractarray.jl	1699	1699	typed_vcat	typed_vcat(::Type{T}) where {T}	todo		
-base/abstractarray.jl	1700	1700	typed_hcat	typed_hcat(::Type{T}) where {T}	todo		
-base/abstractarray.jl	1703	1703	vcat	vcat(X::T...) where {T}	todo		
-base/abstractarray.jl	1704	1704	vcat	vcat(X::T...) where {T<:Number}	todo		
-base/abstractarray.jl	1705	1705	hcat	hcat(X::T...) where {T}	todo		
-base/abstractarray.jl	1706	1706	hcat	hcat(X::T...) where {T<:Number}	todo		
-base/abstractarray.jl	1708	1712	vcat	vcat(X::Number...)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1714	1718	hcat	hcat(X::Number...)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1720	1724	typed_vcat	typed_vcat(::Type{T}, X::Number...) where {T}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1726	1730	typed_hcat	typed_hcat(::Type{T}, X::Number...) where {T}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1732	1732	vcat	vcat(V::AbstractVector...)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1733	1733	vcat	vcat(V::AbstractVector{T}...) where {T}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1740	1740	_typed_vcat_similar	_typed_vcat_similar(V, ::Type{T}, n) where T	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1741	1742	_typed_vcat	_typed_vcat(::Type{T}, V::AbstractVecOrTuple{AbstractVector}) where T	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1744	1753	_typed_vcat!	_typed_vcat!(a::AbstractVector{T}, V::AbstractVecOrTuple{AbstractVector}) where T	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1755	1755	typed_hcat	typed_hcat(::Type{T}, A::AbstractVecOrMat...) where {T}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1759	1762	typed_hcat	typed_hcat(::AbstractArray, other...)	todo		
-base/abstractarray.jl	1765	1765	hcat	hcat(A::AbstractVecOrMat...)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1766	1766	hcat	hcat(A::AbstractVecOrMat{T}...) where {T}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1768	1800	_typed_hcat	_typed_hcat(::Type{T}, A::AbstractVecOrTuple{AbstractVecOrMat}) where T	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1802	1802	vcat	vcat(A::AbstractVecOrMat...)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1803	1803	vcat	vcat(A::AbstractVecOrMat{T}...) where {T}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1805	1823	_typed_vcat	_typed_vcat(::Type{T}, A::AbstractVecOrTuple{AbstractVecOrMat}) where T	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1825	1825	typed_vcat	typed_vcat(::Type{T}, A::AbstractVecOrMat...) where {T}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1827	1828	reduce	reduce(::typeof(vcat), A::AbstractVector{<:AbstractVecOrMat})	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1830	1831	reduce	reduce(::typeof(hcat), A::AbstractVector{<:AbstractVecOrMat})	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1836	1836	cat_size	cat_size(A)	todo		
-base/abstractarray.jl	1837	1837	cat_size	cat_size(A::AbstractArray)	todo		
-base/abstractarray.jl	1838	1838	cat_size	cat_size(A, d)	todo		
-base/abstractarray.jl	1839	1839	cat_size	cat_size(A::AbstractArray, d)	todo		
-base/abstractarray.jl	1841	1841	cat_length	cat_length(::Any)	todo		
-base/abstractarray.jl	1842	1842	cat_length	cat_length(a::AbstractArray)	todo		
-base/abstractarray.jl	1844	1844	cat_ndims	cat_ndims(a)	todo		
-base/abstractarray.jl	1845	1845	cat_ndims	cat_ndims(a::AbstractArray)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1847	1847	cat_indices	cat_indices(A, d)	todo		
-base/abstractarray.jl	1848	1848	cat_indices	cat_indices(A::AbstractArray, d)	todo		
-base/abstractarray.jl	1850	1850	cat_similar	cat_similar(A, ::Type{T}, shape::Tuple) where T	todo		
-base/abstractarray.jl	1851	1851	cat_similar	cat_similar(A, ::Type{T}, shape::Vector) where T	todo		
-base/abstractarray.jl	1852	1852	cat_similar	cat_similar(A::Array, ::Type{T}, shape::Tuple) where T	todo		
-base/abstractarray.jl	1853	1853	cat_similar	cat_similar(A::Array, ::Type{T}, shape::Vector) where T	todo		
-base/abstractarray.jl	1854	1854	cat_similar	cat_similar(A::AbstractArray, T::Type, shape::Tuple)	todo		
-base/abstractarray.jl	1855	1855	cat_similar	cat_similar(A::AbstractArray, T::Type, shape::Vector)	todo		
-base/abstractarray.jl	1858	1858	cat_shape	cat_shape(dims, shape::Tuple{Vararg{Int}})	todo		
-base/abstractarray.jl	1859	1865	cat_shape	cat_shape(dims, shapes::Tuple)	todo		
-base/abstractarray.jl	1867	1867	cat_size_shape	cat_size_shape(dims)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1868	1868	cat_size_shape	cat_size_shape(dims, X, tail...)	todo		
-base/abstractarray.jl	1869	1869	_cat_size_shape	_cat_size_shape(dims, shape)	todo		
-base/abstractarray.jl	1870	1870	_cat_size_shape	_cat_size_shape(dims, shape, X, tail...)	todo		
-base/abstractarray.jl	1872	1872	_cshp	_cshp(ndim::Int, ::Tuple{}, ::Tuple{}, ::Tuple{})	todo		
-base/abstractarray.jl	1873	1873	_cshp	_cshp(ndim::Int, ::Tuple{}, ::Tuple{}, nshape)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1874	1874	_cshp	_cshp(ndim::Int, dims, ::Tuple{}, ::Tuple{})	todo		
-base/abstractarray.jl	1875	1876	_cshp	_cshp(ndim::Int, dims, shape, ::Tuple{})	todo		
-base/abstractarray.jl	1877	1878	_cshp	_cshp(ndim::Int, dims, ::Tuple{}, nshape)	todo		
-base/abstractarray.jl	1879	1882	_cshp	_cshp(ndim::Int, ::Tuple{}, shape, ::Tuple{})	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1883	1886	_cshp	_cshp(ndim::Int, ::Tuple{}, shape, nshape)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1887	1892	_cshp	_cshp(ndim::Int, dims, shape, nshape)	todo		
-base/abstractarray.jl	1894	1895	_cs	_cs(d, a, b)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1897	1897	dims2cat	dims2cat(::Val{dims}) where dims	todo		
-base/abstractarray.jl	1898	1903	dims2cat	dims2cat(dims)	todo		
-base/abstractarray.jl	1905	1905	_cat	_cat(dims, X...)	todo		
-base/abstractarray.jl	1907	1915	_cat_t	_cat_t(dims, ::Type{T}, X...) where {T}	todo		
-base/abstractarray.jl	1918	1918	cat_t	cat_t(::Type{T}, X...; dims) where {T}	todo		
-base/abstractarray.jl	1921	1921	__cat	__cat(A, shape, catdims, X...)	todo		
-base/abstractarray.jl	1923	1927	__cat_offset!	__cat_offset!(A, shape, catdims, offsets, x, X...)	todo		
-base/abstractarray.jl	1928	1928	__cat_offset!	__cat_offset!(A, shape, catdims, offsets)	todo		
-base/abstractarray.jl	1930	1939	__cat_offset1!	__cat_offset1!(A, shape, catdims, offsets, x)	todo		
-base/abstractarray.jl	1941	1941	_copy_or_fill!	_copy_or_fill!(A, inds, x)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	1942	1942	_copy_or_fill!	_copy_or_fill!(A, inds, x::AbstractArray)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	2003	2003	vcat	vcat(X...)	todo		
-base/abstractarray.jl	2053	2053	hcat	hcat(X...)	todo		
-base/abstractarray.jl	2055	2055	typed_vcat	typed_vcat(::Type{T}, X...) where T	todo		
-base/abstractarray.jl	2056	2056	typed_hcat	typed_hcat(::Type{T}, X...) where T	todo		
-base/abstractarray.jl	2169	2169	cat	cat(A...; dims)	todo		
-base/abstractarray.jl	2171	2171	_cat	_cat(catdims, A::AbstractArray{T}...) where {T}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	2175	2175	vcat	vcat(A::AbstractArray)	todo		
-base/abstractarray.jl	2176	2176	vcat	vcat(A::AbstractArray, B::AbstractArray)	todo		
-base/abstractarray.jl	2177	2177	vcat	vcat(A::AbstractArray...)	todo		
-base/abstractarray.jl	2178	2178	vcat	vcat(A::Union{AbstractArray,Number}...)	todo		
-base/abstractarray.jl	2179	2179	hcat	hcat(A::AbstractArray)	todo		
-base/abstractarray.jl	2180	2180	hcat	hcat(A::AbstractArray, B::AbstractArray)	todo		
-base/abstractarray.jl	2181	2181	hcat	hcat(A::AbstractArray...)	todo		
-base/abstractarray.jl	2182	2182	hcat	hcat(A::Union{AbstractArray,Number}...)	todo		
-base/abstractarray.jl	2184	2184	typed_vcat	typed_vcat(T::Type, A::AbstractArray)	todo		
-base/abstractarray.jl	2185	2185	typed_vcat	typed_vcat(T::Type, A::AbstractArray, B::AbstractArray)	todo		
-base/abstractarray.jl	2186	2186	typed_vcat	typed_vcat(T::Type, A::AbstractArray...)	todo		
-base/abstractarray.jl	2187	2187	typed_hcat	typed_hcat(T::Type, A::AbstractArray)	todo		
-base/abstractarray.jl	2188	2188	typed_hcat	typed_hcat(T::Type, A::AbstractArray, B::AbstractArray)	todo		
-base/abstractarray.jl	2189	2189	typed_hcat	typed_hcat(T::Type, A::AbstractArray...)	todo		
-base/abstractarray.jl	2194	2194	hvcat_rows	hvcat_rows(rows::Tuple...)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	2195	2195	typed_hvcat_rows	typed_hvcat_rows(T::Type, rows::Tuple...)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	2197	2204	hvcat	hvcat(nbc::Int, as...)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	2244	2244	hvcat	hvcat(rows::Tuple{Vararg{Int}}, xs::AbstractArray...)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	2245	2245	hvcat	hvcat(rows::Tuple{Vararg{Int}}, xs::AbstractArray{T}...) where {T}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	2247	2247	rows_to_dimshape	rows_to_dimshape(rows::Tuple{Vararg{Int}})	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	2248	2248	typed_hvcat	typed_hvcat(::Type{T}, rows::Tuple{Vararg{Int}}, as::AbstractVecOrMat...) where T	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	2250	2250	hvcat	hvcat(rows::Tuple{Vararg{Int}})	todo		
-base/abstractarray.jl	2251	2251	typed_hvcat	typed_hvcat(::Type{T}, rows::Tuple{Vararg{Int}}) where {T}	todo		
-base/abstractarray.jl	2253	2272	hvcat	hvcat(rows::Tuple{Vararg{Int}}, xs::T...) where T<:Number	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	2274	2274	hvcat	hvcat(rows::Tuple{Vararg{Int}}, xs::Number...)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	2275	2275	hvcat	hvcat(rows::Tuple{Vararg{Int}}, xs...)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	2277	2277	hvcat	hvcat(rows::Tuple{Vararg{Int}}, xs::Union{AbstractArray,Number}...)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	2279	2290	typed_hvcat	typed_hvcat(::Type{T}, rows::Tuple{Vararg{Int}}, xs::Number...) where T	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	2292	2292	typed_hvcat	typed_hvcat(::Type{T}, rows::Tuple{Vararg{Int}}, as...) where T	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	2381	2381	hvncat	hvncat(dimsshape::Tuple, row_first::Bool, xs...)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	2382	2382	hvncat	hvncat(dim::Int, xs...)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	2384	2384	_hvncat	_hvncat(dimsshape::Union{Tuple, Int}, row_first::Bool)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	2385	2385	_hvncat	_hvncat(dimsshape::Union{Tuple, Int}, row_first::Bool, xs...)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	2386	2386	_hvncat	_hvncat(dimsshape::Union{Tuple, Int}, row_first::Bool, xs::T...) where T<:Number	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	2387	2387	_hvncat	_hvncat(dimsshape::Union{Tuple, Int}, row_first::Bool, xs::Number...)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	2388	2388	_hvncat	_hvncat(dimsshape::Union{Tuple, Int}, row_first::Bool, xs::AbstractArray...)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	2389	2389	_hvncat	_hvncat(dimsshape::Union{Tuple, Int}, row_first::Bool, xs::AbstractArray{T}...) where T	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	2392	2392	typed_hvncat	typed_hvncat(T::Type, dimsshape::Tuple, row_first::Bool, xs...)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	2393	2393	typed_hvncat	typed_hvncat(T::Type, dim::Int, xs...)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	2397	2397	_typed_hvncat	_typed_hvncat(::Type, ::Val{0})	todo		
-base/abstractarray.jl	2398	2398	_typed_hvncat	_typed_hvncat(T::Type, ::Val{0}, x)	todo		
-base/abstractarray.jl	2399	2399	_typed_hvncat	_typed_hvncat(T::Type, ::Val{0}, x::Number)	todo		
-base/abstractarray.jl	2400	2400	_typed_hvncat	_typed_hvncat(T::Type, ::Val{0}, x::AbstractArray)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	2401	2401	_typed_hvncat	_typed_hvncat(::Type, ::Val{0}, ::Any...)	todo		
-base/abstractarray.jl	2402	2402	_typed_hvncat	_typed_hvncat(::Type, ::Val{0}, ::Number...)	todo		
-base/abstractarray.jl	2403	2403	_typed_hvncat	_typed_hvncat(::Type, ::Val{0}, ::AbstractArray...)	todo		
-base/abstractarray.jl	2405	2406	_typed_hvncat_0d_only_one	_typed_hvncat_0d_only_one()	todo		
-base/abstractarray.jl	2409	2409	_typed_hvncat	_typed_hvncat(T::Type, dim::Int, ::Bool, xs...)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	2411	2415	_typed_hvncat	_typed_hvncat(::Type{T}, ::Val{N}) where {T, N}	todo		
-base/abstractarray.jl	2417	2421	_typed_hvncat	_typed_hvncat(T::Type, ::Val{N}, xs::Number...) where N	todo		
-base/abstractarray.jl	2423	2456	_typed_hvncat	_typed_hvncat(::Type{T}, ::Val{N}, as::AbstractArray...) where {T, N}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	2458	2488	_typed_hvncat	_typed_hvncat(::Type{T}, ::Val{N}, as...) where {T, N}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	2492	2492	_typed_hvncat	_typed_hvncat(T::Type, ::Tuple{}, ::Bool, x...)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	2493	2493	_typed_hvncat	_typed_hvncat(T::Type, ::Tuple{}, ::Bool, x::Number...)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	2498	2498	_typed_hvncat	_typed_hvncat(T::Type, dims::Tuple{Int}, ::Bool, as...)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	2499	2499	_typed_hvncat	_typed_hvncat(T::Type, dims::Tuple{Int}, ::Bool, as::Number...)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	2501	2512	_typed_hvncat_1d	_typed_hvncat_1d(::Type{T}, ds::Int, ::Val{row_first}, as...) where {T, row_first}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	2514	2525	_typed_hvncat	_typed_hvncat(::Type{T}, dims::NTuple{N, Int}, row_first::Bool, xs::Number...) where {T, N}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	2527	2554	_hvncat_fill_loop!	_hvncat_fill_loop!(A::Array, row_first::Bool, xs::Tuple)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	2556	2627	hvncat_fill!	hvncat_fill!(A::Array, row_first::Bool, xs::Tuple)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	2629	2633	_typed_hvncat	_typed_hvncat(T::Type, dims::NTuple{N, Int}, row_first::Bool, as...) where {N}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	2635	2727	_typed_hvncat_dims	_typed_hvncat_dims(::Type{T}, dims::NTuple{N, Int}, row_first::Bool, as::Tuple) where {T, N}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	2732	2736	_typed_hvncat	_typed_hvncat(T::Type, shape::Tuple{Tuple}, row_first::Bool, xs...)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	2738	2742	_typed_hvncat	_typed_hvncat(T::Type, shape::NTuple{N, Tuple}, row_first::Bool, as...) where {N}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	2744	2821	_typed_hvncat_shape	_typed_hvncat_shape(::Type{T}, shape::NTuple{N, Tuple}, row_first, as::Tuple) where {T, N}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	2823	2863	hvncat_fill!	hvncat_fill!(A::AbstractArray{T, N}, scratch1::Vector{Int}, scratch2::Vector{Int}, d1::Int, d2::Int, as::Tuple) where {T, N}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	2865	2874	hvncat_calcindex	hvncat_calcindex(offsets::Vector{Int}, inneroffsets::Vector{Int}, outdimsprod::NTuple{N, Int}, nd::Int) where {N}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	2967	2967	stack	stack(iter; dims::D=:) where {D}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	2996	2996	stack	stack(f, iter; dims::D=:) where {D}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	2997	2997	stack	stack(f, xs, yzs...; dims::D=:) where {D}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	2999	2999	_stack	_stack(dims::D, iter) where {D<:Union{Integer, Colon}}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	3001	3001	_stack	_stack(dims::D, ::IteratorSize, iter) where {D}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	3003	3014	_stack	_stack(dims::D, ::Union{HasShape, HasLength}, iter) where {D}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	3016	3032	_typed_stack	_typed_stack(::Colon, ::Type{T}, ::Type{S}, A, Aax=_iterator_axes(A)) where {T, S}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	3034	3034	_iterator_axes	_iterator_axes(x)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	3035	3035	_iterator_axes	_iterator_axes(x, ::HasLength)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	3036	3036	_iterator_axes	_iterator_axes(x, ::IteratorSize)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	3039	3040	_typed_stack	_typed_stack(dims::Integer, ::Type{T}, ::Type{S}, A) where {T,S}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	3041	3047	_typed_stack	_typed_stack(dims::Integer, ::Type{T}, ::Type{S}, ::HasShape{N}, A) where {T,S,N}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	3048	3049	_typed_stack	_typed_stack(dims::Integer, ::Type{T}, ::Type{S}, ::IteratorSize, A) where {T,S}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	3051	3051	_vec_axis	_vec_axis(A, ax=_iterator_axes(A))	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	3053	3073	_dim_stack	_dim_stack(dims::Integer, ::Type{T}, ::Type{S}, A) where {T,S}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	3075	3087	_dim_stack!	_dim_stack!(::Val{dims}, B::AbstractArray, x1, xrest) where {dims}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	3089	3096	_stack_size_check	_stack_size_check(x, ax1::Tuple)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	3098	3098	_ensure_array	_ensure_array(x::AbstractArray)	todo		
-base/abstractarray.jl	3099	3099	_ensure_array	_ensure_array(x)	todo		
-base/abstractarray.jl	3101	3101	_empty_stack	_empty_stack(_...)	todo		
-base/abstractarray.jl	3106	3117	isequal	isequal(A::AbstractArray, B::AbstractArray)	todo		
-base/abstractarray.jl	3119	3128	cmp	cmp(A::AbstractVector, B::AbstractVector)	todo		
-base/abstractarray.jl	3135	3137	isless	isless(A::AbstractArray{<:Any,0}, B::AbstractArray{<:Any,0})	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	3145	3145	isless	isless(A::AbstractVector, B::AbstractVector)	todo		
-base/abstractarray.jl	3147	3147	OrderStyle	OrderStyle(::Type{<:AbstractVector{T}}) where {T}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	3149	3163	==	(==)(A::AbstractArray, B::AbstractArray)	todo		
-base/abstractarray.jl	3167	3170	_sub2ind	_sub2ind(A::AbstractArray, I...)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	3172	3175	_ind2sub	_ind2sub(A::AbstractArray, ind)	todo		
-base/abstractarray.jl	3178	3178	_sub2ind	_sub2ind(::Tuple{})	todo		
-base/abstractarray.jl	3179	3179	_sub2ind	_sub2ind(::DimsInteger)	todo		
-base/abstractarray.jl	3180	3180	_sub2ind	_sub2ind(::Indices)	todo		
-base/abstractarray.jl	3181	3181	_sub2ind	_sub2ind(::Tuple{}, I::Integer...)	todo		
-base/abstractarray.jl	3184	3184	_sub2ind	_sub2ind(dims::DimsInteger, I::Integer...)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	3185	3185	_sub2ind	_sub2ind(inds::Indices, I::Integer...)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	3188	3189	_sub2ind	_sub2ind(inds::Indices{1}, I::Integer...)	todo		
-base/abstractarray.jl	3190	3190	_sub2ind	_sub2ind(inds::Tuple{OneTo}, I::Integer...)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	3191	3191	_sub2ind	_sub2ind(inds::Tuple{OneTo}, i::Integer)	todo		
-base/abstractarray.jl	3193	3193	_sub2ind_recurse	_sub2ind_recurse(::Any, L, ind)	todo		
-base/abstractarray.jl	3194	3197	_sub2ind_recurse	_sub2ind_recurse(::Tuple{}, L, ind, i::Integer, I::Integer...)	todo		
-base/abstractarray.jl	3198	3202	_sub2ind_recurse	_sub2ind_recurse(inds, L, ind, i::Integer, I::Integer...)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	3204	3204	nextL	nextL(L, l::Integer)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	3205	3205	nextL	nextL(L, r::AbstractUnitRange)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	3206	3206	nextL	nextL(L, r::Slice)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	3207	3207	offsetin	offsetin(i, l::Integer)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	3208	3208	offsetin	offsetin(i, r::AbstractUnitRange)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	3210	3210	_ind2sub	_ind2sub(::Tuple{}, ind::Integer)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	3211	3211	_ind2sub	_ind2sub(dims::DimsInteger, ind::Integer)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	3212	3212	_ind2sub	_ind2sub(inds::Indices, ind::Integer)	todo		
-base/abstractarray.jl	3213	3214	_ind2sub	_ind2sub(inds::Indices{1}, ind::Integer)	todo		
-base/abstractarray.jl	3215	3215	_ind2sub	_ind2sub(inds::Tuple{OneTo}, ind::Integer)	todo		
-base/abstractarray.jl	3217	3217	_ind2sub_recurse	_ind2sub_recurse(::Tuple{}, ind)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	3218	3221	_ind2sub_recurse	_ind2sub_recurse(indslast::NTuple{1}, ind)	todo		
-base/abstractarray.jl	3222	3227	_ind2sub_recurse	_ind2sub_recurse(inds, ind)	todo		
-base/abstractarray.jl	3229	3229	_indexlength	_indexlength(d::Integer)	todo		
-base/abstractarray.jl	3230	3230	_indexlength	_indexlength(r::AbstractUnitRange)	todo		
-base/abstractarray.jl	3231	3231	_lookup	_lookup(ind, d::Integer)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	3232	3232	_lookup	_lookup(ind, r::AbstractUnitRange)	todo		
-base/abstractarray.jl	3235	3237	_sub2ind	_sub2ind(inds::Indices{1}, I1::AbstractVector{T}, I::AbstractVector{T}...) where T<:Integer	todo		
-base/abstractarray.jl	3238	3239	_sub2ind	_sub2ind(inds::Tuple{OneTo}, I1::AbstractVector{T}, I::AbstractVector{T}...) where {T<:Integer}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	3240	3241	_sub2ind	_sub2ind(inds::Union{DimsInteger,Indices}, I1::AbstractVector{T}, I::AbstractVector{T}...) where {T<:Integer}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	3242	3251	_sub2ind_vecs	_sub2ind_vecs(inds, I::AbstractVector...)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	3253	3260	_sub2ind!	_sub2ind!(Iout, inds, Iinds, I)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	3262	3262	sub2ind_vec	sub2ind_vec(inds, i, I)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	3263	3263	_sub2ind_vec	_sub2ind_vec(i, I1, I...)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	3264	3264	_sub2ind_vec	_sub2ind_vec(i)	todo		
-base/abstractarray.jl	3266	3275	_ind2sub	_ind2sub(inds::Union{DimsInteger{N},Indices{N}}, ind::AbstractVector{<:Integer}) where N	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	3307	3307	foreach	foreach(f, itr)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	3308	3308	foreach	foreach(f, itr, itrs...)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	3385	3448	mapslices	mapslices(f, A::AbstractArray; dims)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	3450	3475	_inner_mapslices!	_inner_mapslices!(R, indices, f, A, dim_mask, Aslice, safe_for_reuse)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	3477	3477	concatenate_setindex!	concatenate_setindex!(R, v, I...)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	3478	3478	concatenate_setindex!	concatenate_setindex!(R, X::AbstractArray, I...)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	3482	3488	map!	map!(f::F, dest::AbstractArray, A::AbstractArray) where F	todo		
-base/abstractarray.jl	3491	3491	map	map(f, A::AbstractArray)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	3493	3493	mapany	mapany(f, A::AbstractArray)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	3494	3494	mapany	mapany(f, itr)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	3521	3521	map	map(f, A)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	3523	3523	map	map(f, ::AbstractDict)	todo		
-base/abstractarray.jl	3524	3524	map	map(f, ::AbstractSet)	todo		
-base/abstractarray.jl	3527	3534	map!	map!(f::F, dest::AbstractArray, A::AbstractArray, B::AbstractArray) where F	todo		
-base/abstractarray.jl	3538	3538	ith_all	ith_all(i, ::Tuple{})	todo		
-base/abstractarray.jl	3539	3542	ith_all	ith_all(i, as)	todo		
-base/abstractarray.jl	3544	3560	map_n!	map_n!(f::F, dest::AbstractArray, As) where F	todo		
-base/abstractarray.jl	3593	3596	map!	map!(f::F, dest::AbstractArray, As::AbstractArray...) where {F}	todo		
-base/abstractarray.jl	3618	3618	map!	map!(f::F, inout::AbstractArray) where F	todo		
-base/abstractarray.jl	3645	3645	map	map(f, it, iters...)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	3649	3656	push!	push!(a::AbstractVector{T}, item) where T	todo		
-base/abstractarray.jl	3659	3664	push!	push!(a::AbstractVector{Any}, @nospecialize x)	todo		
-base/abstractarray.jl	3665	3675	push!	push!(a::AbstractVector{Any}, @nospecialize x...)	todo		
-base/abstractarray.jl	3679	3679	push!	push!(A, a, b)	todo		
-base/abstractarray.jl	3680	3680	push!	push!(A, a, b, c...)	todo		
-base/abstractarray.jl	3681	3681	pushfirst!	pushfirst!(A, a, b)	todo		
-base/abstractarray.jl	3682	3682	pushfirst!	pushfirst!(A, a, b, c...)	todo		
-base/abstractarray.jl	3685	3685	sizehint!	sizehint!(a::AbstractVector, _)	todo		
-base/abstractarray.jl	3688	3693	rest	rest(a::AbstractArray{T}, state...) where {T}	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	3699	3715	_keepat!	_keepat!(a::AbstractVector, inds)	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	3717	3729	_keepat!	_keepat!(a::AbstractVector, m::AbstractVector{Bool})	todo		Unverified AbstractArrayRepair entry removed; source and contract need review.
-base/abstractarray.jl	3756	3766	circshift!	circshift!(a::AbstractVector, shift::Integer)	todo		
+base/abstractarray.jl	1416	1416	_to_subscript_indices	_to_subscript_indices(A::AbstractArray{T,0}) where {T}	modelled	abstractarray-completion-1416	Source mirror JuliaLean.base.abstractarray.toSubscriptsZero; independent property ZeroSubscriptsArity is proven.
+base/abstractarray.jl	1417	1417	_to_subscript_indices	_to_subscript_indices(A::AbstractArray{T,0}, i::Integer) where {T}	modelled	abstractarray-completion-1417	Source mirror JuliaLean.base.abstractarray.toSubscriptsZeroScalar; independent property ZeroScalarSubscriptsArity is proven.
+base/abstractarray.jl	1418	1418	_to_subscript_indices	_to_subscript_indices(A::AbstractArray{T,0}, I::Integer...) where {T}	modelled	abstractarray-completion-1418	Source mirror JuliaLean.base.abstractarray.toSubscriptsZeroMany; independent property ZeroManySubscriptsArity is proven.
+base/abstractarray.jl	1419	1423	_to_subscript_indices	_to_subscript_indices(A::AbstractArray{T,N}, I::Integer...) where {T,N}	modelled	abstractarray-subscript-prefix	models1 group2 translation JuliaLean.base.abstractarray.Models1Group2.toSubscriptsSplitClosed. Actual tuple splitting/remaining-size/dispatch, generic effect monad, exact tuple-tail and empty-dispatch errors; axes and first remain existing observations.
+base/abstractarray.jl	1424	1425	_to_subscript_indices	_to_subscript_indices(A::AbstractArray, J::Tuple, Jrem::Tuple{})	modelled	abstractarray-subscript-prefix	models1 group2 translation JuliaLean.base.abstractarray.Models1Group2.toSubscriptsNoRemainderClosed. Actual tuple splitting/remaining-size/dispatch, generic effect monad, exact tuple-tail and empty-dispatch errors; axes and first remain existing observations.
+base/abstractarray.jl	1426	1430	__to_subscript_indices	__to_subscript_indices(A::AbstractArray, ::Tuple{AbstractUnitRange,Vararg{AbstractUnitRange}}, J::Tuple, Jrem::Tuple{})	modelled	abstractarray-subscript-prefix	models1 group2 translation JuliaLean.base.abstractarray.Models1Group2.toSubscriptsFillClosed. Actual tuple splitting/remaining-size/dispatch, generic effect monad, exact tuple-tail and empty-dispatch errors; axes and first remain existing observations.
+base/abstractarray.jl	1431	1431	_to_subscript_indices	_to_subscript_indices(A, J::Tuple, Jrem::Tuple)	modelled	abstractarray-subscript-prefix	
+base/abstractarray.jl	1432	1432	_to_subscript_indices	_to_subscript_indices(A::AbstractArray{T,N}, I::Vararg{Int,N}) where {T,N}	modelled	abstractarray-completion-1432	Source mirror JuliaLean.base.abstractarray.toSubscriptsExact; independent property ExactSubscriptsComponents is proven.
+base/abstractarray.jl	1433	1433	_remaining_size	_remaining_size(::Tuple{Any}, t::Tuple)	modelled	abstractarray-subscript-prefix	
+base/abstractarray.jl	1434	1434	_remaining_size	_remaining_size(h::Tuple, t::Tuple)	modelled	abstractarray-subscript-prefix	models1 group2 translation JuliaLean.base.abstractarray.Models1Group2.remainingSize. Actual structurally recursive method dispatch using existing singleton/recursive leaf bodies and exact tuple-tail errors; no arbitrary recursive callback.
+base/abstractarray.jl	1435	1435	_unsafe_ind2sub	_unsafe_ind2sub(::Tuple{}, i)	modelled	abstractarray-completion-1435	Source mirror JuliaLean.base.abstractarray.unsafeInd2subEmpty; independent property UnsafeEmptySubscriptsArity is proven.
+base/abstractarray.jl	1436	1436	_unsafe_ind2sub	_unsafe_ind2sub(sz, i)	modelled	abstractarray-completion-1436	Source mirror JuliaLean.base.abstractarray.Completion20261105.unsafeInd2sub; independent property UnsafeInd2subSelected is proven.
+base/abstractarray.jl	1464	1468	setindex!	setindex!(A::AbstractArray, v, I...)	modelled	abstractarrays-source-write-checks	Unverified AbstractArrayRepair entry removed; source and contract need review.
+base/abstractarray.jl	1469	1473	unsafe_setindex!	unsafe_setindex!(A::AbstractArray, v, I...)	modelled	abstractarray-unsafe-setindex-call-provenance	Source-mirrored model JuliaLean.base.abstractarray.Models2Group6.unsafeSetindexContext; reviewed against Julia f755f49.
+base/abstractarray.jl	1475	1476	error_if_canonical_setindex	error_if_canonical_setindex(::IndexLinear, A::AbstractArray, ::Int)	modelled	abstractarrays-source-write-checks	
+base/abstractarray.jl	1477	1478	error_if_canonical_setindex	error_if_canonical_setindex(::IndexCartesian, A::AbstractArray{T,N}, ::Vararg{Int,N}) where {T,N}	modelled	abstractarray-completion-1477	Source mirror JuliaLean.base.abstractarray.errorCanonicalSetindexCartesian; independent property CanonicalSetindexErrorClass is proven.
+base/abstractarray.jl	1479	1479	error_if_canonical_setindex	error_if_canonical_setindex(::IndexStyle, ::AbstractArray, ::Any...)	modelled	abstractarrayspecs-map-inplace	
+base/abstractarray.jl	1482	1483	_setindex!	_setindex!(::IndexStyle, A::AbstractArray, v, I...)	modelled	abstractarray-unsupported-index-failure	models1 group2 translation JuliaLean.base.abstractarray.Models1Group2.setindexUnsupportedEffectful. Captures runtime type tokens, renders them effectfully in source order, and reuses the existing ErrorException body only after both renderings succeed. Renderer effects and original exceptions are preserved.
+base/abstractarray.jl	1486	1486	_setindex!	_setindex!(::IndexLinear, A::AbstractArray, v, i::Int)	modelled	abstractarrays-source-write-checks	
+base/abstractarray.jl	1487	1492	_setindex!	_setindex!(::IndexLinear, A::AbstractArray, v, I::Vararg{Int,M}) where M	modelled	abstractarray-completion-1487	Full source-mirrored model JuliaLean.base.abstractarray.Completion20261105.setindexLinearMany; independent property is proven.
+base/abstractarray.jl	1495	1498	_setindex!	_setindex!(::IndexCartesian, A::AbstractArray{T,N}, v, I::Vararg{Int, N}) where {T,N}	modelled	abstractarrays-source-block-copy-size-mismatch	
+base/abstractarray.jl	1499	1504	_setindex!	_setindex!(::IndexCartesian, A::AbstractArray, v, I::Vararg{Int,M}) where M	modelled	abstractarrays-source-write-checks	Unverified AbstractArrayRepair entry removed; source and contract need review.
+base/abstractarray.jl	1518	1518	unsetindex!	unsetindex!	excluded		no-behaviour: Generic function declaration without a callable method body.
+base/abstractarray.jl	1546	1546	parent	parent	excluded		no-behaviour: Generic function declaration without a callable method body.
+base/abstractarray.jl	1548	1548	parent	parent(a::AbstractArray)	modelled	abstractarray-completion-1548	Source mirror JuliaLean.base.abstractarray.parentArray; independent property ParentIdentity is proven.
+base/abstractarray.jl	1566	1566	unalias	unalias(dest, A::AbstractArray)	modelled	abstractarrays-source-unalias-separation	Unverified AbstractArrayRepair entry removed; source and contract need review.
+base/abstractarray.jl	1567	1567	unalias	unalias(dest, A::AbstractRange)	modelled	abstractarray-completion-1567	Source mirror JuliaLean.base.abstractarray.unaliasRange; independent property UnaliasRangeIdentity is proven.
+base/abstractarray.jl	1568	1568	unalias	unalias(dest, A)	modelled	abstractarray-completion-1568	Source mirror JuliaLean.base.abstractarray.unaliasOther; independent property UnaliasFallbackIdentity is proven.
+base/abstractarray.jl	1582	1582	unaliascopy	unaliascopy(A::Array)	modelled	abstractarrays-source-copy-bang-contents	Unverified AbstractArrayRepair entry removed; source and contract need review.
+base/abstractarray.jl	1583	1583	unaliascopy	unaliascopy(A::AbstractArray)::typeof(A)	modelled	abstractarray-unaliascopy-typed-provenance	models1 group2 translation JuliaLean.base.abstractarray.Models1Group2.unaliascopyArrayTagged. Actual same-type/mismatched-copy dispatch and identity return conversion; copy effects/errors preserved. Wrong-type copy throws ArgumentError without diagnostic rendering.
+base/abstractarray.jl	1584	1584	_unaliascopy	_unaliascopy(A::T, C::T) where {T}	modelled	abstractarrays-source-unalias-separation	
+base/abstractarray.jl	1585	1592	_unaliascopy	_unaliascopy(A, C)	modelled	abstractarray-unaliascopy-typed-provenance	models1 group2 translation JuliaLean.base.abstractarray.Models1Group2.unaliascopyMismatchDeferred. Deferred literal/type-token capture, no eager rendering; diagnostic text is abstracted at the existing String payload. Exception class and throw point are retained; no message-text property is claimed.
+base/abstractarray.jl	1593	1593	unaliascopy	unaliascopy(A)	modelled	abstractarray-completion-1593	Source mirror JuliaLean.base.abstractarray.unaliascopyOther; independent property UnaliascopyFallbackIdentity is proven.
+base/abstractarray.jl	1603	1603	mightalias	mightalias(A::AbstractArray, B::AbstractArray)	modelled	abstractarray-mightalias-dataids	models1 group2 translation JuliaLean.base.abstractarray.Models1Group2.mightaliasDataIds. Existing public body wired to concrete UInt tuple membership and recursive disjointness. Custom isempty/dataids/isbits remain explicit runtime boundaries with no assumed laws.
+base/abstractarray.jl	1604	1604	mightalias	mightalias(x, y)	modelled	abstractarray-completion-1604	Source mirror JuliaLean.base.abstractarray.mightaliasOther; independent property MightaliasFallbackFalse is proven.
+base/abstractarray.jl	1606	1606	_isdisjoint	_isdisjoint(as::Tuple{}, bs::Tuple{})	modelled	abstractarrays-source-mightalias-segments	
+base/abstractarray.jl	1607	1607	_isdisjoint	_isdisjoint(as::Tuple{}, bs::Tuple{UInt})	modelled	abstractarrays-source-mightalias-segments	
+base/abstractarray.jl	1608	1608	_isdisjoint	_isdisjoint(as::Tuple{}, bs::Tuple)	modelled	abstractarrays-source-mightalias-segments	
+base/abstractarray.jl	1609	1609	_isdisjoint	_isdisjoint(as::Tuple{UInt}, bs::Tuple{})	modelled	abstractarrays-source-mightalias-segments	
+base/abstractarray.jl	1610	1610	_isdisjoint	_isdisjoint(as::Tuple{UInt}, bs::Tuple{UInt})	modelled	abstractarrays-source-copy-bang-contents	Unverified AbstractArrayRepair entry removed; source and contract need review.
+base/abstractarray.jl	1611	1611	_isdisjoint	_isdisjoint(as::Tuple{UInt}, bs::Tuple)	modelled	abstractarray-completion-1611	Full source-mirrored model JuliaLean.base.abstractarray.Completion20261105.disjointWordLeft; independent property is proven.
+base/abstractarray.jl	1612	1612	_isdisjoint	_isdisjoint(as::Tuple, bs::Tuple{})	modelled	abstractarrays-source-mightalias-segments	
+base/abstractarray.jl	1613	1613	_isdisjoint	_isdisjoint(as::Tuple, bs::Tuple{UInt})	modelled	abstractarray-completion-1613	Full source-mirrored model JuliaLean.base.abstractarray.Completion20261105.disjointWordRight; independent property is proven.
+base/abstractarray.jl	1614	1614	_isdisjoint	_isdisjoint(as::Tuple, bs::Tuple)	modelled	abstractarray-completion-1614	Full source-mirrored model JuliaLean.base.abstractarray.Completion20261105.disjointGeneral; independent property is proven.
+base/abstractarray.jl	1626	1626	dataids	dataids(A::AbstractArray)	modelled	abstractarrays-source-block-copy-size-mismatch	Unverified AbstractArrayRepair entry removed; source and contract need review.
+base/abstractarray.jl	1627	1627	dataids	dataids(A::Memory)	modelled	abstractarray-dataids-backing-segment	Unverified AbstractArrayRepair entry removed; source and contract need review.
+base/abstractarray.jl	1628	1628	dataids	dataids(A::Array)	modelled	abstractarray-dataids-backing-segment	models1 group2 translation JuliaLean.base.abstractarray.Models1Group2.dataidsDenseLinked. Existing Array and Memory bodies composed; runtime field projections are explicit and UInt(ptr) preserves the represented JInt.u64 address bits. No unconstrained same-file dataids callee.
+base/abstractarray.jl	1629	1629	dataids	dataids(::AbstractRange)	modelled	abstractarray-completion-1629	Source mirror JuliaLean.base.abstractarray.dataidsRange; independent property RangeDataidsEmpty is proven.
+base/abstractarray.jl	1630	1630	dataids	dataids(x)	modelled	abstractarray-completion-1630	Source mirror JuliaLean.base.abstractarray.dataidsOther; independent property OtherDataidsEmpty is proven.
+base/abstractarray.jl	1637	1637	get	get(A::AbstractArray, i::Integer, default)	modelled	abstractarrays-source-scalar-default-get-contents	
+base/abstractarray.jl	1638	1638	get	get(A::AbstractArray, I::Tuple{}, default)	modelled	abstractarrayspecs-linear-zero-ordinary	Unverified AbstractArrayRepair entry removed; source and contract need review.
+base/abstractarray.jl	1639	1639	get	get(A::AbstractArray, I::Dims, default)	modelled	abstractarrays-source-coordinate-default-get-contents	Unverified AbstractArrayRepair entry removed; source and contract need review.
+base/abstractarray.jl	1640	1640	get	get(f::Callable, A::AbstractArray, i::Integer)	modelled	abstractarrays-source-scalar-default-get-contents	Unverified AbstractArrayRepair entry removed; source and contract need review.
+base/abstractarray.jl	1641	1641	get	get(f::Callable, A::AbstractArray, I::Tuple{})	modelled	abstractarrays-source-coordinate-default-get-contents	Unverified AbstractArrayRepair entry removed; source and contract need review.
+base/abstractarray.jl	1642	1642	get	get(f::Callable, A::AbstractArray, I::Dims)	modelled	abstractarrays-source-coordinate-default-get-contents	Unverified AbstractArrayRepair entry removed; source and contract need review.
+base/abstractarray.jl	1644	1652	get!	get!(X::AbstractVector{T}, A::AbstractVector, I::Union{AbstractRange,AbstractVector{Int}}, default::T) where T	modelled	abstractarray-completion-1644	Full source-mirrored model JuliaLean.base.abstractarray.Completion20261105.getVector; independent property is proven.
+base/abstractarray.jl	1653	1660	get!	get!(X::AbstractArray{T}, A::AbstractArray, I::Union{AbstractRange,AbstractVector{Int}}, default::T) where T	modelled	abstractarray-completion-1653	Full source-mirrored model JuliaLean.base.abstractarray.Completion20261105.getArray; independent property is proven.
+base/abstractarray.jl	1662	1662	get	get(A::AbstractArray, I::AbstractRange, default)	modelled	abstractarrays-get-range-default	Unverified AbstractArrayRepair entry removed; source and contract need review.
+base/abstractarray.jl	1664	1669	get!	get!(X::AbstractArray{T}, A::AbstractArray, I::RangeVecIntList, default::T) where T	modelled	abstractarrays-source-index-list-default	Unverified AbstractArrayRepair entry removed; source and contract need review.
+base/abstractarray.jl	1671	1672	get	get(A::AbstractArray, I::RangeVecIntList, default)	modelled	abstractarray-completion-1671	Full source-mirrored model JuliaLean.base.abstractarray.Completion20261105.getScattered; independent property is proven.
+base/abstractarray.jl	1675	1675	replace_in_print_matrix	replace_in_print_matrix(A::AbstractMatrix,i::Integer,j::Integer,s::AbstractString)	modelled	abstractarray-completion-1675	Source mirror JuliaLean.base.abstractarray.replacePrintMatrix; independent property MatrixPrintIdentity is proven.
+base/abstractarray.jl	1676	1676	replace_in_print_matrix	replace_in_print_matrix(A::AbstractVector,i::Integer,j::Integer,s::AbstractString)	modelled	abstractarray-completion-1676	Source mirror JuliaLean.base.abstractarray.replacePrintVector; independent property VectorPrintIdentity is proven.
+base/abstractarray.jl	1679	1679	eltypeof	eltypeof(x)	modelled	abstractarray-eltypeof-promotion-provenance	Unverified AbstractArrayRepair entry removed; source and contract need review.
+base/abstractarray.jl	1680	1680	eltypeof	eltypeof(x::AbstractArray)	modelled	abstractarray-eltypeof-promotion-provenance	Unverified AbstractArrayRepair entry removed; source and contract need review.
+base/abstractarray.jl	1682	1682	promote_eltypeof	promote_eltypeof()	modelled	abstractarrayspecs-cat-row1905	
+base/abstractarray.jl	1683	1683	promote_eltypeof	promote_eltypeof(v1)	modelled	abstractarray-eltypeof-promotion-provenance	models1 group2 translation JuliaLean.base.abstractarray.Models1Group2.promoteEltypeofOneSelected. Local scalar/array eltypeof selection is concrete and retains custom array-query effects at the existing type interface. Ty denotes genuine Julia type objects at the baseline typed boundary.
+base/abstractarray.jl	1684	1684	promote_eltypeof	promote_eltypeof(v1, v2)	modelled	abstractarray-eltypeof-promotion-provenance	models1 group2 translation JuliaLean.base.abstractarray.Models1Group2.promoteEltypeofTwoSelected. Existing generic pair body is wired to actual local eltypeof selection; promotion remains the existing numeric-type boundary. Ty denotes genuine Julia type objects at the baseline typed boundary.
+base/abstractarray.jl	1685	1685	promote_eltypeof	promote_eltypeof(v1, v2, vs...)	modelled	abstractarray-eltypeof-promotion-provenance	models1 group2 translation JuliaLean.base.abstractarray.Models1Group2.promoteEltypeofManyClosed. Actual selected first-pair method and full machine-indexed afoldl, including 31 explicit steps and a nontruncating tail loop; no supplied fold implementation. Ty denotes genuine Julia type objects at the baseline typed boundary.
+base/abstractarray.jl	1686	1686	promote_eltypeof	promote_eltypeof(v1::T, vs::T...) where {T}	modelled	abstractarray-eltypeof-promotion-provenance	models1 group2 translation JuliaLean.base.abstractarray.Models1Group2.promoteEltypeofSameSelected. Same-concrete-type body queries only the first argument, with actual local scalar/array eltypeof selection and effect preservation. Ty denotes genuine Julia type objects at the baseline typed boundary.
+base/abstractarray.jl	1687	1687	promote_eltypeof	promote_eltypeof(v1::AbstractArray{T}, vs::AbstractArray{T}...) where {T}	modelled	abstractarrayspecs-cat-row1905	Unverified AbstractArrayRepair entry removed; source and contract need review.
+base/abstractarray.jl	1689	1689	promote_eltype	promote_eltype()	modelled	abstractarray-completion-1689	Source mirror JuliaLean.base.abstractarray.promoteEltypeEmpty; independent property PromoteEltypeEmptyError is proven.
+base/abstractarray.jl	1690	1690	promote_eltype	promote_eltype(v1)	modelled	abstractarray-completion-1690	Source mirror JuliaLean.base.abstractarray.Completion20261105.promoteEltypeOne; independent property PromoteEltypeOneSelected is proven.
+base/abstractarray.jl	1691	1691	promote_eltype	promote_eltype(v1, v2)	modelled	abstractarray-eltype-promotion-provenance	Unverified AbstractArrayRepair entry removed; source and contract need review.
+base/abstractarray.jl	1692	1692	promote_eltype	promote_eltype(v1, v2, vs...)	modelled	abstractarray-eltype-promotion-provenance	models1 group2 translation JuliaLean.base.abstractarray.Models1Group2.promoteEltypeManyClosed. Actual selected first-pair method and full machine-indexed afoldl; value-level eltype is kept separate from type-level eltype(T). Ty denotes genuine Julia type objects at the baseline typed boundary.
+base/abstractarray.jl	1693	1693	promote_eltype	promote_eltype(v1::T, vs::T...) where {T}	modelled	abstractarray-eltype-promotion-provenance	models1 group2 translation JuliaLean.base.abstractarray.Models1Group2.promoteEltypeSameEffectful. Effectful companion for eltype(T) in the selected same-concrete-type method; does not query the first value. Type token is runtime dispatch data. Ty denotes genuine Julia type objects at the baseline typed boundary.
+base/abstractarray.jl	1694	1694	promote_eltype	promote_eltype(v1::AbstractArray{T}, vs::AbstractArray{T}...) where {T}	modelled	abstractarray-eltype-promotion-provenance	Unverified AbstractArrayRepair entry removed; source and contract need review.
+base/abstractarray.jl	1697	1697	_cat	_cat(catdim::Int)	todo		Needed callee: zero-argument Vector{Any}() allocation in array.jl and its concrete GenericMemory/header construction. _cat ignores catdim and returns that allocated empty vector.
+base/abstractarray.jl	1699	1699	typed_vcat	typed_vcat(::Type{T}) where {T}	todo		Needed callee: zero-argument Vector{T}() allocation in array.jl for arbitrary requested T, including concrete GenericMemory/header construction and allocation errors.
+base/abstractarray.jl	1700	1700	typed_hcat	typed_hcat(::Type{T}) where {T}	todo		Needed callee: zero-argument Vector{T}() allocation in array.jl for arbitrary requested T. The result is an empty vector even for typed_hcat; the fixed constructor cannot become an unconstrained callback.
+base/abstractarray.jl	1703	1703	vcat	vcat(X::T...) where {T}	modelled	abstractarray-homogeneous-vcat	Closes native tuple keys/indexed reads and same-type array contents; allocation errors and returned storage handle are retained at the existing explicit constructor boundary. No allocator correctness law.
+base/abstractarray.jl	1704	1704	vcat	vcat(X::T...) where {T<:Number}	modelled	abstractarray-homogeneous-number-vcat	Closes native tuple keys/indexed reads and same-type array contents; allocation errors and returned storage handle are retained at the existing explicit constructor boundary. No allocator correctness law.
+base/abstractarray.jl	1705	1705	hcat	hcat(X::T...) where {T}	modelled	abstractarray-homogeneous-hcat	Closes native tuple keys/indexed reads and same-type array contents; allocation errors and returned storage handle are retained at the existing explicit constructor boundary. No allocator correctness law.
+base/abstractarray.jl	1706	1706	hcat	hcat(X::T...) where {T<:Number}	modelled	abstractarray-homogeneous-number-hcat	Closes native tuple keys/indexed reads and same-type array contents; allocation errors and returned storage handle are retained at the existing explicit constructor boundary. No allocator correctness law.
+base/abstractarray.jl	1708	1712	vcat	vcat(X::Number...)	modelled	abstractarrays-source-numeric-concat-order	Reviewed line by line against pinned f755f49 source.
+base/abstractarray.jl	1714	1718	hcat	hcat(X::Number...)	modelled	abstractarrays-source-numeric-concat-order	Reviewed line by line against pinned f755f49 source.
+base/abstractarray.jl	1720	1724	typed_vcat	typed_vcat(::Type{T}, X::Number...) where {T}	modelled	abstractarray-typed-numeric-vcat-order	Reuses original typed numeric source body with actual hvncatFill/hvncatFillLoop (both compiler paths), concrete machine-sized tuple controls and native product. Only established Array allocation/metadata/store primitives remain external. Order, error, handle and retained-state invariant; no callee correctness law.
+base/abstractarray.jl	1726	1730	typed_hcat	typed_hcat(::Type{T}, X::Number...) where {T}	modelled	abstractarray-typed-numeric-hcat-order	Reuses original typed numeric source body with actual hvncatFill/hvncatFillLoop (both compiler paths), concrete machine-sized tuple controls and native product. Only established Array allocation/metadata/store primitives remain external. Order, error, handle and retained-state invariant; no callee correctness law.
+base/abstractarray.jl	1732	1732	vcat	vcat(V::AbstractVector...)	modelled	abstractarray-vcat-vectors-dispatch-provenance	Source-mirrored model JuliaLean.base.abstractarray.Models2Group6.vcatVectorsSelected; reviewed against Julia f755f49.
+base/abstractarray.jl	1733	1733	vcat	vcat(V::AbstractVector{T}...) where {T}	modelled	abstractarray-completion-1733	Source mirror JuliaLean.base.abstractarray.vcatVectorsSame; independent property Concat1733Selected is proven.
+base/abstractarray.jl	1740	1740	_typed_vcat_similar	_typed_vcat_similar(V, ::Type{T}, n) where T	modelled	abstractarrays-source-typed-vcat-vector-allocation	Unverified AbstractArrayRepair entry removed; source and contract need review.
+base/abstractarray.jl	1741	1742	_typed_vcat	_typed_vcat(::Type{T}, V::AbstractVecOrTuple{AbstractVector}) where T	todo		Needed callees: complete map(length,V) and sum dispatch for tuple/vector inputs, then _typed_vcat_similar and the installed closed fill loop, preserving reduction order and large tuple allocation.
+base/abstractarray.jl	1744	1753	_typed_vcat!	_typed_vcat!(a::AbstractVector{T}, V::AbstractVecOrTuple{AbstractVector}) where T	modelled	abstractarray-typed-vcat-fill-converted-block-prefix	Source-mirrored model JuliaLean.base.abstractarray.Models2Group6.typedVcatFillConverted; reviewed against Julia f755f49.
+base/abstractarray.jl	1755	1755	typed_hcat	typed_hcat(::Type{T}, A::AbstractVecOrMat...) where {T}	modelled	abstractarray-completion-1755	Source mirror JuliaLean.base.abstractarray.typedHcatArrays; independent property Concat1755Selected is proven.
+base/abstractarray.jl	1759	1762	typed_hcat	typed_hcat(::AbstractArray, other...)	modelled	abstractarray-completion-1759	Source mirror JuliaLean.base.abstractarray.typedHcatNotType; independent property TypedHcatTypeError is proven.
+base/abstractarray.jl	1765	1765	hcat	hcat(A::AbstractVecOrMat...)	modelled	abstractarray-hcat-arrays-dispatch-provenance	Source-mirrored model JuliaLean.base.abstractarray.Models2Group6.hcatArraysSelected; reviewed against Julia f755f49.
+base/abstractarray.jl	1766	1766	hcat	hcat(A::AbstractVecOrMat{T}...) where {T}	modelled	abstractarray-completion-1766	Source mirror JuliaLean.base.abstractarray.hcatArraysSame; independent property Concat1766Selected is proven.
+base/abstractarray.jl	1768	1800	_typed_hcat	_typed_hcat(::Type{T}, A::AbstractVecOrTuple{AbstractVecOrMat}) where T	modelled	abstractarray-completion-192,abstractarray-completion-198,abstractarray-completion-261	Reviewed line by line against pinned f755f49 source.
+base/abstractarray.jl	1802	1802	vcat	vcat(A::AbstractVecOrMat...)	modelled	abstractarray-vcat-arrays-dispatch-provenance	Source-mirrored model JuliaLean.base.abstractarray.Models2Group6.vcatArraysSelected; reviewed against Julia f755f49.
+base/abstractarray.jl	1803	1803	vcat	vcat(A::AbstractVecOrMat{T}...) where {T}	modelled	abstractarray-completion-1803	Source mirror JuliaLean.base.abstractarray.vcatArraysSame; independent property Concat1803Selected is proven.
+base/abstractarray.jl	1805	1823	_typed_vcat	_typed_vcat(::Type{T}, A::AbstractVecOrTuple{AbstractVecOrMat}) where T	modelled	abstractarray-completion-192,abstractarray-completion-198,abstractarray-completion-261	Reviewed line by line against pinned f755f49 source.
+base/abstractarray.jl	1825	1825	typed_vcat	typed_vcat(::Type{T}, A::AbstractVecOrMat...) where {T}	modelled	abstractarray-completion-1825	Source mirror JuliaLean.base.abstractarray.typedVcatArrays; independent property Concat1825Selected is proven.
+base/abstractarray.jl	1827	1828	reduce	reduce(::typeof(vcat), A::AbstractVector{<:AbstractVecOrMat})	modelled	abstractarray-reduce-vcat-call-provenance	Source-mirrored model JuliaLean.base.abstractarray.reduceVcat; reviewed against Julia f755f49.
+base/abstractarray.jl	1830	1831	reduce	reduce(::typeof(hcat), A::AbstractVector{<:AbstractVecOrMat})	modelled	abstractarray-reduce-hcat-call-provenance	Source-mirrored model JuliaLean.base.abstractarray.reduceHcat; reviewed against Julia f755f49.
+base/abstractarray.jl	1836	1836	cat_size	cat_size(A)	modelled	abstractarrays-source-cat-size-shape-entry	
+base/abstractarray.jl	1837	1837	cat_size	cat_size(A::AbstractArray)	modelled	abstractarrayspecs-cat-row1845	
+base/abstractarray.jl	1838	1838	cat_size	cat_size(A, d)	modelled	abstractarrayspecs-cat-row1921	
+base/abstractarray.jl	1839	1839	cat_size	cat_size(A::AbstractArray, d)	modelled	abstractarray-completion-1839	Source mirror JuliaLean.base.abstractarray.Completion20261105.catSizeDimArray; independent property CatMetadata1839Selected is proven.
+base/abstractarray.jl	1841	1841	cat_length	cat_length(::Any)	modelled	abstractarray-completion-1841	Source mirror JuliaLean.base.abstractarray.catLengthScalar; independent property CatScalarLengthOne is proven.
+base/abstractarray.jl	1842	1842	cat_length	cat_length(a::AbstractArray)	modelled	abstractarray-completion-1842	Source mirror JuliaLean.base.abstractarray.Completion20261105.catLengthArray; independent property CatMetadata1842Selected is proven.
+base/abstractarray.jl	1844	1844	cat_ndims	cat_ndims(a)	modelled	abstractarray-completion-1844	Source mirror JuliaLean.base.abstractarray.catNdimsScalar; independent property CatScalarRankZero is proven.
+base/abstractarray.jl	1845	1845	cat_ndims	cat_ndims(a::AbstractArray)	modelled	abstractarray-completion-1845	Source mirror JuliaLean.base.abstractarray.Completion20261105.catNdimsArray; independent property CatMetadata1845Selected is proven.
+base/abstractarray.jl	1847	1847	cat_indices	cat_indices(A, d)	modelled	abstractarrayspecs-cat-row1921	
+base/abstractarray.jl	1848	1848	cat_indices	cat_indices(A::AbstractArray, d)	modelled	abstractarrayspecs-cat-row1921	
+base/abstractarray.jl	1850	1850	cat_similar	cat_similar(A, ::Type{T}, shape::Tuple) where T	modelled	abstractarrayspecs-cat-row1905	
+base/abstractarray.jl	1851	1851	cat_similar	cat_similar(A, ::Type{T}, shape::Vector) where T	modelled	multidimcov-abstractarray-repair-concat	Reviewed line by line against pinned f755f49 source.
+base/abstractarray.jl	1852	1852	cat_similar	cat_similar(A::Array, ::Type{T}, shape::Tuple) where T	modelled	multidimcov-abstractarray-repair-concat	Reviewed line by line against pinned f755f49 source.
+base/abstractarray.jl	1853	1853	cat_similar	cat_similar(A::Array, ::Type{T}, shape::Vector) where T	modelled	multidimcov-abstractarray-repair-concat	Reviewed line by line against pinned f755f49 source.
+base/abstractarray.jl	1854	1854	cat_similar	cat_similar(A::AbstractArray, T::Type, shape::Tuple)	modelled	abstractarrayspecs-cat-row1905	
+base/abstractarray.jl	1855	1855	cat_similar	cat_similar(A::AbstractArray, T::Type, shape::Vector)	modelled	abstractarrayspecs-cat-similar-empty-vector	
+base/abstractarray.jl	1858	1858	cat_shape	cat_shape(dims, shape::Tuple{Vararg{Int}})	modelled	abstractarray-completion-1858	Source mirror JuliaLean.base.abstractarray.catShapeInt; independent property CatNativeShapeComponents is proven.
+base/abstractarray.jl	1859	1865	cat_shape	cat_shape(dims, shapes::Tuple)	modelled	abstractarrayspecs-cat-row1859,multidim-cat-scalar-shape	Reviewed line by line against pinned f755f49 source.
+base/abstractarray.jl	1867	1867	cat_size_shape	cat_size_shape(dims)	modelled	abstractarrayspecs-cat-row1905-ordinary,abstractarrayspecs-cat-row1918-ordinary,abstractarrayspecs-cat-row2003-ordinary	Reviewed line by line against pinned f755f49 source.
+base/abstractarray.jl	1868	1868	cat_size_shape	cat_size_shape(dims, X, tail...)	modelled	abstractarrayspecs-cat-row1905-ordinary,abstractarrayspecs-cat-row1918-ordinary,abstractarrayspecs-cat-row2003-ordinary	Reviewed line by line against pinned f755f49 source.
+base/abstractarray.jl	1869	1869	_cat_size_shape	_cat_size_shape(dims, shape)	modelled	abstractarray-completion-1869	Source mirror JuliaLean.base.abstractarray.Completion20261105.catSizeShapeDone; independent property CatShapeDoneIdentity is proven.
+base/abstractarray.jl	1870	1870	_cat_size_shape	_cat_size_shape(dims, shape, X, tail...)	modelled	abstractarrayspecs-cat-row1905-ordinary,abstractarrayspecs-cat-row1918-ordinary,abstractarrayspecs-cat-row2003-ordinary	Reviewed line by line against pinned f755f49 source.
+base/abstractarray.jl	1872	1872	_cshp	_cshp(ndim::Int, ::Tuple{}, ::Tuple{}, ::Tuple{})	modelled	multidim-cat-scalar-shape	
+base/abstractarray.jl	1873	1873	_cshp	_cshp(ndim::Int, ::Tuple{}, ::Tuple{}, nshape)	modelled	abstractarray-completion-1873	Source mirror JuliaLean.base.abstractarray.Completion20261105.cshpInitial; independent property CatInitialShapeIdentity is proven.
+base/abstractarray.jl	1874	1874	_cshp	_cshp(ndim::Int, dims, ::Tuple{}, ::Tuple{})	modelled	abstractarrayspecs-cat-row1905-ordinary,abstractarrayspecs-cat-row1918-ordinary,abstractarrayspecs-cat-row2003-ordinary	Reviewed line by line against pinned f755f49 source.
+base/abstractarray.jl	1875	1876	_cshp	_cshp(ndim::Int, dims, shape, ::Tuple{})	modelled	abstractarrayspecs-cat-row1905-ordinary,abstractarrayspecs-cat-row1918-ordinary,abstractarrayspecs-cat-row2003-ordinary	Reviewed line by line against pinned f755f49 source.
+base/abstractarray.jl	1877	1878	_cshp	_cshp(ndim::Int, dims, ::Tuple{}, nshape)	modelled	abstractarrayspecs-cat-row1905-ordinary,abstractarrayspecs-cat-row1918-ordinary,abstractarrayspecs-cat-row2003-ordinary	Reviewed line by line against pinned f755f49 source.
+base/abstractarray.jl	1879	1882	_cshp	_cshp(ndim::Int, ::Tuple{}, shape, ::Tuple{})	modelled	abstractarrayspecs-cat-row1905-ordinary,abstractarrayspecs-cat-row1918-ordinary,abstractarrayspecs-cat-row2003-ordinary	Reviewed line by line against pinned f755f49 source.
+base/abstractarray.jl	1883	1886	_cshp	_cshp(ndim::Int, ::Tuple{}, shape, nshape)	modelled	abstractarrayspecs-cat-row1905-ordinary,abstractarrayspecs-cat-row1918-ordinary,abstractarrayspecs-cat-row2003-ordinary	Reviewed line by line against pinned f755f49 source.
+base/abstractarray.jl	1887	1892	_cshp	_cshp(ndim::Int, dims, shape, nshape)	modelled	abstractarrayspecs-cat-row1905-ordinary,abstractarrayspecs-cat-row1918-ordinary,abstractarrayspecs-cat-row2003-ordinary	Reviewed line by line against pinned f755f49 source.
+base/abstractarray.jl	1894	1895	_cs	_cs(d, a, b)	modelled	abstractarrayspecs-cat-row1905-ordinary,abstractarrayspecs-cat-row1918-ordinary,abstractarrayspecs-cat-row2003-ordinary	Reviewed line by line against pinned f755f49 source.
+base/abstractarray.jl	1897	1897	dims2cat	dims2cat(::Val{dims}) where dims	modelled	abstractarray-completion-1897	Full source-mirrored model JuliaLean.base.abstractarray.Completion20261105.dims2catVal; independent property is proven.
+base/abstractarray.jl	1898	1903	dims2cat	dims2cat(dims)	modelled	abstractarrayspecs-cat-row1905-ordinary,abstractarrayspecs-cat-row1918-ordinary,abstractarrayspecs-cat-row2003-ordinary	Reviewed line by line against pinned f755f49 source.
+base/abstractarray.jl	1905	1905	_cat	_cat(dims, X...)	modelled	abstractarray-completion-1905	Full source-mirrored model JuliaLean.base.abstractarray.Completion20261105.catAny; independent property is proven.
+base/abstractarray.jl	1907	1915	_cat_t	_cat_t(dims, ::Type{T}, X...) where {T}	modelled	abstractarray-completion-1907	Full source-mirrored model JuliaLean.base.abstractarray.Completion20261105.catTyped; independent property is proven.
+base/abstractarray.jl	1918	1918	cat_t	cat_t(::Type{T}, X...; dims) where {T}	modelled	abstractarray-completion-1918	Source mirror JuliaLean.base.abstractarray.catTypedKeyword; independent property CatTypedKeywordSelected is proven.
+base/abstractarray.jl	1921	1921	__cat	__cat(A, shape, catdims, X...)	modelled	abstractarrayspecs-cat-row1905-ordinary,abstractarrayspecs-cat-row1918-ordinary,abstractarrayspecs-cat-row2003-ordinary	Reviewed line by line against pinned f755f49 source.
+base/abstractarray.jl	1923	1927	__cat_offset!	__cat_offset!(A, shape, catdims, offsets, x, X...)	modelled	abstractarrayspecs-cat-row1905-ordinary,abstractarrayspecs-cat-row1918-ordinary,abstractarrayspecs-cat-row2003-ordinary	Reviewed line by line against pinned f755f49 source.
+base/abstractarray.jl	1928	1928	__cat_offset!	__cat_offset!(A, shape, catdims, offsets)	modelled	abstractarrayspecs-cat-row1921	
+base/abstractarray.jl	1930	1939	__cat_offset1!	__cat_offset1!(A, shape, catdims, offsets, x)	modelled	abstractarrayspecs-cat-row1905-ordinary,abstractarrayspecs-cat-row1918-ordinary,abstractarrayspecs-cat-row2003-ordinary	Reviewed line by line against pinned f755f49 source.
+base/abstractarray.jl	1941	1941	_copy_or_fill!	_copy_or_fill!(A, inds, x)	modelled	abstractarrayspecs-cat-row1905-ordinary,abstractarrayspecs-cat-row1918-ordinary,abstractarrayspecs-cat-row2003-ordinary	Reviewed line by line against pinned f755f49 source.
+base/abstractarray.jl	1942	1942	_copy_or_fill!	_copy_or_fill!(A, inds, x::AbstractArray)	modelled	abstractarray-array-assignment-rhs-effects	Additive return-correct composition reusing copyOrFillArray: executes the existing indexed-store boundary, discards its arbitrary return, and returns the original RHS. Generic effect monad preserves errors and partial mutation; state-sensitive unproved invariant added.
+base/abstractarray.jl	2003	2003	vcat	vcat(X...)	modelled	abstractarrayspecs-cat-row1905-ordinary,abstractarrayspecs-cat-row1918-ordinary,abstractarrayspecs-cat-row2003-ordinary	Reviewed line by line against pinned f755f49 source.
+base/abstractarray.jl	2053	2053	hcat	hcat(X...)	modelled	abstractarrayspecs-cat-row1905-ordinary,abstractarrayspecs-cat-row1918-ordinary,abstractarrayspecs-cat-row2003-ordinary	Reviewed line by line against pinned f755f49 source.
+base/abstractarray.jl	2055	2055	typed_vcat	typed_vcat(::Type{T}, X...) where T	modelled	abstractarray-completion-2055	Full source-mirrored model JuliaLean.base.abstractarray.Completion20261105.typedVcatAny; independent property is proven.
+base/abstractarray.jl	2056	2056	typed_hcat	typed_hcat(::Type{T}, X...) where T	modelled	abstractarray-completion-2056	Full source-mirrored model JuliaLean.base.abstractarray.Completion20261105.typedHcatAny; independent property is proven.
+base/abstractarray.jl	2169	2169	cat	cat(A...; dims)	modelled	abstractarray-completion-2169	Full source-mirrored model JuliaLean.base.abstractarray.Completion20261105.catKeyword; independent property is proven.
+base/abstractarray.jl	2171	2171	_cat	_cat(catdims, A::AbstractArray{T}...) where {T}	modelled	abstractarray-completion-2171	Source mirror JuliaLean.base.abstractarray.catSameArrays; independent property CatSameArraysSelected is proven.
+base/abstractarray.jl	2175	2175	vcat	vcat(A::AbstractArray)	modelled	abstractarray-completion-2175	Source mirror JuliaLean.base.abstractarray.Completion20261105.vcatOneArray; independent property CatFrontend2175Selected is proven.
+base/abstractarray.jl	2176	2176	vcat	vcat(A::AbstractArray, B::AbstractArray)	modelled	abstractarray-completion-2176	Source mirror JuliaLean.base.abstractarray.Completion20261105.vcatTwoArrays; independent property CatFrontend2176Selected is proven.
+base/abstractarray.jl	2177	2177	vcat	vcat(A::AbstractArray...)	modelled	abstractarrayspecs-cat-row1905-ordinary,abstractarrayspecs-cat-row1918-ordinary,abstractarrayspecs-cat-row2003-ordinary	Reviewed line by line against pinned f755f49 source.
+base/abstractarray.jl	2178	2178	vcat	vcat(A::Union{AbstractArray,Number}...)	modelled	abstractarray-completion-192,abstractarray-completion-198,abstractarray-completion-261	Reviewed line by line against pinned f755f49 source.
+base/abstractarray.jl	2179	2179	hcat	hcat(A::AbstractArray)	modelled	abstractarray-completion-2179	Source mirror JuliaLean.base.abstractarray.Completion20261105.hcatOneArray; independent property CatFrontend2179Selected is proven.
+base/abstractarray.jl	2180	2180	hcat	hcat(A::AbstractArray, B::AbstractArray)	modelled	abstractarray-completion-2180	Source mirror JuliaLean.base.abstractarray.Completion20261105.hcatTwoArrays; independent property CatFrontend2180Selected is proven.
+base/abstractarray.jl	2181	2181	hcat	hcat(A::AbstractArray...)	modelled	abstractarrayspecs-cat-row1905-ordinary,abstractarrayspecs-cat-row1918-ordinary,abstractarrayspecs-cat-row2003-ordinary	Reviewed line by line against pinned f755f49 source.
+base/abstractarray.jl	2182	2182	hcat	hcat(A::Union{AbstractArray,Number}...)	modelled	abstractarray-completion-192,abstractarray-completion-198,abstractarray-completion-261	Reviewed line by line against pinned f755f49 source.
+base/abstractarray.jl	2184	2184	typed_vcat	typed_vcat(T::Type, A::AbstractArray)	modelled	abstractarray-completion-2184	Source mirror JuliaLean.base.abstractarray.Completion20261105.typedVcatOneArray; independent property CatFrontend2184Selected is proven.
+base/abstractarray.jl	2185	2185	typed_vcat	typed_vcat(T::Type, A::AbstractArray, B::AbstractArray)	modelled	abstractarray-completion-2185	Source mirror JuliaLean.base.abstractarray.Completion20261105.typedVcatTwoArrays; independent property CatFrontend2185Selected is proven.
+base/abstractarray.jl	2186	2186	typed_vcat	typed_vcat(T::Type, A::AbstractArray...)	modelled	abstractarray-completion-2186	Source mirror JuliaLean.base.abstractarray.Completion20261105.typedVcatArrayVarargs; independent property CatFrontend2186Selected is proven.
+base/abstractarray.jl	2187	2187	typed_hcat	typed_hcat(T::Type, A::AbstractArray)	modelled	abstractarray-completion-2187	Source mirror JuliaLean.base.abstractarray.Completion20261105.typedHcatOneArray; independent property CatFrontend2187Selected is proven.
+base/abstractarray.jl	2188	2188	typed_hcat	typed_hcat(T::Type, A::AbstractArray, B::AbstractArray)	modelled	abstractarray-completion-2188	Source mirror JuliaLean.base.abstractarray.Completion20261105.typedHcatTwoArrays; independent property CatFrontend2188Selected is proven.
+base/abstractarray.jl	2189	2189	typed_hcat	typed_hcat(T::Type, A::AbstractArray...)	modelled	abstractarray-completion-2189	Source mirror JuliaLean.base.abstractarray.Completion20261105.typedHcatArrayVarargs; independent property CatFrontend2189Selected is proven.
+base/abstractarray.jl	2194	2194	hvcat_rows	hvcat_rows(rows::Tuple...)	todo		Needed callees: tuple map(length,rows), including arities >=32, followed by tuple flattening/splatting and the actual hvcat overload for the flattened element types.
+base/abstractarray.jl	2195	2195	typed_hvcat_rows	typed_hvcat_rows(T::Type, rows::Tuple...)	todo		Needed callees: tuple map(length,rows), including arities >=32, followed by tuple flattening/splatting and actual typed_hvcat dispatch with the original T.
+base/abstractarray.jl	2197	2204	hvcat	hvcat(nbc::Int, as...)	modelled	multidim-hvcat-zero-columns	Reviewed line by line against pinned f755f49 source.
+base/abstractarray.jl	2244	2244	hvcat	hvcat(rows::Tuple{Vararg{Int}}, xs::AbstractArray...)	modelled	abstractarray-completion-2244	Full source-mirrored model JuliaLean.base.abstractarray.Completion20261105.hvcatArrays; independent property is proven.
+base/abstractarray.jl	2245	2245	hvcat	hvcat(rows::Tuple{Vararg{Int}}, xs::AbstractArray{T}...) where {T}	modelled	abstractarray-completion-2245	Source mirror JuliaLean.base.abstractarray.hvcatSameArrays; independent property HvcatSameSelected is proven.
+base/abstractarray.jl	2247	2247	rows_to_dimshape	rows_to_dimshape(rows::Tuple{Vararg{Int}})	modelled	abstractarray-row-dimensions-representation	Closes rowsToDimshape with tupleGet and first-seeded left-fold wrapping Int64 sum. MachineTuple count invariant; [] raises BoundsError before all/sum; negative and overflowing widths preserved. Independent exact-row/modular-total invariant added.
+base/abstractarray.jl	2248	2248	typed_hvcat	typed_hvcat(::Type{T}, rows::Tuple{Vararg{Int}}, as::AbstractVecOrMat...) where T	modelled	abstractarray-completion-2248	Source mirror JuliaLean.base.abstractarray.Completion20261105.typedHvcatArrays; independent property Hvcat2248EmptyRowsError is proven.
+base/abstractarray.jl	2250	2250	hvcat	hvcat(rows::Tuple{Vararg{Int}})	modelled	abstractarrays-source-hvcat-empty-contents	
+base/abstractarray.jl	2251	2251	typed_hvcat	typed_hvcat(::Type{T}, rows::Tuple{Vararg{Int}}) where {T}	modelled	abstractarrays-source-hvcat-empty-contents	
+base/abstractarray.jl	2253	2272	hvcat	hvcat(rows::Tuple{Vararg{Int}}, xs::T...) where T<:Number	modelled	abstractarray-homogeneous-numeric-hvcat-order	Closes hvcatSameNumbers with machine tuples, concrete native Matrix dimension validation/metadata/length, and source ranges. Only raw allocation/reference and same-T stores remain primitive. Count errors precede stores; later row mismatch retains earlier writes; invalid dimensions fail before raw allocation. Selected body, with public empty-argument overload separately at2250.
+base/abstractarray.jl	2274	2274	hvcat	hvcat(rows::Tuple{Vararg{Int}}, xs::Number...)	todo		Needed callees: promote_typeof(xs...) including empty-arity behavior and numeric promotion dispatch, then the actual typed_hvcat overload selected by rows and xs.
+base/abstractarray.jl	2275	2275	hvcat	hvcat(rows::Tuple{Vararg{Int}}, xs...)	modelled	abstractarray-completion-2275	Full source-mirrored model JuliaLean.base.abstractarray.Completion20261105.hvcatAny; independent property is proven.
+base/abstractarray.jl	2277	2277	hvcat	hvcat(rows::Tuple{Vararg{Int}}, xs::Union{AbstractArray,Number}...)	modelled	abstractarray-completion-2277	Full source-mirrored model JuliaLean.base.abstractarray.Completion20261105.hvcatMixed; independent property is proven.
+base/abstractarray.jl	2279	2290	typed_hvcat	typed_hvcat(::Type{T}, rows::Tuple{Vararg{Int}}, xs::Number...) where T	modelled	abstractarray-typed-numeric-hvcat-order	Closes typedHvcatNumbers and numericFill over native Matrix metadata. Exact2:nr width checks precede allocation and invalid-dimension checks; rank2 row-first filling retains generated/loop branches and typed store conversion/errors. Full-domain independent grid/error/state invariant added. Public no-value dispatch remains2251.
+base/abstractarray.jl	2292	2292	typed_hvcat	typed_hvcat(::Type{T}, rows::Tuple{Vararg{Int}}, as...) where T	modelled	abstractarray-completion-2292	Source mirror JuliaLean.base.abstractarray.Completion20261105.typedHvcatAny; independent property Hvcat2292EmptyRowsError is proven.
+base/abstractarray.jl	2381	2381	hvncat	hvncat(dimsshape::Tuple, row_first::Bool, xs...)	modelled	abstractarray-completion-2381	Source mirror JuliaLean.base.abstractarray.hvncatTuple; independent property Hvncat2381Selected is proven.
+base/abstractarray.jl	2382	2382	hvncat	hvncat(dim::Int, xs...)	modelled	abstractarray-completion-2382	Source mirror JuliaLean.base.abstractarray.hvncatDim; independent property Hvncat2382Selected is proven.
+base/abstractarray.jl	2384	2384	_hvncat	_hvncat(dimsshape::Union{Tuple, Int}, row_first::Bool)	modelled	abstractarray-empty-hvncat-allocation-errors	Closes the no-value dispatcher over every represented native Int/arbitrary machine-sized Tuple, including mixed types and arbitrary inner tails. Native Array metadata/checks/length, tuple classification, zero ntuple and empty reduction are concrete. Allocation receives exact dimensions/count as context and returns only a handle; errors/post-state and row_first invariance are specified. Separate prevalidation VM/type/physical-tuple resource failures remain outside the available runtime primitives.
+base/abstractarray.jl	2385	2385	_hvncat	_hvncat(dimsshape::Union{Tuple, Int}, row_first::Bool, xs...)	modelled	abstractarray-completion-2385	Full source-mirrored model JuliaLean.base.abstractarray.Completion20261105.hvncatPromote; independent property is proven.
+base/abstractarray.jl	2386	2386	_hvncat	_hvncat(dimsshape::Union{Tuple, Int}, row_first::Bool, xs::T...) where T<:Number	modelled	abstractarray-completion-2386	Source mirror JuliaLean.base.abstractarray.hvncatSameNumbers; independent property Hvncat2386Selected is proven.
+base/abstractarray.jl	2387	2387	_hvncat	_hvncat(dimsshape::Union{Tuple, Int}, row_first::Bool, xs::Number...)	todo		Needed callees: promote_typeof(xs...) including empty-arity behavior, then _typed_hvncat dispatch for Int/tuple shapes and the original row_first flag.
+base/abstractarray.jl	2388	2388	_hvncat	_hvncat(dimsshape::Union{Tuple, Int}, row_first::Bool, xs::AbstractArray...)	modelled	abstractarray-completion-2388	Full source-mirrored model JuliaLean.base.abstractarray.Completion20261105.hvncatArrays; independent property is proven.
+base/abstractarray.jl	2389	2389	_hvncat	_hvncat(dimsshape::Union{Tuple, Int}, row_first::Bool, xs::AbstractArray{T}...) where T	modelled	abstractarray-completion-2389	Source mirror JuliaLean.base.abstractarray.hvncatSameArrays; independent property Hvncat2389Selected is proven.
+base/abstractarray.jl	2392	2392	typed_hvncat	typed_hvncat(T::Type, dimsshape::Tuple, row_first::Bool, xs...)	modelled	abstractarray-completion-2392	Source mirror JuliaLean.base.abstractarray.typedHvncatTuple; independent property Hvncat2392Selected is proven.
+base/abstractarray.jl	2393	2393	typed_hvncat	typed_hvncat(T::Type, dim::Int, xs...)	modelled	abstractarray-completion-2393	Source mirror JuliaLean.base.abstractarray.Completion20261105.typedHvncatDim; independent property Hvncat2393ValSelected is proven.
+base/abstractarray.jl	2397	2397	_typed_hvncat	_typed_hvncat(::Type, ::Val{0})	modelled	abstractarray-completion-2397	Source mirror JuliaLean.base.abstractarray.Completion20261105.typedHvncatZeroEmpty; independent property Hvncat2397ArgumentError is proven.
+base/abstractarray.jl	2398	2398	_typed_hvncat	_typed_hvncat(T::Type, ::Val{0}, x)	modelled	abstractarrayspecs-hvncat-zero-d-eltype	Reviewed line by line against pinned f755f49 source.
+base/abstractarray.jl	2399	2399	_typed_hvncat	_typed_hvncat(T::Type, ::Val{0}, x::Number)	modelled	abstractarrayspecs-hvncat-row2399,abstractarray-zero-rank-wrong-count	Reviewed line by line against pinned f755f49 source.
+base/abstractarray.jl	2400	2400	_typed_hvncat	_typed_hvncat(T::Type, ::Val{0}, x::AbstractArray)	todo		Needed callee: concrete broadcast lowering/materialization of convert.(T,x), including axes, allocation, element conversion order and errors. typedHvncatZeroNumbersDispatch cites this line only as context and implements the Number overload.
+base/abstractarray.jl	2401	2401	_typed_hvncat	_typed_hvncat(::Type, ::Val{0}, ::Any...)	modelled	abstractarray-completion-2401	Source mirror JuliaLean.base.abstractarray.Completion20261105.typedHvncatZeroAnyMany; independent property Hvncat2401ArgumentError is proven.
+base/abstractarray.jl	2402	2402	_typed_hvncat	_typed_hvncat(::Type, ::Val{0}, ::Number...)	modelled	abstractarray-completion-2402	Source mirror JuliaLean.base.abstractarray.Completion20261105.typedHvncatZeroNumbersMany; independent property Hvncat2402ArgumentError is proven.
+base/abstractarray.jl	2403	2403	_typed_hvncat	_typed_hvncat(::Type, ::Val{0}, ::AbstractArray...)	modelled	abstractarray-completion-2403	Source mirror JuliaLean.base.abstractarray.Completion20261105.typedHvncatZeroArraysMany; independent property Hvncat2403ArgumentError is proven.
+base/abstractarray.jl	2405	2406	_typed_hvncat_0d_only_one	_typed_hvncat_0d_only_one()	modelled	abstractarray-zero-rank-wrong-count	
+base/abstractarray.jl	2409	2409	_typed_hvncat	_typed_hvncat(T::Type, dim::Int, ::Bool, xs...)	modelled	abstractarray-completion-2409	Source mirror JuliaLean.base.abstractarray.Completion20261105.typedHvncatDimFlag; independent property Hvncat2409ValSelected is proven.
+base/abstractarray.jl	2411	2415	_typed_hvncat	_typed_hvncat(::Type{T}, ::Val{N}) where {T, N}	modelled	abstractarray-empty-hvncat-allocation-errors,multidimcov-abstractarray-repair-hvncat	Reviewed line by line against pinned f755f49 source.
+base/abstractarray.jl	2417	2421	_typed_hvncat	_typed_hvncat(T::Type, ::Val{N}, xs::Number...) where N	modelled	abstractarray-single-shape-nonpositive	Reviewed line by line against pinned f755f49 source.
+base/abstractarray.jl	2423	2456	_typed_hvncat	_typed_hvncat(::Type{T}, ::Val{N}, as::AbstractArray...) where {T, N}	modelled	abstractarrays-source-mapslices-dims-checks,abstractarrays-source-foreach-zip-order,multidimcov-abstractarray-repair-stack-order	Reviewed line by line against pinned f755f49 source.
+base/abstractarray.jl	2458	2488	_typed_hvncat	_typed_hvncat(::Type{T}, ::Val{N}, as...) where {T, N}	modelled	abstractarrays-source-mapslices-dims-checks,abstractarrays-source-foreach-zip-order,multidimcov-abstractarray-repair-stack-order	Reviewed line by line against pinned f755f49 source.
+base/abstractarray.jl	2492	2492	_typed_hvncat	_typed_hvncat(T::Type, ::Tuple{}, ::Bool, x...)	modelled	abstractarray-completion-2492	Full source-mirrored model JuliaLean.base.abstractarray.Completion20261105.typedHvncatEmptyShape; independent property is proven.
+base/abstractarray.jl	2493	2493	_typed_hvncat	_typed_hvncat(T::Type, ::Tuple{}, ::Bool, x::Number...)	modelled	abstractarray-zero-rank-wrong-count	Closed numeric zero-rank dispatch through actual existing zero-rank bodies; array allocation/conversion remain declared runtime boundary.
+base/abstractarray.jl	2498	2498	_typed_hvncat	_typed_hvncat(T::Type, dims::Tuple{Int}, ::Bool, as...)	modelled	abstractarray-completion-2498	Full source-mirrored model JuliaLean.base.abstractarray.Completion20261105.typedHvncatOneDimension; independent property is proven.
+base/abstractarray.jl	2499	2499	_typed_hvncat	_typed_hvncat(T::Type, dims::Tuple{Int}, ::Bool, as::Number...)	modelled	abstractarray-single-shape-nonpositive	Closed numeric one-shape/one-dimensional/fixed-rank dispatch; source tuple identity fixes rank-one dimensions and numerical dispatch.
+base/abstractarray.jl	2501	2512	_typed_hvncat_1d	_typed_hvncat_1d(::Type{T}, ds::Int, ::Val{row_first}, as...) where {T, row_first}	modelled	abstractarray-completion-2501	Full source-mirrored model JuliaLean.base.abstractarray.Completion20261105.typedHvncat1d; independent property is proven.
+base/abstractarray.jl	2514	2525	_typed_hvncat	_typed_hvncat(::Type{T}, dims::NTuple{N, Int}, row_first::Bool, xs::Number...) where {T, N}	modelled	abstractarray-shape-nonpositive	Closes actual same-file numeric fill chain with native tuple product and primitive mutable storage boundary.
+base/abstractarray.jl	2527	2554	_hvncat_fill_loop!	_hvncat_fill_loop!(A::Array, row_first::Bool, xs::Tuple)	modelled	abstractarray-fill-wrong-count	Reuses existing loop body while closing actual size-tuple suffix product and native range dependency; native Array metadata and tuple primitives retain the explicit runtime boundary.
+base/abstractarray.jl	2556	2627	hvncat_fill!	hvncat_fill!(A::Array, row_first::Bool, xs::Tuple)	modelled	abstractarray-fill-wrong-count	Closes generated and runtime fallback through actual hvncatFillLoop, preserving source arithmetic and effects.
+base/abstractarray.jl	2629	2633	_typed_hvncat	_typed_hvncat(T::Type, dims::NTuple{N, Int}, row_first::Bool, as...) where {N}	todo		Needed callees: maximum over Generator(cat_ndims,as), native max/nd-N, ntuple(Returns(1),nd-N), tuple splatting and _typed_hvncat_dims. Empty-argument specializations do not close nonempty arbitrary-array inputs.
+base/abstractarray.jl	2635	2727	_typed_hvncat_dims	_typed_hvncat_dims(::Type{T}, dims::NTuple{N, Int}, row_first::Bool, as::Tuple) where {T, N}	modelled	abstractarrays-source-mapslices-dims-checks,abstractarrays-source-foreach-zip-order,multidimcov-abstractarray-repair-hvncat	Reviewed line by line against pinned f755f49 source.
+base/abstractarray.jl	2732	2736	_typed_hvncat	_typed_hvncat(T::Type, shape::Tuple{Tuple}, row_first::Bool, xs...)	modelled	abstractarray-completion-2732	Full source-mirrored model JuliaLean.base.abstractarray.Completion20261105.typedHvncatOneShape; independent property is proven.
+base/abstractarray.jl	2738	2742	_typed_hvncat	_typed_hvncat(T::Type, shape::NTuple{N, Tuple}, row_first::Bool, as...) where {N}	todo		Needed callees: maximum over Generator(cat_ndims,as), native max/nd-N, shape[end], ntuple(Returns(shape[end]),nd-N), tuple splatting and _typed_hvncat_shape. emptyHvncatManyLevels closes only the no-value error branch.
+base/abstractarray.jl	2744	2821	_typed_hvncat_shape	_typed_hvncat_shape(::Type{T}, shape::NTuple{N, Tuple}, row_first, as::Tuple) where {T, N}	modelled	abstractarrays-source-mapslices-dims-checks,abstractarrays-source-foreach-zip-order,multidimcov-abstractarray-repair-hvncat	Reviewed line by line against pinned f755f49 source.
+base/abstractarray.jl	2823	2863	hvncat_fill!	hvncat_fill!(A::AbstractArray{T, N}, scratch1::Vector{Int}, scratch2::Vector{Int}, d1::Int, d2::Int, as::Tuple) where {T, N}	modelled	abstractarrays-source-mapslices-dims-checks,abstractarrays-source-foreach-zip-order,multidimcov-abstractarray-repair-hvncat	Reviewed line by line against pinned f755f49 source.
+base/abstractarray.jl	2865	2874	hvncat_calcindex	hvncat_calcindex(offsets::Vector{Int}, inneroffsets::Vector{Int}, outdimsprod::NTuple{N, Int}, nd::Int) where {N}	todo		Needed callees: concrete Vector{Int} reads with BoundsError and tuple outdimsprod indexing. The loop must keep wrapping Int addition/multiplication in source order: inner[1]+offsets[1]+1, then each j=2:nd increment.
+base/abstractarray.jl	2967	2967	stack	stack(iter; dims::D=:) where {D}	modelled	abstractarray-completion-2967	Source mirror JuliaLean.base.abstractarray.stack; independent property StackKeywordSelected is proven.
+base/abstractarray.jl	2996	2996	stack	stack(f, iter; dims::D=:) where {D}	modelled	abstractarray-completion-2996	Full source-mirrored model JuliaLean.base.abstractarray.Completion20261105.stackMap; independent property is proven.
+base/abstractarray.jl	2997	2997	stack	stack(f, xs, yzs...; dims::D=:) where {D}	modelled	abstractarray-completion-2997	Full source-mirrored model JuliaLean.base.abstractarray.Completion20261105.stackZipMap; independent property is proven.
+base/abstractarray.jl	2999	2999	_stack	_stack(dims::D, iter) where {D<:Union{Integer, Colon}}	modelled	abstractarray-completion-2999	Source mirror JuliaLean.base.abstractarray.stackIterator; independent property StackIteratorSizeFailure is proven.
+base/abstractarray.jl	3001	3001	_stack	_stack(dims::D, ::IteratorSize, iter) where {D}	modelled	abstractarray-completion-3001	Source mirror JuliaLean.base.abstractarray.stackCollect; independent property StackCollectFailure is proven.
+base/abstractarray.jl	3003	3014	_stack	_stack(dims::D, ::Union{HasShape, HasLength}, iter) where {D}	modelled	multidimcov-abstractarray-repair-stack-order	Reviewed line by line against pinned f755f49 source.
+base/abstractarray.jl	3016	3032	_typed_stack	_typed_stack(::Colon, ::Type{T}, ::Type{S}, A, Aax=_iterator_axes(A)) where {T, S}	modelled	abstractarrays-source-mapslices-dims-checks,abstractarrays-source-foreach-zip-order,multidimcov-abstractarray-repair-stack-order	Reviewed line by line against pinned f755f49 source.
+base/abstractarray.jl	3034	3034	_iterator_axes	_iterator_axes(x)	modelled	abstractarray-length-iterator-one-axis	Full pinned IteratorSize overload selection, including all trait tags and other subtypes. Reuses iteratorAxesLength/Shape; length value type remains generic.
+base/abstractarray.jl	3035	3035	_iterator_axes	_iterator_axes(x, ::HasLength)	modelled	abstractarray-length-iterator-one-axis	Unverified AbstractArrayRepair entry removed; source and contract need review.
+base/abstractarray.jl	3036	3036	_iterator_axes	_iterator_axes(x, ::IteratorSize)	modelled	abstractarray-length-iterator-one-axis	Unverified AbstractArrayRepair entry removed; source and contract need review.
+base/abstractarray.jl	3039	3040	_typed_stack	_typed_stack(dims::Integer, ::Type{T}, ::Type{S}, A) where {T,S}	modelled	abstractarray-completion-3039	Source mirror JuliaLean.base.abstractarray.typedStackInteger; independent property TypedStackIntegerSizeFailure is proven.
+base/abstractarray.jl	3041	3047	_typed_stack	_typed_stack(dims::Integer, ::Type{T}, ::Type{S}, ::HasShape{N}, A) where {T,S,N}	todo		Needed callees: dims==(N+1) for every Integer type, _vec_axis(A) and _typed_stack(:,T,S,A,(axis,)) on true, or closed _dim_stack(dims,T,S,A) on false; no eager evaluation of the unused branch.
+base/abstractarray.jl	3048	3049	_typed_stack	_typed_stack(dims::Integer, ::Type{T}, ::Type{S}, ::IteratorSize, A) where {T,S}	modelled	abstractarray-completion-3048	Source mirror JuliaLean.base.abstractarray.typedStackOther; independent property TypedStackOtherSelected is proven.
+base/abstractarray.jl	3051	3051	_vec_axis	_vec_axis(A, ax=_iterator_axes(A))	modelled	abstractarray-completion-3048,multidimcov-abstractarray-repair-hvncat,multidimcov-abstractarray-repair-stack-order	Reviewed line by line against pinned f755f49 source.
+base/abstractarray.jl	3053	3073	_dim_stack	_dim_stack(dims::Integer, ::Type{T}, ::Type{S}, A) where {T,S}	modelled	abstractarray-completion-3048,multidimcov-abstractarray-repair-hvncat,multidimcov-abstractarray-repair-stack-order	Reviewed line by line against pinned f755f49 source.
+base/abstractarray.jl	3075	3087	_dim_stack!	_dim_stack!(::Val{dims}, B::AbstractArray, x1, xrest) where {dims}	modelled	memsafety-abstractarray-iteration,multidimcov-abstractarray-repair-stack-order	Reviewed line by line against pinned f755f49 source.
+base/abstractarray.jl	3089	3096	_stack_size_check	_stack_size_check(x, ax1::Tuple)	modelled	multidimcov-abstractarray-repair-hvncat,multidimcov-abstractarray-repair-stack-order	Reviewed line by line against pinned f755f49 source.
+base/abstractarray.jl	3098	3098	_ensure_array	_ensure_array(x::AbstractArray)	modelled	abstractarray-completion-3098	Source mirror JuliaLean.base.abstractarray.ensureArray; independent property EnsureArrayIdentity is proven.
+base/abstractarray.jl	3099	3099	_ensure_array	_ensure_array(x)	modelled	abstractarray-completion-3099	Source mirror JuliaLean.base.abstractarray.Completion20261105.ensureArrayOther; independent property EnsureArrayOtherEmpty is proven.
+base/abstractarray.jl	3101	3101	_empty_stack	_empty_stack(_...)	modelled	abstractarray-completion-3101	Source mirror JuliaLean.base.abstractarray.emptyStack; independent property EmptyStackArgumentError is proven.
+base/abstractarray.jl	3106	3117	isequal	isequal(A::AbstractArray, B::AbstractArray)	modelled	abstractarray-completion-3106	Full source-mirrored model JuliaLean.base.abstractarray.Completion20261105.arrayIsequal; independent property is proven.
+base/abstractarray.jl	3119	3128	cmp	cmp(A::AbstractVector, B::AbstractVector)	modelled	abstractarray-completion-3119	Full source-mirrored model JuliaLean.base.abstractarray.Completion20261105.arrayCmp; independent property is proven.
+base/abstractarray.jl	3135	3137	isless	isless(A::AbstractArray{<:Any,0}, B::AbstractArray{<:Any,0})	modelled	abstractarray-isless-zero-comparison-trace	Closes actual only/_only iterator and cardinality checks before element comparison. Shared state, errors and aliases retained; independent comparison-trace statement covers the entire typed iterator boundary.
+base/abstractarray.jl	3145	3145	isless	isless(A::AbstractVector, B::AbstractVector)	modelled	abstractarray-completion-3145	Full source-mirrored model JuliaLean.base.abstractarray.Completion20261105.arrayIsless; independent property is proven.
+base/abstractarray.jl	3147	3147	OrderStyle	OrderStyle(::Type{<:AbstractVector{T}}) where {T}	modelled	abstractarray-completion-3147	Source mirror JuliaLean.base.abstractarray.Completion20261105.orderStyleVector; independent property VectorOrderStyleSelected is proven.
+base/abstractarray.jl	3149	3163	==	(==)(A::AbstractArray, B::AbstractArray)	modelled	abstractarray-completion-3149	Full source-mirrored model JuliaLean.base.abstractarray.Completion20261105.arrayEqual; independent property is proven.
+base/abstractarray.jl	3167	3170	_sub2ind	_sub2ind(A::AbstractArray, I...)	modelled	abstractarray-completion-3167	Source mirror JuliaLean.base.abstractarray.Completion20261105.sub2indArray; independent property IndexAxes3167Failure is proven.
+base/abstractarray.jl	3172	3175	_ind2sub	_ind2sub(A::AbstractArray, ind)	modelled	abstractarray-completion-3172	Source mirror JuliaLean.base.abstractarray.Completion20261105.ind2subArray; independent property IndexAxes3172Failure is proven.
+base/abstractarray.jl	3178	3178	_sub2ind	_sub2ind(::Tuple{})	modelled	abstractarray-completion-3178	Source mirror JuliaLean.base.abstractarray.sub2indEmpty; independent property Sub2indEmptyOrigin is proven.
+base/abstractarray.jl	3179	3179	_sub2ind	_sub2ind(::DimsInteger)	modelled	abstractarray-completion-3179	Source mirror JuliaLean.base.abstractarray.sub2indDimsNoIndices; independent property Sub2indDimsOrigin is proven.
+base/abstractarray.jl	3180	3180	_sub2ind	_sub2ind(::Indices)	modelled	abstractarray-completion-3180	Source mirror JuliaLean.base.abstractarray.sub2indAxesNoIndices; independent property Sub2indAxesOrigin is proven.
+base/abstractarray.jl	3181	3181	_sub2ind	_sub2ind(::Tuple{}, I::Integer...)	modelled	abstractarray-completion-3181	Full source-mirrored model JuliaLean.base.abstractarray.Completion20261105.subscriptEmpty; independent property is proven.
+base/abstractarray.jl	3184	3184	_sub2ind	_sub2ind(dims::DimsInteger, I::Integer...)	modelled	abstractarray-completion-3184	Full source-mirrored model JuliaLean.base.abstractarray.Completion20261105.subscriptDimensions; independent property is proven.
+base/abstractarray.jl	3185	3185	_sub2ind	_sub2ind(inds::Indices, I::Integer...)	modelled	abstractarray-completion-3185	Full source-mirrored model JuliaLean.base.abstractarray.Completion20261105.subscriptAxes; independent property is proven.
+base/abstractarray.jl	3188	3189	_sub2ind	_sub2ind(inds::Indices{1}, I::Integer...)	modelled	abstractarray-completion-3188	Source mirror JuliaLean.base.abstractarray.sub2indAmbiguousOneDim; independent property Sub2indAmbiguousError is proven.
+base/abstractarray.jl	3190	3190	_sub2ind	_sub2ind(inds::Tuple{OneTo}, I::Integer...)	todo		Needed callee: _sub2ind_recurse((OneTo,),1,1,I...) with every accepted OneTo endpoint and Integer index type. multidimensional.lean sub2ind covers only native Int axes/coordinates and cannot justify the full method domain.
+base/abstractarray.jl	3191	3191	_sub2ind	_sub2ind(inds::Tuple{OneTo}, i::Integer)	modelled	abstractarray-oneto-scalar-identity	Generic identity payload closes BigInt/custom Integer domain as well as JInt values.
+base/abstractarray.jl	3193	3193	_sub2ind_recurse	_sub2ind_recurse(::Any, L, ind)	modelled	abstractarrayspecs-linear-indexing	
+base/abstractarray.jl	3194	3197	_sub2ind_recurse	_sub2ind_recurse(::Tuple{}, L, ind, i::Integer, I::Integer...)	modelled	abstractarray-completion-3194	Full source-mirrored model JuliaLean.base.abstractarray.Completion20261105.subscriptRecurseEmpty; independent property is proven.
+base/abstractarray.jl	3198	3202	_sub2ind_recurse	_sub2ind_recurse(inds, L, ind, i::Integer, I::Integer...)	modelled	abstractarray-completion-3198	Full source-mirrored model JuliaLean.base.abstractarray.Completion20261105.subscriptRecurse; independent property is proven.
+base/abstractarray.jl	3204	3204	nextL	nextL(L, l::Integer)	modelled	abstractarray-completion-3204	Source mirror JuliaLean.base.abstractarray.Completion20261105.nextLInteger; independent property NextLIntegerSelected is proven.
+base/abstractarray.jl	3205	3205	nextL	nextL(L, r::AbstractUnitRange)	modelled	abstractarray-completion-3205	Source mirror JuliaLean.base.abstractarray.Completion20261105.nextLRange; independent property NextL3205LengthFailure is proven.
+base/abstractarray.jl	3206	3206	nextL	nextL(L, r::Slice)	modelled	abstractarray-completion-3206	Source mirror JuliaLean.base.abstractarray.Completion20261105.nextLSlice; independent property NextL3206LengthFailure is proven.
+base/abstractarray.jl	3207	3207	offsetin	offsetin(i, l::Integer)	modelled	abstractarray-completion-3207	Source mirror JuliaLean.base.abstractarray.Completion20261105.offsetinInteger; independent property OffsetinIntegerSelected is proven.
+base/abstractarray.jl	3208	3208	offsetin	offsetin(i, r::AbstractUnitRange)	modelled	abstractarray-completion-3208	Source mirror JuliaLean.base.abstractarray.Completion20261105.offsetinRange; independent property RangeIndex3208FirstFailure is proven.
+base/abstractarray.jl	3210	3210	_ind2sub	_ind2sub(::Tuple{}, ind::Integer)	modelled	abstractarray-completion-3210	Full source-mirrored model JuliaLean.base.abstractarray.Completion20261105.ind2subEmpty; independent property is proven.
+base/abstractarray.jl	3211	3211	_ind2sub	_ind2sub(dims::DimsInteger, ind::Integer)	modelled	abstractarrayspecs-linear-indexing,multidimcov-abstractarray-repair-indexing,multidimcov-abstractarray-repair-stack-order	Reviewed line by line against pinned f755f49 source.
+base/abstractarray.jl	3212	3212	_ind2sub	_ind2sub(inds::Indices, ind::Integer)	modelled	abstractarrayspecs-linear-indexing,multidimcov-abstractarray-repair-indexing,multidimcov-abstractarray-repair-stack-order	Reviewed line by line against pinned f755f49 source.
+base/abstractarray.jl	3213	3214	_ind2sub	_ind2sub(inds::Indices{1}, ind::Integer)	modelled	abstractarray-completion-3213	Source mirror JuliaLean.base.abstractarray.ind2subAmbiguousOneDim; independent property Ind2subAmbiguousError is proven.
+base/abstractarray.jl	3215	3215	_ind2sub	_ind2sub(inds::Tuple{OneTo}, ind::Integer)	modelled	abstractarray-completion-3215	Source mirror JuliaLean.base.abstractarray.ind2subOneTo; independent property Ind2subOneToSingleton is proven.
+base/abstractarray.jl	3217	3217	_ind2sub_recurse	_ind2sub_recurse(::Tuple{}, ind)	modelled	abstractarray-completion-3217	Source mirror JuliaLean.base.abstractarray.Completion20261105.ind2subRecurseEmpty; independent property Ind2subRecurseEmptyArity is proven.
+base/abstractarray.jl	3218	3221	_ind2sub_recurse	_ind2sub_recurse(indslast::NTuple{1}, ind)	modelled	abstractarray-completion-3218	Source mirror JuliaLean.base.abstractarray.Completion20261105.ind2subRecurseLast; independent property Ind2subRecurseLastArity is proven.
+base/abstractarray.jl	3222	3227	_ind2sub_recurse	_ind2sub_recurse(inds, ind)	todo		Needed callees: tuple first/tail, _indexlength(r1), divrem(ind,length) and result destructuring, _lookup and recursive overload selection, retaining arbitrary permitted Integer/intermediate runtime types.
+base/abstractarray.jl	3229	3229	_indexlength	_indexlength(d::Integer)	modelled	abstractarrayspecs-linear-indexing	
+base/abstractarray.jl	3230	3230	_indexlength	_indexlength(r::AbstractUnitRange)	modelled	abstractarrayspecs-linear-indexing	
+base/abstractarray.jl	3231	3231	_lookup	_lookup(ind, d::Integer)	modelled	abstractarray-completion-3231	Source mirror JuliaLean.base.abstractarray.Completion20261105.lookupInteger; independent property LookupIntegerSelected is proven.
+base/abstractarray.jl	3232	3232	_lookup	_lookup(ind, r::AbstractUnitRange)	modelled	abstractarray-completion-3232	Source mirror JuliaLean.base.abstractarray.Completion20261105.lookupRange; independent property RangeIndex3232FirstFailure is proven.
+base/abstractarray.jl	3235	3237	_sub2ind	_sub2ind(inds::Indices{1}, I1::AbstractVector{T}, I::AbstractVector{T}...) where T<:Integer	modelled	abstractarray-completion-3235	Source mirror JuliaLean.base.abstractarray.sub2indVectorsAmbiguous; independent property Sub2indVectorsAmbiguousError is proven.
+base/abstractarray.jl	3238	3239	_sub2ind	_sub2ind(inds::Tuple{OneTo}, I1::AbstractVector{T}, I::AbstractVector{T}...) where {T<:Integer}	modelled	abstractarray-completion-3238	Source mirror JuliaLean.base.abstractarray.Completion20261105.sub2indVectorsOneTo; independent property Sub2indVectors3238Selected is proven.
+base/abstractarray.jl	3240	3241	_sub2ind	_sub2ind(inds::Union{DimsInteger,Indices}, I1::AbstractVector{T}, I::AbstractVector{T}...) where {T<:Integer}	modelled	abstractarray-completion-3240	Source mirror JuliaLean.base.abstractarray.Completion20261105.sub2indVectors; independent property Sub2indVectors3240Selected is proven.
+base/abstractarray.jl	3242	3251	_sub2ind_vecs	_sub2ind_vecs(inds, I::AbstractVector...)	modelled	abstractarrays-source-mapslices-dims-checks,abstractarrays-source-foreach-zip-order,multidimcov-abstractarray-repair-stack-order	Reviewed line by line against pinned f755f49 source.
+base/abstractarray.jl	3253	3260	_sub2ind!	_sub2ind!(Iout, inds, Iinds, I)	modelled	abstractarray-completion-3253	Source mirror JuliaLean.base.abstractarray.Completion20261105.sub2indFill; independent property Sub2indFillReturnsOutput is proven.
+base/abstractarray.jl	3262	3262	sub2ind_vec	sub2ind_vec(inds, i, I)	modelled	abstractarrays-source-mapslices-dims-checks,abstractarrays-source-foreach-zip-order,abstractarray-completion-3253	Reviewed line by line against pinned f755f49 source.
+base/abstractarray.jl	3263	3263	_sub2ind_vec	_sub2ind_vec(i, I1, I...)	modelled	abstractarray-coordinate-tuple-arity	Full arbitrary-index/shared-monad coordinate tuple recursion through existing source bodies. Only primitive scalar indexing is supplied; complete tuple length is explicitly machine-bounded.
+base/abstractarray.jl	3264	3264	_sub2ind_vec	_sub2ind_vec(i)	modelled	abstractarray-coordinate-tuple-arity	
+base/abstractarray.jl	3266	3275	_ind2sub	_ind2sub(inds::Union{DimsInteger{N},Indices{N}}, ind::AbstractVector{<:Integer}) where N	modelled	multidimcov-abstractarray-repair-stack-order	Reviewed line by line against pinned f755f49 source.
+base/abstractarray.jl	3307	3307	foreach	foreach(f, itr)	modelled	abstractarrays-source-foreach-order	Unverified AbstractArrayRepair entry removed; source and contract need review.
+base/abstractarray.jl	3308	3308	foreach	foreach(f, itr, itrs...)	modelled	abstractarrays-source-foreach-zip-order	Unverified AbstractArrayRepair entry removed; source and contract need review.
+base/abstractarray.jl	3385	3448	mapslices	mapslices(f, A::AbstractArray; dims)	todo		
+base/abstractarray.jl	3450	3475	_inner_mapslices!	_inner_mapslices!(R, indices, f, A, dim_mask, Aslice, safe_for_reuse)	todo		
+base/abstractarray.jl	3477	3477	concatenate_setindex!	concatenate_setindex!(R, v, I...)	todo		Needed callee: broadcasted assignment R[I...] .= (v,) with actual view/index conversion, singleton tuple broadcast axes, conversion/store order and errors, followed by returning R.
+base/abstractarray.jl	3478	3478	concatenate_setindex!	concatenate_setindex!(R, X::AbstractArray, I...)	modelled	abstractarray-completion-3478	Source mirror JuliaLean.base.abstractarray.concatenateSetArray; independent property ConcatenateArrayAssignmentValue is proven.
+base/abstractarray.jl	3482	3488	map!	map!(f::F, dest::AbstractArray, A::AbstractArray) where F	modelled	abstractarrayspecs-map-inplace	
+base/abstractarray.jl	3491	3491	map	map(f, A::AbstractArray)	modelled	abstractarray-completion-3491	Full source-mirrored model JuliaLean.base.abstractarray.Completion20261105.mapArray; independent property is proven.
+base/abstractarray.jl	3493	3493	mapany	mapany(f, A::AbstractArray)	modelled	abstractarray-mapany-allocated-identity	Closed actual generic one-source map loop for allocated Vector{Any}; generic LengthValue preserves non-native range lengths and defers conversion/errors to the existing allocation boundary.
+base/abstractarray.jl	3494	3494	mapany	mapany(f, itr)	todo		Needed callee: typed Any comprehension allocation/growth and iterator-size dispatch in array.jl, including f(x) evaluation order, iteration state and original thrown exceptions.
+base/abstractarray.jl	3521	3521	map	map(f, A)	modelled	abstractarray-completion-3521	Full source-mirrored model JuliaLean.base.abstractarray.Completion20261105.mapIterator; independent property is proven.
+base/abstractarray.jl	3523	3523	map	map(f, ::AbstractDict)	modelled	abstractarrays-source-map-unsupported	
+base/abstractarray.jl	3524	3524	map	map(f, ::AbstractSet)	modelled	abstractarrays-source-map-unsupported	
+base/abstractarray.jl	3527	3534	map!	map!(f::F, dest::AbstractArray, A::AbstractArray, B::AbstractArray) where F	modelled	abstractarrayspecs-map2	
+base/abstractarray.jl	3538	3538	ith_all	ith_all(i, ::Tuple{})	modelled	abstractarrayspecs-map-bang-n	
+base/abstractarray.jl	3539	3542	ith_all	ith_all(i, as)	modelled	memsafety-abstractarray-iteration,abstractarrayspecs-map-bang-n,multidimcov-abstractarray-repair-map-mutation	Reviewed line by line against pinned f755f49 source.
+base/abstractarray.jl	3544	3560	map_n!	map_n!(f::F, dest::AbstractArray, As) where F	modelled	memsafety-abstractarray-iteration,abstractarrayspecs-map-bang-n,multidimcov-abstractarray-repair-map-mutation	Reviewed line by line against pinned f755f49 source.
+base/abstractarray.jl	3593	3596	map!	map!(f::F, dest::AbstractArray, As::AbstractArray...) where {F}	modelled	abstractarray-completion-3593	Source mirror JuliaLean.base.abstractarray.Completion20261105.mapInplaceMany; independent property MapInplaceManyEmptyAssertion is proven.
+base/abstractarray.jl	3618	3618	map!	map!(f::F, inout::AbstractArray) where F	modelled	abstractarray-completion-3618	Source mirror JuliaLean.base.abstractarray.Completion20261105.mapInplaceSelf; independent property MapInplaceSelfSelected is proven.
+base/abstractarray.jl	3645	3645	map	map(f, it, iters...)	todo		Needed callees: multi-iterator Generator construction with Zip and concrete collect(::Generator) allocation/growth/size dispatch in array.jl; selected collection cannot replace the fixed native collector.
+base/abstractarray.jl	3649	3656	push!	push!(a::AbstractVector{T}, item) where T	modelled	abstractarray-completion-3649	Full source-mirrored model JuliaLean.base.abstractarray.Completion20261105.pushOne; independent property is proven.
+base/abstractarray.jl	3659	3664	push!	push!(a::AbstractVector{Any}, @nospecialize x)	modelled	abstractarray-completion-3659	Full source-mirrored model JuliaLean.base.abstractarray.Completion20261105.pushAny; independent property is proven.
+base/abstractarray.jl	3665	3675	push!	push!(a::AbstractVector{Any}, @nospecialize x...)	modelled	abstractarray-completion-3665	Full source-mirrored model JuliaLean.base.abstractarray.Completion20261105.pushManyAny; independent property is proven.
+base/abstractarray.jl	3679	3679	push!	push!(A, a, b)	modelled	abstractarray-completion-3679	Source mirror JuliaLean.base.abstractarray.pushTwo; independent property Push3679FirstFailure is proven.
+base/abstractarray.jl	3680	3680	push!	push!(A, a, b, c...)	modelled	abstractarray-completion-3680	Source mirror JuliaLean.base.abstractarray.pushMany; independent property Push3680FirstFailure is proven.
+base/abstractarray.jl	3681	3681	pushfirst!	pushfirst!(A, a, b)	modelled	abstractarray-completion-3681	Source mirror JuliaLean.base.abstractarray.pushfirstTwo; independent property Push3681FirstFailure is proven.
+base/abstractarray.jl	3682	3682	pushfirst!	pushfirst!(A, a, b, c...)	modelled	abstractarray-completion-3682	Source mirror JuliaLean.base.abstractarray.pushfirstMany; independent property Push3682FirstFailure is proven.
+base/abstractarray.jl	3685	3685	sizehint!	sizehint!(a::AbstractVector, _)	modelled	abstractarray-completion-3685	Source mirror JuliaLean.base.abstractarray.sizeHint; independent property SizeHintIdentity is proven.
+base/abstractarray.jl	3688	3693	rest	rest(a::AbstractArray{T}, state...) where {T}	modelled	abstractarrays-source-rest-remaining,multidimcov-abstractarray-repair-map-mutation	Reviewed line by line against pinned f755f49 source.
+base/abstractarray.jl	3699	3715	_keepat!	_keepat!(a::AbstractVector, inds)	modelled	abstractarray-completion-3699	Full source-mirrored model JuliaLean.base.abstractarray.Completion20261105.keepAtIndices; independent property is proven.
+base/abstractarray.jl	3717	3729	_keepat!	_keepat!(a::AbstractVector, m::AbstractVector{Bool})	modelled	abstractarray-completion-3717	Full source-mirrored model JuliaLean.base.abstractarray.Completion20261105.keepAtMask; independent property is proven.
+base/abstractarray.jl	3756	3766	circshift!	circshift!(a::AbstractVector, shift::Integer)	modelled	abstractarray-completion-3756	Full source-mirrored model JuliaLean.base.abstractarray.Completion20261105.circshiftInplace; independent property is proven.

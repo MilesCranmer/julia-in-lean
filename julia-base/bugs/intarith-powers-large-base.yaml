@@ -54,6 +54,9 @@ duplicates:
     - "issues: ndigits Int128 base"
     - "pull requests: ndigits InexactError"
     - "pull requests: ndigits base"
+    - "gh search issues 'ndigits unsigned base InexactError' --repo JuliaLang/julia --limit 100 --json number,title,state,url"
+    - "gh search prs 'ndigits base' --repo JuliaLang/julia --limit 100 --json number,title,state,url"
 lean:
-  property: JuliaLean.IntArith.PowersDigits.LargeBaseSingleDigit
-  theorem: JuliaLean.IntArith.PowersDigits.largeBaseSingleDigit_refuted
+  property: JuliaLean.Proofs.base.intfuncs.LargeBaseSingleDigit
+  theorem: JuliaLean.Proofs.base.intfuncs.largeBaseSingleDigit_refuted
+covers: [intfuncs-ndigits]

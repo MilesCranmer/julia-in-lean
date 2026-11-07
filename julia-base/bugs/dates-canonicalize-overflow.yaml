@@ -50,7 +50,7 @@ possible_fix: |
 duplicates:
   issues: []
   queries: ["canonicalize overflow", "repo:JuliaLang/julia canonicalize overflow"]
-  notes: "Both issue and PR searches found no exact duplicate."
+  notes: "No exact duplicate issue or PR is known."
 lean:
   property: JuliaLean.Dates.CanonicalizeMonths
   theorem: JuliaLean.Dates.canonicalizeMonths_refuted

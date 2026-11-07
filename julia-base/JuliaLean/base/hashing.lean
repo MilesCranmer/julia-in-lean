@@ -1,6 +1,7 @@
 import JuliaLean.base.int
 import JuliaLean.base.float
-import JuliaLean.Promotion.Compare
+import JuliaLean.base.intfuncs
+import JuliaLean.Core
 
 /-!
 # Typed model of `base/hashing.jl` at Julia f755f49a9e41380d7da126b3c1db9fe7f83dd027.
@@ -1297,8 +1298,11 @@ def readUInt64First {State : Type} (iter : HashByteIterator State) : Option (Wor
       let count := if active then 8 else count
       some (value, finalState, UInt8.ofNat count)
 
-partial def hashIteratorChunks {State : Type} (iter : HashByteIterator State)
-    (secret : HashSecret) (s : IteratorHashState State) : IteratorHashState State := Id.run do
+/-- The `while true` chunk loop of `hash_bytes(iter, ...)` (hashing.jl:542-604). It ends at the
+first short read, so it terminates exactly when `iter` is finite; `none` is divergence on an
+iterator that never ends (Julia's `@assume_effects :terminates_globally` is an assumption). -/
+def hashIteratorChunks {State : Type} (iter : HashByteIterator State)
+    (secret : HashSecret) (s : IteratorHashState State) : Option (IteratorHashState State) := do
   let (l1, state, b1Byte) := readUInt64State iter s.state
   let b1 := b1Byte.toNat
   let s := { s with l1 := l1, state := state, b1 := b1 }
@@ -1346,7 +1350,8 @@ partial def hashIteratorChunks {State : Type} (iter : HashByteIterator State)
     return { s with
       t0 := concatShift s.l4 s.l5 (UInt8.ofNat b0)
       t1 := concatShift s.l5 s.l0 (UInt8.ofNat b0) }
-  return hashIteratorChunks iter secret s
+  hashIteratorChunks iter secret s
+partial_fixpoint
 
 /--
 Julia source: base/hashing.jl:509-647 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -1493,7 +1498,7 @@ end
 ```
 -/
 def hashBytesIterator {State : Type} (iter : HashByteIterator State)
-    (seed0 : Word) (secret : HashSecret) : Word := Id.run do
+    (seed0 : Word) (secret : HashSecret) : Option Word := do
   let seed := xorWord seed0 (hashMix (xorWord seed0 secret.2.2.1) secret.2.1)
   let empty : IteratorHashState State := {
     state := iter.defaultState, seed := seed, see1 := seed, see2 := seed,
@@ -1502,8 +1507,8 @@ def hashBytesIterator {State : Type} (iter : HashByteIterator State)
     l3 := JInt.lit .u64 0, l4 := JInt.lit .u64 0, l5 := JInt.lit .u64 0,
     b0 := 0, b1 := 0, b2 := 0, b3 := 0, b4 := 0, b5 := 0,
     t0 := JInt.lit .u64 0, t1 := JInt.lit .u64 0 }
-  let s := match readUInt64First iter with
-    | none => empty
+  let s ← match readUInt64First iter with
+    | none => pure empty
     | some (l0, state, b0) =>
         let s := { empty with l0 := l0, state := state, b0 := b0.toNat }
         hashIteratorChunks iter secret s
@@ -1553,13 +1558,13 @@ def utf8ByteIterator {S State Char : Type} (ops : UTF8Iterator S State Char)
     defaultState := (ops.defaultState, JInt.lit .u32 0) }
 
 def hashUTF8Units {S State Char : Type} (ops : UTF8Iterator S State Char)
-    (units : UTF8Units S) (seed : Word) (secret : HashSecret) : Word :=
+    (units : UTF8Units S) (seed : Word) (secret : HashSecret) : Option Word :=
   hashBytesIterator (utf8ByteIterator ops units) seed secret
 
 def hashBytesDispatch {S State Char : Type} (ops : UTF8Iterator S State Char)
-    (units : UTF8UnitsResult HashByteArray S) (seed : Word) (secret : HashSecret) : Word :=
+    (units : UTF8UnitsResult HashByteArray S) (seed : Word) (secret : HashSecret) : Option Word :=
   match units with
-  | .codeunits bytes => hashBytesArray bytes seed secret
+  | .codeunits bytes => some (hashBytesArray bytes seed secret)
   | .iterated chars => hashUTF8Units ops chars seed secret
 
 
@@ -1572,7 +1577,7 @@ hash(data::AbstractString, h::UInt) =
 -/
 def hashAbstractString {S State Char : Type} (ops : UTF8Iterator S State Char)
     (codeunitIsUInt8 : S → Bool) (codeunits : S → HashByteArray)
-    (data : S) (h : Word) : Word :=
+    (data : S) (h : Word) : Option Word :=
   hashBytesDispatch ops (utf8units codeunitIsUInt8 codeunits data) h hashSecret
 
 /--
@@ -1880,3 +1885,301 @@ def hashString {S Ptr : Type} (ops : HashPointerOps Ptr)
 
 
 end JuliaLean.base.hashing
+
+namespace JuliaLean.Promotion
+
+open JuliaLean.Float
+
+inductive HTerm where
+  | seed
+  | u64 (v : Nat) (h : HTerm)
+  | int (v : Int) (h : HTerm)
+  | nanx (h : HTerm)
+  deriving DecidableEq, Repr
+
+/-- `hash(x::Int64, h) = hash(bitcast(UInt64, x), h)` and the narrower integer methods;
+`base/hashing.jl:75-77`. -/
+def hashI64 (v : Int) (h : HTerm) : HTerm := .u64 (wrapInt .u64 v).toNat h
+
+/-- `hash(x::Float64, h)`; `base/hashing.jl:165-181`. The range tests are the exact mixed
+comparisons of `base/float.jl:649-676`. -/
+def hashF64 (x : Fl double) (h : HTerm) : HTerm :=
+  let x' : FV .f64 := x
+  if cmpIF .le (JInt.typemin .i64) x' && cmpFI .lt x' (JInt.typemax .i64) then
+    let xi := x.unsafeTrunc .i64
+    if isequalFI x' xi then hashI64 xi.val h else .u64 x.toBits h
+  else if cmpIF .le (JInt.typemin .u64) x' && cmpFI .lt x' (JInt.typemax .u64) then
+    let xu := x.unsafeTrunc .u64
+    if isequalFI x' xu then .u64 xu.val.toNat h else .u64 x.toBits h
+  else if x.isnan then .nanx h
+  else .u64 x.toBits h
+
+/-- `hash(x::Float32, h) = hash(Float64(x), h)`; `base/hashing.jl:183`. -/
+def hashF32 (x : Fl single) (h : HTerm) : HTerm := hashF64 (Fl.convert x) h
+
+/-- `hash(x::Float16, h)`; `base/hashing.jl:185-196`. -/
+def hashF16 (x : Fl half) (h : HTerm) : HTerm :=
+  let x' : FV .f16 := x
+  if x.isfinite then
+    let xi := x.unsafeTrunc .i64
+    if isequalFI x' xi then hashI64 xi.val h else .u64 (Fl.convert (f := double) x).toBits h
+  else if x.isnan then .nanx h
+  else .u64 (Fl.convert (f := double) x).toBits h
+
+/-- `trailing_zeros` of a nonzero integer. -/
+def trailingZeros (n : Int) : Nat := go n.natAbs 200
+where
+  go (m : Nat) : Nat → Nat
+    | 0 => 0
+    | k + 1 => if m % 2 == 1 || m == 0 then 0 else 1 + go (m / 2) k
+
+/-- `hash(ldexp(Float64(num), pow), h)` for a value exactly representable in Float64. -/
+def hashExactF64 (num pow : Int) (h : HTerm) : HTerm :=
+  hashF64 (if pow ≥ 0 then Fl.roundRat (num * 2 ^ pow.toNat) 1 false
+    else Fl.roundRat num (2 ^ (-pow).toNat) false) h
+
+/-- `hash(x::Real, h)` from `decompose(x) = (num, pow, den)`; `base/hashing.jl:200-246`.
+`numTy` is the integer type of `num` (for the `num << (pow % 8)` shift). -/
+def hashReal (numTy : IntTy) (d : Int × Int × Int) (h : HTerm) : HTerm :=
+  let (num, pow, den) := d
+  if num == 0 && den == 0 then hashF64 Fl.nan h
+  else if num == 0 then hashF64 (Fl.zero (decide (den < 0))) h
+  else if den == 0 then hashF64 (Fl.inf (decide (num < 0))) h
+  else
+    let (num, den) := if den < 0 then (-num, -den) else (num, den)
+    let numZ := trailingZeros num
+    let num := num / 2 ^ numZ
+    let denZ := trailingZeros den
+    let den := den / 2 ^ denZ
+    let pow := pow + numZ - denZ
+    let finish (h : HTerm) : HTerm :=
+      let h := HTerm.int pow h
+      HTerm.int (if pow > 0 then wrapInt numTy (num * 2 ^ (pow % 8).toNat) else num) h
+    if den == 1 then
+      let left := ndigits2 num + pow
+      if -1074 ≤ pow then
+        if 0 ≤ pow ∧ left ≤ 63 then hashI64 (num * 2 ^ pow.toNat) h
+        else if 0 ≤ pow ∧ left ≤ 64 ∧ 0 ≤ num then .u64 (num * 2 ^ pow.toNat).toNat h
+        else if left ≤ 1024 ∧ left - pow ≤ 53 then hashExactF64 num pow h
+        else finish h
+      else finish h
+    else finish (HTerm.int den h)
+
+end JuliaLean.Promotion
+
+namespace JuliaLean.HashOps
+
+open JuliaLean JuliaLean.Promotion
+
+/-! ## Hash mixing, `base/hashing.jl:48-77` -/
+
+abbrev HashWord := JInt .u64
+
+def hashXor (x y : HashWord) : HashWord :=
+  JInt.wrap .u64 (Int.ofNat (Nat.xor x.val.toNat y.val.toNat))
+
+def hashMixLinear (x h : HashWord) : HashWord := JInt.lit .u64 3 * h - x
+
+def hashFinalizer (x : HashWord) : HashWord :=
+  let x := hashXor x (JInt.wrap .u64 (Int.ofNat (x.val.toNat / 2^32)))
+  let x := x * JInt.lit .u64 0x63652a4cd374b267
+  hashXor x (JInt.wrap .u64 (Int.ofNat (x.val.toNat / 2^33)))
+
+/-! ## Generic `hash(::Real)`, `base/hashing.jl:198-245` -/
+
+abbrev Decomposition := Int × Int × Int
+
+/-- The generic source method, with the integer storage type supplied by the
+caller's `decompose` implementation. -/
+def hashDecomposed (numTy : IntTy) (d : Decomposition) (h : HTerm) : HTerm :=
+  hashReal numTy d h
+
+/-! ## Strings, `base/hashing.jl:101-145,649-654` -/
+
+def utf8 (c : Nat) : List UInt8 :=
+  if c < 0x80 then [UInt8.ofNat c]
+  else if c < 0x800 then
+    [UInt8.ofNat (0xc0 + c / 64), UInt8.ofNat (0x80 + c % 64)]
+  else if c < 0x10000 then
+    [UInt8.ofNat (0xe0 + c / 4096), UInt8.ofNat (0x80 + (c / 64) % 64),
+      UInt8.ofNat (0x80 + c % 64)]
+  else
+    [UInt8.ofNat (0xf0 + c / 262144), UInt8.ofNat (0x80 + (c / 4096) % 64),
+      UInt8.ofNat (0x80 + (c / 64) % 64), UInt8.ofNat (0x80 + c % 64)]
+
+structure Text where
+  chars : List Nat
+  raw : List UInt8
+  byteBacked : Bool
+  deriving DecidableEq, Repr
+
+def Text.canonicalBytes (s : Text) : List UInt8 := s.chars.flatMap utf8
+
+/-- `utf8units`: byte-backed strings use `codeunits`; other strings encode the
+characters yielded by iteration. -/
+def Text.utf8units (s : Text) : List UInt8 :=
+  if s.byteBacked then s.raw else s.canonicalBytes
+
+def Text.Valid (s : Text) : Prop := s.byteBacked = true → s.raw = s.canonicalBytes
+
+inductive ByteHash where
+  | call (bytes : List UInt8) (seed : Nat)
+  deriving DecidableEq, Repr
+
+def hashText (s : Text) (h : Nat) : ByteHash := .call s.utf8units h
+
+end JuliaLean.HashOps
+
+namespace JuliaLean.HashOps
+
+def mixNat (x h : Nat) : Nat := Nat.xor (3 * h) x
+def finalNat (h : Nat) : Nat := Nat.xor h (h / 2^33)
+
+def hashNatList (xs : List Nat) (h : Nat) : Nat := xs.foldl (fun h x => mixNat x h) h
+
+end JuliaLean.HashOps
+
+namespace JuliaLean.IntFuncsCov.Hashing
+
+open JuliaLean
+open JuliaLean.ParsePrint
+
+abbrev Word := JInt .u64
+
+def wxor (a b : Word) : Word := bxor a b
+def wor (a b : Word) : Word := bor a b
+
+def mulParts (a b : Word) : Word × Word :=
+  let p : Int := a.val * b.val
+  (JInt.lit .u64 (p / 2 ^ 64), JInt.lit .u64 p)
+
+def hashMix (a b : Word) : Word :=
+  let p := mulParts a b
+  wxor p.1 p.2
+
+def hashMixLinear (x h : Word) : Word := JInt.lit .u64 3 * h - x
+
+def hashFinalizer (x : Word) : Word :=
+  let x := wxor x (shr x 32)
+  let x := x * JInt.lit .u64 0x63652a4cd374b267
+  wxor x (shr x 33)
+
+structure IntegerCodeUnits where
+  value : Int
+  numBytes : Nat
+  deriving DecidableEq
+
+def integerCodeUnits (x : Int) : IntegerCodeUnits :=
+  let u := x.natAbs
+  ⟨u, max (((u.log2 + if u = 0 then 0 else 1) + 7) / 8) 1⟩
+
+def integerCodeUnit (u : IntegerCodeUnits) (i : Nat) : UInt8 :=
+  UInt8.ofNat ((u.value.natAbs / 2 ^ (8 * (i - 1))) % 256)
+
+def integerBytes (x : Int) : List UInt8 :=
+  let u := integerCodeUnits x
+  (List.range u.numBytes).map fun i => integerCodeUnit u (i + 1)
+
+def loadLE (bytes : List UInt8) (idx n : Nat) : Word :=
+  JInt.lit .u64 ((List.range n).foldl
+    (fun acc k => acc + (bytes.getD (idx + k) 0).toNat * 2 ^ (8 * k)) 0)
+
+def process48 (secret : Word × Word × Word × Word) :
+    List UInt8 → Nat → Nat → Word → Word → Word → Word × Word × Word × Nat × Nat
+  | bytes, pos, remaining, seed, see1, see2 =>
+    if h : 48 < remaining then
+      process48 secret bytes (pos + 48) (remaining - 48)
+        (hashMix (wxor (loadLE bytes pos 8) secret.1)
+          (wxor (loadLE bytes (pos + 8) 8) seed))
+        (hashMix (wxor (loadLE bytes (pos + 16) 8) secret.2.1)
+          (wxor (loadLE bytes (pos + 24) 8) see1))
+        (hashMix (wxor (loadLE bytes (pos + 32) 8) secret.2.2.1)
+          (wxor (loadLE bytes (pos + 40) 8) see2))
+    else (seed, see1, see2, pos, remaining)
+termination_by bytes pos remaining seed see1 see2 => remaining
+decreasing_by omega
+
+def hashBytes (bytes : List UInt8) (seed : Word)
+    (secret : Word × Word × Word × Word) : Word :=
+  let n := bytes.length
+  let seed := wxor seed (hashMix (wxor seed secret.2.2.1) secret.2.1)
+  let init : Word := JInt.lit .u64 0
+  let result := process48 secret bytes 0 n seed seed seed
+  let seed := if 48 < n then wxor (wxor result.1 result.2.1) result.2.2.1 else result.1
+  let pos := result.2.2.2.1
+  let remaining := result.2.2.2.2
+  let (seed, a, b) :=
+    if n ≤ 16 then
+      if 4 ≤ n then
+        let seed := wxor seed (JInt.lit .u64 n)
+        if 8 ≤ n then (seed, loadLE bytes 0 8, loadLE bytes (n - 8) 8)
+        else (seed, loadLE bytes 0 4, loadLE bytes (n - 4) 4)
+      else if 0 < n then
+        (seed,
+          wor (shl (JInt.lit .u64 (bytes.getD 0 0).toNat) 45)
+            (JInt.lit .u64 (bytes.getD (n - 1) 0).toNat),
+          JInt.lit .u64 (bytes.getD (n / 2) 0).toNat)
+      else (seed, init, init)
+    else
+      let seed := if 16 < remaining then
+        let seed := hashMix (wxor (loadLE bytes pos 8) secret.2.2.1)
+          (wxor (loadLE bytes (pos + 8) 8) seed)
+        if 32 < remaining then hashMix (wxor (loadLE bytes (pos + 16) 8) secret.2.2.1)
+          (wxor (loadLE bytes (pos + 24) 8) seed) else seed
+        else seed
+      (seed, wxor (loadLE bytes (n - 16) 8) (JInt.lit .u64 remaining),
+        loadLE bytes (n - 8) 8)
+  let a := wxor a secret.2.1
+  let b := wxor b seed
+  let p := mulParts a b
+  hashMix (wxor p.2 secret.2.2.2) (wxor (wxor p.1 secret.2.1) (JInt.lit .u64 remaining))
+
+def hashBytesArray := hashBytes
+def hashBytesPointer := hashBytes
+def hashBytesIterator := hashBytes
+
+def concatShift (low high : Word) (shiftBytes : UInt8) : Word :=
+  let shift := shiftBytes.toNat * 8 % 64
+  wor (shr low shift) (shl high (64 - shift))
+
+def readWord (bytes : List UInt8) : Word × List UInt8 × Nat :=
+  let n := min 8 bytes.length
+  (loadLE bytes 0 n, bytes.drop n, n)
+
+def hashQuote {α : Type} (hash : α → Word → Word) (value : α) (h : Word) : Word :=
+  hash value (wxor h (JInt.lit .u64 0x2c97bf8b3de87020))
+
+def hashPhi {α β : Type} (hashA : α → Word → Word) (hashB : β → Word → Word)
+    (edges : α) (values : β) (h : Word) : Word :=
+  hashA edges (hashB values (wxor h (JInt.lit .u64 0x2c97bf8b3de87020)))
+
+def hashFields {α : Type} (hash : α → Word → Word) (fields : List α) (h : Word) : Word :=
+  fields.foldl (fun h x => hash x h) (wxor h (JInt.lit .u64 0x2c97bf8b3de87020))
+
+def hashGlobalRef {M N : Type} (hashM : M → Word → Word) (hashN : N → Word → Word)
+    (mod : M) (name : N) (h : Word) : Word :=
+  hashN name (hashM mod (wxor h (JInt.lit .u64 0xe19bede84d316c06)))
+
+end JuliaLean.IntFuncsCov.Hashing
+
+namespace JuliaLean.Ranges
+
+/-- `base/hashing.jl:55-69`: UInt is UInt64 on the modelled platform. -/
+abbrev RangeHashWord := JInt .u64
+
+/-- `base/int.jl` xor intrinsic, used by `base/hashing.jl:57,59`.
+The operands are nonnegative UInt64 bit patterns; Core performs the reduction. -/
+def rangeHashXor (x y : RangeHashWord) : RangeHashWord :=
+  JInt.wrap .u64 (Int.ofNat (Nat.xor x.val.toNat y.val.toNat))
+
+/-- `base/hashing.jl:55`: `3 *% h -% x`, with both wrapping intermediates. -/
+def rangeHashMixLinear (x h : RangeHashWord) : RangeHashWord :=
+  JInt.lit .u64 3 * h - x
+
+/-- `base/hashing.jl:56-69`: the 64-bit hash_uint finalizer. -/
+def rangeHashUInt (x : RangeHashWord) : RangeHashWord :=
+  let x := rangeHashXor x (JInt.wrap .u64 (Int.ofNat (x.val.toNat / 2^32)))
+  let x := x * JInt.lit .u64 0x63652a4cd374b267
+  rangeHashXor x (JInt.wrap .u64 (Int.ofNat (x.val.toNat / 2^33)))
+
+end JuliaLean.Ranges

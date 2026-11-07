@@ -1,112 +1,112 @@
 file	line	endline	name	signature	status	entry	note
-base/operators.jl	86	94	supertype	supertype(T::DataType)	todo		trivial: restates source body
-base/operators.jl	95	101	getproperty	getproperty(T::DataType, s::Symbol)	todo		trivial: restates source body
-base/operators.jl	102	102	supertype	supertype(T::UnionAll)	todo		trivial: restates source body
-base/operators.jl	104	104	supertype	supertype(::TypeEq)	todo		trivial: restates source body
-base/operators.jl	105	105	supertype	supertype(T::Core.TypeEgal)	todo		trivial: restates source body
-base/operators.jl	196	196	isequal	isequal(x, y)	todo		trivial: restates source body
-base/operators.jl	198	198	signequal	signequal(x, y)	todo		trivial: restates source body
-base/operators.jl	199	199	signless	signless(x, y)	todo		trivial: restates source body
-base/operators.jl	201	201	isequal	isequal(x::AbstractFloat, y::AbstractFloat)	todo		trivial: restates source body
-base/operators.jl	202	202	isequal	isequal(x::Real, y::AbstractFloat)	todo		trivial: restates source body
+base/operators.jl	86	94	supertype	supertype(T::DataType)	modelled	operators-supertype-access,operators-unionall-supertype-variable,operators-generated-operators-binary-fold	Reviewed line by line against pinned f755f49 source.
+base/operators.jl	95	101	getproperty	getproperty(T::DataType, s::Symbol)	modelled	operators-supertype-access,operators-generated-operators-binary-fold	Reviewed line by line against pinned f755f49 source.
+base/operators.jl	102	102	supertype	supertype(T::UnionAll)	modelled	operators-unionall-supertype-variable,operators-generated-operators-binary-fold	Reviewed line by line against pinned f755f49 source.
+base/operators.jl	104	104	supertype	supertype(::TypeEq)	modelled	operators-typeeq-parent-category	Source-mirrored model JuliaLean.base.operators.supertypeTypeEq; reviewed against Julia f755f49.
+base/operators.jl	105	105	supertype	supertype(T::Core.TypeEgal)	modelled	operators-supertype-special-cases,operators-generated-operators-binary-fold	Reviewed line by line against pinned f755f49 source.
+base/operators.jl	196	196	isequal	isequal(x, y)	modelled	operators-isequal-observation	Source-mirrored model JuliaLean.base.operators.Models2Group15.isequal; reviewed against Julia f755f49.
+base/operators.jl	198	198	signequal	signequal(x, y)	modelled	operators-signequal-partition	Source-mirrored model JuliaLean.base.operators.Models2Group15.signequal; reviewed against Julia f755f49.
+base/operators.jl	199	199	signless	signless(x, y)	modelled	operators-signless-partition	Source-mirrored model JuliaLean.base.operators.Models2Group15.signless; reviewed against Julia f755f49.
+base/operators.jl	201	201	isequal	isequal(x::AbstractFloat, y::AbstractFloat)	modelled	operators-isequal-floatfloat-effects	Source-mirrored model JuliaLean.base.operators.Models2Group15.isequalFloatFloat; reviewed against Julia f755f49.
+base/operators.jl	202	202	isequal	isequal(x::Real, y::AbstractFloat)	modelled	operators-isequal-realfloat-effects	Source-mirrored model JuliaLean.base.operators.Models2Group15.isequalRealFloat; reviewed against Julia f755f49.
 base/operators.jl	203	203	isequal	isequal(x::AbstractFloat, y::Real )	modelled	promotion-mixed-isless-total-small	
 base/operators.jl	238	238	isless	isless	excluded		no-behaviour: generic function declaration has no method body
-base/operators.jl	240	240	isless	isless(x::AbstractFloat, y::AbstractFloat)	todo		trivial: restates source body
+base/operators.jl	240	240	isless	isless(x::AbstractFloat, y::AbstractFloat)	modelled	operators-isless-floatfloat-effects	Source-mirrored model JuliaLean.base.operators.Models2Group15.islessFloatFloat; reviewed against Julia f755f49.
 base/operators.jl	241	241	isless	isless(x::Real, y::AbstractFloat)	modelled	promotion-mixed-isless-total-small	
 base/operators.jl	242	242	isless	isless(x::AbstractFloat, y::Real )	modelled	promotion-mixed-isless-total-small	
-base/operators.jl	248	249	isless	isless(a::Tuple{BitInteger, BitInteger}, b::Tuple{BitInteger, BitInteger})	todo		trivial: restates source body
-base/operators.jl	295	295	isgreater	isgreater(x, y)	todo		trivial: generic missing-order model restates its definition
-base/operators.jl	309	309	isunordered	isunordered(_)	todo		trivial: restates source body
-base/operators.jl	310	310	isunordered	isunordered(x::AbstractFloat)	todo		trivial: restates source body
-base/operators.jl	311	311	isunordered	isunordered(::Missing)	todo		trivial: generic missing-order model restates its definition
-base/operators.jl	313	313	==	==(T::Type, S::Type)	todo		trivial: restates source body
-base/operators.jl	314	314	==	==(T::TypeVar, S::Type)	todo		trivial: restates source body
-base/operators.jl	315	315	==	==(T::Type, S::TypeVar)	todo		trivial: restates source body
-base/operators.jl	338	338	!=	!=(x, y)	todo		trivial: restates source body
-base/operators.jl	417	417	<	<(x, y)	todo		trivial: restates source body
-base/operators.jl	443	443	>	>(x, y)	todo		trivial: restates source body
-base/operators.jl	467	467	<=	<=(x, y)	todo		trivial: restates source body
-base/operators.jl	499	499	>=	>=(x, y)	todo		trivial: restates source body
-base/operators.jl	505	505	isless	isless(x::Real, y::Real)	todo		trivial: fallback equations restate method bodies
-base/operators.jl	526	526	cmp	cmp(x, y)	todo		trivial: restates source body
-base/operators.jl	534	534	cmp	cmp(<, x, y)	todo		trivial: restates source body
-base/operators.jl	537	537	cmp	cmp(x::Integer, y::Integer)	todo		trivial: fallback equations restate method bodies
+base/operators.jl	248	249	isless	isless(a::Tuple{BitInteger, BitInteger}, b::Tuple{BitInteger, BitInteger})	modelled	operators-pair-isless-transitive,operators-generated-operators-binary-fold	Reviewed line by line against pinned f755f49 source.
+base/operators.jl	295	295	isgreater	isgreater(x, y)	modelled	operators-isgreater-effects	Source-mirrored model JuliaLean.base.operators.Models2Group15.isgreater; reviewed against Julia f755f49.
+base/operators.jl	309	309	isunordered	isunordered(_)	modelled	operators-unordered-classification-separation	Source-mirrored model JuliaLean.base.operators.isunordered; reviewed against Julia f755f49.
+base/operators.jl	310	310	isunordered	isunordered(x::AbstractFloat)	modelled	operators-isunordered-float-effects	Source-mirrored model JuliaLean.base.operators.Models2Group15.isunorderedFloat; reviewed against Julia f755f49.
+base/operators.jl	311	311	isunordered	isunordered(::Missing)	modelled	operators-unordered-classification-separation	Source-mirrored model JuliaLean.base.operators.isunorderedMissing; reviewed against Julia f755f49.
+base/operators.jl	313	313	==	==(T::Type, S::Type)	modelled	operators-type-equality,operators-generated-operators-binary-fold	Reviewed line by line against pinned f755f49 source.
+base/operators.jl	314	314	==	==(T::TypeVar, S::Type)	modelled	operators-typevar-type-separation	Source-mirrored model JuliaLean.base.operators.typeVarEqual; reviewed against Julia f755f49.
+base/operators.jl	315	315	==	==(T::Type, S::TypeVar)	modelled	operators-typevar-type-separation	Source-mirrored model JuliaLean.base.operators.typeEqualVar; reviewed against Julia f755f49.
+base/operators.jl	338	338	!=	!=(x, y)	modelled	operators-not-equal-effects	Source-mirrored model JuliaLean.base.operators.Models2Group15.notEqual; reviewed against Julia f755f49.
+base/operators.jl	417	417	<	<(x, y)	modelled	operators-comparison-fallbacks	Source-mirrored model JuliaLean.base.operators.lessThan; reviewed against Julia f755f49.
+base/operators.jl	443	443	>	>(x, y)	modelled	operators-comparison-fallbacks	Source-mirrored model JuliaLean.base.operators.greaterThan; reviewed against Julia f755f49.
+base/operators.jl	467	467	<=	<=(x, y)	modelled	operators-less-equal-effects	Source-mirrored model JuliaLean.base.operators.Models2Group15.lessEqual; reviewed against Julia f755f49.
+base/operators.jl	499	499	>=	>=(x, y)	modelled	operators-comparison-fallbacks	Source-mirrored model JuliaLean.base.operators.greaterEqual; reviewed against Julia f755f49.
+base/operators.jl	505	505	isless	isless(x::Real, y::Real)	modelled	operators-isless-real-effects	Source-mirrored model JuliaLean.base.operators.Models2Group15.islessReal; reviewed against Julia f755f49.
+base/operators.jl	526	526	cmp	cmp(x, y)	modelled	operators-cmp-control-effects	Source-mirrored model JuliaLean.base.operators.Models2Group15.cmp; reviewed against Julia f755f49.
+base/operators.jl	534	534	cmp	cmp(<, x, y)	modelled	operators-cmpby-control-effects	Source-mirrored model JuliaLean.base.operators.Models2Group15.cmpBy; reviewed against Julia f755f49.
+base/operators.jl	537	537	cmp	cmp(x::Integer, y::Integer)	modelled	operators-cmpinteger-eager-effects	Source-mirrored model JuliaLean.base.operators.Models2Group15.cmpInteger; reviewed against Julia f755f49.
 base/operators.jl	555	555	max	max(x, y)	modelled	mathfuncs-min-isless-nan	
 base/operators.jl	573	573	min	min(x,y)	modelled	mathfuncs-min-isless-nan	
-base/operators.jl	588	588	minmax	minmax(x,y)	todo		trivial: restates source body
-base/operators.jl	605	605	identity	identity(@nospecialize x)	todo		trivial: restates source body
-base/operators.jl	607	607	+	+(x::Number)	todo		trivial: restates source body
-base/operators.jl	608	608	*	*(x::Number)	todo		trivial: restates source body
-base/operators.jl	609	609	&	(&)(x::Integer)	todo		trivial: restates source body
-base/operators.jl	610	610	|	(|)(x::Integer)	todo		trivial: restates source body
-base/operators.jl	611	611	xor	xor(x::Integer)	todo		trivial: restates source body
-base/operators.jl	622	622	afoldl	afoldl(op, a)	todo		trivial: restates source body
-base/operators.jl	623	663	afoldl	afoldl(op, a, bs...)	todo		trivial: restates source body
-base/operators.jl	671	671	$op	($op)(a, b, c, xs...)	todo		generated-loop: op in (:+, :(+%), :*, :(*%), :&, :|, :xor, :min, :max, :kron)
+base/operators.jl	588	588	minmax	minmax(x,y)	modelled	operators-minmax-pair-conservation	Source-mirrored model JuliaLean.base.operators.Models2Group15.minmax; reviewed against Julia f755f49.
+base/operators.jl	605	605	identity	identity(@nospecialize x)	modelled	operators-identity-algebra	Source-mirrored model JuliaLean.base.operators.identity; reviewed against Julia f755f49.
+base/operators.jl	607	607	+	+(x::Number)	modelled	operators-unary-plus-algebra	Source-mirrored model JuliaLean.base.operators.unaryPlusNumber; reviewed against Julia f755f49.
+base/operators.jl	608	608	*	*(x::Number)	modelled	operators-unary-mul-algebra	Source-mirrored model JuliaLean.base.operators.unaryMulNumber; reviewed against Julia f755f49.
+base/operators.jl	609	609	&	(&)(x::Integer)	modelled	operators-unary-and-algebra	Source-mirrored model JuliaLean.base.operators.unaryAndInteger; reviewed against Julia f755f49.
+base/operators.jl	610	610	|	(|)(x::Integer)	modelled	operators-unary-or-algebra	Source-mirrored model JuliaLean.base.operators.unaryOrInteger; reviewed against Julia f755f49.
+base/operators.jl	611	611	xor	xor(x::Integer)	modelled	operators-unary-xor-algebra	Source-mirrored model JuliaLean.base.operators.unaryXorInteger; reviewed against Julia f755f49.
+base/operators.jl	622	622	afoldl	afoldl(op, a)	modelled	operators-afoldl-one-algebra	Source-mirrored model JuliaLean.base.operators.afoldlOne; reviewed against Julia f755f49.
+base/operators.jl	623	663	afoldl	afoldl(op, a, bs...)	modelled	operators-afoldl-ordered-accumulation	Source-mirrored model JuliaLean.base.operators.Models2Group15.afoldlMany; reviewed against Julia f755f49.
+base/operators.jl	671	671	$op	($op)(a, b, c, xs...)	modelled	operators-generated-operators-binary-fold	Source-mirrored model JuliaLean.base.operators.Models2Group15.naryOperator; reviewed against Julia f755f49.
 base/operators.jl	678	678	kron!	kron!	excluded		no-behaviour: empty generic function declaration has no method body
-base/operators.jl	709	709	\	\(x,y)	todo		trivial: restates source body
-base/operators.jl	735	740	<<	<<(x::Integer, c::Integer)	todo		trivial: restates source body
-base/operators.jl	741	747	<<	<<(x::Integer, c::Unsigned)	todo		trivial: restates source body
-base/operators.jl	748	748	<<	<<(x::Integer, c::Int)	todo		trivial: restates source body
-base/operators.jl	780	788	>>	>>(x::Integer, c::Integer)	todo		trivial: restates source body
-base/operators.jl	789	789	>>	>>(x::Integer, c::Int)	todo		trivial: restates source body
-base/operators.jl	818	821	>>>	>>>(x::Integer, c::Integer)	todo		trivial: restates source body
-base/operators.jl	822	828	>>>	>>>(x::Integer, c::Unsigned)	todo		trivial: restates source body
-base/operators.jl	829	829	>>>	>>>(x::Integer, c::Int)	todo		trivial: restates source body
-base/operators.jl	914	914	mod1	mod1(x::T, y::T) where {T<:Real}	todo		trivial: restates source body
-base/operators.jl	943	943	cldmod1	cldmod1(x, y)	todo		trivial: restates source body
-base/operators.jl	952	952	fldmod1	fldmod1(x, y)	todo		trivial: restates source body
-base/operators.jl	975	975	widen	widen(x::T) where {T}	todo		trivial: restates source body
-base/operators.jl	976	976	widen	widen(x::Type{T}) where {T}	todo		trivial: restates source body
-base/operators.jl	977	977	widen	widen(x::Type{Union{}}, slurp...)	todo		trivial: restates source body
-base/operators.jl	1001	1001	|>	|>(x, f)	todo		trivial: restates source body
-base/operators.jl	1003	1003	_stable_typeof	_stable_typeof(x)	todo		trivial: restates source body
-base/operators.jl	1004	1004	_stable_typeof	_stable_typeof(::Type{T}) where {T}	todo		trivial: restates source body
-base/operators.jl	1031	1031	Returns{V}	Returns{V}(value) where {V}	todo		trivial: restates source body
-base/operators.jl	1032	1032	Returns	Returns(value)	todo		trivial: restates source body
-base/operators.jl	1035	1035	(obj::Returns)	(obj::Returns)(@nospecialize(args...); @nospecialize(kw...))	todo		trivial: restates source body
+base/operators.jl	709	709	\	\(x,y)	modelled	operators-left-division-scalar	Source-mirrored model JuliaLean.base.operators.leftDiv; reviewed against Julia f755f49.
+base/operators.jl	735	740	<<	<<(x::Integer, c::Integer)	modelled	operators-shift-direction,operators-generated-operators-binary-fold	Reviewed line by line against pinned f755f49 source.
+base/operators.jl	741	747	<<	<<(x::Integer, c::Unsigned)	modelled	operators-shift-direction,operators-generated-operators-binary-fold	Reviewed line by line against pinned f755f49 source.
+base/operators.jl	748	748	<<	<<(x::Integer, c::Int)	modelled	operators-shift-direction,operators-generated-operators-binary-fold	Reviewed line by line against pinned f755f49 source.
+base/operators.jl	780	788	>>	>>(x::Integer, c::Integer)	modelled	operators-shift-direction,operators-generated-operators-binary-fold	Reviewed line by line against pinned f755f49 source.
+base/operators.jl	789	789	>>	>>(x::Integer, c::Int)	modelled	operators-shift-direction,operators-generated-operators-binary-fold	Reviewed line by line against pinned f755f49 source.
+base/operators.jl	818	821	>>>	>>>(x::Integer, c::Integer)	modelled	operators-shift-direction,operators-generated-operators-binary-fold	Reviewed line by line against pinned f755f49 source.
+base/operators.jl	822	828	>>>	>>>(x::Integer, c::Unsigned)	modelled	operators-shift-direction,operators-generated-operators-binary-fold	Reviewed line by line against pinned f755f49 source.
+base/operators.jl	829	829	>>>	>>>(x::Integer, c::Int)	modelled	operators-shift-direction,operators-generated-operators-binary-fold	Reviewed line by line against pinned f755f49 source.
+base/operators.jl	914	914	mod1	mod1(x::T, y::T) where {T<:Real}	modelled	operators-mod1-value-conservation	Source-mirrored model JuliaLean.base.operators.Models2Group15.mod1; reviewed against Julia f755f49.
+base/operators.jl	943	943	cldmod1	cldmod1(x, y)	modelled	operators-cldmod1-pair-conservation	Source-mirrored model JuliaLean.base.operators.Models2Group15.cldmod1; reviewed against Julia f755f49.
+base/operators.jl	952	952	fldmod1	fldmod1(x, y)	modelled	operators-fldmod1-pair-conservation	Source-mirrored model JuliaLean.base.operators.Models2Group15.fldmod1; reviewed against Julia f755f49.
+base/operators.jl	975	975	widen	widen(x::T) where {T}	modelled	operators-widen-value-provenance	Source-mirrored model JuliaLean.base.operators.Models2Group15.widenValue; reviewed against Julia f755f49.
+base/operators.jl	976	976	widen	widen(x::Type{T}) where {T}	modelled	operators-widen-type-rejection-frame	Source-mirrored model JuliaLean.base.operators.Models2Group15.widenTypeError; reviewed against Julia f755f49.
+base/operators.jl	977	977	widen	widen(x::Type{Union{}}, slurp...)	modelled	operators-widen-bottom-rejection-frame	Source-mirrored model JuliaLean.base.operators.Models2Group15.widenBottomError; reviewed against Julia f755f49.
+base/operators.jl	1001	1001	|>	|>(x, f)	modelled	operators-pipe-effect-forwarding	Source-mirrored model JuliaLean.base.operators.pipe; reviewed against Julia f755f49.
+base/operators.jl	1003	1003	_stable_typeof	_stable_typeof(x)	modelled	operators-stable-type-payload-erasure	Source-mirrored model JuliaLean.base.operators.Models2Group15.stableTypeof; reviewed against Julia f755f49.
+base/operators.jl	1004	1004	_stable_typeof	_stable_typeof(::Type{T}) where {T}	modelled	operators-stable-type-payload-erasure,operators-returns-call	Source-mirrored model JuliaLean.base.operators.Models2Group15.stableTypeofType; reviewed against Julia f755f49.
+base/operators.jl	1031	1031	Returns{V}	Returns{V}(value) where {V}	modelled	operators-returns-typed-admission	Source-mirrored model JuliaLean.base.operators.Models2Group15.returnsTyped; reviewed against Julia f755f49.
+base/operators.jl	1032	1032	Returns	Returns(value)	modelled	operators-returns-call,operators-generated-operators-binary-fold	Reviewed line by line against pinned f755f49 source.
+base/operators.jl	1035	1035	(obj::Returns)	(obj::Returns)(@nospecialize(args...); @nospecialize(kw...))	modelled	operators-returns-call-extensionality	Source-mirrored model JuliaLean.base.operators.returnsCall; reviewed against Julia f755f49.
 base/operators.jl	1085	1085	∘	∘	excluded		no-behaviour: generic composition function declaration has no method body
-base/operators.jl	1121	1121	ComposedFunction{O, I}	ComposedFunction{O, I}(outer, inner) where {O, I}	todo		trivial: restates source body
-base/operators.jl	1122	1122	ComposedFunction	ComposedFunction(outer, inner)	todo		trivial: restates source body
-base/operators.jl	1125	1125	(c::ComposedFunction)	(c::ComposedFunction)(x...; kw...)	todo		trivial: restates source body
-base/operators.jl	1126	1126	unwrap_composed	unwrap_composed(c::ComposedFunction)	todo		trivial: restates source body
-base/operators.jl	1127	1127	unwrap_composed	unwrap_composed(c)	todo		trivial: restates source body
-base/operators.jl	1128	1128	call_composed	call_composed(fs, x, kw)	todo		trivial: restates source body
-base/operators.jl	1129	1129	call_composed	call_composed(fs::Tuple{Any}, x, kw)	todo		trivial: restates source body
-base/operators.jl	1132	1132	(::Constructor{F})	(::Constructor{F})(args...; kw...) where {F}	todo		trivial: restates source body
-base/operators.jl	1133	1133	maybeconstructor	maybeconstructor(::Type{F}) where {F}	todo		trivial: restates source body
-base/operators.jl	1134	1134	maybeconstructor	maybeconstructor(f)	todo		trivial: restates source body
-base/operators.jl	1136	1136	∘	∘(f)	todo		trivial: restates source body
-base/operators.jl	1137	1137	∘	∘(f, g)	todo		trivial: restates source body
-base/operators.jl	1138	1138	∘	∘(f, g, h...)	todo		trivial: restates source body
-base/operators.jl	1140	1144	show	show(io::IO, c::ComposedFunction)	todo		trivial: restates source body
-base/operators.jl	1147	1150	show	show(io::IO, c::ComposedFunction{typeof(!)})	todo		trivial: restates source body
-base/operators.jl	1152	1152	_showcomposed	_showcomposed(io::IO, x)	todo		trivial: restates source body
-base/operators.jl	1154	1154	_showcomposed	_showcomposed(io::IO, f::Function)	todo		trivial: restates source body
-base/operators.jl	1156	1156	_showcomposed	_showcomposed(io::IO, f::ComposedFunction)	todo		trivial: restates source body
-base/operators.jl	1158	1158	_showcomposed	_showcomposed(io::IO, f::ComposedFunction{typeof(!)})	todo		trivial: restates source body
-base/operators.jl	1182	1182	!	!(f::Function)	todo		trivial: restates source body
-base/operators.jl	1183	1183	!	!(f::ComposedFunction{typeof(!)})	todo		trivial: restates source body
-base/operators.jl	1206	1213	Fix{N}	Fix{N}(f::F, x) where {N,F}	todo		trivial: restates source body
-base/operators.jl	1216	1220	(f::Fix{N})	(f::Fix{N})(args::Vararg{Any,M}; kws...) where {N,M}	todo		trivial: restates source body
-base/operators.jl	1223	1223	(f::Fix{1})	(f::Fix{1})(arg; kws...)	todo		trivial: restates source body
-base/operators.jl	1224	1224	(f::Fix{2})	(f::Fix{2})(arg; kws...)	todo		trivial: restates source body
-base/operators.jl	1226	1237	Base.show	Base.show(io::IO, fix::Fix{N}) where {N}	todo		trivial: restates source body
-base/operators.jl	1259	1259	isequal	isequal(x)	todo		trivial: restates source body
-base/operators.jl	1270	1270	==	==(x)	todo		trivial: restates source body
-base/operators.jl	1283	1283	!=	!=(x)	todo		trivial: restates source body
-base/operators.jl	1296	1296	>=	>=(x)	todo		trivial: restates source body
-base/operators.jl	1309	1309	<=	<=(x)	todo		trivial: restates source body
-base/operators.jl	1322	1322	>	>(x)	todo		trivial: restates source body
-base/operators.jl	1335	1335	<	<(x)	todo		trivial: restates source body
-base/operators.jl	1366	1366	splat	splat(f)	todo		trivial: restates source body
-base/operators.jl	1384	1384	Splat	Splat(f)	todo		trivial: restates source body
-base/operators.jl	1386	1386	(s::Splat)	(s::Splat)(args)	todo		trivial: restates source body
-base/operators.jl	1387	1387	show	show(io::IO, s::Splat)	todo		trivial: restates source body
-base/operators.jl	1415	1415	unsplat	unsplat(f)	todo		trivial: restates source body
-base/operators.jl	1416	1416	unsplat	unsplat(s::Splat)	todo		trivial: restates source body
-base/operators.jl	1417	1417	splat	splat(f::ComposedFunction{<:Any,typeof(tuple)})	todo		trivial: restates source body
-base/operators.jl	1438	1438	tap	tap(f)	todo		trivial: restates source body
+base/operators.jl	1121	1121	ComposedFunction{O, I}	ComposedFunction{O, I}(outer, inner) where {O, I}	modelled	operators-composed-typed-preparation	Source-mirrored model JuliaLean.base.operators.Models2Group15.composedTyped; reviewed against Julia f755f49.
+base/operators.jl	1122	1122	ComposedFunction	ComposedFunction(outer, inner)	modelled	operators-returns-call,operators-splat-roundtrip,operators-unsplat-call	Reviewed line by line against pinned f755f49 source.
+base/operators.jl	1125	1125	(c::ComposedFunction)	(c::ComposedFunction)(x...; kw...)	modelled	operators-returns-call,operators-splat-roundtrip,operators-unsplat-call	Reviewed line by line against pinned f755f49 source.
+base/operators.jl	1126	1126	unwrap_composed	unwrap_composed(c::ComposedFunction)	modelled	operators-composition-unwrapping,operators-composed-call,operators-nary-composition-tail	Source-mirrored model JuliaLean.base.operators.unwrapComposed; reviewed against Julia f755f49.
+base/operators.jl	1127	1127	unwrap_composed	unwrap_composed(c)	modelled	operators-unwrap-fallback-singleton	Source-mirrored model JuliaLean.base.operators.Models2Group15.unwrapFallback; reviewed against Julia f755f49.
+base/operators.jl	1128	1128	call_composed	call_composed(fs, x, kw)	modelled	operators-composed-call,operators-composition-application,operators-composition-unwrapping	Source-mirrored model JuliaLean.base.operators.callComposed; reviewed against Julia f755f49.
+base/operators.jl	1129	1129	call_composed	call_composed(fs::Tuple{Any}, x, kw)	modelled	operators-composed-call,operators-generated-operators-binary-fold	Reviewed line by line against pinned f755f49 source.
+base/operators.jl	1132	1132	(::Constructor{F})	(::Constructor{F})(args...; kw...) where {F}	modelled	operators-constructor-call-forwarding	Source-mirrored model JuliaLean.base.operators.constructorCall; reviewed against Julia f755f49.
+base/operators.jl	1133	1133	maybeconstructor	maybeconstructor(::Type{F}) where {F}	modelled	operators-constructor-type-adaptation	Source-mirrored model JuliaLean.base.operators.maybeConstructorType; reviewed against Julia f755f49.
+base/operators.jl	1134	1134	maybeconstructor	maybeconstructor(f)	modelled	operators-maybeconstructor-value-identity	Source-mirrored model JuliaLean.base.operators.maybeConstructorValue; reviewed against Julia f755f49.
+base/operators.jl	1136	1136	∘	∘(f)	modelled	operators-compose-one-identity	Source-mirrored model JuliaLean.base.operators.composeOne; reviewed against Julia f755f49.
+base/operators.jl	1137	1137	∘	∘(f, g)	modelled	operators-compose-two-forwarding	Source-mirrored model JuliaLean.base.operators.Models2Group15.composeTwo; reviewed against Julia f755f49.
+base/operators.jl	1138	1138	∘	∘(f, g, h...)	modelled	operators-nary-composition-tail	Source-mirrored model JuliaLean.base.operators.composeMany; reviewed against Julia f755f49.
+base/operators.jl	1140	1144	show	show(io::IO, c::ComposedFunction)	modelled	operators-adapter-display,operators-generated-operators-binary-fold	Reviewed line by line against pinned f755f49 source.
+base/operators.jl	1147	1150	show	show(io::IO, c::ComposedFunction{typeof(!)})	modelled	operators-show-negated-io	Source-mirrored model JuliaLean.base.operators.Models2Group15.showNegatedComposed; reviewed against Julia f755f49.
+base/operators.jl	1152	1152	_showcomposed	_showcomposed(io::IO, x)	modelled	operators-showcomposed-fallback-forwarding	Source-mirrored model JuliaLean.base.operators.Models2Group15.showComposedDefault; reviewed against Julia f755f49.
+base/operators.jl	1154	1154	_showcomposed	_showcomposed(io::IO, f::Function)	modelled	operators-adapter-display,operators-generated-operators-binary-fold	Reviewed line by line against pinned f755f49 source.
+base/operators.jl	1156	1156	_showcomposed	_showcomposed(io::IO, f::ComposedFunction)	modelled	operators-show-nested-io	Source-mirrored model JuliaLean.base.operators.Models2Group15.showNestedComposed; reviewed against Julia f755f49.
+base/operators.jl	1158	1158	_showcomposed	_showcomposed(io::IO, f::ComposedFunction{typeof(!)})	modelled	operators-show-nested-negated-forwarding	Source-mirrored model JuliaLean.base.operators.Models2Group15.showNestedNegatedComposed; reviewed against Julia f755f49.
+base/operators.jl	1182	1182	!	!(f::Function)	modelled	operators-negate-function-forwarding	Source-mirrored model JuliaLean.base.operators.Models2Group15.negateFunction; reviewed against Julia f755f49.
+base/operators.jl	1183	1183	!	!(f::ComposedFunction{typeof(!)})	modelled	operators-double-negation-identity	Source-mirrored model JuliaLean.base.operators.doubleNegatedComposition; reviewed against Julia f755f49.
+base/operators.jl	1206	1213	Fix{N}	Fix{N}(f::F, x) where {N,F}	modelled	operators-fix-call-position,operators-fix-constructor-errors,operators-generated-operators-binary-fold	Reviewed line by line against pinned f755f49 source.
+base/operators.jl	1216	1220	(f::Fix{N})	(f::Fix{N})(args::Vararg{Any,M}; kws...) where {N,M}	modelled	operators-fix-call-position,operators-fix-special-calls,operators-fix-constructor-errors	Reviewed line by line against pinned f755f49 source.
+base/operators.jl	1223	1223	(f::Fix{1})	(f::Fix{1})(arg; kws...)	modelled	operators-fix-special-calls,operators-generated-operators-binary-fold	Reviewed line by line against pinned f755f49 source.
+base/operators.jl	1224	1224	(f::Fix{2})	(f::Fix{2})(arg; kws...)	modelled	operators-fix2-argument-order,operators-fix-special-calls,operators-membership-dispatch	Reviewed line by line against pinned f755f49 source.
+base/operators.jl	1226	1237	Base.show	Base.show(io::IO, fix::Fix{N}) where {N}	modelled	operators-adapter-display,operators-generated-operators-binary-fold	Reviewed line by line against pinned f755f49 source.
+base/operators.jl	1259	1259	isequal	isequal(x)	modelled	operators-fix2-argument-order,operators-generated-operators-binary-fold	Reviewed line by line against pinned f755f49 source.
+base/operators.jl	1270	1270	==	==(x)	modelled	operators-fix2-argument-order,operators-membership-dispatch,operators-membership-wrappers	Reviewed line by line against pinned f755f49 source.
+base/operators.jl	1283	1283	!=	!=(x)	modelled	operators-fix2-argument-order,operators-generated-operators-binary-fold	Reviewed line by line against pinned f755f49 source.
+base/operators.jl	1296	1296	>=	>=(x)	modelled	operators-fix2-argument-order,operators-generated-operators-binary-fold	Reviewed line by line against pinned f755f49 source.
+base/operators.jl	1309	1309	<=	<=(x)	modelled	operators-fix2-argument-order,operators-generated-operators-binary-fold	Reviewed line by line against pinned f755f49 source.
+base/operators.jl	1322	1322	>	>(x)	modelled	operators-fix2-argument-order,operators-generated-operators-binary-fold	Reviewed line by line against pinned f755f49 source.
+base/operators.jl	1335	1335	<	<(x)	modelled	operators-fix2-argument-order,operators-generated-operators-binary-fold	Reviewed line by line against pinned f755f49 source.
+base/operators.jl	1366	1366	splat	splat(f)	modelled	operators-fix2-argument-order,operators-splat-roundtrip,operators-unsplat-call	Reviewed line by line against pinned f755f49 source.
+base/operators.jl	1384	1384	Splat	Splat(f)	modelled	operators-fix2-argument-order,operators-splat-roundtrip,operators-unsplat-call	Reviewed line by line against pinned f755f49 source.
+base/operators.jl	1386	1386	(s::Splat)	(s::Splat)(args)	modelled	operators-splat-roundtrip,operators-unsplat-call,operators-splat-composed-tuple	Reviewed line by line against pinned f755f49 source.
+base/operators.jl	1387	1387	show	show(io::IO, s::Splat)	modelled	operators-adapter-display,operators-generated-operators-binary-fold	Reviewed line by line against pinned f755f49 source.
+base/operators.jl	1415	1415	unsplat	unsplat(f)	modelled	operators-splat-roundtrip,operators-unsplat-call,operators-splat-composed-tuple	Reviewed line by line against pinned f755f49 source.
+base/operators.jl	1416	1416	unsplat	unsplat(s::Splat)	modelled	operators-splat-roundtrip,operators-unsplat-call,operators-splat-composed-tuple	Reviewed line by line against pinned f755f49 source.
+base/operators.jl	1417	1417	splat	splat(f::ComposedFunction{<:Any,typeof(tuple)})	modelled	operators-splat-composed-tuple,operators-splat-roundtrip	Source-mirrored model JuliaLean.base.operators.splatComposed; reviewed against Julia f755f49.
+base/operators.jl	1438	1438	tap	tap(f)	modelled	operators-splat-roundtrip,operators-unsplat-call,operators-splat-composed-tuple	Reviewed line by line against pinned f755f49 source.
 base/operators.jl	1453	1453	in	in(x)	modelled	operators-membership-partials	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
 base/operators.jl	1455	1455	in	in(x, itr::Any)	modelled	operators-membership-dispatch	row-specific exact mirror and quantified behavior; awaiting fixed-prompt review
 base/operators.jl	1459	1459	in	in(x, itr::Tuple)	modelled	operators-membership-dispatch	

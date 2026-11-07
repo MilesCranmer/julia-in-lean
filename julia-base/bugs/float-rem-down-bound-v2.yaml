@@ -1,0 +1,55 @@
+id: float-rem-down-bound-v2
+title: "RoundDown rem can equal its positive divisor despite the documented strict bound"
+priority: P3
+kind: documentation
+area: Div
+files:
+  - base/div.jl
+  - base/int.jl
+functions:
+  - "rem(::Float64,::Float64,RoundDown)"
+summary: |
+  For x = -nextfloat(0.0) and y = 1.0, rem(x, y, RoundDown) rounds to 1.0. The documented strict upper bound does not hold for these Float64 values. This contradicts the rem interval wording while agreeing with the documented floating mod exception.
+likelihood: |
+  Tiny negative inputs reduced modulo a much larger positive divisor can reach the upper endpoint. Callers relying on a half-open interval can receive the excluded endpoint.
+maybe_intended: |
+  Floating mod explicitly permits rounding to y. The numerical result is intended; the strict rem interval needs the same exception.
+reproducer: |
+  x, y = -nextfloat(0.0), 1.0
+  r = rem(x, y, RoundDown)
+  @assert r == y && !(0 <= r < y)
+  println("REPRODUCED float-rem-down-bound-v2")
+output:
+  release: |
+    REPRODUCED float-rem-down-bound-v2
+  nightly: |
+    REPRODUCED float-rem-down-bound-v2
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  Document the rounded-endpoint exception in the rem RoundDown interval. The strict bound cannot hold for this input.
+promised_by: |
+  base/div.jl:95-97: "if `r == RoundDown`, then the result is in the interval ``[0, |y|)`` if `y` is positive, or ``(-|y|, 0]`` otherwise." The next sentence permits inexactness without explicitly admitting the endpoint. base/int.jl:304-306 says a floating mod result close to y "may be rounded to `y`."
+  All source references are pinned to Julia commit f755f49a9e41380d7da126b3c1db9fe7f83dd027.
+  https://github.com/JuliaLang/julia/blob/f755f49a9e41380d7da126b3c1db9fe7f83dd027/base/div.jl
+cause: |
+  base/div.jl:128 delegates RoundDown rem to mod. Floating mod adds the positive divisor to the negative truncated remainder; nearest-even rounding returns 1.0. The rem interval omits the endpoint exception.
+possible_fix: |
+  Copy the existing floating mod rounding exception into the rem interval documentation.
+duplicates:
+  issues: []
+  prs:
+    - number: 8831
+      state: closed
+      relation: related
+  queries:
+    - "issues: rem RoundDown"
+    - "prs: rem RoundDown"
+    - "issues: mod rounding divisor"
+    - "prs: mod rounding divisor"
+    - "issues: mod eps"
+    - "prs: mod eps"
+lean:
+  property: JuliaLean.Proofs.base.div.Round1.RoundDownIEEEFloatRemainderBound
+  theorem: JuliaLean.ChatGPT.Batch4.Group17.FloatRemDownBoundV2_refuted

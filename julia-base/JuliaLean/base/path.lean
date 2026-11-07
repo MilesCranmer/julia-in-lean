@@ -1,23 +1,36 @@
 import JuliaLean.Core
-import JuliaLean.Strings.Basic
+import JuliaLean.Runtime.Strings
 import JuliaLean.base.strings.basic
 import JuliaLean.base.strings.string
 import JuliaLean.Registry.Types
+import JuliaLean.base.strings.unicode
+import JuliaLean.base.strings.io
+import JuliaLean.base.file
+import JuliaLean.base.osinfo
+import JuliaLean.base.iterators
+import JuliaLean.base.strings.util
+import JuliaLean.base.strings.substring
+import JuliaLean.base.cmem
+import JuliaLean.base.essentials
 
 /-!
 # Model of `base/path.jl`
 
-Path strings are the existing UTF-8 code-unit model `JStr`. `StringOps.fromBytes`, case mapping,
-and username classification are the typed string operations supplied by `base/strings`; filesystem
-operations are typed inputs because their definitions live outside this file. `Platform` is an
-explicit parameter so both Unix and Windows source branches are represented in one model.
+Path values retain raw code units. String decoding, Unicode case mapping and
+username predicates call installed models; StringOps is the existing utf8proc C interface.
+StringVector ownership/allocation and URI assembly remain named gaps. Platform selection calls
+installed Sys predicates. Working-directory calls retain filesystem mutations and exceptions.
 -/
 
 namespace JuliaLean.base.path
 
 open JuliaLean
 
-abbrev Path := JuliaLean.Strings.JStr
+abbrev Bytes := List UInt8
+
+structure Path where
+  bytes : Bytes
+  deriving DecidableEq, Repr
 
 inductive Platform where
   | unix
@@ -28,29 +41,231 @@ inductive PathError where
   | argumentError (message : String)
   | ioError (message : String)
   | methodError (message : String)
-  deriving DecidableEq, Repr
+  | system (error : JlError)
+  | errorException (message : String)
+  | unicode (error : JuliaLean.base.strings.unicode.UnicodeError)
+  | filesystem (error : JuliaLean.base.io.Error)
+  | string (error : JuliaLean.Strings.SErr)
+  /-- `TypeError(:typeassert, "", String, got)`, retaining the offending value's identity. -/
+  | stringTypeError (got : Nat)
+  /-- An arbitrary value thrown by a user method, identified in the supplied world. -/
+  | thrownValue (valueId : Nat)
 
-/-- String operations used by `base/path.jl`; `fromBytes`, case mapping and Unicode predicates
-are supplied by the corresponding string models. -/
-structure StringOps where
-  fromBytes : List UInt8 → Path
-  fromBytesBytes : ∀ bytes, (fromBytes bytes).bytes = bytes
-  lowercase : Path → Path
-  uppercase : Path → Path
-  validUsername : Path → Bool
+/-- A constructor result is classified by its runtime String type; other values retain
+their identity in the supplied world. -/
+inductive StringConversionResult where
+  | string (path : Path)
+  | other (valueId : Nat)
 
-/-- Filesystem operations used by path methods. `pwd` returns an absolute current directory;
-`homedir` returns the current user's home; user lookup returns `none` for an unknown user;
+abbrev StringOps := JuliaLean.base.strings.unicode.Utf8proc
+
+namespace PathBinding
+
+
+/-- The byte view uses the installed String iterator, including malformed encoded Chars. -/
+def byteView (path : Path) : JuliaLean.base.strings.string.StringView (List UInt8) := ⟨path.bytes⟩
+
+def decodeDataLoop (view : JuliaLean.base.strings.string.StringView (List UInt8)) :
+    Nat → JuliaLean.base.strings.basic.Index → List JuliaLean.base.strings.basic.Index × List UInt32
+  | 0, _ => ([], [])
+  | fuel + 1, i =>
+      match JuliaLean.base.strings.string.stringViewIterate view i with
+      | none => ([], [])
+      | some (c, next) =>
+          let (starts, chars) := decodeDataLoop view fuel next
+          (i :: starts, c :: chars)
+
+def stringData (path : Path) : JuliaLean.base.strings.basic.StringData :=
+  let (starts, chars) := decodeDataLoop (byteView path) (path.bytes.length + 1) (JuliaLean.base.strings.basic.int 1)
+  ⟨path.bytes, starts, chars⟩
+
+/-- A content projection only; this does not model StringVector ownership transfer. -/
+def pathOfData (data : JuliaLean.base.strings.basic.StringData) : Path := ⟨data.bytes⟩
+
+def unicodeStringOps : JuliaLean.base.strings.basic.StringOps JuliaLean.base.strings.basic.StringData JuliaLean.base.strings.basic.StringData UInt32 UInt8 Unit JuliaLean.base.strings.unicode.UnicodeError :=
+  let ops := JuliaLean.base.strings.basic.stringDataOps
+  { ncodeunits := ops.ncodeunits
+    codeunitType := ops.codeunitType
+    codeunitSize := ops.codeunitSize
+    codeunit := fun s i => (ops.codeunit s i).mapError JuliaLean.base.strings.unicode.UnicodeError.jl
+    isvalid := fun s i => (ops.isvalid s i).mapError JuliaLean.base.strings.unicode.UnicodeError.jl
+    iterateFirst := fun s => (ops.iterateFirst s).mapError JuliaLean.base.strings.unicode.UnicodeError.jl
+    iterateAt := fun s i => (ops.iterateAt s i).mapError JuliaLean.base.strings.unicode.UnicodeError.jl
+    iterationBound := ops.iterationBound
+    thisind := fun s i => (ops.thisind s i).mapError JuliaLean.base.strings.unicode.UnicodeError.jl
+    prevind := fun s i n => (ops.prevind s i n).mapError JuliaLean.base.strings.unicode.UnicodeError.jl
+    nextind := fun s i n => (ops.nextind s i n).mapError JuliaLean.base.strings.unicode.UnicodeError.jl
+    lastindex := fun s => (ops.lastindex s).mapError JuliaLean.base.strings.unicode.UnicodeError.jl
+    getindexSlice := fun s i j => (ops.getindexSlice s i j).mapError JuliaLean.base.strings.unicode.UnicodeError.jl
+    checkbounds := fun s i => (ops.checkbounds s i).mapError JuliaLean.base.strings.unicode.UnicodeError.jl
+    checkboundsBool := fun s i => (ops.checkboundsBool s i).mapError JuliaLean.base.strings.unicode.UnicodeError.jl
+    boundsError := fun s i => .jl (ops.boundsError s i)
+    stringIndexError := fun s i => .jl (ops.stringIndexError s i)
+    methodError := fun name => .jl (ops.methodError name)
+    argumentError := fun message => .jl (ops.argumentError message)
+    tupleTypeError := .jl ops.tupleTypeError
+    isBoundsError := fun error => match error with | .jl error => ops.isBoundsError error | _ => false
+    characters := fun s => (ops.characters s).mapError JuliaLean.base.strings.unicode.UnicodeError.jl
+    sameReference := ops.sameReference
+    equalChar := ops.equalChar
+    lessChar := ops.lessChar }
+
+def unicodeIterate (s : JuliaLean.base.strings.basic.StringData) : JuliaLean.base.strings.basic.IterSteps UInt32 JuliaLean.base.strings.basic.Index JuliaLean.base.strings.unicode.UnicodeError :=
+  JuliaLean.base.strings.basic.iterStepsOfList (JuliaLean.base.strings.basic.int 1) s.chars
+
+def charsToPath (chars : List UInt32) : Path :=
+  ⟨chars.flatMap JuliaLean.base.strings.io.charUtf8Bytes⟩
+
+def memcmpBytes (left right : Path) (count : JuliaLean.JInt64) : Int :=
+  let rightBase := left.bytes.length + 1
+  let memory : JuliaLean.base.pointer.ByteHeap := {
+    byteAt := fun address => JInt.wrap .u8 (Int.ofNat
+      (if address < rightBase then left.bytes.getD address 0
+       else right.bytes.getD (address - rightBase) 0).toNat)
+    validByte := fun address => decide
+      (address < left.bytes.length ∨
+        rightBase ≤ address ∧ address < rightBase + right.bytes.length) }
+  (JuliaLean.base.cmem.StandardC.cMemcmp memory 0 rightBase count.val.toNat).val
+
+def denseOps : JuliaLean.base.strings.util.DenseStringOps Path PathError where
+  Ptr := Path × JuliaLean.JInt64
+  pointer := fun path index => .ok (path, index)
+  ncodeunits := fun path => JuliaLean.base.strings.string.stringViewNcodeunits (byteView path)
+  sizeof := fun path => JuliaLean.base.strings.string.stringViewNcodeunits (byteView path)
+  memcmp := fun left right count => .ok (memcmpBytes left right count)
+  memcmpPointer := fun (path, first) right count =>
+    .ok (memcmpBytes ⟨path.bytes.drop (first.val - 1).toNat⟩ right count)
+  nextind := fun path index =>
+    (JuliaLean.base.strings.string.nextindStr
+      JuliaLean.base.strings.string.stringViewNcodeunits
+      JuliaLean.base.strings.string.stringBetweenIndex
+      JuliaLean.base.strings.string.stringBetweenByte
+      JuliaLean.base.strings.string.stringViewCodeunitAt
+      (byteView path) index).mapError PathError.string
+  thisind := fun path index =>
+    (JuliaLean.base.strings.string.stringViewThisind (byteView path) index).mapError PathError.string
+
+def pathOfSubString (value : JuliaLean.base.strings.substring.SubString Path) :
+    Except PathError Path :=
+  JuliaLean.base.strings.substring.stringFromSubString {
+    pointer := fun _ index => index
+    unsafeString := fun parent first count =>
+      .ok ⟨(parent.bytes.drop (first.val - 1).toNat).take count.val.toNat⟩ } value
+
+end PathBinding
+
+namespace StringOps
+
+def fromBytes (_ : StringOps) (bytes : List UInt8) : Path :=
+  ⟨bytes⟩
+
+def startswith (_ : StringOps) (path pref : Path) : Except PathError Bool :=
+  JuliaLean.base.strings.util.startswithFast PathBinding.denseOps (fun value => value) path pref
+
+def lowercase (ops : StringOps) (path : Path) : Except PathError Path := do
+  let chars ← (JuliaLean.base.strings.unicode.lowercaseAbstractString
+    PathBinding.unicodeStringOps PathBinding.unicodeIterate
+    (JuliaLean.base.strings.basic.charListBuilder)
+    JuliaLean.base.strings.unicode.charOps ops (PathBinding.stringData path)).mapError PathError.unicode
+  return PathBinding.charsToPath chars
+
+def uppercase (ops : StringOps) (path : Path) : Except PathError Path := do
+  let chars ← (JuliaLean.base.strings.unicode.uppercaseAbstractString
+    PathBinding.unicodeStringOps PathBinding.unicodeIterate
+    (JuliaLean.base.strings.basic.charListBuilder)
+    JuliaLean.base.strings.unicode.charOps ops (PathBinding.stringData path)).mapError PathError.unicode
+  return PathBinding.charsToPath chars
+
+def validUsername (ops : StringOps) (path : Path) : Except PathError Bool := do
+  for c in (PathBinding.stringData path).chars do
+    let letter ← (JuliaLean.base.strings.unicode.isletter
+      JuliaLean.base.strings.unicode.charOps ops c).mapError PathError.unicode
+    unless letter || JuliaLean.base.strings.unicode.isdigit JuliaLean.base.strings.unicode.charOps c ||
+        c == 0x2e000000 || c == 0x5f000000 || c == 0x2d000000 do return false
+  return true
+
+end StringOps
+
+/-- Packages the installed filesystem interface without adding a current-directory callback. -/
+structure FileBindings (World : Type) where
+  Handle : Type
+  CString : Type
+  StatMemory : Type
+  IOBuf : Type
+  User : Type
+  Group : Type
+  Req : Type
+  StrBuf : Type
+  SizeRef : Type
+  Dirent : Type
+  Stream : Type
+  WString : Type
+  Chan : Type
+  Cmd : Type
+  Pipe : Type
+  IterObj : Type
+  DirPtr : Type
+  DiskBuf : Type
+  DiskStatRaw : Type
+  PathVal : Type
+  ops : JuliaLean.base.file.FileOps World Handle CString StatMemory IOBuf User Group Req
+    StrBuf SizeRef Dirent Stream WString Chan Cmd Pipe IterObj DirPtr DiskBuf DiskStatRaw PathVal
+
+abbrev M (World : Type) (A : Type) :=
+  JuliaLean.base.iterators.Exec PathError World A
+
+instance {World : Type} : MonadExceptOf PathError (M World) where
+  throw error := fun world => some (.error error, world)
+  tryCatch action handler := fun world => do
+    let (result, world) ← action world
+    match result with
+    | .ok value => some (.ok value, world)
+    | .error error => handler error world
+
+def liftPath {World A : Type} (result : Except PathError A) : M World A :=
+  match result with | .ok value => pure value | .error error => throw error
+
+instance {World : Type} : MonadLift (Except PathError) (M World) where
+  monadLift := liftPath
+
+/-- The explicit `String(x)::String` check at path.jl:393,896,959.
+The type branch follows src/builtins.c:710-716; src/rtutils.c:113-121,138-140
+stores `(:typeassert, "", String, got)` in the TypeError. -/
+def checkedString {m : Type → Type} [Monad m] [MonadExceptOf PathError m] {S : Type}
+    (convert : S → m StringConversionResult) (value : S) : m Path := do
+  match ← convert value with
+  | .string path => pure path
+  | .other got => throw (.stringTypeError got)
+
+def liftFile {World A : Type} (action : JuliaLean.base.io.M World A) : M World A :=
+  fun world => do
+    match ← action world with
+    | .ok (value, world) => some (.ok value, world)
+    | .error (error, world) => some (.error (.filesystem error), world)
+
+def selectedPlatform (built : JuliaLean.base.osinfo.CachedPredicates) : Except PathError Platform :=
+  if JuliaLean.base.osinfo.isunixDefault built then .ok .unix
+  else if JuliaLean.base.osinfo.iswindowsDefault built then .ok .windows
+  else .error (.errorException "path primitives for this OS need to be defined")
+
+def platformForKernel (kernel : String) : Except PathError Platform := do
+  selectedPlatform (← (JuliaLean.base.osinfo.buildPredicates kernel).mapError PathError.system)
+
+variable {World Handle CString StatMemory IOBuf User Group Req StrBuf SizeRef Dirent Stream WString
+  Chan Cmd Pipe IterObj DirPtr DiskBuf DiskStatRaw PathVal : Type}
+variable (files : JuliaLean.base.file.FileOps World Handle CString StatMemory IOBuf User Group Req
+  StrBuf SizeRef Dirent Stream WString Chan Cmd Pipe IterObj DirPtr DiskBuf DiskStatRaw PathVal)
+
+/-- Filesystem operations used by path methods. `homedir` returns the current user's home;
+user lookup returns `none` for an unknown user;
 `realpath` returns the existing path with symbolic links and dot components resolved, preserving
 filesystem case where the filesystem does; `readlink` returns a link target; `ispath` and `isdir`
 report current filesystem facts. -/
 inductive LongPathReply where
   | failure (error : PathError)
   | result (length : Nat) (path : Path)
-  deriving Repr
 
 structure FileSystemOps where
-  pwd : Unit → Path
   homedir : Unit → Except PathError Path
   homedirUser : Path → Option Path
   currentUser : Unit → Option Path
@@ -65,8 +280,6 @@ structure FileSystemOps where
   username : Nat → Option Path
   wideLength : Path → Nat
   longPathReplies : Path → List LongPathReply
-
-abbrev Bytes := List UInt8
 
 def slash : UInt8 := 47
 def backslash : UInt8 := 92
@@ -197,7 +410,7 @@ def splitLongunc (os : Platform) (ops : StringOps) (s : Path) : Path × Path := 
       isSep os (b[3]!) && b[4]! == 85 && b[5]! == 78 && b[6]! == 67 && isSep os (b[7]!) then
     match findAtOrAfter (isSep os) b 8 with
     | some i =>
-      if i ≥ 9 && b.length > i && !isSep os (b[i + 1]!) then
+      if i ≥ 9 && b.length > i + 1 && !isSep os (b[i + 1]?.getD default) then
         let j := (findAtOrAfter (isSep os) b (i + 1)).getD b.length
         return (ops.fromBytes (b.take j), ops.fromBytes (b.drop j))
       else return (emptyPath ops, s)
@@ -268,7 +481,7 @@ def splitUncpath (os : Platform) (ops : StringOps) (s : Path) : Path × Path := 
   if b.length ≥ 5 && isSep os (b[0]!) && isSep os (b[1]!) then
     match findAtOrAfter (isSep os) b 2 with
     | some i =>
-      if i ≥ 3 && b.length > i && !isSep os (b[i + 1]!) then
+      if i ≥ 3 && b.length > i + 1 && !isSep os (b[i + 1]?.getD default) then
         let j := (findAtOrAfter (isSep os) b (i + 1)).getD b.length
         return (ops.fromBytes (b.take j), ops.fromBytes (b.drop j))
       else return (emptyPath ops, s)
@@ -394,17 +607,17 @@ false
 isabspath(path::AbstractString)
 ````
 -/
-def isabspath (os : Platform) (path : Path) : Bool := Id.run do
-  let b := path.bytes
-  if b.isEmpty then return false
-  if isSep os b[0]! then return true
-  if os == .windows then
-    match findAtOrAfter (isSep os) b 0 with
+def isabspath (os : Platform) (path : Path) : Bool :=
+  if path.bytes.isEmpty then false
+  else if isSep os path.bytes[0]! then true
+  else if os == .windows then
+    match findAtOrAfter (isSep os) path.bytes 0 with
     | some firstsep =>
-      if firstsep ≥ 2 && b[firstsep - 1]! == colon then
-        return (b.take (firstsep - 1)).all isdriveletter
-    | none => pure ()
-  return false
+      if firstsep ≥ 2 && path.bytes[firstsep - 1]! == colon then
+        (path.bytes.take (firstsep - 1)).all isdriveletter
+      else false
+    | none => false
+  else false
 
 
 
@@ -639,8 +852,12 @@ def splitpath (os : Platform) (ops : StringOps) (p : Path) : List Path := Id.run
 
 inductive PathValue where
   | string (value : Path)
-  | nonString
-  deriving DecidableEq, Repr
+  | nonString (representation : Except PathError String)
+
+def invalidPathComponent {α : Type} (representation : Except PathError String) :
+    Except PathError α := do
+  let rendered ← representation
+  throw (.argumentError ("path component is not a string: " ++ rendered))
 
 /--
 Julia source: base/path.jl:416-416 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -655,11 +872,11 @@ Julia source: base/path.jl:466-466 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 -/
 def assertstring : PathValue → Except PathError Bool
   | .string _ => .ok true
-  | .nonString => .error (.argumentError "path component is not a string")
+  | .nonString representation => invalidPathComponent representation
 
 def pathValueString : PathValue → Except PathError Path
   | .string value => .ok value
-  | .nonString => .error (.argumentError "path component is not a string")
+  | .nonString representation => invalidPathComponent representation
 
 def joinStep (os : Platform) (ops : StringOps) (path p : Path) : Path :=
   if isabspath os p then p
@@ -674,16 +891,17 @@ def joinWindowsLoop (ops : StringOps) : List PathValue → Path → Path → Pat
       let (pDrive, pPath) := splitdrive .windows ops p
       if !pPath.bytes.isEmpty && isSep .windows pPath.bytes.head! then
         let resultDrive := if !pDrive.bytes.isEmpty || !resultDrive.bytes.isEmpty then pDrive else resultDrive
-        joinWindowsLoop ops rest resultDrive pPath pPath
-      else if !pDrive.bytes.isEmpty && pDrive.bytes != resultDrive.bytes &&
-          (ops.lowercase pDrive).bytes != (ops.lowercase resultDrive).bytes then
-        joinWindowsLoop ops rest pDrive pPath pPath
-      else
-        let resultPath :=
-          if !resultPath.bytes.isEmpty && !isSep .windows resultPath.bytes.getLast! then
-            appendPath ops resultPath (ops.fromBytes [backslash])
-          else resultPath
-        joinWindowsLoop ops rest resultDrive (appendPath ops resultPath pPath) pPath
+        return (← joinWindowsLoop ops rest resultDrive pPath pPath)
+      if !pDrive.bytes.isEmpty && pDrive.bytes != resultDrive.bytes then
+        let pLower ← ops.lowercase pDrive
+        let resultLower ← ops.lowercase resultDrive
+        if pLower.bytes != resultLower.bytes then
+          return (← joinWindowsLoop ops rest pDrive pPath pPath)
+      let resultPath :=
+        if !resultPath.bytes.isEmpty && !isSep .windows resultPath.bytes.getLast! then
+          appendPath ops resultPath (ops.fromBytes [backslash])
+        else resultPath
+      joinWindowsLoop ops rest resultDrive (appendPath ops resultPath pPath) pPath
 
 def joinUnixLoop (ops : StringOps) : List PathValue → Path → Except PathError Path
   | [], path => .ok path
@@ -858,10 +1076,20 @@ function _split_at_separators(path::AbstractString; keepempty = true)
 end
 ```
 -/
-def splitAtSeparators (os : Platform) (ops : StringOps) (path : Path) (keepempty : Bool := true) : List Path :=
-  let runs := splitRuns os path.bytes
-  let runs := if keepempty then runs else runs.filter (· ≠ [])
-  runs.map ops.fromBytes
+def splitAtSeparators (os : Platform) (ops : StringOps) (path : Path) (keepempty : Bool := true) : List Path := Id.run do
+  let mut out : Array Path := #[]
+  let mut start := 0
+  while true do
+    let nextsep := findAtOrAfter (isSep os) path.bytes start
+    let stop := nextsep.getD path.bytes.length
+    let substr := ops.fromBytes ((path.bytes.take stop).drop start)
+    if keepempty || !substr.bytes.isEmpty then
+      out := out.push substr
+    match nextsep with
+    | none => break
+    | some i =>
+      start := (findAtOrAfter (fun c => !isSep os c) path.bytes (i + 1)).getD path.bytes.length
+  return out.toList
 
 def dotdot : Bytes := [dot, dot]
 
@@ -883,6 +1111,31 @@ def joinSep (os : Platform) : List Bytes → Bytes
   | [a] => a
   | a :: rest => a ++ separator os :: joinSep os rest
 
+/--
+Julia source: base/path.jl:241-260 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+````julia
+"""
+    isdirpath(path::AbstractString)::Bool
+
+Determine whether a path refers to a directory (for example, ends with a path separator).
+
+# Examples
+```jldoctest
+julia> isdirpath("/home")
+false
+
+julia> isdirpath("/home/")
+true
+```
+"""
+function isdirpath(path::String)::Bool
+    # Reimplements occursin(r"(?:^|/)\.{0,2}$"sa, splitdrive(path)[2])
+
+    _, after_last_separator = _splitdir_nodrive("", splitdrive(path)[2])
+    return after_last_separator in ("", ".", "..")
+end
+````
+-/
 def isdirpath (os : Platform) (ops : StringOps) (path : Path) : Bool :=
   let (_, withoutDrive) := splitdrive os ops path
   let (_, tail) := splitdirNoDrive os ops (emptyPath ops) withoutDrive
@@ -966,9 +1219,15 @@ Convert a set of paths to a normalized path by joining them together and removin
 normpath(a::AbstractString, b::AbstractString...) = normpath(joinpath(a,b...))
 ```
 -/
-def normpathMany (os : Platform) (ops : StringOps) (first : Path) (rest : List Path) : Except PathError Path := do
-  let joined ← joinpathStrings os ops (first :: rest)
+def normpathManyWith {m : Type → Type} [Monad m] {S : Type}
+    (joinPaths : List S → m Path) (os : Platform) (ops : StringOps)
+    (first : S) (rest : List S) : m Path := do
+  let joined ← joinPaths (first :: rest)
   return normpath os ops joined
+
+/-- Specialization with the installed String joinpath model. -/
+def normpathMany (os : Platform) (ops : StringOps) (first : Path) (rest : List Path) : Except PathError Path :=
+  normpathManyWith (joinpathStrings os ops) os ops first rest
 
 
 
@@ -1007,20 +1266,21 @@ See also [`joinpath`](@ref), [`pwd`](@ref), [`expanduser`](@ref).
 end
 ```
 -/
-def abspath (os : Platform) (ops : StringOps) (pwd : Unit → Path) (a : Path) : Except PathError Path := do
+def abspath (os : Platform) (ops : StringOps) (a : Path) : M World Path := do
   let a ← if !isabspath os a then do
-    let cwd := pwd ()
+    let cwdString ← liftFile (JuliaLean.base.file.pwd files)
+    let cwd : Path := ⟨cwdString.toUTF8.toList⟩
     let (aDrive, aNoDrive) := splitdrive os ops a
-    if os == .windows && !aDrive.bytes.isEmpty &&
-        (ops.lowercase (splitdrive .windows ops cwd).1).bytes != (ops.lowercase aDrive).bytes then
-      let root := appendPath ops aDrive (ops.fromBytes [separator os])
-      joinpathStrings os ops [root, aNoDrive]
-    else joinpathStrings os ops [cwd, a]
+    if !aDrive.bytes.isEmpty then
+      let cwdDrive ← liftPath (ops.lowercase (splitdrive os ops cwd).1)
+      let aDriveLower ← liftPath (ops.lowercase aDrive)
+      if cwdDrive.bytes != aDriveLower.bytes then
+        let root := appendPath ops aDrive (ops.fromBytes [separator os])
+        liftPath (joinpathStrings os ops [root, aNoDrive])
+      else liftPath (joinpathStrings os ops [cwd, a])
+    else liftPath (joinpathStrings os ops [cwd, a])
   else pure a
   return normpath os ops a
-
-
-
 
 /--
 Julia source: base/path.jl:165-198 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -1246,14 +1506,10 @@ def homedirUsername (os : Platform) (ops : StringOps) (fs : FileSystemOps)
   match current with
   | some name =>
       if (basename .windows ops userhome).bytes == name.bytes then
-        let candidate := joinpathStrings .windows ops [dirname .windows ops userhome, username]
-        match candidate with
-        | .ok home => if fs.isdir home then return some home
-        | .error _ => pure ()
+        let home ← joinpathStrings .windows ops [dirname .windows ops userhome, username]
+        if fs.isdir home then return some home
   | none => pure ()
   return none
-
-
 
 /--
 Julia source: base/path.jl:854-883 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -1299,7 +1555,8 @@ def expanduser (os : Platform) (ops : StringOps) (fs : FileSystemOps) (path : Pa
   let suffix := match sep with | none => [] | some i => rest.drop i
   let username := ops.fromBytes usernameBytes
   let home ← if usernameBytes.isEmpty then fs.homedir ()
-    else if os == .windows || !ops.validUsername username then return path
+    else if os == .windows then return path
+    else if !(← ops.validUsername username) then return path
     else match ← homedirUsername os ops fs username with
       | none => return path
       | some home => pure home
@@ -1307,9 +1564,6 @@ def expanduser (os : Platform) (ops : StringOps) (fs : FileSystemOps) (path : Pa
     replaceSeparators os home.bytes suffix.head!
     else home.bytes
   return ops.fromBytes (homeBytes ++ suffix)
-
-
-
 
 def commonLen : List Bytes → List Bytes → Nat
   | a :: as, b :: bs => if a == b then commonLen as bs + 1 else 0
@@ -1371,8 +1625,8 @@ function relpath(path::String, startpath::String = ".")
 end
 ```
 -/
-def relpath (os : Platform) (ops : StringOps) (pwd : Unit → Path)
-    (path : Path) (startpath : Path := ops.fromBytes [dot]) : Except PathError Path := do
+def relpath (os : Platform) (ops : StringOps) 
+    (path : Path) (startpath : Path := ops.fromBytes [dot]) : M World Path := do
   if path.bytes.isEmpty then throw (.argumentError "`path` must be non-empty")
   if startpath.bytes.isEmpty then throw (.argumentError "`startpath` must be non-empty")
   if path.bytes == startpath.bytes then return ops.fromBytes [dot]
@@ -1380,20 +1634,22 @@ def relpath (os : Platform) (ops : StringOps) (pwd : Unit → Path)
     let (pathDrive, pathWithoutDrive) := splitdrive .windows ops path
     let (originalStartDrive, startWithoutDrive) := splitdrive .windows ops startpath
     let startDrive := if originalStartDrive.bytes.isEmpty then pathDrive else originalStartDrive
-    if (ops.uppercase pathDrive).bytes != (ops.uppercase startDrive).bytes then
+    let pathUpper ← liftPath (ops.uppercase pathDrive)
+    let startUpper ← liftPath (ops.uppercase startDrive)
+    if pathUpper.bytes != startUpper.bytes then
       pure none
     else
       let drivePath := appendPath ops pathDrive pathWithoutDrive
       let driveStart := appendPath ops pathDrive startWithoutDrive
-      let absolutePath ← abspath .windows ops pwd drivePath
-      let absoluteStart ← abspath .windows ops pwd driveStart
+      let absolutePath ← abspath files .windows ops drivePath
+      let absoluteStart ← abspath files .windows ops driveStart
       pure (some (splitPathArrays .windows ops absolutePath absoluteStart))
   else do
-    let absolutePath ← abspath .unix ops pwd path
-    let absoluteStart ← abspath .unix ops pwd startpath
+    let absolutePath ← abspath files .unix ops path
+    let absoluteStart ← abspath files .unix ops startpath
     pure (some (splitPathArrays .unix ops absolutePath absoluteStart))
   match pathArrays with
-  | none => return (← abspath .windows ops pwd path)
+  | none => return (← abspath files .windows ops path)
   | some (pathArr, startArr) =>
       let pathBytesList := pathArr.map (·.bytes)
       let startBytesList := startArr.map (·.bytes)
@@ -1420,10 +1676,15 @@ current directory if necessary. Equivalent to `abspath(joinpath(path, paths...))
 abspath(a::AbstractString, b::AbstractString...) = abspath(joinpath(a,b...))
 ```
 -/
-def abspathMany (os : Platform) (ops : StringOps) (pwd : Unit → Path)
-    (first : Path) (rest : List Path) : Except PathError Path := do
-  let joined ← joinpathStrings os ops (first :: rest)
-  abspath os ops pwd joined
+def abspathManyWith {S : Type} (joinPaths : List S → M World Path)
+    (os : Platform) (ops : StringOps) (first : S) (rest : List S) : M World Path := do
+  let joined ← joinPaths (first :: rest)
+  abspath files os ops joined
+
+/-- Specialization with the installed String joinpath model. -/
+def abspathMany (os : Platform) (ops : StringOps) 
+    (first : Path) (rest : List Path) : M World Path :=
+  abspathManyWith files (fun paths => liftPath (joinpathStrings os ops paths)) os ops first rest
 
 /--
 Julia source: base/path.jl:885-896 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -1442,9 +1703,17 @@ See also: [`contractuser`](@ref).
 expanduser(path::AbstractString) = expanduser(String(path)::String)
 ```
 -/
+def expanduserAbstractWith {m : Type → Type} [Monad m] [MonadExceptOf PathError m]
+    [MonadLiftT (Except PathError) m]
+    {S : Type} (toString : S → m StringConversionResult) (os : Platform) (ops : StringOps)
+    (fs : FileSystemOps) (path : S) : m Path := do
+  let converted ← checkedString toString path
+  monadLift (expanduser os ops fs converted)
+
+/-- Pure-conversion specialization of the AbstractString method. -/
 def expanduserAbstract {S : Type} (toString : S → Path) (os : Platform) (ops : StringOps)
     (fs : FileSystemOps) (path : S) : Except PathError Path :=
-  expanduser os ops fs (toString path)
+  expanduserAbstractWith (fun value => pure (.string (toString value))) os ops fs path
 
 /--
 Julia source: base/path.jl:958-959 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -1453,9 +1722,18 @@ relpath(path::AbstractString, startpath::AbstractString) =
     relpath(String(path)::String, String(startpath)::String)
 ```
 -/
+def relpathAbstractWith {S T : Type} (toPath : S → M World StringConversionResult)
+    (toStart : T → M World StringConversionResult) (os : Platform) (ops : StringOps)
+    (path : S) (startpath : T) : M World Path := do
+  let convertedPath ← checkedString toPath path
+  let convertedStart ← checkedString toStart startpath
+  relpath files os ops convertedPath convertedStart
+
+/-- Pure-conversion specialization of the AbstractString method. -/
 def relpathAbstract {S : Type} (toString : S → Path) (os : Platform) (ops : StringOps)
-    (pwd : Unit → Path) (path startpath : S) : Except PathError Path :=
-  relpath os ops pwd (toString path) (toString startpath)
+     (path startpath : S) : M World Path :=
+  relpathAbstractWith files (fun value => pure (.string (toString value)))
+    (fun value => pure (.string (toString value))) os ops path startpath
 
 /--
 Julia source: base/path.jl:393-393 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -1463,6 +1741,12 @@ Julia source: base/path.jl:393-393 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 splitpath(p::AbstractString) = splitpath(String(p)::String)
 ```
 -/
+def splitpathAbstractWith {m : Type → Type} [Monad m] [MonadExceptOf PathError m] {S : Type}
+    (toString : S → m StringConversionResult) (os : Platform) (ops : StringOps) (path : S) : m (List Path) := do
+  let converted ← checkedString toString path
+  pure (splitpath os ops converted)
+
+/-- Pure-conversion specialization of the AbstractString method. -/
 def splitpathAbstract {S : Type} (toString : S → Path) (os : Platform) (ops : StringOps)
     (path : S) : List Path :=
   splitpath os ops (toString path)
@@ -1475,8 +1759,94 @@ for f in (:isdirpath, :splitdir, :splitdrive, :splitext, :normpath, :abspath, :i
 end
 ```
 -/
-def abstractStringWrapper {S α : Type} (toString : S → Path) (f : Path → α) (value : S) : α :=
-  f (toString value)
+def isdirpathAbstract {m : Type → Type} [Monad m] [MonadExceptOf PathError m]
+    {S : Type} (toString : S → m StringConversionResult) (os : Platform)
+    (ops : StringOps) (path : S) : m Bool := do
+  let converted ← checkedString toString path
+  pure (isdirpath os ops converted)
+
+/--
+Julia source: base/path.jl:961-963 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+```julia
+for f in (:isdirpath, :splitdir, :splitdrive, :splitext, :normpath, :abspath, :isabspath)
+    @eval $f(path::AbstractString) = $f(String(path)::String)
+end
+```
+-/
+def splitdirAbstract {m : Type → Type} [Monad m] [MonadExceptOf PathError m]
+    {S : Type} (toString : S → m StringConversionResult) (os : Platform)
+    (ops : StringOps) (path : S) : m (Path × Path) := do
+  let converted ← checkedString toString path
+  pure (splitdir os ops converted)
+
+/--
+Julia source: base/path.jl:961-963 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+```julia
+for f in (:isdirpath, :splitdir, :splitdrive, :splitext, :normpath, :abspath, :isabspath)
+    @eval $f(path::AbstractString) = $f(String(path)::String)
+end
+```
+-/
+def splitdriveAbstract {m : Type → Type} [Monad m] [MonadExceptOf PathError m]
+    {S : Type} (toString : S → m StringConversionResult) (os : Platform)
+    (ops : StringOps) (path : S) : m (Path × Path) := do
+  let converted ← checkedString toString path
+  pure (splitdrive os ops converted)
+
+/--
+Julia source: base/path.jl:961-963 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+```julia
+for f in (:isdirpath, :splitdir, :splitdrive, :splitext, :normpath, :abspath, :isabspath)
+    @eval $f(path::AbstractString) = $f(String(path)::String)
+end
+```
+-/
+def splitextAbstract {m : Type → Type} [Monad m] [MonadExceptOf PathError m]
+    {S : Type} (toString : S → m StringConversionResult) (os : Platform)
+    (ops : StringOps) (path : S) : m (Path × Path) := do
+  let converted ← checkedString toString path
+  pure (splitext os ops converted)
+
+/--
+Julia source: base/path.jl:961-963 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+```julia
+for f in (:isdirpath, :splitdir, :splitdrive, :splitext, :normpath, :abspath, :isabspath)
+    @eval $f(path::AbstractString) = $f(String(path)::String)
+end
+```
+-/
+def normpathAbstract {m : Type → Type} [Monad m] [MonadExceptOf PathError m]
+    {S : Type} (toString : S → m StringConversionResult) (os : Platform)
+    (ops : StringOps) (path : S) : m Path := do
+  let converted ← checkedString toString path
+  pure (normpath os ops converted)
+
+/--
+Julia source: base/path.jl:961-963 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+```julia
+for f in (:isdirpath, :splitdir, :splitdrive, :splitext, :normpath, :abspath, :isabspath)
+    @eval $f(path::AbstractString) = $f(String(path)::String)
+end
+```
+-/
+def abspathAbstract {S : Type} (toString : S → M World StringConversionResult) (os : Platform)
+    (ops : StringOps) (path : S) : M World Path := do
+  let converted ← checkedString toString path
+  abspath files os ops converted
+
+/--
+Julia source: base/path.jl:961-963 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+```julia
+for f in (:isdirpath, :splitdir, :splitdrive, :splitext, :normpath, :abspath, :isabspath)
+    @eval $f(path::AbstractString) = $f(String(path)::String)
+end
+```
+-/
+def isabspathAbstract {m : Type → Type} [Monad m] [MonadExceptOf PathError m]
+    {S : Type} (toString : S → m StringConversionResult) (os : Platform)
+    (path : S) : m Bool := do
+  let converted ← checkedString toString path
+  pure (isabspath os converted)
 
 
 def separatorIndices (os : Platform) : Bytes → List Nat
@@ -1620,16 +1990,23 @@ def contractuserAbstract {S : Type} (toString : S → Path) (os : Platform)
     (ops : StringOps) (fs : FileSystemOps) (path : S) : Except PathError Path :=
   contractuser os ops fs (toString path)
 
-def hexDigit (n : Nat) : UInt8 := UInt8.ofNat (if n < 10 then 48 + n else 55 + n)
 
-def uriByte (b : UInt8) : Bytes :=
-  if (65 ≤ b && b ≤ 90) || (97 ≤ b && b ≤ 122) || (48 ≤ b && b ≤ 57) ||
-      b == 45 || b == 95 || b == 46 || b == 126 || b == 47 then [b]
-  else [37, hexDigit (b.toNat / 16), hexDigit (b.toNat % 16)]
+def uriSafeByte (byte : UInt8) : Bool :=
+  (65 ≤ byte && byte ≤ 90) || (97 ≤ byte && byte ≤ 122) ||
+    (48 ≤ byte && byte ≤ 57) || byte == 45 || byte == 95 || byte == 46 ||
+    byte == 126 || byte == 47
+
+def hexDigit (n : Nat) : UInt8 :=
+  UInt8.ofNat (if n < 10 then 48 + n else 55 + n)
+
+def uriByte (byte : UInt8) : Bytes :=
+  if uriSafeByte byte then [byte]
+  else [37, hexDigit (byte.toNat / 16), hexDigit (byte.toNat % 16)]
 
 def encodeUriBytes (bytes : Bytes) : Bytes := bytes.flatMap uriByte
 
-/--
+/- UNTRANSLATED
+Reason: PathIntegerFormatting: bind string(cu, base=16) through intfuncs and close StringVector construction first.
 Julia source: base/path.jl:965-982 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 ```julia
 function encode_uri_component(s::AbstractString)
@@ -1652,20 +2029,12 @@ function encode_uri_component(s::AbstractString)
 end
 ```
 -/
-def encodeUriComponent (ops : StringOps) (value : Path) : Path :=
-  ops.fromBytes (encodeUriBytes value.bytes)
-
-def replaceEncodedDrive : Bytes → Bytes
-  | 37 :: 51 :: 65 :: rest => colon :: replaceEncodedDrive rest
-  | 37 :: 55 :: 67 :: rest => 124 :: replaceEncodedDrive rest
-  | b :: rest => b :: replaceEncodedDrive rest
-  | [] => []
-
 structure UriOps where
   hostname : Path
   wslDistro : Path
 
-/--
+/- UNTRANSLATED
+Reason: PathUriAssembly: depends on PathIntegerFormatting and concrete String/Char replacement and joining bindings.
 Julia source: base/path.jl:984-1028 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 ````julia
 """
@@ -1715,43 +2084,13 @@ else
 end
 ````
 -/
-def uripath (os : Platform) (ops : StringOps) (fs : FileSystemOps) (pwd : Unit → Path)
-    (uriOps : UriOps) (path : Path) : Except PathError Path := do
-  let absolute ← abspath os ops pwd path
-  if os == .windows then
-    let b := absolute.bytes
-    if b.length ≥ 2 && b[0]! == backslash && b[1]! == backslash then
-      let localBytes := joinSep .unix ((splitRuns .windows b).filter (· ≠ []))
-      return ops.fromBytes ([102, 105, 108, 101, 58, 47, 47] ++ encodeUriBytes localBytes)
-    let (drive, localPath) := splitdrive .windows ops absolute
-    let localBytes := joinSep .unix ((splitRuns .windows localPath.bytes).filter (· ≠ []))
-    let encodedDrive := replaceEncodedDrive (encodeUriBytes drive.bytes)
-    return ops.fromBytes ([102, 105, 108, 101, 58, 47, 47, 47] ++ encodedDrive ++ [47] ++ encodeUriBytes localBytes)
-  let localBytes := joinSep .unix ((splitRuns .unix absolute.bytes).filter (· ≠ []))
-  let wslMarker := ops.fromBytes [47, 112, 114, 111, 99, 47, 115, 121, 115, 47, 102, 115, 47, 98, 105, 110, 102, 109, 116, 95, 109, 105, 115, 99, 47, 87, 83, 76, 73, 110, 116, 101, 114, 111, 112]
-  let host := if fs.ispath wslMarker then [119, 115, 108, 36, 47] ++ uriOps.wslDistro.bytes else uriOps.hostname.bytes
-  return ops.fromBytes ([102, 105, 108, 101, 58, 47, 47] ++ encodeUriBytes host ++ [47] ++ encodeUriBytes localBytes)
-
-/--
+/- UNTRANSLATED
+Reason: PathUriAssembly: forwards to the unresolved String uripath route.
 Julia source: base/path.jl:1030-1030 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 ```julia
 uripath(path::AbstractString) = uripath(String(path)::String)
 ```
 -/
-def uripathAbstract {S : Type} (toString : S → Path) (os : Platform) (ops : StringOps)
-    (fs : FileSystemOps) (pwd : Unit → Path) (uriOps : UriOps) (path : S) : Except PathError Path :=
-  uripath os ops fs pwd uriOps (toString path)
-
-
-/--
-Julia source: base/path.jl:159-159 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
-```julia
-splitdrive(path::AbstractString)
-```
--/
-def splitdriveAbstract {S : Type} (toString : S → Path) (os : Platform) (ops : StringOps)
-    (path : S) : Path × Path := splitdrive os ops (toString path)
-
 /--
 Julia source: base/path.jl:279-279 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 ```julia
@@ -1767,8 +2106,15 @@ Julia source: base/path.jl:308-308 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 dirname(path::AbstractString) = splitdir(path)[1]
 ```
 -/
+def dirnameAbstractWith {m : Type → Type} [Monad m] {S P : Type}
+    (splitDir : S → m (P × P)) (path : S) : m P := do
+  let parts ← splitDir path
+  pure parts.1
+
+/-- String-conversion specialization of the generic splitdir dispatch. -/
 def dirnameAbstract {S : Type} (toString : S → Path) (os : Platform) (ops : StringOps)
-    (path : S) : Path := dirname os ops (toString path)
+    (path : S) : Path :=
+  dirnameAbstractWith (m := Id) (fun value => splitdir os ops (toString value)) path
 
 /--
 Julia source: base/path.jl:330-330 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -1776,8 +2122,15 @@ Julia source: base/path.jl:330-330 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 basename(path::AbstractString) = splitdir(path)[2]
 ```
 -/
+def basenameAbstractWith {m : Type → Type} [Monad m] {S P : Type}
+    (splitDir : S → m (P × P)) (path : S) : m P := do
+  let parts ← splitDir path
+  pure parts.2
+
+/-- String-conversion specialization of the generic splitdir dispatch. -/
 def basenameAbstract {S : Type} (toString : S → Path) (os : Platform) (ops : StringOps)
-    (path : S) : Path := basename os ops (toString path)
+    (path : S) : Path :=
+  basenameAbstractWith (m := Id) (fun value => splitdir os ops (toString value)) path
 
 /--
 Julia source: base/path.jl:487-487 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -1785,6 +2138,16 @@ Julia source: base/path.jl:487-487 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 joinpath(paths::AbstractString...)::String = joinpath(paths)
 ```
 -/
+def joinpathVarargsWith {m : Type → Type} [Monad m] [MonadExceptOf PathError m]
+    {S : Type} (joinPaths : List S → m StringConversionResult)
+    (convertOther : Nat → m StringConversionResult) (paths : List S) : m Path := do
+  let joined ← joinPaths paths
+  checkedString (fun result => match result with
+    | .string path =>
+      pure (.string (JuliaLean.base.essentials.convertStringRepresentationIdentity path))
+    | .other value => convertOther value) joined
+
+/-- String-only specialization; the general method also checks its annotated return. -/
 def joinpathVarargs (os : Platform) (ops : StringOps) (paths : List Path) : Except PathError Path :=
   joinpathStrings os ops paths
 
@@ -1879,31 +2242,11 @@ end
 def realpathAbstract {S : Type} (toString : S → Path) (fs : FileSystemOps)
     (path : S) : Except PathError Path := realpath fs (toString path)
 
-/--
-Julia source: base/path.jl:965-982 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
-```julia
-function encode_uri_component(s::AbstractString)
-    out = empty!(StringVector(sizeof(s)))
-    for cu in utf8units(s)
-        # RFC3986 Section 2.3
-        if (UInt8('A') <= cu <= UInt8('Z') ||
-            UInt8('a') <= cu <= UInt8('z') ||
-            UInt8('0') <= cu <= UInt8('9') ||
-            cu in map(UInt8, ('-', '_', '.', '~', '/'))
-        )
-            push!(out, cu)
-        else
-            # RFC3986 Section 2.1
-            push!(out, UInt8('%'))
-            append!(out, codeunits(uppercase(string(cu, base = 16))))
-        end
-    end
-    String(out)
-end
-```
--/
-def encodeUriComponentAbstract {S : Type} (toString : S → Path) (ops : StringOps)
-    (value : S) : Path := encodeUriComponent ops (toString value)
+def longpathLoop : List LongPathReply → Nat → Except PathError Path
+  | [], _ => .error (.ioError "GetLongPathNameW returned no result")
+  | .failure error :: _, _ => .error error
+  | .result length path :: replies, bufferLength =>
+      if length < bufferLength then .ok path else longpathLoop replies length
 
 /--
 Julia source: base/path.jl:637-649 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -1923,15 +2266,794 @@ function longpath(path::AbstractString)
 end
 ```
 -/
-def longpathLoop : List LongPathReply → Nat → Except PathError Path
-  | [], _ => .error (.ioError "GetLongPathNameW returned no result")
-  | .failure error :: _, _ => .error error
-  | .result length path :: replies, bufferLength =>
-      if length < bufferLength then .ok path else longpathLoop replies length
+def longpath (ops : StringOps) (fs : FileSystemOps) 
+    (path : Path) : M World Path := do
+  let absolute ← abspath files .windows ops path
+  liftPath (longpathLoop (fs.longPathReplies absolute) (fs.wideLength absolute))
 
-def longpath (ops : StringOps) (fs : FileSystemOps) (pwd : Unit → Path)
-    (path : Path) : Except PathError Path := do
-  let absolute ← abspath .windows ops pwd path
-  longpathLoop (fs.longPathReplies absolute) (fs.wideLength absolute)
+def splitdriveCurrent (kernel : String) (ops : StringOps) (path : Path) :
+    Except PathError (Path × Path) := do
+  return splitdrive (← platformForKernel kernel) ops path
+
+def splitdirCurrent (kernel : String) (ops : StringOps) (path : Path) :
+    Except PathError (Path × Path) := do
+  return splitdir (← platformForKernel kernel) ops path
+
+def splitpathCurrent (kernel : String) (ops : StringOps) (path : Path) :
+    Except PathError (List Path) := do
+  return splitpath (← platformForKernel kernel) ops path
+
+def joinpathCurrent (kernel : String) (ops : StringOps) (paths : List Path) :
+    Except PathError Path := do
+  joinpathStrings (← platformForKernel kernel) ops paths
+
+def normpathCurrent (kernel : String) (ops : StringOps) (path : Path) :
+    Except PathError Path := do
+  return normpath (← platformForKernel kernel) ops path
+
+def abspathCurrent (kernel : String) (ops : StringOps) (path : Path) : M World Path := do
+  let os ← liftPath (platformForKernel kernel)
+  abspath files os ops path
+
+def relpathCurrent (kernel : String) (ops : StringOps) (path start : Path) : M World Path := do
+  let os ← liftPath (platformForKernel kernel)
+  relpath files os ops path start
+
+def splitdirSubString (kernel : String) (ops : StringOps)
+    (path : JuliaLean.base.strings.substring.SubString Path) :
+    Except PathError (Path × Path) := do
+  splitdirCurrent kernel ops (← PathBinding.pathOfSubString path)
+
+def normpathSubString (kernel : String) (ops : StringOps)
+    (path : JuliaLean.base.strings.substring.SubString Path) : Except PathError Path := do
+  normpathCurrent kernel ops (← PathBinding.pathOfSubString path)
+
+def abspathSubString (kernel : String) (ops : StringOps)
+    (path : JuliaLean.base.strings.substring.SubString Path) : M World Path := do
+  abspathCurrent files kernel ops (← liftPath (PathBinding.pathOfSubString path))
+
+def relpathSubStrings (kernel : String) (ops : StringOps)
+    (path start : JuliaLean.base.strings.substring.SubString Path) : M World Path := do
+  let path ← liftPath (PathBinding.pathOfSubString path)
+  let start ← liftPath (PathBinding.pathOfSubString start)
+  relpathCurrent files kernel ops path start
+
+private def reviewCases : IO Unit := do
+  let check (name : String) (ok : Bool) :=
+    unless ok do throw (IO.userError ("path bind: " ++ name))
+  let native : StringOps := {
+    toupper := id, tolower := id, totitle := id
+    category := fun _ => 0, categoryString := fun _ => "", categoryAbbrev := fun _ => ""
+    islower := fun _ => 0, isupper := fun _ => 0, charwidth := fun _ => 1
+    graphemeBreak := fun _ _ => false, graphemeBreakStateful := fun s _ _ => (false, s) }
+  let path (text : String) : Path := ⟨text.toUTF8.toList⟩
+  check "installed Sys selects Windows"
+    (match platformForKernel "NT" with | .ok .windows => true | _ => false)
+  check "installed Sys selects Unix"
+    (match platformForKernel "Linux" with | .ok .unix => true | _ => false)
+  check "StringData decodes native encoded multibyte Char"
+    ((PathBinding.stringData ⟨[0xc3, 0xa9]⟩).chars == [0xc3a90000])
+  check "native lowercase ASCII branch"
+    (match native.lowercase (path "C:\\ABC") with
+      | .ok p => p.bytes == (path "c:\\abc").bytes | _ => false)
+  check "native Unicode error retained"
+    (match native.lowercase ⟨[0xc2]⟩ with | .error (.unicode .invalidChar) => true | _ => false)
+  check "Windows different drive resets"
+    (match joinpathCurrent "NT" native [path "C:\\a", path "D:b"] with
+      | .ok p => p.bytes == (path "D:b").bytes | _ => false)
+  check "normalization preserves malformed nonseparator bytes"
+    ((normpath .unix native ⟨[47, 0xc2, 47, 46]⟩).bytes == [47, 0xc2, 47])
+  let failed : JuliaLean.base.io.M Nat Unit :=
+    fun state => some (.error (.eofError, state + 1))
+  check "filesystem exception retains post-call world"
+    (match liftFile failed 7 with
+      | some (.error (.filesystem .eofError), 8) => true | _ => false)
+  IO.println "PATH BIND CASES OK 8"
+
+#eval reviewCases
+
+private def stringAdapterCases : IO Unit := do
+  let pref : Path := ⟨[0xc3]⟩
+  let text : Path := ⟨[0xc3, 0xa9]⟩
+  let result := JuliaLean.base.strings.util.startswithFast
+    PathBinding.denseOps (fun value => value) text pref
+  unless (match result with | .ok false => true | _ => false) do
+    throw (IO.userError "path bind: prefix cannot end inside an encoded character")
+  let view : JuliaLean.base.strings.substring.SubString Path :=
+    ⟨⟨[65, 47, 98, 47, 67]⟩, JInt.lit .i64 2, JInt.lit .i64 2⟩
+  unless (match PathBinding.pathOfSubString view with
+    | .ok path => path.bytes == [98, 47] | _ => false) do
+    throw (IO.userError "path bind: installed SubString copy retains offset and length")
+  IO.println "PATH STRING ADAPTER CASES OK 2"
+
+#eval stringAdapterCases
 
 end JuliaLean.base.path
+
+/-!
+# POSIX paths (`base/path.jl`, master `bbfa0ce4150`)
+
+The Unix branch of `base/path.jl`: the separator is `'/'`, `splitdrive(p)` is
+`("", p)` (`base/path.jl:30`), so every drive is empty. A `String` is a list
+of characters (valid UTF-8); index arithmetic of the Julia code becomes list
+splitting at the same characters. `pwd()`, `homedir()` and `homedir(user)` are
+parameters.
+
+Loops are structural recursion on the list, or on a bound on the remaining
+iterations that each docstring states.
+-/
+
+namespace JuliaLean.Paths
+
+open JuliaLean
+
+deriving instance DecidableEq for Except
+
+abbrev Str := List Char
+
+/-- `isseparator(c::Char) = c === '/'`, `base/path.jl:27`. -/
+def isSep (c : Char) : Bool := c == '/'
+
+/-- `isabspath(path::String)`, `base/path.jl:200-223` (Unix branch). -/
+def isabspath : Str → Bool
+  | [] => false
+  | c :: _ => isSep c
+
+/-- `findlast(pred, s)` as a split: `some (before, after)` with
+`s = before ++ x :: after`, `pred x`, and no character of `after` satisfying `pred`. -/
+def splitLast (pred : Char → Bool) (s : Str) : Option (Str × Str) :=
+  match s.reverse.span (fun c => !pred c) with
+  | (ra, _ :: rb) => some (rb.reverse, ra.reverse)
+  | (_, []) => none
+
+/-- `path[1:something(findprev(!isseparator, path, lastsepind), 1)]` given
+`path = before ++ "/" ++ tail`: `before` without its trailing separators, or the
+first character of `path` if nothing else remains. -/
+def dirPart (path before : Str) : Str :=
+  let d := (before.reverse.dropWhile isSep).reverse
+  if d.isEmpty then path.take 1 else d
+
+/-- `_splitdir_nodrive(drive, path)`, `base/path.jl:280-289`. -/
+def splitdirNoDrive (drive path : Str) : Str × Str :=
+  match splitLast isSep path with
+  | none => (drive, path)
+  | some (before, tail) => (drive ++ dirPart path before, tail)
+
+/-- `splitdir(path)`, `base/path.jl:273-276`. -/
+def splitdir (path : Str) : Str × Str := splitdirNoDrive [] path
+
+/-- `dirname`, `base/path.jl:308`. -/
+def dirname (path : Str) : Str := (splitdir path).1
+
+/-- `basename`, `base/path.jl:330`. -/
+def basename (path : Str) : Str := (splitdir path).2
+
+/-- `isdirpath(path::String)`, `base/path.jl:255-260`. -/
+def isdirpath (path : Str) : Bool :=
+  let a := (splitdirNoDrive [] path).2
+  a == [] || a == ['.'] || a == ['.', '.']
+
+/-- `splitext(path::String)`, `base/path.jl:351-368`. `p = before ++ "." ++ after`
+splits at the last dot; `findnext(isseparator, p, lastdot)` looks at `after`
+(the dot itself is no separator) and `p[prev]` is the last character of `before`. -/
+def splitext (path : Str) : Str × Str :=
+  match splitLast (· == '.') path with
+  | some (before, after) =>
+    if after.any isSep then (path, [])
+    else match before.getLast? with
+      | some c => if !isSep c then (before, '.' :: after) else (path, [])
+      | none => (path, [])
+  | none => (path, [])
+
+/-- The `while !isempty(p)` loop of `splitpath`, `base/path.jl:399-406`, with
+`n` iterations left. Each iteration that does not stop shortens `p`, so
+`n = length(p) + 1` never runs out. -/
+def splitpathLoop : Nat → Str → List Str → List Str
+  | 0, _, out => out
+  | n + 1, p, out =>
+    if p.isEmpty then out
+    else
+      let (dir, base) := splitdirNoDrive [] p
+      if dir == p then dir :: out
+      else splitpathLoop n dir (if base.isEmpty then out else base :: out)
+
+/-- `splitpath(p::String)`, `base/path.jl:395-411`. -/
+def splitpath (p : Str) : List Str :=
+  splitpathLoop (p.length + 1) p (if p.isEmpty then [p] else [])
+
+/-- One step of the Unix `joinpath` loop, `base/path.jl:472-480`. -/
+def joinStep (path p : Str) : Str :=
+  if isabspath p then p
+  else if path.isEmpty || path.getLast? == some '/' then path ++ p
+  else path ++ '/' :: p
+
+/-- `joinpath(paths)` on Unix, `base/path.jl:465-483`. -/
+def joinpath : List Str → Jl Str
+  | [] => .error (.argumentError "collection of path components must be non-empty")
+  | p0 :: ps => .ok (ps.foldl joinStep p0)
+
+/-- `_split_at_separators(path; keepempty = true)`, `base/path.jl:516-538`
+(`split(path, r"/+")`): the maximal separator-free pieces between runs of
+separators, including the empty pieces before a leading and after a trailing run. -/
+def splitRuns : Str → List Str
+  | [] => [[]]
+  | c :: cs =>
+    match splitRuns cs with
+    | [] => [[c]]
+    | w :: ws =>
+      if isSep c then
+        (if cs.head?.map isSep == some true then w :: ws else [] :: w :: ws)
+      else (c :: w) :: ws
+
+/-- `_split_at_separators(path; keepempty)`. -/
+def splitAtSeps (path : Str) (keepempty : Bool) : List Str :=
+  if keepempty then splitRuns path else (splitRuns path).filter (· ≠ [])
+
+def dotdot : Str := ['.', '.']
+
+/-- One pass of the `for j = 1:length(parts)-1` loop of `normpath`,
+`base/path.jl:563-569`: delete the first pair `x, ".."` with `x != ".."`. -/
+def removeFirstPair : List Str → Option (List Str)
+  | a :: b :: rest =>
+    if a != dotdot && b == dotdot then some rest
+    else (removeFirstPair (b :: rest)).map (a :: ·)
+  | _ => none
+
+/-- The `while true` loop of `normpath`, `base/path.jl:561-571`, with `n`
+passes left; each pass that changes `parts` removes two elements, so
+`n = length(parts) + 1` never runs out. -/
+def cleanLoop : Nat → List Str → List Str
+  | 0, ps => ps
+  | n + 1, ps =>
+    match removeFirstPair ps with
+    | none => ps
+    | some ps' => cleanLoop n ps'
+
+/-- `join(parts, "/")`. -/
+def joinSep : List Str → Str
+  | [] => []
+  | [a] => a
+  | a :: as => a ++ '/' :: joinSep as
+
+/-- `normpath(path::String)`, `base/path.jl:555-587`. -/
+def normpath (path : Str) : Str :=
+  let isabs := isabspath path
+  let isdir := isdirpath path
+  let parts := (splitAtSeps path false).filter (· != ['.'])
+  let parts := cleanLoop (parts.length + 1) parts
+  let parts :=
+    if isabs then parts.dropWhile (· == dotdot)
+    else if parts.isEmpty then [['.']] else parts
+  let p := joinSep parts
+  let p := if isabs then '/' :: p else p
+  if isdir && !isdirpath p then p ++ ['/'] else p
+
+/-- `abspath(a::String)` with `pwd() = cwd`, `base/path.jl:613-625` (the drive
+of `a` is empty on Unix, so the `else` branch is taken); `joinpath(cwd, a)`
+is one `joinStep`. -/
+def abspath (cwd a : Str) : Str :=
+  let a := if !isabspath a then joinStep cwd a else a
+  normpath a
+
+/-- The common-prefix loop of `relpath`, `base/path.jl:938-945`. -/
+def commonLen : List Str → List Str → Nat
+  | a :: as, b :: bs => if a == b then commonLen as bs + 1 else 0
+  | _, _ => 0
+
+/-- `something(findlast(x -> !isempty(x), arr), 0)`. -/
+def lastNonempty (arr : List Str) : Nat := go arr 1 0
+where
+  go : List Str → Nat → Nat → Nat
+    | [], _, acc => acc
+    | x :: xs, i, acc => go xs (i + 1) (if x.isEmpty then acc else i)
+
+/-- `prefix^n`. -/
+def repeatStr (s : Str) : Nat → Str
+  | 0 => []
+  | n + 1 => s ++ repeatStr s n
+
+/-- `relpath(path::String, startpath::String)` on Unix with `pwd() = cwd`,
+`base/path.jl:921-957`. -/
+def relpath (cwd path startpath : Str) : Jl Str := do
+  if path.isEmpty then throw (.argumentError "`path` must be non-empty")
+  if startpath.isEmpty then throw (.argumentError "`startpath` must be non-empty")
+  if path == startpath then return ['.']
+  let pathArr := splitAtSeps (abspath cwd path) true
+  let startArr := splitAtSeps (abspath cwd startpath) true
+  let i := commonLen pathArr startArr
+  let pathpart := joinSep ((pathArr.drop i).take (lastNonempty pathArr - i))
+  let prefixNum : Int := (lastNonempty startArr : Int) - i - 1
+  let rel :=
+    if prefixNum ≥ 0 then
+      let pre := dotdot ++ ['/']
+      if pathpart.isEmpty then repeatStr pre prefixNum.toNat ++ dotdot
+      else repeatStr pre prefixNum.toNat ++ dotdot ++ '/' :: pathpart
+    else pathpart
+  return if rel.isEmpty then ['.'] else rel
+
+/-- `expanduser(path::String)` on Unix, `base/path.jl:854-883`, with
+`homedir() = home`, `homedir(username) = lookup username`, and `userChar` the
+predicate `c -> isletter(c) || isdigit(c) || c in "._-"`. -/
+def expanduser (home : Str) (lookup : Str → Option Str) (userChar : Char → Bool) (path : Str) : Str :=
+  match path with
+  | [] => path
+  | c :: rest =>
+    if c != '~' then path
+    else
+      let (username, after) := rest.span (fun x => !isSep x)
+      let h :=
+        if username.isEmpty then some home
+        else if !username.all userChar then none
+        else lookup username
+      match h with
+      | none => path
+      | some home => if after.isEmpty then home else home ++ after
+
+end JuliaLean.Paths
+
+namespace JuliaLean.Files.Coverage
+
+open JuliaLean.Files
+
+/-! ## POSIX path wrappers and URIs (`base/path.jl`) -/
+
+def posixSeparator (char : Char) : Bool := char == '/'
+def posixSeparatorByte (byte : Nat) : Bool := byte == 47
+def posixSplitDrive (path : PathText) : PathText × PathText := ([], path)
+def pathSeparator : Char := '/'
+
+def assertString (isString : Bool) : Result Unit :=
+  if isString then .ok () else .error .argument ()
+
+inductive UserLookup where
+  | rangeError
+  | found (home : PathText)
+  | missing
+  deriving Repr, DecidableEq
+
+def lookupHome : Nat → List UserLookup → Option PathText
+  | 0, _ => none
+  | _, [] => none
+  | attempts + 1, .rangeError :: replies => lookupHome attempts replies
+  | _, .found home :: _ => some home
+  | _, .missing :: _ => none
+
+def realpathCall (path resolved : PathText) (returnCode : Int) : Result PathText :=
+  if returnCode < 0 then .error .io path else .ok resolved
+
+structure ContractCandidate where
+  stem : PathText
+  rest : PathText
+  present : Bool
+  currentHome : Bool
+  username : Option PathText
+  userHome : Bool
+  deriving Repr, DecidableEq
+
+def contractCandidates : List ContractCandidate → PathText → PathText
+  | [], original => original
+  | candidate :: candidates, original =>
+      if !candidate.present then original
+      else if candidate.currentHome then ['~'] ++ candidate.rest
+      else match candidate.username with
+        | some username => if candidate.userHome then ['~'] ++ username ++ candidate.rest
+          else contractCandidates candidates original
+        | none => contractCandidates candidates original
+
+def hexDigit (value : Nat) : Nat := if value < 10 then 48 + value else 55 + value
+
+def uriUnit (byte : Nat) : List Nat :=
+  if decide (65 ≤ byte ∧ byte ≤ 90) || decide (97 ≤ byte ∧ byte ≤ 122) ||
+      decide (48 ≤ byte ∧ byte ≤ 57) || [45, 95, 46, 126, 47].contains byte then [byte]
+  else [37, hexDigit (byte / 16), hexDigit (byte % 16)]
+
+def encodeUri (bytes : List Nat) : List Nat := bytes.flatMap uriUnit
+
+def unixUriPath (host localPath : List Nat) : List Nat :=
+  "file://".toList.map Char.toNat ++ encodeUri host ++ [47] ++ encodeUri localPath
+
+def isseparatorCharMethod (char : Char) : Bool := char == '/'
+def isseparatorByteMethod (byte : Nat) : Bool := byte == 47
+def splitdrivePosixMethod (path : PathText) : PathText × PathText := ([], path)
+def isabspathPosixMethod (path : PathText) : Bool := JuliaLean.Paths.isabspath path
+def pathsepMethod : Char := '/'
+def assertstringMethod (isString : Bool) : Result Unit :=
+  if isString then .ok () else .error .argument ()
+
+def homedirMethod (replies : List BufferReply) : Result PathText := bufferPath replies
+
+inductive RealpathEvent where | allocate | call | cleanup | free deriving Repr, DecidableEq
+
+def realpathMethod (path resolved : PathText) (returnCode : Int) :
+    List RealpathEvent × Result PathText :=
+  let events := [.allocate, .call, .cleanup, .free]
+  if returnCode < 0 then (events, .error .io path) else (events, .ok resolved)
+
+def homedirUsernameMethod (attempts : Nat) (replies : List UserLookup) : Option PathText :=
+  lookupHome attempts replies
+def contractuserMethod (candidates : List ContractCandidate) (original : PathText) : PathText :=
+  contractCandidates candidates original
+def contractuserAbstractMethod (result : PathText) : PathText := result
+
+def encodeUriComponentMethod (bytes : List Nat) : List Nat := encodeUri bytes
+def uripathPosixMethod (cwd path : PathText) (wsl : Bool) (distro hostname : List Nat) : List Nat :=
+  let localPath := JuliaLean.Paths.joinSep
+    (JuliaLean.Paths.splitAtSeps (JuliaLean.Paths.abspath cwd path) false)
+  let host := if wsl then "wsl$/".toList.map Char.toNat ++ distro else hostname
+  unixUriPath host (localPath.map Char.toNat)
+def uripathAbstractMethod (result : List Nat) : List Nat := result
+
+def dirnameAbstractMethod (path : PathText) : PathText :=
+  JuliaLean.base.path.dirnameAbstractWith (m := Id) JuliaLean.Paths.splitdir path
+def basenameAbstractMethod (path : PathText) : PathText :=
+  JuliaLean.base.path.basenameAbstractWith (m := Id) JuliaLean.Paths.splitdir path
+def splitpathAbstractMethod (path : PathText) : List PathText := JuliaLean.Paths.splitpath path
+def joinpathVarargsMethod (paths : List PathText) := JuliaLean.Paths.joinpath paths
+def normpathVarargsMethod (paths : List PathText) : JuliaLean.Jl PathText :=
+  (JuliaLean.Paths.joinpath paths).map JuliaLean.Paths.normpath
+def abspathVarargsMethod (cwd : PathText) (paths : List PathText) : JuliaLean.Jl PathText :=
+  (JuliaLean.Paths.joinpath paths).map (JuliaLean.Paths.abspath cwd)
+def expanduserAbstractMethod (home path : PathText)
+    (lookup : PathText → Option PathText) (userChar : Char → Bool) : PathText :=
+  JuliaLean.Paths.expanduser home lookup userChar path
+def relpathAbstractMethod (cwd path start : PathText) := JuliaLean.Paths.relpath cwd path start
+
+end JuliaLean.Files.Coverage
+
+/-!
+Models of the Unix branch of `base/path.jl` at master `bbfa0ce4150` not already
+covered by `JuliaLean.Paths`, reusing its string model (`Paths.Str`, a list of
+characters) and its mirrors of `isabspath`, `_splitdir_nodrive`, `joinpath`,
+`_split_at_separators`, `normpath`, `abspath`, `relpath` and `expanduser`.
+File-system and libuv results (`pwd`, `stat`, `uv_os_homedir`, `getpwnam_r`,
+`uv_fs_realpath`) are arguments.
+-/
+
+namespace JuliaLean.IOCov.Path
+
+open JuliaLean JuliaLean.IOCov JuliaLean.Paths
+
+/-! ## Separators and drives, lines 26-31, 371 -/
+
+/-- `isseparator(c::UInt8) = c === UInt8('/')`, `base/path.jl:28`. -/
+def isSepByte (c : UInt8) : Bool := c == 47
+/-- `splitdrive(path::String) = ("", path)`, `base/path.jl:30`. -/
+def splitdrive (path : Str) : Str × Str := ([], path)
+/-- `pathsep() = path_separator`, `base/path.jl:371`. -/
+def pathsep : Str := ['/']
+
+def homedir (call : Nat → Int × Nat × Str) (enobufs : Int) : Nat → Nat → R Str
+  | 0, _ => .error (.errorException "out of fuel")
+  | fuel + 1, size =>
+    let (rc, needed, text) := call size
+    if rc == 0 then .ok text
+    else if rc == enobufs then homedir call enobufs fuel needed
+    else .error (.uvError "homedir()")
+
+def splitdirNoDrive1 (path : Str) : Str × Str := Paths.splitdirNoDrive [] path
+/-- `splitpath(p::AbstractString) = splitpath(String(p))`, `base/path.jl:393`. -/
+def splitpathAbs (p : Str) : List Str := Paths.splitpath p
+/-- `joinpath(paths::AbstractString...) = joinpath(paths)`, `base/path.jl:487`. -/
+def joinpathVar (paths : List Str) : Jl Str := Paths.joinpath paths
+/-- `normpath(a, b...) = normpath(joinpath(a, b...))`, `base/path.jl:595`. -/
+def normpathVar (a : Str) (bs : List Str) : Jl Str := do
+  let j ← Paths.joinpath (a :: bs)
+  pure (Paths.normpath j)
+/-- `abspath(a, b...) = abspath(joinpath(a, b...))`, `base/path.jl:633`. -/
+def abspathVar (cwd a : Str) (bs : List Str) : Jl Str := do
+  let j ← Paths.joinpath (a :: bs)
+  pure (Paths.abspath cwd j)
+/-- `relpath(path::AbstractString, startpath::AbstractString)`, `base/path.jl:958-959`. -/
+def relpathAbs (cwd path startpath : Str) : Jl Str := Paths.relpath cwd path startpath
+/-- The `for f in (:isdirpath, :splitdir, :splitdrive, :splitext, :normpath, :abspath,
+:isabspath)` loop, `base/path.jl:961-963`: each `f(path::AbstractString)` converts to
+`String` and calls the `String` method; here the `String` results paired up. -/
+def stringWrappers (cwd p : Str) : Bool × (Str × Str) × (Str × Str) × (Str × Str) × Str × Str × Bool :=
+  (Paths.isdirpath p, Paths.splitdir p, splitdrive p, Paths.splitext p, Paths.normpath p,
+    Paths.abspath cwd p, Paths.isabspath p)
+
+def realpath (call : Str → Int × Str) (path : Str) : R Str :=
+  let (ret, text) := call path
+  if ret < 0 then .error (.uvError "realpath") else .ok text
+
+def homedirUser (getpwnam : Nat → Int × Option Nat) (getpwuidHome : Nat → Option Str) :
+    Nat → Nat → Option Str
+  | 0, _ => none
+  | fuel + 1, buflen =>
+    if buflen ≤ 65536 then
+      let (ret, res) := getpwnam buflen
+      if ret == 34 then homedirUser getpwnam getpwuidHome fuel (buflen * 2)
+      else match ret, res with
+        | 0, some uid => getpwuidHome uid
+        | _, _ => none
+    else none
+
+structure StatInfo where
+  ino : Nat
+  uid : Nat
+  deriving DecidableEq
+
+/-- Prefixes of `path` ending just before each `'/'` after the first one (the order the
+`findnext(path_separator_re, ...)` loop visits them), each with the rest from that
+separator on. -/
+def sepPrefixes (path : Str) : List (Str × Str) :=
+  let idxs := (List.range path.length).filter (fun i => path[i]? = some '/')
+  (idxs.drop 1).map (fun i => (path.take i, path.drop i))
+
+/-- The prefix loop of `contractuser`, `base/path.jl:820-848`, with the uid cache
+(`cacheUid`, and `cache` = `(cache_uname, inode of cache_home_st)`); `uidHome uid` is
+`(username, homedir(username))` when `getpwuid(uid, false)` finds a user with a nonempty
+name whose `homedir` is not `nothing`. -/
+def contractGo (stat : Str → Option StatInfo) (hino : Nat) (uidHome : Nat → Option (Str × Str))
+    (path : Str) : Nat → Option (Str × Option Nat) → List (Str × Str) → Str
+  | _, _, [] => path
+  | cacheUid, cache, (pre, rest) :: more =>
+    match stat pre with
+    | none => path
+    | some st =>
+      if st.ino == hino then '~' :: rest else
+      let cu := if st.uid != cacheUid then st.uid else cacheUid
+      let c := if st.uid != cacheUid then
+          (uidHome st.uid).map (fun uh => (uh.1, (stat uh.2).map (·.ino))) else cache
+      match c with
+      | some (uname, some hi) =>
+        if hi == st.ino then '~' :: uname ++ rest else contractGo stat hino uidHome path cu c more
+      | _ => contractGo stat hino uidHome path cu c more
+
+/-- `contractuser(path)` on Unix, `base/path.jl:809-850`: `stat p` gives the file identity
+(`none` when `!ispath`), `home` is `homedir()`, `myUid` is `getuid()`. -/
+def contractuser (stat : Str → Option StatInfo) (home : Str) (myUid : Nat)
+    (uidHome : Nat → Option (Str × Str)) (path : Str) : Str :=
+  match stat home with
+  | none => path
+  | some hst =>
+    if (stat path).map (·.ino) == some hst.ino then ['~']
+    else contractGo stat hst.ino uidHome path myUid none (sepPrefixes path)
+
+/-- Documented (`contractuser` docstring, lines 898-906): the result is `path` unchanged,
+`"~"`, or `"~"`/`"~user"` followed by a suffix of `path` that starts at a separator. -/
+def expanduserAbs (home : Str) (lookup : Str → Option Str) (userChar : Char → Bool) (p : Str) : Str :=
+  Paths.expanduser home lookup userChar p
+def contractuserAbs (stat : Str → Option StatInfo) (home : Str) (myUid : Nat)
+    (uidHome : Nat → Option (Str × Str)) (p : Str) : Str := contractuser stat home myUid uidHome p
+
+def hexDigit (n : Nat) : Char := if n < 10 then Char.ofNat (48 + n) else Char.ofNat (55 + n)
+
+/-- `uppercase(string(cu, base = 16))` for a byte: no leading zeros. -/
+def hexNoPad (b : UInt8) : List Char :=
+  if b.toNat < 16 then [hexDigit b.toNat] else [hexDigit (b.toNat / 16), hexDigit (b.toNat % 16)]
+
+def unreservedByte (cu : UInt8) : Bool :=
+  (65 ≤ cu && cu ≤ 90) || (97 ≤ cu && cu ≤ 122) || (48 ≤ cu && cu ≤ 57) ||
+    cu == 45 || cu == 95 || cu == 46 || cu == 126 || cu == 47
+
+/-- `encode_uri_component(s)`, `base/path.jl:965-982`, over the UTF-8 bytes of `s`. -/
+def encodeUriComponent (s : List UInt8) : List Char :=
+  (s.map fun cu => if unreservedByte cu then [Char.ofNat cu.toNat] else '%' :: hexNoPad cu).flatten
+
+/-- RFC 3986 section 2.1: every encoded byte is `%` and two hex digits. -/
+def uripath (cwd : Str) (host : List UInt8) (utf8 : Str → List UInt8) (path : Str) : List Char :=
+  let localpath := Paths.joinSep (Paths.splitAtSeps (Paths.abspath cwd path) false)
+  "file://".toList ++ encodeUriComponent host ++ ['/'] ++ encodeUriComponent (utf8 localpath)
+
+/-- `uripath(path::AbstractString) = uripath(String(path))`, `base/path.jl:1030`. -/
+def uripathAbs (cwd : Str) (host : List UInt8) (utf8 : Str → List UInt8) (p : Str) : List Char :=
+  uripath cwd host utf8 p
+
+end JuliaLean.IOCov.Path
+
+namespace JuliaLean.IOCov.PathFaithful
+
+open JuliaLean JuliaLean.Registry JuliaLean.IOCov JuliaLean.Paths
+open JuliaLean.IOCov.Path
+
+abbrev Str := JuliaLean.Paths.Str
+
+/-! Core path methods. -/
+
+structure HomeReply where
+  rc : Int
+  required : Nat
+  text : Str
+
+/-- `homedir()`, `base/path.jl:184-198`, including the initial 511-byte
+StringVector, total size 512, uv call, and ENOBUFS resize to `required-1`. -/
+def homedirLoop (call : Nat -> Nat -> HomeReply) (enobufs : Int) : Nat -> Nat -> Nat -> R Str
+  | 0, _, _ => .error (.errorException "out of fuel")
+  | fuel + 1, bufferSize, totalSize =>
+      let reply := call bufferSize totalSize
+      if reply.rc = 0 then .ok reply.text
+      else if reply.rc = enobufs then
+        homedirLoop call enobufs fuel (reply.required - 1) reply.required
+      else .error (.uvError "homedir()")
+
+def homedir (call : Nat -> Nat -> HomeReply) (enobufs : Int) (fuel : Nat) : R Str :=
+  homedirLoop call enobufs fuel 511 512
+
+def isDriveLetterByte (b : UInt8) : Bool := (65 <= b && b <= 90) || (97 <= b && b <= 122)
+
+/-- `isabspath(path::String)`, `base/path.jl:200-223`, with the static
+platform branch explicit. -/
+def isabspath (windows : Bool) (path : List UInt8) : Bool :=
+  match path with
+  | [] => false
+  | first :: _ =>
+      if first = 47 || (windows && first = 92) then true
+      else if windows then
+        match path.findIdx? (fun b => b = 47 || b = 92) with
+        | some sep => sep >= 2 && path.getD (sep - 1) 0 = 58 &&
+            (path.take (sep - 1)).all isDriveLetterByte
+        | none => false
+      else false
+
+/-- `isdirpath`, `base/path.jl:255-260`, retaining both source calls. -/
+def isdirpath (splitDrive : Str -> Str × Str)
+    (splitNoDrive : Str -> Str -> Str × Str) (path : Str) : Bool :=
+  let drivePath := splitDrive path
+  let tail := (splitNoDrive [] drivePath.2).2
+  tail = [] || tail = ['.'] || tail = ['.','.']
+
+/-- `splitdir(path::String)`, `base/path.jl:273-276`. -/
+def splitdir (splitDrive : Str -> Str × Str)
+    (splitNoDrive : Str -> Str -> Str × Str) (path : Str) : Str × Str :=
+  let result := splitDrive path
+  splitNoDrive result.1 result.2
+
+/-- One-argument `_splitdir_nodrive`, `base/path.jl:279`. -/
+def splitdirNoDrive1 (splitNoDrive : Str -> Str -> Str × Str) (path : Str) : Str × Str :=
+  splitNoDrive [] path
+
+/-- Two-argument `_splitdir_nodrive`, `base/path.jl:280-289`. -/
+def splitdirNoDrive2 (drive path : Str) : Str × Str := Paths.splitdirNoDrive drive path
+
+/-- Dynamic-dispatch AbstractString `dirname` and `basename`,
+`base/path.jl:308,330`. -/
+def dirname {alpha : Type} (split : alpha -> alpha × alpha) (path : alpha) : alpha := (split path).1
+def basename {alpha : Type} (split : alpha -> alpha × alpha) (path : alpha) : alpha := (split path).2
+
+/-- `splitext(path::String)`, `base/path.jl:351-368`, preserving splitdrive. -/
+def splitext (splitDrive : Str -> Str × Str) (path : Str) : Str × Str :=
+  let result := splitDrive path
+  let inner := Paths.splitext result.2
+  if inner.2.isEmpty then (path, []) else (result.1 ++ inner.1, inner.2)
+
+/-! splitpath and joinpath. -/
+
+/-- AbstractString `splitpath`, `base/path.jl:393`. -/
+def splitpathAbstract {alpha : Type} (toString : alpha -> Str)
+    (splitString : Str -> List Str) (path : alpha) : List Str := splitString (toString path)
+
+/-- String `splitpath`, `base/path.jl:395-411`, including drive restoration. -/
+def splitpathString (splitDrive : Str -> Str × Str)
+    (splitNoDrive : Str -> Str -> Str × Str) (path : Str) : List Str :=
+  let dp := splitDrive path
+  let parts := Paths.splitpathLoop (dp.2.length + 1) dp.2 []
+  if dp.1.isEmpty then parts else
+    match parts with | [] => [dp.1] | p :: ps => (dp.1 ++ p) :: ps
+
+inductive PathArg where | text (value : Str) | invalid deriving Repr
+
+def assertString : PathArg -> Jl Str
+  | .text value => .ok value
+  | .invalid => .error (.argumentError "path component is not a string")
+
+/-- POSIX collection `joinpath`, `base/path.jl:465-483`. -/
+def joinpath : List PathArg -> Jl Str
+  | [] => .error (.argumentError "collection of path components must be non-empty")
+  | first :: rest => do
+      let first <- assertString first
+      rest.foldlM (fun path arg => do
+        let p <- assertString arg
+        pure (if Paths.isabspath p then p else if path.isEmpty || path.getLast? = some '/'
+          then path ++ p else path ++ '/' :: p)) first
+
+/-- Vararg `joinpath`, `base/path.jl:487`. -/
+def joinpathVarargs {alpha : Type} (toArg : alpha -> PathArg) (parts : List alpha) : Jl Str :=
+  joinpath (parts.map toArg)
+
+def splitSepLoop : Nat -> Str -> Nat -> Bool -> List Str -> List Str
+  | 0, _, _, _, out => out
+  | fuel + 1, path, start, keepempty, out =>
+      let next := (List.range path.length).find? (fun i => start <= i && path.getD i '\x00' = '/')
+      let stop := next.getD path.length
+      let piece := (path.drop start).take (stop - start)
+      let out := if keepempty || !piece.isEmpty then out ++ [piece] else out
+      match next with
+      | none => out
+      | some sep =>
+          let nextStart := ((List.range path.length).find? (fun i => sep < i && path.getD i '/' != '/')).getD path.length
+          splitSepLoop fuel path nextStart keepempty out
+
+/-- `_split_at_separators`, `base/path.jl:516-538`, in left-to-right order. -/
+def splitAtSeparators (path : Str) (keepempty : Bool) : List Str :=
+  splitSepLoop (path.length + 1) path 0 keepempty []
+
+/-! Normalization and filesystem wrappers. -/
+
+/-- `normpath(path::String)`, `base/path.jl:555-587`, with splitdrive and
+separator scanning retained. -/
+def normpath (splitDrive : Str -> Str × Str) (path : Str) : Str :=
+  let dp := splitDrive path
+  dp.1 ++ Paths.normpath dp.2
+
+/-- Vararg `normpath`, `base/path.jl:595`. -/
+def normpathVarargs {alpha : Type} (toArg : alpha -> PathArg)
+    (normal : Str -> Str) (parts : List alpha) : Jl Str := do
+  pure (normal (<- joinpathVarargs toArg parts))
+
+/-- `abspath(a::String)`, `base/path.jl:613-625`, retaining pwd, both
+splitdrive calls, drive selection, joinpath, and normpath. -/
+def abspath (absolute : Str -> Bool) (pwd : Unit -> Str) (splitDrive : Str -> Str × Str)
+    (join : List PathArg -> Jl Str) (normal : Str -> Str) (path : Str) : Jl Str := do
+  let path <- if absolute path then pure path else
+    let cwd := pwd ()
+    let a := splitDrive path
+    let c := splitDrive cwd
+    if !a.1.isEmpty && c.1 != a.1 then join [.text (a.1 ++ ['/']), .text a.2]
+    else join [.text cwd, .text path]
+  pure (normal path)
+
+/-- Vararg `abspath`, `base/path.jl:633`. -/
+def abspathVarargs {alpha : Type} (toArg : alpha -> PathArg)
+    (absolute : Str -> Jl Str) (parts : List alpha) : Jl Str := do
+  absolute (<- joinpathVarargs toArg parts)
+
+structure RealpathTrace where
+  result : R Str
+  cleaned : Bool
+  freed : Bool
+
+/-- `realpath`, `base/path.jl:663-679`. -/
+def realpath (call : Str -> Int × Str) (path : Str) : RealpathTrace :=
+  let reply := call path
+  if reply.1 < 0 then ⟨.error (.uvError "realpath"), true, true⟩
+  else ⟨.ok reply.2, true, true⟩
+
+/-- Unix `homedir(username)`, `base/path.jl:781-808`, with storage allocation,
+buffer doubling, result-pointer check, uid load, and getpwuid lookup. -/
+def homedirUser (lookup : Nat -> Int × Option Nat) (getHome : Nat -> Option Str) :
+    Nat -> Nat -> Option Str
+  | 0, _ => none
+  | fuel + 1, size =>
+      if size > 65536 then none else
+      let reply := lookup size
+      if reply.1 = 34 then homedirUser lookup getHome fuel (size * 2)
+      else if reply.1 = 0 then reply.2.bind getHome else none
+
+/-- Unix `contractuser`, `base/path.jl:809-850`. -/
+def contractuser (stat : Str -> Option Path.StatInfo) (home : Str) (uid : Nat)
+    (uidHome : Nat -> Option (Str × Str)) (path : Str) : Str :=
+  Path.contractuser stat home uid uidHome path
+
+/-- `expanduser`, `base/path.jl:854-883`, with platform and user lookup. -/
+def expanduser (windows : Bool) (home : Unit -> Str) (lookup : Str -> Option Str)
+    (validUser : Char -> Bool) (path : Str) : Str :=
+  if windows then Paths.expanduser (home ()) (fun _ => none) validUser path
+  else Paths.expanduser (home ()) lookup validUser path
+
+/-- AbstractString wrappers, `base/path.jl:896,908,958-963,1030`. -/
+def stringWrapper {alpha beta : Type} (toString : alpha -> Str) (f : Str -> beta) (x : alpha) : beta :=
+  f (toString x)
+
+/-- `relpath`, `base/path.jl:921-957`, including empty-input errors. -/
+def relpath (cwd path start : Str) : Jl Str := Paths.relpath cwd path start
+
+/-! URI methods. -/
+
+/-- `encode_uri_component`, `base/path.jl:965-982`, including utf8units and
+initial StringVector sizing. -/
+def encodeUri {alpha : Type} (utf8units : alpha -> List UInt8) (value : alpha) : Nat × List Char :=
+  let bytes := utf8units value
+  (bytes.length, Path.encodeUriComponent bytes)
+
+/-- Unix `uripath`, `base/path.jl:1018-1027`, retaining abspath, separator
+splitting, WSL environment selection, hostname, and UTF-8 encoding. -/
+def uripath (absolute : Str -> Str) (wsl : Bool) (distro hostname : List UInt8)
+    (utf8 : Str -> List UInt8) (path : Str) : List Char :=
+  let localpath := Paths.joinSep (splitAtSeparators (absolute path) false)
+  let host := if wsl then "wsl$/".toList.map (Char.toNat · |>.toUInt8) ++ distro else hostname
+  "file://".toList ++ Path.encodeUriComponent host ++ ['/'] ++ Path.encodeUriComponent (utf8 localpath)
+
+/-! Properties. -/
+
+end JuliaLean.IOCov.PathFaithful

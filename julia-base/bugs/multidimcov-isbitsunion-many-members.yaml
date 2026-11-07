@@ -48,5 +48,5 @@ duplicates:
   issues: []
   queries: ["isbitsunion", "isbitsunion 127", "union 127 isbits", "Union 127 types inline"]
 lean:
-  property: JuliaLean.MultidimCov.ArrayV2.P206
-  theorem: JuliaLean.MultidimCov.ArrayV2.p206_refuted
+  property: JuliaLean.Proofs.base.array.round6b.IsBitsUnionSpec
+  theorem: JuliaLean.Proofs.base.array.round6b.isBitsUnionSpec_refuted

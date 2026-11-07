@@ -4,7 +4,7 @@ priority: P2
 kind: wrong-result
 area: DocsSyntaxCov
 files: [base/docs/Docs.jl]
-functions: ["Base.Docs.signature!(tv::Vector{Any}, expr::Expr)", "Base.Docs._doc(binding::Binding, sig::Type)"]
+functions: ["@doc f(args...)", "Base.Docs.signature!(tv::Vector{Any}, expr::Expr)", "Base.Docs._doc(binding::Binding, sig::Type)"]
 summary: |
     The signature stored for a method docstring includes an extra `Tuple{T}` for every
     type variable: `g(x::Vector{T}) where T` is stored as
@@ -18,17 +18,19 @@ maybe_intended: |
     The extra tuples may exist so that every type variable occurs in the signature; they
     still make the stored signature a supertype of unrelated call signatures.
 reproducer: |
-    "g vec" g(x::Vector{T}) where T = 1
-    "g int" g(x::Int) = 2
-    Base.Docs._doc(Base.Docs.Binding(Main, :g), Tuple{Int}).text   # svec("g vec")
+    module PublicDocProbe
+        "g vec" g(x::Vector{T}) where T = 1
+        "g int" g(x::Int) = 2
+    end
+    d = (@doc PublicDocProbe.g(::Int))
+    println("@doc g(::Int) = ", repr(d.text))
+    d.text == Core.svec("g vec") && println("REPRODUCED docssyntaxcov-doc-signature-typevar")
 output:
   release: |
-    signature = Union{Tuple{Vector{T}}, Tuple{T}} where T <: Any
-    _doc(g, Tuple{Int}) text = svec("g vec")
+    @doc g(::Int) = svec("g vec")
     REPRODUCED docssyntaxcov-doc-signature-typevar
   nightly: |
-    signature = Union{Tuple{Vector{T}}, Tuple{T}} where T <: Any
-    _doc(g, Tuple{Int}) text = svec("g vec")
+    @doc g(::Int) = svec("g vec")
     REPRODUCED docssyntaxcov-doc-signature-typevar
 reproduced: {release: true, nightly: true}
 expected: |

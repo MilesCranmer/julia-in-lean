@@ -4,7 +4,7 @@ priority: P1
 kind: hang
 area: Artifacts
 files: [stdlib/Artifacts/src/Artifacts.jl]
-functions: ["load_overrides", "query_override(::SHA1)", "map_override_path(::SHA1)", "artifact_path", "artifact_paths"]
+functions: ["artifact_path(::SHA1)"]
 summary: |
   `load_overrides` accepts two valid hash-to-hash mappings that point to each other.
   Querying either override then recurses indefinitely instead of returning a path or
@@ -20,9 +20,10 @@ reproducer: |
   second_hash = "2"^40
   write(joinpath(artifacts_dir, "Overrides.toml"),
         "$(first_hash) = \"$(second_hash)\"\n$(second_hash) = \"$(first_hash)\"\n")
-  process = run(pipeline(ignorestatus(`$(Base.julia_cmd()) --startup-file=no
-      --history-file=no $(@__FILE__) child $depot $first_hash`),
-      stdout=devnull, stderr=devnull); wait=false)
+  code = "using Artifacts, Base: SHA1; artifact_path(SHA1(ARGS[1]))"
+  command = setenv(`$(Base.julia_cmd()) --startup-file=no --history-file=no -e $code $first_hash`,
+                  "JULIA_DEPOT_PATH" => depot)
+  process = run(pipeline(ignorestatus(command), stdout=devnull, stderr=devnull); wait=false)
   status = timedwait(() -> Base.process_exited(process), 5.0; pollint=0.05)
 output:
   release: |

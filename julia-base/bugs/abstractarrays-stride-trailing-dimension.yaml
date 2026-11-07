@@ -44,7 +44,7 @@ output:
 reproduced: {release: true, nightly: true}
 expected: |
   stride(A, 3) == 6, the value Array and SubArray give for the same strides (1, 2) and
-  size (2, 3). A diagnostic run on target master: for A = reshape(collect(1:12), 2, 6),
+  size (2, 3). On master, for A = reshape(collect(1:12), 2, 6),
   stride(view(A, :, 1:3), 3) == 6 and stride(A, 3) == 12.
 promised_by: |
   stride docstring, base/abstractarray.jl:580-582: "Return the distance in memory (in

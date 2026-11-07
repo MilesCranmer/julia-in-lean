@@ -3,63 +3,118 @@ title: "hash(::AnnotatedString) throws for non-UInt8 AbstractString storage"
 priority: P2
 kind: wrong-exception
 area: HashOps
-files: [base/hashing.jl, base/strings/annotated.jl]
-functions: ["hash(::AbstractString, ::UInt)", "iterate(::UTF8Units)", "hash(::AnnotatedString, ::UInt)"]
+files:
+  - base/hashing.jl
+  - base/strings/annotated.jl
+functions:
+  - "hash(::AbstractString, ::UInt)"
+  - "iterate(::UTF8Units)"
 summary: |
-  AnnotatedString accepts any AbstractString, but hashing one backed by non-UInt8
-  code units throws ArgumentError. An annotation-free wrapper is isequal to its
-  underlying string, which hashes normally, so the documented hash contract
-  cannot be used for this equal pair.
+  An annotation-free AnnotatedString over a one-character UInt32-codeunit
+  AbstractString is isequal to its parent, but hashing the wrapper raises
+  ArgumentError while hashing the parent succeeds. Both release and pinned
+  nightly reproduce the failure with Base's inherited index arithmetic.
 likelihood: |
-  This affects custom AbstractString implementations with UInt16 or UInt32 code
-  units when wrapped for styling. Such string implementations are uncommon,
-  but AnnotatedString explicitly supports every AbstractString subtype.
+  Requires a custom non-UInt8-codeunit AbstractString wrapped in AnnotatedString.
+  UInt32 code units are explicitly supported by the AbstractString interface.
+  The one-character input needs no invalid encoding or oversized allocation.
 maybe_intended: |
-  Empty annotations intentionally make an AnnotatedString equal to the
-  underlying AbstractString. No documented restriction requires UInt8 code
-  units, and the generic hashing code has a dedicated non-UInt8 path.
+  Annotations may affect equality, but this wrapper has no annotations and Base
+  explicitly makes it equal to its parent. The custom string inherits Base's
+  index arithmetic and uses ordinary Char iteration with UInt32 code units.
 reproducer: |
   using Base: AnnotatedString
-  struct UTF32String <: AbstractString
+  struct UTF32TestString <: AbstractString
       chars::Vector{Char}
   end
-  # Define the required AbstractString interface with UInt32 code units.
-  s = UTF32String(['h', 'é'])
+  Base.ncodeunits(s::UTF32TestString) = length(s.chars)
+  Base.codeunit(::UTF32TestString) = UInt32
+  Base.codeunit(s::UTF32TestString, i::Integer) = UInt32(s.chars[i])
+  Base.isvalid(s::UTF32TestString, i::Integer) = 1 <= i <= length(s.chars)
+  Base.getindex(s::UTF32TestString, i::Integer) = s.chars[i]
+  Base.iterate(s::UTF32TestString, i::Integer=1) =
+      i > length(s.chars) ? nothing : (s.chars[i], i + 1)
+  s = UTF32TestString(['a'])
   a = AnnotatedString(s)
-  isequal(a, s)
-  hash(s, UInt(0))
-  hash(a, UInt(0))
+  @assert isequal(a, s)
+  @assert hash(s, UInt(0)) isa UInt
+  try
+      hash(a, UInt(0))
+      error("wrapper hash unexpectedly succeeded")
+  catch err
+      err isa ArgumentError || rethrow()
+      println("REPRODUCED hashops-annotated-non8-hash")
+  end
 output:
   release: |
-    hash(a, 0) error = ArgumentError: Source type for `reinterpret` must be isbits
+    Julia 1.13.2, commit 45b6d15e34bbd2003a31acce0b1847b63dad029c:
     isequal(a, s) = true
-    hash(s, 0) = 98426436874591437
+    hash(s, 0) = 6457959414642172395
+    hash(a, 0) error = ArgumentError: Source type for `reinterpret` must be isbits
     REPRODUCED hashops-annotated-non8-hash
   nightly: |
-    hash(a, 0) error = ArgumentError: Source type for `reinterpret` must be isbits
+    Julia 1.15.0-DEV.unknown, commit f755f49a9e41380d7da126b3c1db9fe7f83dd027:
     isequal(a, s) = true
-    hash(s, 0) = 98426436874591437
+    hash(s, 0) = 6457959414642172395
+    hash(a, 0) error = ArgumentError: Source type for `reinterpret` must be isbits
     REPRODUCED hashops-annotated-non8-hash
-reproduced: {release: true, nightly: true}
+reproduced:
+  release: true
+  nightly: true
 expected: |
-  hash(a, UInt(0)) should return the same UInt as hash(s, UInt(0)), because
-  isequal(a, s) is true.
+  Hashing the annotation-free wrapper should succeed and equal the parent's
+  hash at the same seed. The failure breaks the documented equality/hash
+  contract through an exception; two successful unequal hashes are not claimed.
 promised_by: |
-  The hash docstring at base/hashing.jl:12-20 says isequal(x,y) implies equal
-  hashes. AnnotatedString is parameterized by S <: AbstractString at
-  base/strings/annotated.jl:64, and its equality method at lines 232-233 makes
-  an annotation-free wrapper equal to the underlying string.
+  At Julia commit f755f49a9e41380d7da126b3c1db9fe7f83dd027:
+  base/hashing.jl:14-15: "Compute an integer hash code such that
+  `isequal(x,y)` implies `isequal(hash(x), hash(y))`. The
+  optional second argument `h` is another hash code to be mixed with the result."
+  base/strings/basic.jl:73-75: "Return the code unit type of the given string
+  object. For ASCII, Latin-1, or UTF-8 encoded strings, this would be `UInt8`;
+  for UCS-2 and UTF-16 it would be `UInt16`; for UTF-32 it would be `UInt32`."
+  base/strings/annotated.jl:11-13: "More specifically, this is a simple wrapper
+  around any other [`AbstractString`](@ref) that allows for regions of the
+  wrapped string to be annotated with labeled values."
+  base/strings/annotated.jl:232:
+  `==(a::AnnotatedString, b::AbstractString) = isempty(a.annotations) && a.string == b`
 cause: |
-  utf8units chooses UTF8Units for non-UInt8 code units at base/hashing.jl:106.
-  Iterating the AnnotatedString yields AnnotatedChar values, then UTF8Units calls
-  reinterpret(UInt32, char) at lines 115 and 138. AnnotatedChar is a non-isbits
-  struct containing an annotation vector, so reinterpret throws.
+  At the pinned commit, base/hashing.jl:649-650 sends AbstractString hashing
+  through utf8units. Line 106 selects UTF8Units for UInt32 code units, and lines
+  115 and 138 reinterpret the iterated character as UInt32.
+  base/strings/annotated.jl:150-157 preserves the parent's code-unit type but
+  iterates AnnotatedChar values. Lines 192-195 construct AnnotatedChar even for
+  empty annotations. Its Vector field at lines 95-98 makes it non-isbits,
+  explaining the observed ArgumentError. This source-based explanation has not
+  been checked against every step of the code path.
 possible_fix: |
-  Hash an AnnotatedString through its underlying string, or convert each
-  AbstractChar through its code point instead of reinterpreting the wrapper.
+  Decode AbstractChar through an appropriate character conversion before
+  accessing its representation in UTF8Units. Any AnnotatedString-specific hash
+  method must also respect annotation-sensitive equality. No fix is applied.
 duplicates:
-  issues: []
-  queries: ["AnnotatedString hash", "UTF8Units AnnotatedChar", "hash AbstractString reinterpret", "non UInt8 AbstractString hash"]
+  issues:
+    - number: 55244
+      state: open
+      relation: related
+    - number: 59151
+      state: closed
+      relation: related
+  prs:
+    - number: 55457
+      state: open
+      relation: related
+    - number: 64353
+      state: open
+      relation: related
+  queries:
+    - "gh search issues 'AnnotatedString hash' --repo JuliaLang/julia"
+    - "gh search prs 'AnnotatedString hash' --repo JuliaLang/julia"
+    - "gh search issues 'UTF8Units' --repo JuliaLang/julia"
+    - "gh search issues 'AbstractString hash' --repo JuliaLang/julia"
+    - "gh search prs 'AnnotatedChar' --repo JuliaLang/julia"
+    - "gh search issues 'hash reinterpret string' --repo JuliaLang/julia"
+    - "gh search prs 'UTF8Units' --repo JuliaLang/julia"
+    - "gh search issues 'AnnotatedString' --repo JuliaLang/julia"
 lean:
-  property: JuliaLean.HashOps.AnnotatedStringHash
-  theorem: JuliaLean.HashOps.annotatedStringHash_refuted
+  property: JuliaLean.Proofs.base.hashing.AnnotatedStringHash
+  theorem: JuliaLean.ChatGPT.Batch4.Group21.HashopsAnnotatedNon8Hash_refuted

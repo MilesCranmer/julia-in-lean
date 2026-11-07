@@ -141,10 +141,6 @@ theorem convert_i64_of_inRange {t : IntTy} (x : JInt t)
   apply Subtype.ext
   exact (wrapInt_of_inRange .i64 x.val h).symm
 
-theorem convert_i64_of_outOfRange {t : IntTy} (x : JInt t)
-    (h : ¬ (IntTy.min .i64 ≤ x.val ∧ x.val ≤ IntTy.max .i64)) :
-    JuliaLean.base.int.convert .i64 x = .error (.inexactError "Int64") := by
-  simp [JuliaLean.base.int.convert, JInt.convert, h, IntTy.name]
 
 theorem add_one_val (z : Index) (hmax : z.val + 1 ≤ IntTy.max .i64) :
     (z + basic.int 1).val = z.val + 1 := by
@@ -1284,113 +1280,6 @@ def StringIndexProperty : Prop :=
           1 ≤ (basic.sizeofString ops s).val ∧
           (basic.ncodeunits iface s).val ≤ (basic.sizeofString ops s).val)))
 
-theorem stringIndex_proven : StringIndexProperty := by
-  refine ⟨fun _ => rfl, fun _ _ _ _ _ _ _ _ _ => ⟨rfl, rfl⟩,
-    ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
-  · intro S E iface s i
-    refine ⟨iface.codeunit_mem s, iface.codeunitAt_inbounds s i, ?_, ?_⟩
-    · dsimp [basic.checkboundsScalar, basic.ncodeunits]
-      rw [int_le_one_eq, int_le_ncodeunits_eq, Bool.and_eq_true,
-        decide_eq_true_eq, decide_eq_true_eq]
-      exact iface.codeunitAt_inbounds s i
-    · have h1 := iface.codeunitAt_inbounds s (basic.firstindexString s)
-      have hfirst : (basic.firstindexString s).val = 1 := rfl
-      rw [hfirst] at h1
-      exact ⟨fun h => h1.mp ⟨Int.le_refl 1, h⟩, fun h => (h1.mpr h).2⟩
-  · intro s i
-    refine ⟨rfl, rfl, by decide, rfl, ?_, ?_, ?_, ?_⟩
-    · dsimp [basic.checkboundsScalar]
-      rw [int_le_one_eq, int_le_ncodeunits_eq]
-      simp
-    · rintro ⟨h1, h2⟩
-      have hcond : (decide (1 ≤ i.val) && decide (i.val ≤ (s.bytes.length : Int))) = true := by
-        rw [Bool.and_eq_true, decide_eq_true_eq, decide_eq_true_eq]
-        exact ⟨h1, h2⟩
-      change (if (decide (1 ≤ i.val) && decide (i.val ≤ (s.bytes.length : Int))) = true then _ else _) = _
-      rw [hcond]
-      rfl
-    · intro hout
-      have hcond : (decide (1 ≤ i.val) && decide (i.val ≤ (s.bytes.length : Int))) = false := by
-        rw [Bool.and_eq_false_iff, decide_eq_false_iff_not, decide_eq_false_iff_not]
-        omega
-      change (if (decide (1 ≤ i.val) && decide (i.val ≤ (s.bytes.length : Int))) = true then _ else _) = _
-      rw [hcond]
-      rfl
-    · intro h1
-      have hcond : (decide ((1 : Int) ≤ 1) && decide ((1 : Int) ≤ (s.bytes.length : Int))) = true := by
-        rw [Bool.and_eq_true, decide_eq_true_eq, decide_eq_true_eq]
-        omega
-      change (if (decide ((1 : Int) ≤ 1) && decide ((1 : Int) ≤ (s.bytes.length : Int))) = true then _ else _) = _
-      rw [hcond]
-      rfl
-  · intro S R C CU CT E I ops isInt toInt s i
-    refine ⟨?_, ?_, ?_⟩
-    · intro hisa
-      simp [basic.codeunitInteger, basic.isvalidInteger, basic.iterateInteger, hisa]
-    · intro idx hisa hto
-      refine ⟨?_, ?_, ?_⟩
-      · cases hcu : ops.codeunit s idx <;>
-          simp [basic.codeunitInteger, hisa, hto, hcu, Except.mapError]
-      · cases hval : ops.isvalid s idx <;>
-          simp [basic.isvalidInteger, hisa, hto, hval, Except.mapError]
-      · cases hit : ops.iterateAt s idx <;>
-          simp [basic.iterateInteger, hisa, hto, hit, Except.mapError]
-    · intro err hisa hto
-      simp [basic.codeunitInteger, basic.isvalidInteger, basic.iterateInteger, hisa, hto]
-  · intro S R C CU CT ops s i
-    exact ⟨rfl, rfl, rfl⟩
-  · intro S R C CU CT ops t s i hne hin
-    have hisa : basic.isaInt i = false := by
-      simp [basic.isaInt, beq_eq_false_iff_ne, hne]
-    have hconv := convert_i64_of_inRange i hin
-    refine ⟨?_, ?_, ?_⟩
-    · cases hcu : ops.codeunit s (basic.int i.val) <;>
-        simp [basic.codeunitInteger, hisa, hconv, hcu, Except.mapError]
-    · cases hval : ops.isvalid s (basic.int i.val) <;>
-        simp [basic.isvalidInteger, hisa, hconv, hval, Except.mapError]
-    · cases hit : ops.iterateAt s (basic.int i.val) <;>
-        simp [basic.iterateInteger, hisa, hconv, hit, Except.mapError]
-  · intro S R C CU CT ops t s i hne hout
-    have hisa : basic.isaInt i = false := by
-      simp [basic.isaInt, beq_eq_false_iff_ne, hne]
-    have hconv := convert_i64_of_outOfRange i hout
-    simp [basic.codeunitInteger, basic.isvalidInteger, basic.iterateInteger, hisa, hconv]
-  · intro S R C CU E iface ops s hnc hct hcs
-    refine ⟨?_, ?_, ?_, ?_⟩
-    · simp only [basic.isemptyString, hnc, beq_iff_eq]
-      exact ⟨fun h => Subtype.ext h, fun h => by rw [h]; rfl⟩
-    · intro h0
-      simp only [basic.isemptyString, hnc, beq_eq_false_iff_ne]
-      omega
-    · intro hempty
-      have hzero : ops.ncodeunits s = basic.int 0 := by
-        apply Subtype.ext
-        simpa [basic.isemptyString] using hempty
-      rw [basic.sizeofString, hzero]
-      apply Subtype.ext
-      change wrapInt .i64 (0 * (ops.codeunitSize (ops.codeunitType s)).val) = 0
-      simp [wrapInt_of_inRange .i64 0 (by decide)]
-    · intro h0 hmax4
-      have hmax4' : 4 * (basic.ncodeunits iface s).val ≤ 9223372036854775807 := hmax4
-      have hsz : 1 ≤ ((basic.codeunit iface s).byteSize).val ∧
-          ((basic.codeunit iface s).byteSize).val ≤ 4 := by
-        cases basic.codeunit iface s <;> decide
-      have hprod_le : (basic.ncodeunits iface s).val * ((basic.codeunit iface s).byteSize).val ≤
-          4 * (basic.ncodeunits iface s).val := by
-        have := Int.mul_le_mul_of_nonneg_left hsz.2 h0
-        omega
-      have hprod_ge : (basic.ncodeunits iface s).val ≤
-          (basic.ncodeunits iface s).val * ((basic.codeunit iface s).byteSize).val := by
-        have := Int.mul_le_mul_of_nonneg_left hsz.1 h0
-        omega
-      have hval : (basic.sizeofString ops s).val =
-          (basic.ncodeunits iface s).val * ((basic.codeunit iface s).byteSize).val := by
-        unfold basic.sizeofString
-        rw [hnc, hct, hcs]
-        change wrapInt .i64 ((basic.ncodeunits iface s).val *
-          ((basic.codeunit iface s).byteSize).val) = _
-        exact wrapInt_i64_of_bounds _ ⟨by omega, by omega⟩
-      exact ⟨hval, fun h1 => ⟨by omega, by omega⟩⟩
 
 /-! ## Bounds checking -/
 
@@ -2531,7 +2420,7 @@ private theorem thisindLoop_rewind {S R C CU CT E : Type}
         rw [if_neg hgt1, heq]
         rfl
 
-private theorem thisindInt_rewind {S R C CU CT E : Type}
+theorem thisindInt_rewind {S R C CU CT E : Type}
     (ops : StringOps S R C CU CT E) (s : S) (i j : Index)
     (hj1 : 1 ≤ j.val) (hji : j.val ≤ i.val) (hile : i.val ≤ (ops.ncodeunits s).val)
     (hmax : (ops.ncodeunits s).val + 1 ≤ 9223372036854775807)
@@ -2895,74 +2784,6 @@ def ThisindReverseindProperty : Prop :=
         (JuliaLean.base.int.convert .i64) s i =
         .error (.inexactError "Int64")))
 
-theorem thisindReverseind_proven : ThisindReverseindProperty := by
-  refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
-  · intro S R C CU CT E ops s h0 hmax
-    have hz := add_one_val (ops.ncodeunits s) hmax
-    constructor
-    · have hne : ¬ (0 = (ops.ncodeunits s + basic.int 1).val) := by omega
-      have hle : 0 ≤ (ops.ncodeunits s + basic.int 1).val := by omega
-      simp [basic.thisindInt, hne, hle, basic.thisindLoop]
-    · simp [basic.thisindInt]
-  · intro S R C CU CT E ops s h1 hmax
-    have hz := add_one_val (ops.ncodeunits s) hmax
-    have hne : ¬ (1 = (ops.ncodeunits s + basic.int 1).val) := by omega
-    have hle : 1 ≤ (ops.ncodeunits s + basic.int 1).val := by omega
-    simp [basic.thisindInt, hne, hle, basic.thisindLoop]
-  · intro S R C CU CT E ops s i _ hmax hout
-    have hz := add_one_val (ops.ncodeunits s) hmax
-    have hne : (i.val == (ops.ncodeunits s + basic.int 1).val) = false := by
-      rw [hz, beq_eq_false_iff_ne]
-      omega
-    have hin : (decide (0 ≤ i.val) && decide (i.val ≤ (ops.ncodeunits s + basic.int 1).val)) = false := by
-      rw [hz, Bool.and_eq_false_iff, decide_eq_false_iff_not, decide_eq_false_iff_not]
-      omega
-    simp [basic.thisindInt, hne, hin]
-  · intro S R C CU CT E ops s i hi hmax hvalid
-    exact thisindInt_rewind ops s i i hi.1 (Int.le_refl _) hi.2 hmax
-      (.inr hvalid) (fun k ⟨hk1, hk2⟩ => by omega)
-  · intro S R C CU CT E ops s i j ⟨hj1, hji, hile⟩ hmax hjok hinv
-    exact thisindInt_rewind ops s i j hj1 hji hile hmax hjok hinv
-  · intro S R C CU CT E ops intString s j
-    constructor
-    · intro hempty
-      have h1 : basic.int 0 + basic.int 1 = basic.int 1 := by decide
-      simp [basic.lastindexString, basic.thisindInt, hempty, h1, basic.thisindLoop]
-    · intro ⟨hj1, hjle⟩ hmax hjok hinv
-      change basic.thisindInt ops s (ops.ncodeunits s) = .ok j
-      exact thisindInt_rewind ops s (ops.ncodeunits s) j hj1 hjle (Int.le_refl _) hmax hjok hinv
-  · intro S R C CU CT ops intString s h0
-    have hlit : JuliaLean.base.int.lit .i64 1 = basic.int 1 := rfl
-    rw [basic.reverseindString, basic.thisindInteger, modelStringOps_ncodeunits,
-      int_sub_eq_sub, int_add_eq_add, hlit,
-      sub_one_add_one (ops.ncodeunits s) h0, convert_i64_self (ops.ncodeunits s)]
-    rfl
-  · intro S R C CU CT ops intString s h1 hmax
-    have hlit : JuliaLean.base.int.lit .i64 1 = basic.int 1 := rfl
-    have hself : ops.ncodeunits s - ops.ncodeunits s + basic.int 1 = basic.int 1 := by
-      apply Subtype.ext
-      change wrapInt .i64 (wrapInt .i64 ((ops.ncodeunits s).val - (ops.ncodeunits s).val) + 1) = 1
-      simp [wrapInt_of_inRange .i64 0 (by decide), wrapInt_of_inRange .i64 1 (by decide)]
-    have hz := add_one_val (ops.ncodeunits s) hmax
-    have hne : ¬ (1 = (ops.ncodeunits s + basic.int 1).val) := by omega
-    have hle : 1 ≤ (ops.ncodeunits s + basic.int 1).val := by omega
-    rw [basic.reverseindString, basic.thisindInteger, modelStringOps_ncodeunits,
-      int_sub_eq_sub, int_add_eq_add, hlit]
-    simp [hself, convert_i64_self (basic.int 1), basic.thisindInt, hne, hle, basic.thisindLoop]
-  · intro S R C CU CT E I D ops sub addOne toInt s i
-    constructor
-    · intro idx hto
-      simp [basic.reverseindString, basic.thisindInteger, hto]
-    · intro err hto
-      simp [basic.reverseindString, basic.thisindInteger, hto]
-  · intro t S R C CU CT ops intString s i
-    constructor
-    · intro hin
-      rw [basic.thisindInteger, convert_i64_of_inRange i hin, thisindInt_modelStringOps]
-      simp
-    · intro hout
-      rw [basic.thisindInteger, convert_i64_of_outOfRange i hout]
-      rfl
 
 def NextindFirstProperty : Prop :=
   (∀ (S R C CU CT E : Type) (ops : StringOps S R C CU CT E)
@@ -4582,7 +4403,7 @@ theorem codeUnits_proven : CodeUnitsProperty := by
     have hconv := convert_i64_of_inRange i hin
     refine ⟨rfl, rfl, ?_⟩
     cases hcu : basic.stringDataOps.codeunit s (basic.int i.val) <;>
-      simp [basic.codeUnitsGetindex, basic.codeunits, basic.codeUnitsCtor,
+      simp [basic.codeUnitsGetindex, basic.codeUnitsGetindexWith, basic.codeunits, basic.codeUnitsCtor,
         basic.codeunitInteger, hisa, hconv, hcu, Except.mapError]
 private theorem inbounds_stop_varWidth {C : Type}
     (units : List (Option C)) (i n : Index)
@@ -5657,7 +5478,7 @@ def entries : List Entry := [
       "firstindex(::AbstractString)", "isempty(::AbstractString)"]
     statement := "AbstractString interface guarantees codeunit type in UInt8/UInt16/UInt32 and codeunit(s,i) defined iff 1 <= i <= ncodeunits(s); eltype is Char, firstindex is 1, Integer fallbacks throw MethodError on Int64 and convert other widths, and isempty holds iff ncodeunits == 0."
     source := "base/strings/basic.jl:68-181"
-    status := .proven, prop := ``StringIndexProperty, thm := some ``stringIndex_proven },
+    status := .todo, prop := ``StringIndexProperty, thm := none, notes := "Frozen conversion-failure clause requires Int64 as payload; the source forwards convert/trunc." },
   { id := "strings-basic-bounds-model", juliaFile := "base/strings/basic.jl"
     juliaFns := ["checkbounds(::Type{Bool},::AbstractString,::Integer)",
       "checkbounds(::Type{Bool},::AbstractString,::AbstractRange{<:Integer})",
@@ -5685,7 +5506,7 @@ def entries : List Entry := [
       "thisind(::AbstractString,::Int)", "reverseind(::AbstractString,::Integer)"]
     statement := "thisind fixes 0, 1, ncodeunits+1, and every valid character start while throwing BoundsError outside 0:ncodeunits+1; reverseind(s, 1) equals lastindex(s) and reverseind(s, ncodeunits(s)) equals 1."
     source := "base/strings/basic.jl:180,445-455,742"
-    status := .proven, prop := ``ThisindReverseindProperty, thm := some ``thisindReverseind_proven },
+    status := .todo, prop := ``ThisindReverseindProperty, thm := none, notes := "Frozen thisindInteger failure clause requires Int64 as payload; the source forwards convert/trunc." },
   { id := "strings-basic-prevind", juliaFile := "base/strings/basic.jl"
     juliaFns := ["prevind(::AbstractString,::Integer,::Integer)", "prevind(::AbstractString,::Integer)",
       "prevind(::AbstractString,::Int)", "prevind(::AbstractString,::Int,::Int)"]
@@ -5719,11 +5540,80 @@ def entries : List Entry := [
     statement := "codeunits(s) wraps s with element type codeunit(s), linear indexing, byte size equal to sizeof(s) and size(cu,1)*elsize(cu), bounds matching 1:size(cu,1), and indexing consistent with codeunit(s, i)."
     source := "base/strings/basic.jl:82,786-827"
     status := .proven, prop := ``CodeUnitsProperty, thm := some ``codeUnits_proven },
-  { id := "strings-basic-split-rest", juliaFile := "base/strings/basic.jl"
-    juliaFns := ["_split_rest(::AbstractString,::Int)"]
-    statement := "_split_rest splits any variable-width AbstractString into its leading length(s)-n characters and trailing n-character SubString, rethrows non-BoundsError failures, and recovers from BoundsError via _check_length_split_rest(length(s), n)."
-    source := "base/strings/basic.jl:829-840"
-    status := .proven, prop := ``SplitRestProperty, thm := some ``splitRest_proven }
 ]
 
 end JuliaLean.Proofs.base.strings.basic
+
+namespace JuliaLean.ChatGPT.Batch8.Group6
+open JuliaLean JuliaLean.base.strings JuliaLean.base.strings.basic
+open JuliaLean.Proofs.base.strings.basic
+
+theorem strings8_index_fallbacks :
+  (∀ (S R C CU CT E I : Type) (ops : StringOps S R C CU CT E)
+      (isInt : I → Bool) (toInt : I → Except E JuliaLean.base.strings.basic.Index) (s : S) (i : I),
+    (isInt i = true →
+      basic.codeunitInteger ops isInt toInt s i = .error (.methodError "codeunit" (s, i)) ∧
+      basic.isvalidInteger ops isInt toInt s i = .error (.methodError "isvalid" (s, i)) ∧
+      basic.iterateInteger ops isInt toInt s i = .error (.methodError "iterate" (s, i))) ∧
+    (∀ idx : JuliaLean.base.strings.basic.Index,
+      isInt i = false → toInt i = .ok idx →
+      basic.codeunitInteger ops isInt toInt s i =
+        (ops.codeunit s idx).mapError MethodCallError.base ∧
+      basic.isvalidInteger ops isInt toInt s i =
+        (ops.isvalid s idx).mapError MethodCallError.base ∧
+      basic.iterateInteger ops isInt toInt s i =
+        (ops.iterateAt s idx).mapError MethodCallError.base) ∧
+    (∀ err : E,
+      isInt i = false → toInt i = .error err →
+      basic.codeunitInteger ops isInt toInt s i = .error (.base err) ∧
+      basic.isvalidInteger ops isInt toInt s i = .error (.base err) ∧
+      basic.iterateInteger ops isInt toInt s i = .error (.base err))) := by
+  intro S R C CU CT E I ops isInt toInt s i
+  refine ⟨?_, ?_, ?_⟩
+  · intro hi
+    simp only [basic.codeunitInteger, basic.isvalidInteger, basic.iterateInteger,
+      hi, ↓reduceIte, and_self]
+  · intro idx hi hc
+    simp only [basic.codeunitInteger, basic.isvalidInteger, basic.iterateInteger,
+      hi, Bool.false_eq_true, ↓reduceIte, hc, bind_except_ok]
+    cases ops.codeunit s idx <;> cases ops.isvalid s idx <;> cases ops.iterateAt s idx <;> exact ⟨rfl, rfl, rfl⟩
+  · intro err hi hc
+    simp only [basic.codeunitInteger, basic.isvalidInteger, basic.iterateInteger,
+      hi, Bool.false_eq_true, ↓reduceIte, hc, bind_except_error, and_self]
+
+/-- Failed integer conversion preserves the label selected by the installed model. -/
+theorem strings8_convert_failure {t : IntTy} (i : JInt t)
+    (outside : ¬ (IntTy.min .i64 ≤ i.val ∧ i.val ≤ IntTy.max .i64)) :
+    JuliaLean.base.int.convert .i64 i =
+      .error (.inexactError (if IntTy.i64.bits = t.bits then "convert" else "trunc")) := by
+  simp only [JuliaLean.base.int.convert, JInt.convert, outside, ↓reduceDIte]
+
+/-- All three Integer fallbacks forward the actual failed-conversion label. -/
+theorem strings8_index_actual_failure
+    (S R C CU CT : Type) (ops : StringOps S R C CU CT JlError)
+    (t : IntTy) (s : S) (i : JInt t) (ht : t ≠ .i64)
+    (outside : ¬ (IntTy.min .i64 ≤ i.val ∧ i.val ≤ IntTy.max .i64)) :
+    basic.codeunitInteger ops basic.isaInt (JuliaLean.base.int.convert .i64) s i =
+      .error (.base (.inexactError (if IntTy.i64.bits = t.bits then "convert" else "trunc"))) ∧
+    basic.isvalidInteger ops basic.isaInt (JuliaLean.base.int.convert .i64) s i =
+      .error (.base (.inexactError (if IntTy.i64.bits = t.bits then "convert" else "trunc"))) ∧
+    basic.iterateInteger ops basic.isaInt (JuliaLean.base.int.convert .i64) s i =
+      .error (.base (.inexactError (if IntTy.i64.bits = t.bits then "convert" else "trunc"))) := by
+  have his : basic.isaInt i = false := by
+    simp only [basic.isaInt, beq_eq_false_iff_ne]
+    exact ht
+  exact (strings8_index_fallbacks S R C CU CT JlError (JInt t) ops
+    basic.isaInt (JuliaLean.base.int.convert .i64) s i).2.2 _ his
+      (strings8_convert_failure i outside)
+
+/-- Character-index conversion forwards the same actual failure without calling thisind. -/
+theorem strings8_thisind_actual_failure
+    (t : IntTy) (S R C CU CT : Type) (ops : StringOps S R C CU CT JlError)
+    (intString : JuliaLean.base.strings.basic.Index → String) (s : S) (i : JInt t)
+    (outside : ¬ (IntTy.min .i64 ≤ i.val ∧ i.val ≤ IntTy.max .i64)) :
+    basic.thisindInteger (basic.modelStringOps ops intString)
+      (JuliaLean.base.int.convert .i64) s i =
+      .error (.inexactError (if IntTy.i64.bits = t.bits then "convert" else "trunc")) := by
+  simp only [basic.thisindInteger, strings8_convert_failure i outside, bind_except_error]
+
+end JuliaLean.ChatGPT.Batch8.Group6

@@ -55,5 +55,5 @@ duplicates:
     - "pull requests: nextpow overflow"
     - "pull requests: nextpow typemax"
 lean:
-  property: JuliaLean.IntArith.PowersDigits.NextpowLowerBound
-  theorem: JuliaLean.IntArith.PowersDigits.nextpowLowerBound_refuted
+  property: JuliaLean.Proofs.base.intfuncs.NextpowLowerBound
+  theorem: JuliaLean.Proofs.base.intfuncs.nextpowLowerBound_refuted

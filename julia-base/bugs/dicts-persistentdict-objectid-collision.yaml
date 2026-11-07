@@ -49,5 +49,5 @@ duplicates:
     - {number: 54740, state: open, relation: duplicate}
   queries: ["Perfect hash collision", "PersistentDict collision", "HAMT collision", "PersistentDict objectid"]
 lean:
-  property: JuliaLean.Dicts.Persistent.PersistentSetGet
-  theorem: JuliaLean.Dicts.Persistent.persistentSetGet_refuted
+  property: JuliaLean.Proofs.base.dict.PersistentSetGet
+  theorem: JuliaLean.Proofs.base.dict.persistentSetGet_refuted

@@ -25,17 +25,18 @@ Where 1.13.2 differs in a modelled function, note it in the entry's `notes`.
   checked `div`/`rem` intrinsics, `convert`.
 - `JuliaLean/base/<path>.lean`: the source-mirrored model of `base/<path>.jl`,
   one file per Base file, with the verbatim Julia source in comments.
-- `JuliaLean/Proofs/base/<path>.lean`: the properties and proofs for that Base
-  file. Each defines `JuliaLean.Proofs.base.<path>.entries`.
-- `JuliaLean/<Area>.lean` and `JuliaLean/<Area>/*.lean`: the older area modules
-  (`Ranges`, `IntArith`, `Sort`, ...), each defining `JuliaLean.<Area>.entries`.
-  An area entry leaves its list once a proofs file keeps, replaces or retires it.
-- `JuliaLean/Registry.lean`: `all` concatenates every area's and every proofs
-  file's `entries`. Unsettled properties stay registered with status `todo`.
+- `JuliaLean/Proofs/base/<path>.lean`: properties and proofs for that Base file.
+  Large proof sets use `JuliaLean/Proofs/base/<path>/` with topic files and
+  shared helpers in a `common/` subfolder. The parent module collects their entries.
+- `JuliaLean/stdlib/<path>.lean` and `JuliaLean/Proofs/stdlib/<path>/`:
+  corresponding models and proofs for standard-library source files.
+- `JuliaLean/Registry.lean`: `all` concatenates the entry lists. Unsettled
+  properties remain registered with status `todo`.
 - `JuliaLean/CRuntime.lean`, `JuliaLean/CRuntime/`: C runtime protocol models.
   `JuliaLean.CRuntime.entries` is not part of `Registry.all`; `CRuntimeAudit.lean`
   audits it. `JuliaLean/src/<file>_c.lean` mirrors runtime C sources.
-- `JuliaLean/Runtime/Axioms.lean`: the only place axioms may be declared.
+- `JuliaLean/Runtime/`: shared representations and primitives for strings,
+  floating-point values, collections and IO. No project axioms are allowed.
 - `Audit.lean`, `Report.lean`: registry audit and TSV report (`registry.tsv`).
   The audit prints each open entry as `TODO <id>` and counts it without failing.
 - `repro/<id>.jl`: pure-Julia confirmation harness for each refuted entry;
@@ -81,7 +82,7 @@ Where 1.13.2 differs in a modelled function, note it in the entry's `notes`.
 - Refutations are theorems `¬ prop` built from a concrete counterexample,
   checked by `decide` (or `rfl`/`simp` on the concrete instance).
 - Forbidden: `sorry`, `admit`, `native_decide`, `bv_decide`, `ofReduceBool`,
-  new axioms outside `Runtime/Axioms.lean`. No Mathlib.
+  and axioms beyond `propext`, `Classical.choice`, `Quot.sound`. No Mathlib.
 
 ## Workflow
 
@@ -106,15 +107,14 @@ Where 1.13.2 differs in a modelled function, note it in the entry's `notes`.
    significant. The row's `entry` lists both ids. The full contract stays
    refuted and linked. A proven full contract already covers ordinary inputs
    and needs no second entry.
-4. From the package root, run `bash scripts/audit.sh` (it runs `lake build`),
-   then refresh the registry with
+4. From the package root, run `bash scripts/audit.sh`. It builds the library,
+   scans Lean code for forbidden proof escapes while ignoring strings and comments,
+   and checks the registry. Refresh the registry exports with
    `lake build JuliaLean.Registry.Print JuliaLean.Registry.Metadata`,
    `lake env lean Report.lean > registry.tsv` and
    `lake env lean scripts/coverage_metadata.lean > registry.tsv.metadata.jsonl`.
-   Run all reproducers with `JULIA=... bash scripts/run-repros.sh`, setting
-   `JULIA` to each pinned Julia executable in turn. Every audited Base
-   refutation must print its reproduction marker on the target master. Release
-   results are reported separately.
+   Runtime-backed reports record outputs for each pinned Julia version.
+   A refuted model property alone does not establish a Julia runtime bug.
 
 CRuntime entries describe source-level C behavior. A refutation may have
 `runtime` evidence from a Julia reproducer or `modelCounterexample` evidence
@@ -208,9 +208,9 @@ the target master (`@inbounds`, `@boundscheck`, `unsafe_load`, `unsafe_store!`,
   documented preconditions allow, including inputs from the public callers that
   reach it, and states that every unchecked access in it is in bounds. One
   registry entry may cover all sites of one function or of several small ones.
-  Area `MemSafety`: group n registers its entries in `JuliaLean/MemSafety/G<n>.lean`
-  (other files under `JuliaLean/MemSafety/G<n>/`), ids
-  `memsafety-<file>-<function>`.
+  Proofs live under the corresponding `JuliaLean/Proofs/base/<path>/`, with
+  registry entries collected in `JuliaLean/Registry.lean`. Memory-safety ids
+  retain the form `memsafety-<file>-<function>`.
 - Refuted: a counterexample input plus `repro/memsafety-*.jl`. The reproducer
   re-runs the trigger in a child `Base.julia_cmd()` with `--check-bounds=yes`,
   so the unchecked access becomes a `BoundsError` at that line instead of a

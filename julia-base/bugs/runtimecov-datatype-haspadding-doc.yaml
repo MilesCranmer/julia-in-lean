@@ -54,5 +54,5 @@ duplicates:
     - {number: 49318, state: closed, relation: related}
   queries: ["datatype_haspadding", "datatype_haspadding docstring"]
 lean:
-  property: JuliaLean.RuntimeCov.Layout.HaspaddingDoc
-  theorem: JuliaLean.RuntimeCov.Layout.haspaddingDoc_refuted
+  property: JuliaLean.Proofs.base.runtime_internals.HaspaddingDoc
+  theorem: JuliaLean.Proofs.base.runtime_internals.haspaddingDoc_refuted

@@ -50,5 +50,5 @@ duplicates:
   issues: []
   queries: ["issues: permutedims SubArray offset axes", "issues: permutedims IdentityUnitRange DimensionMismatch", "prs: permutedims SubArray offset axes", "prs: permutedims IdentityUnitRange DimensionMismatch"]
 lean:
-  property: JuliaLean.MultidimCov.PermutedimsOffsetCorrect
-  theorem: JuliaLean.MultidimCov.permutedimsOffsetCorrect_refuted
+  property: JuliaLean.Proofs.base.multidimensional.PermutedimsOffsetCorrect
+  theorem: JuliaLean.Proofs.base.multidimensional.permutedimsOffsetCorrect_refuted

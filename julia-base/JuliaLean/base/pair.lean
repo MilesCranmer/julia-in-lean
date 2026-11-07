@@ -1,4 +1,5 @@
 import JuliaLean.Core
+import JuliaLean.base.tuple
 
 /-!
 # Model of `base/pair.jl`
@@ -317,3 +318,206 @@ def promoteRule (promoteType : Type → Type → Type) (left right : PairType) :
   ⟨promoteType left.first right.first, promoteType left.second right.second⟩
 
 end JuliaLean.base.pair
+
+
+/-!
+Model of `base/pair.jl` (master `bbfa0ce4150`).
+
+A `Pair` holds two values of a universe `V`; element comparisons and hashing
+are the abstract `Ops` of the tuple model (`none` is `missing` for `==`).
+Types are an abstract `T` with `Union{A, B}` (`union`), `promote_type`
+(`promote`), `isa` and `convert` (which may throw).
+-/
+
+namespace JuliaLean.SortTuplesCov
+
+open JuliaLean
+open JuliaLean.Tuples (R Err getfield bounds Ops Idx liftJ)
+
+structure Pair (V : Type) where
+  first : V
+  second : V
+
+namespace Pair
+
+variable {V : Type}
+
+/-- The fields as a tuple, for `getfield(p, i::Int)`. -/
+def fields (p : Pair V) : List V := [p.first, p.second]
+
+/-- `eltype(::Type{Pair{A, B}}) = Union{A, B}`, `base/pair.jl:40`. -/
+def eltype {T : Type} (union : T → T → T) (A B : T) : T := union A B
+
+/-- `iterate(p::Pair, i=1) = i > 2 ? nothing : (getfield(p, i), i + 1)`,
+`base/pair.jl:41`. -/
+def iterate (p : Pair V) (i : Int := 1) : R (Option (V × Int)) :=
+  if i > 2 then .ok none else do
+    let x ← getfield p.fields i
+    pure (some (x, i + 1))
+
+/-- `indexed_iterate(p::Pair, i::Int, state=1) = (getfield(p, i), i + 1)`,
+`base/pair.jl:42`. -/
+def indexedIterate (p : Pair V) (i : Int) : R (V × Int) := do
+  let x ← getfield p.fields i
+  pure (x, i + 1)
+
+/-- The 64-bit seed of `hash(::Pair)`, `base/pair.jl:44`. -/
+def hashSeed : Nat := 0x94cb2bb20a28ce96
+
+/-- `hash(p::Pair, h::UInt) = hash(p.second, hash(p.first, xor(seed, h)))`,
+`base/pair.jl:46`. -/
+def hash (o : Ops V) (p : Pair V) (h : Nat) : Nat := o.hash p.second (o.hash p.first (hashSeed ^^^ h))
+
+/-- Three-valued `&`: `false & x === false`, `missing & true === missing`. -/
+def and3 : Option Bool → Option Bool → Option Bool
+  | some false, _ => some false
+  | _, some false => some false
+  | some true, some true => some true
+  | _, _ => none
+
+/-- `==(p::Pair, q::Pair) = (p.first==q.first) & (p.second==q.second)`, `base/pair.jl:49`. -/
+def eq (o : Ops V) (p q : Pair V) : Option Bool := and3 (o.eq p.first q.first) (o.eq p.second q.second)
+
+/-- `isequal(p, q) = isequal(p.first,q.first)::Bool & isequal(p.second,q.second)::Bool`,
+`base/pair.jl:50`. -/
+def isequal (o : Ops V) (p q : Pair V) : Bool := o.isequal p.first q.first && o.isequal p.second q.second
+
+/-- `isless(p, q) = ifelse(!isequal(p.first,q.first), isless(p.first,q.first),
+isless(p.second,q.second))`, `base/pair.jl:52-53`. -/
+def isless (o : Ops V) (p q : Pair V) : Bool :=
+  if !o.isequal p.first q.first then o.isless p.first q.first else o.isless p.second q.second
+
+/-- `getindex(p::Pair, i::Int) = getfield(p, i)`, `base/pair.jl:54`. -/
+def getindexInt (p : Pair V) (i : Int) : R V := getfield p.fields i
+
+/-- A `Real` index: an `Integer` (a `BitInteger` or `Bool`), a non-`Integer`
+real with integer value `n` (such as `2.0`), or a non-`Integer` real that is
+not an integer (such as `1.5`, `Inf` or `NaN`). -/
+inductive RealIdx where
+  | integer (i : Idx)
+  | integral (n : Int)
+  | fractional
+
+/-- `convert(Int, x)` for a `Real`: `InexactError` outside `Int` or for a non-integer. -/
+def RealIdx.toInt : RealIdx → R Int
+  | .integer (.int _ v) => do let j ← liftJ (JInt.convert (IntTy.i64.name) .i64 v.val); pure j.val
+  | .integer (.bool b) => .ok (if b then 1 else 0)
+  | .integral n => do let j ← liftJ (JInt.convert (IntTy.i64.name) .i64 n); pure j.val
+  | .fractional => .error (.jl (.inexactError "Int64"))
+
+/-- `getindex(p::Pair, i::Real) = getfield(p, convert(Int, i))`, `base/pair.jl:55`;
+an `Int` index takes the method of line 54. -/
+def getindexReal (p : Pair V) : RealIdx → R V
+  | .integer (.int .i64 v) => getindexInt p v.val
+  | i => do let j ← i.toInt; getfield p.fields j
+
+/-- `reverse(p::Pair{A,B}) = Pair{B,A}(p.second, p.first)`, `base/pair.jl:56`. -/
+def reverse (p : Pair V) : Pair V := ⟨p.second, p.first⟩
+
+/-- `firstindex(p) = 1`, `lastindex(p) = 2`, `length(p) = 2`, `first(p) = p.first`,
+`last(p) = p.second`, `base/pair.jl:58-62`. -/
+def firstindex (_ : Pair V) : Int := 1
+def lastindex (_ : Pair V) : Int := 2
+def length (_ : Pair V) : Int := 2
+def firstOf (p : Pair V) : V := p.first
+def lastOf (p : Pair V) : V := p.second
+
+/-- `convert(::Type{Pair{A,B}}, x::Pair)`, `base/pair.jl:64-71`: `x` itself when
+it already is a `Pair{A,B}` (`:64`), else each field is kept when it `isa` the
+target and otherwise converted, first before second (`:65-71`). -/
+def convert {T : Type} (isa : V → T → Bool) (conv : T → V → R V) (A B : T)
+    (xIsAB : Bool) (x : Pair V) : R (Pair V) :=
+  if xIsAB then .ok x else do
+    let a ← if isa x.first A then pure x.first else conv A x.first
+    let b ← if isa x.second B then pure x.second else conv B x.second
+    pure ⟨a, b⟩
+
+/-- `promote_rule(Pair{A1,B1}, Pair{A2,B2}) = Pair{promote_type(A1,A2), promote_type(B1,B2)}`,
+`base/pair.jl:73-74`, on the type parameters. -/
+def promoteRule {T : Type} (promote : T → T → T) (A1 B1 A2 B2 : T) : T × T :=
+  (promote A1 A2, promote B1 B2)
+
+end Pair
+
+open Pair
+
+variable {V : Type}
+
+end JuliaLean.SortTuplesCov
+
+
+/-! Generic and effect-aware models for the remaining `base/pair.jl` method
+coverage findings. -/
+
+namespace JuliaLean.SortTuplesCov
+
+open JuliaLean.Tuples (R Err)
+
+structure HPair (A B : Type) where
+  first : A
+  second : B
+
+/-- `iterate(p::Pair, i=1)`, `base/pair.jl:41`, with Julia's untyped state
+represented by its `>`, field access, and `+` operations. -/
+def pairIterateGeneric {P S V : Type} (greaterThanTwo : S → R Bool)
+    (field : P → S → R V) (addOne : S → R S) (p : P) (state : S) :
+    R (Option (V × S)) := do
+  if ← greaterThanTwo state then pure none
+  else pure (some ((← field p state), (← addOne state)))
+
+/-- `indexed_iterate(p,i,state)`, `base/pair.jl:42`; `state` is accepted and
+ignored. -/
+def pairIndexedIterateGeneric {P I S V : Type} (field : P → I → R V)
+    (addOne : I → R I) (p : P) (i : I) (_state : S) : R (V × I) := do
+  pure ((← field p i), (← addOne i))
+
+def uintModulus (bits : Nat) : Nat := 2 ^ bits
+def pairHashSeed (bits : Nat) : Nat := if bits = 64 then 0x94cb2bb20a28ce96 else 0x1f60a087
+
+/-- `hash(p::Pair,h::UInt)`, `base/pair.jl:44-46`, with fixed-width UInt
+wrapping and both architecture-specific seeds. -/
+def pairHashFixed {A B : Type} (bits : Nat) (hashA : A → Nat → Nat)
+    (hashB : B → Nat → Nat) (p : HPair A B) (h : Nat) : Nat :=
+  let seed := (pairHashSeed bits ^^^ h) % uintModulus bits
+  hashB p.second (hashA p.first seed % uintModulus bits) % uintModulus bits
+
+/-- Eager `isequal` and `isless`, `base/pair.jl:50,52-53`. -/
+def pairIsequalEager {A B : Type} (eqA : A → A → R Bool)
+    (eqB : B → B → R Bool) (p q : HPair A B) : R Bool := do
+  let a ← eqA p.first q.first
+  let b ← eqB p.second q.second
+  pure (a && b)
+
+def pairIslessEager {A B : Type} (equalA : A → A → R Bool)
+    (lessA : A → A → R Bool) (lessB : B → B → R Bool)
+    (p q : HPair A B) : R Bool := do
+  let eq ← equalA p.first q.first
+  let firstLess ← lessA p.first q.first
+  let secondLess ← lessB p.second q.second
+  pure (if !eq then firstLess else secondLess)
+
+/-- `getindex(p,i::Int)` and the Real overload, `base/pair.jl:54-55`. -/
+def pairGetindexInt {V : Type} (p : HPair V V) (i : Int) : R V :=
+  if i = 1 then .ok p.first else if i = 2 then .ok p.second else .error (.jl .boundsError)
+def pairGetindexRealGeneric {X V : Type} (convertInt : X → R Int)
+    (p : HPair V V) (i : X) : R V := do
+  pairGetindexInt p (← convertInt i)
+
+/-- Typed reverse, `base/pair.jl:56`. -/
+def reverseHPair {A B : Type} (p : HPair A B) : HPair B A := ⟨p.second, p.first⟩
+
+structure TypedPair (T V : Type) where
+  firstType : T
+  secondType : T
+  first : V
+  second : V
+
+/-- Heterogeneous target conversion, `base/pair.jl:65-71`, including the
+target Pair type carried by the result. -/
+def convertTypedPair {T V : Type} (isa : V → T → Bool) (convert : T → V → R V)
+    (A B : T) (p : HPair V V) : R (TypedPair T V) := do
+  let a ← if isa p.first A then pure p.first else convert A p.first
+  let b ← if isa p.second B then pure p.second else convert B p.second
+  pure ⟨A, B, a, b⟩
+
+end JuliaLean.SortTuplesCov

@@ -1,0 +1,86 @@
+id: indices-heterogeneous-cartesian-promotion
+title: "A vector literal of compatible CartesianIndices throws MethodError for mixed axis types"
+priority: P2
+kind: wrong-exception
+area: Indices
+files: [base/indices.jl, base/multidimensional.jl, base/array.jl, base/promotion.jl]
+functions:
+  - "indices_promote_type"
+  - "promote_rule(::Type{CartesianIndices{N,R1}}, ::Type{CartesianIndices{N,R2}})"
+  - "vect(X...)"
+summary: |
+  Constructing [a, b] throws MethodError in indices_promote_type when a is
+  CartesianIndices((1:2, Base.OneTo(2))) and b is CartesianIndices((1:2, 1:2)).
+  Both objects have shape (2, 2) and contain the same four CartesianIndex values.
+  promote(a, b) fails at the same method lookup. No extreme values or large
+  allocations are involved.
+likelihood: |
+  Code storing Cartesian regions in a vector can encounter this when some axes
+  use Base.OneTo and others use UnitRange. These are ordinary built-in axis
+  types, including the axes returned by conventional arrays.
+maybe_intended: |
+  Promotion need not succeed for arbitrary unrelated user types. Here both
+  values are built-in two-dimensional CartesianIndices with Int64 axes and
+  identical coordinate contents. The array-literal documentation also promises
+  a heterogeneous array when no common promotion type exists, so missing tuple
+  promotion support should not prevent constructing [a, b].
+reproducer: |
+  a = CartesianIndices((1:2, Base.OneTo(2)))
+  b = CartesianIndices((1:2, 1:2))
+  @assert size(a) == size(b) == (2, 2)
+  @assert collect(a) == collect(b)
+  [a, b]
+output:
+  release: |
+    JULIA 1.13.2 COMMIT 45b6d15e34bbd2003a31acce0b1847b63dad029c
+    left type = CartesianIndices{2, Tuple{UnitRange{Int64}, Base.OneTo{Int64}}}
+    right type = CartesianIndices{2, Tuple{UnitRange{Int64}, UnitRange{Int64}}}
+    promote threw MethodError in indices_promote_type
+    vector literal threw MethodError in indices_promote_type
+    REPRODUCED indices-heterogeneous-cartesian-promotion
+  nightly: |
+    JULIA 1.15.0-DEV.unknown COMMIT f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    left type = CartesianIndices{2, Tuple{UnitRange{Int64}, Base.OneTo{Int64}}}
+    right type = CartesianIndices{2, Tuple{UnitRange{Int64}, UnitRange{Int64}}}
+    promote threw MethodError in indices_promote_type
+    vector literal threw MethodError in indices_promote_type
+    REPRODUCED indices-heterogeneous-cartesian-promotion
+reproduced: {release: true, nightly: true}
+expected: |
+  [a, b] constructs a two-element vector containing objects with the same shapes
+  and coordinate contents as a and b. A common CartesianIndices representation
+  or heterogeneous element type can hold both values.
+promised_by: |
+  doc/src/manual/arrays.md, "Array literals", at
+  f755f49a9e41380d7da126b3c1db9fe7f83dd027:
+  "the syntax [A, B, C, ...] creates a one-dimensional array (i.e., a vector)
+  containing the comma-separated arguments as its elements."
+  The same paragraph specifies conversion to a common promotion type when one
+  exists, and construction of a heterogeneous Vector{Any} otherwise.
+  The two witness regions satisfy the CartesianIndices constructor's ordinary
+  equal-rank Int64 ordinal-axis requirements and have the same finite contents.
+cause: |
+  base/array.jl:183-186 calls promote_typeof before constructing the vector.
+  base/promotion.jl:403 delegates the two argument types to promote_type.
+  base/multidimensional.jl:355-356 supplies a CartesianIndices promotion rule
+  for arbitrary equal-rank axis tuples and calls Base.indices_promote_type.
+  Its sole method, base/indices.jl:491-495, requires each tuple to repeat one
+  identical field type. Tuple{UnitRange{Int64}, OneTo{Int64}} does not match,
+  so method lookup throws before range promotion or value conversion.
+possible_fix: |
+  Promote corresponding fields of arbitrary equal-length axis tuples, retaining
+  their tuple structure, rather than accepting only homogeneous tuple types.
+  Alternatively, let these unsupported combinations fall back to a container
+  type that can hold both values instead of throwing during promotion.
+duplicates:
+  issues: []
+  queries:
+    - "gh search issues --repo JuliaLang/julia indices_promote_type"
+    - "gh search issues --repo JuliaLang/julia CartesianIndices heterogeneous"
+    - "gh search issues --repo JuliaLang/julia LinearIndices promote MethodError"
+    - "gh search prs --repo JuliaLang/julia indices_promote_type"
+    - "gh search prs --repo JuliaLang/julia CartesianIndices promote"
+lean:
+  property: JuliaLean.Proofs.base.indices.HeterogeneousCartesianPromotion.CompatibleCartesianPromotion
+  theorem: JuliaLean.Proofs.base.indices.HeterogeneousCartesianPromotion.compatibleCartesianPromotion_refuted
+covers: []

@@ -1,0 +1,89 @@
+id: array-findall-in-sorted-isless
+title: Sorted real-array findall(in(b), x) uses ordering equivalence instead of membership
+priority: P2
+kind: wrong-result
+area: Array
+files:
+  - base/array.jl
+  - base/operators.jl
+functions:
+  - findall(pred::Fix2{typeof(in),<:Union{Array{<:Real},Real}}, x::Array{<:Real})
+  - _sortedfindin(v::Union{AbstractArray, Tuple}, w)
+summary: |
+  findall(in([0.0]), [-0.0]) returns Int64[] even though -0.0 in [0.0] is true.
+  Both singleton arrays are sorted, so the optimized merge skips the negative
+  zero because isless(-0.0, 0.0) is true. The same path treats NaNs as matching
+  although NaN in [NaN] is false. It tests ordering equivalence instead of the
+  supplied membership predicate.
+likelihood: |
+  Sorted floating-point inputs can contain signed zero or NaN. Predicate
+  spelling changes the result: findall(y -> y in b, x) evaluates membership
+  directly. The reproducer script also exercises the separate unsorted Set path.
+maybe_intended: |
+  The sorted merge is a deliberate performance optimization, but the in(b)
+  docstring promises equivalence to y -> y in b. Ordering equivalence under
+  isless is a different relation. PR #46222 proposes broader dispatch to this
+  helper; its body does not address the equality mismatch.
+reproducer: |
+  x = [-0.0]
+  b = [0.0]
+  findall(in(b), x)
+  findall(y -> y in b, x)
+  findall(in([NaN]), [NaN])
+  NaN in [NaN]
+output:
+  release: |
+    JULIA 1.13.2 COMMIT 45b6d15e34bbd2003a31acce0b1847b63dad029c
+    REPRODUCED array-findall-in-sorted-isless
+  nightly: |
+    JULIA 1.15.0-DEV.unknown COMMIT f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    REPRODUCED array-findall-in-sorted-isless
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  findall(in([0.0]), [-0.0]) returns [1], matching direct membership evaluation.
+  findall(in([NaN]), [NaN]) returns Int64[].
+promised_by: |
+  base/operators.jl:1446-1448 at f755f49a9e41380d7da126b3c1db9fe7f83dd027:
+  "Create a function that checks whether its argument is [`in`](@ref) `collection`, i.e.
+  a function equivalent to `y -> y in collection`. See also [`insorted`](@ref) for use
+  with sorted collections."
+  base/array.jl:2736-2737:
+  "Return a vector `I` of the indices or keys of `A` where `f(A[I])` returns `true`.
+  If there are no such elements of `A`, return an empty array."
+cause: |
+  base/array.jl:2952-2958 selects _sortedfindin when both real arrays are
+  sorted. Its branches at lines 2922 and 2929 advance when either value is
+  less under isless; the final else at lines 2936-2937 records a match without
+  calling in or ==. The negative-zero value is skipped, while two NaNs reach
+  the matching branch. The unsorted Set fallback has a related equality change.
+possible_fix: |
+  Use the merge only where its ordering equivalence agrees with the supplied
+  membership predicate. Otherwise evaluate that predicate through a path that
+  preserves == semantics, including signed zeros and NaNs.
+duplicates:
+  issues:
+    - number: 64153
+      state: open
+      relation: duplicate
+  prs:
+    - number: 46222
+      state: open
+      relation: related
+  queries:
+    - 'gh search issues --repo JuliaLang/julia findall sorted isless'
+    - 'gh search issues --repo JuliaLang/julia findall signed zero'
+    - 'gh search issues --repo JuliaLang/julia _sortedfindin'
+    - 'gh search prs --repo JuliaLang/julia findall sorted isless'
+    - 'gh search prs --repo JuliaLang/julia findall signed zero'
+    - 'gh search prs --repo JuliaLang/julia _sortedfindin'
+  notes: |
+    Issue #64153 is the existing report; it explicitly includes the sorted
+    path using ordering comparisons instead of the supplied predicate. PR
+    #46222 (_sortedfindin) proposes removing an unnecessary argument and
+    allowing AbstractArrays, rather than fixing equality semantics. No fixing
+    PR is known.
+lean:
+  property: JuliaLean.Proofs.base.array.SortedMembershipAgreement
+  theorem: JuliaLean.ChatGPT.Batch4.Group2.ArrayFindallInSortedIsless_refuted

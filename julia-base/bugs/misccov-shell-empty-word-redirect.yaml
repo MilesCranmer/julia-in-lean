@@ -4,29 +4,42 @@ priority: P3
 kind: wrong-result
 area: MiscCov
 files: [base/shell.jl]
-functions: ["Base.shell_parse", "Base.__repl_entry_shell_parse"]
+functions: ["backtick command literal syntax"]
 summary: |
-  On master, an empty quoted word (`''` or `""`) is normally an argument: `echo '' >x` runs `echo ""`. When the redirect operator follows the quotes without a space, the empty word is dropped: `echo ''>x` runs plain `echo`. With a space after the operator, `echo ''> x` even takes `x` as an argument and redirects stdout to an empty interpolation.
+  On Julia 1.15, the public backtick command literal `echo ''>x` is parsed as
+  `echo` with no arguments, while `echo '' >x` keeps the empty string argument.
+  Both redirect stdout to x, so spacing changes the command's arguments.
 likelihood: |
   Low: needs an empty quoted argument glued to a redirect in a command literal.
 maybe_intended: ""
 reproducer: |
-  Base.shell_parse("echo ''>x")[1]   # pipeline(cmd_gen((("echo",),)); stdout = "x"): the "" argument is gone
-  Base.shell_parse("echo '' >x")[1]  # pipeline(cmd_gen((("echo",), ("",))); stdout = "x")
+  direct = `echo ''>x`
+  spaced = `echo '' >x`
+  println("direct redirect: ", direct)
+  println("spaced redirect: ", spaced)
+  if direct != spaced
+      println("REPRODUCED misccov-shell-empty-word-redirect")
+  end
 output:
   release: |
-    shell_parse("echo ''>x") => ErrorException: special characters "#{}()[]<>|&*?~;" must be quoted in commands
+    Command literal parsing rejects the redirect form as unsupported:
+    ErrorException: special characters "#{}()[]<>|&*?~;" must be quoted in commands
   nightly: |
-    "echo ''>x"            => :(Base.pipeline(Base.cmd_gen((("echo",),)); stdout = "x"))
-    "echo '' >x"           => :(Base.pipeline(Base.cmd_gen((("echo",), ("",))); stdout = "x"))
-    "echo ''> x"           => :(Base.pipeline(Base.cmd_gen((("echo",), ("x",))); stdout = Base.cmd_interpolate()))
+    direct redirect: pipeline(`echo`, stdout>Base.FileRedirect("x", false))
+    spaced redirect: pipeline(`echo ''`, stdout>Base.FileRedirect("x", false))
+    REPRODUCED misccov-shell-empty-word-redirect
 reproduced: {release: false, nightly: true}
 expected: |
-  `echo ''>x` and `echo '' >x` both run `echo` with one empty argument and redirect stdout to `x`.
+  Both command literals retain the empty string argument and redirect stdout to
+  x, so each parses to the same command.
 promised_by: |
-  Invariant: base/shell.jl:129,307 keep an empty quoted word as an argument (word_has_special); a redirect operator ends the word exactly as whitespace does.
+  The Julia manual's Running External Programs section says backticks create a
+  Cmd and parse words while "respecting shell quoting syntax" (lines 17-28).
+  The quoted empty word must remain an argument before a redirect.
 cause: |
-  base/shell.jl (master): the redirect branch finalizes the current word with `isempty(arg) || word_has_special` only in the whitespace path; at a directly following `>`, the quoted-empty flag is not consulted, so the empty word is not pushed. Not present in 1.13.2, which rejects `>` in command literals.
+  base/shell.jl's redirect branch finalizes the current word without checking
+  word_has_special, unlike the whitespace path. The empty quoted word is therefore
+  omitted when `>` directly follows it.
 possible_fix: |
   Before handling a redirect operator, push the current word when it is nonempty or `word_has_special` is set, as the whitespace branch does.
 duplicates:

@@ -1,0 +1,83 @@
+id: array-filter-bang-native-axes
+title: "filter!(f, a::AbstractVector) throws BoundsError when the last index is typemax(Int)"
+priority: P3
+kind: wrong-exception
+area: ArrayOps
+files: [base/array.jl, base/abstractarray.jl]
+functions: ["filter!(f, a::AbstractVector)"]
+summary: |
+  filter! on a mutable AbstractVector whose Int axis ends at typemax(Int) throws
+  BoundsError even when its predicate keeps every element. Advancing the write index
+  after the final element wraps to typemin(Int), so cleanup calls deleteat! with
+  typemin(Int):typemax(Int).
+likelihood: |
+  Requires a custom AbstractVector whose last index is typemax(Int); the failure
+  occurs when every element, including the final one, satisfies the predicate.
+  Ordinary one-based vectors do not reach this index boundary.
+maybe_intended: |
+  When the predicate keeps every element, filter! should return the same vector
+  without deleting any indices. Its cleanup must also preserve valid axes when the
+  last index is typemax(Int).
+reproducer: |
+  Stored at repro/array-filter-bang-native-axes.jl. It uses a two-element mutable
+  AbstractVector with axes typemax(Int)-1:typemax(Int) and calls
+  filter!(_ -> true, v). Its custom deleteat! records the requested range before
+  checking it, exposing typemin(Int):typemax(Int) and then throwing BoundsError.
+output:
+  release: |
+    JULIA 1.13.2 COMMIT 45b6d15e34bbd2003a31acce0b1847b63dad029c
+    VERSION 1.13.2
+    AXES (9223372036854775806:9223372036854775807,)
+    DELETE_CALLS [(-9223372036854775808, 9223372036854775807)]
+    RESULT BoundsError
+    VALUES [11, 22]
+    REPRODUCED array-filter-bang-native-axes
+  nightly: |
+    JULIA 1.15.0-DEV.unknown COMMIT f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    VERSION 1.15.0-DEV.unknown
+    AXES (9223372036854775806:9223372036854775807,)
+    DELETE_CALLS [(-9223372036854775808, 9223372036854775807)]
+    RESULT BoundsError
+    VALUES [11, 22]
+    REPRODUCED array-filter-bang-native-axes
+reproduced: {release: true, nightly: true}
+expected: |
+  Return the same vector with values [11, 22]. Since the predicate keeps both
+  elements, no tail deletion is needed.
+promised_by: |
+  The filter! docstring at base/array.jl:3046-3050 says it removes elements for
+  which the predicate is false. The axes documentation at base/abstractarray.jl:69-70
+  permits axes represented by AbstractUnitRange{<:Integer}, including custom axes.
+cause: |
+  filter! at base/array.jl:3046-3075 advances j with nextind(a, j) for each kept
+  value and returns early only when j > lastindex(a). After processing the final
+  element at typemax(Int), nextind wraps to typemin(Int), so the early return is
+  skipped. For a non-Vector AbstractVector, filter! then calls deleteat!(a,
+  j:lastindex(a)); the resulting typemin(Int):typemax(Int) range includes an
+  out-of-bounds first index, and the array throws BoundsError.
+possible_fix: |
+  Avoid advancing the cursor past lastindex(a) on the final iteration, or track the
+  exhausted state separately, so the terminal cursor cannot wrap before cleanup.
+duplicates:
+  issues: []
+  prs: []
+  queries:
+    - "issues: filter! typemax"
+    - "issues: filter! lastindex overflow"
+    - "issues: deleteat! typemin"
+    - "issues: filter! nextind overflow AbstractVector"
+    - "issues: filter! BoundsError"
+    - "issues: filter! overflow"
+    - "issues: AbstractVector typemax"
+    - "issues: deleteat! BoundsError axes"
+    - "PRs: filter! typemax"
+    - "PRs: filter! lastindex overflow"
+    - "PRs: deleteat! typemin"
+    - "PRs: filter! nextind overflow AbstractVector"
+    - "PRs: filter! BoundsError"
+    - "PRs: filter! overflow"
+    - "PRs: AbstractVector typemax"
+    - "PRs: deleteat! BoundsError axes"
+lean:
+  property: JuliaLean.Proofs.base.array.round7.NativeAxisFilterBangSpec
+  theorem: JuliaLean.Proofs.base.array.round7.nativeAxisFilterBangSpec_refuted

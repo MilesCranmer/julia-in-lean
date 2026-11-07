@@ -60,4 +60,4 @@ duplicates:
     - "issues: lpad"
 lean:
   property: JuliaLean.Strings.LpadNoPad
-  theorem: JuliaLean.Strings.lpadNoPad_refuted
+  theorem: JuliaLean.Proofs.base.strings.util.Round6.lpadNoPadding_refuted

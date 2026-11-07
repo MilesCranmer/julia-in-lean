@@ -1,5 +1,6 @@
+import JuliaLean.base.char
 import JuliaLean.Core
-import JuliaLean.Strings.Basic
+import JuliaLean.Runtime.Strings
 import JuliaLean.base.strings.string
 
 /-!
@@ -1136,3 +1137,623 @@ def unsafeStringCwstring (pointer : PointerAccess Cwchar_t)
     (convertPtrCwstring (T := Cwchar_t) cw)
 
 end JuliaLean.base.strings.cstring
+
+
+/-!
+# Transcoding between UTF-8, UTF-16 and UTF-32, `base/strings/cstring.jl`
+
+Model of the `transcode` methods, `cwstring`, the `Cstring`/`Cwstring` NUL
+checks and `containsnul` (master `bbfa0ce4150`).
+
+* Byte, code-unit and `Char` values are Lean `UInt8`/`UInt16`/`UInt32`, whose
+  operators wrap exactly like Julia's unsigned operators (`+%`, `<<`, `xor`).
+* The source vector is read strictly left to right: every `src[i += 1]` in the
+  Julia loops is guarded by `i < n`. The model keeps the unread suffix `rest`
+  of `src` (so `i < n` is `rest ≠ []`) and reads with `nextB`, which throws
+  `BoundsError` on an empty suffix exactly as `src[n + 1]` would.
+* `while true` loops are structural recursion on a bound on the remaining
+  iterations; every iteration reads at least one element, so `rest.length + 1`
+  never runs out (`Transcode/Utf16.lean` proves it).
+* The size `m` and index `j` of `transcode(UInt8, ::AbstractVector{UInt16})`
+  are `Int` (`JInt64`) values; the written prefix of `dst` is a list whose
+  length is `j`.
+-/
+
+namespace JuliaLean.Transcode
+
+open JuliaLean.Strings
+
+/-- `b % Int8` as an integer. -/
+def sx (b : UInt8) : Int := if b.toNat < 128 then b.toNat else (b.toNat : Int) - 256
+
+/-- `src[i += 1]` on the unread suffix of `src`. -/
+def nextB {α : Type} : List α → SJl (α × List α)
+  | [] => .error boundsErr
+  | b :: r => .ok (b, r)
+
+/-- The end of every loop body: `i < n || break; a = src[i += 1]`, then the next
+iteration `loop a rest dst`. -/
+def stepNext {α β : Type} (loop : α → List α → β → SJl β) (dst : β) (rest : List α) : SJl β :=
+  if rest.isEmpty then .ok dst
+  else do let (a, rest) ← nextB rest; loop a rest dst
+
+/-! ## UTF-8 to UTF-16 -/
+
+/-- `xor(0x3080, UInt16(a) << 6, b)`, the 2-byte branch (`base/strings/cstring.jl:200`). -/
+def dec2 (a b : UInt8) : UInt16 := (0x3080 : UInt16) ^^^ (a.toUInt16 <<< 6) ^^^ b.toUInt16
+
+/-- `xor(0x2080, UInt16(a) << 12, UInt16(b) << 6, c)`, the 3-byte branch (`:207`)
+and, applied to `b, c, d`, the overlong 4-byte branch (`:214`). -/
+def dec3 (a b c : UInt8) : UInt16 :=
+  (0x2080 : UInt16) ^^^ (a.toUInt16 <<< 12) ^^^ (b.toUInt16 <<< 6) ^^^ c.toUInt16
+
+/-- First unit of the 4-byte branch (`:216`). -/
+def dec4hi (a b c : UInt8) : UInt16 :=
+  (0xe5b8 : UInt16) + (a.toUInt16 <<< 8) + (b.toUInt16 <<< 2) + (c >>> 4).toUInt16
+
+/-- Second unit of the 4-byte branch (`:217`). -/
+def dec4lo (c d : UInt8) : UInt16 :=
+  (0xdc80 : UInt16) ^^^ ((c &&& 0xf).toUInt16 <<< 6) ^^^ d.toUInt16
+
+/-- `-64 <= a % Int8 <= -12` (`base/strings/cstring.jl:193`): `a` is one of the
+lead bytes `C0..F4`. -/
+def isLead (a : UInt8) : Bool := decide (-64 ≤ sx a) && decide (sx a ≤ -12)
+
+/-- The `while true` loop of `transcode(::Type{UInt16}, src::AbstractVector{UInt8})`,
+`base/strings/cstring.jl:192-232`: `a` is the current byte, `rest` the unread
+bytes, `dst` the code units pushed so far. -/
+def u16Loop : Nat → UInt8 → List UInt8 → List UInt16 → SJl (List UInt16)
+  | 0, _, _, _ => .error .assertion
+  | k + 1, a, rest, dst =>
+    if !rest.isEmpty && isLead a then do
+      let (b, rest) ← nextB rest
+      if decide (-64 ≤ sx b) || (a == 0xf4 && decide (0x8f < b)) then
+        u16Loop k b rest (dst ++ [a.toUInt16])
+      else if a < 0xe0 then
+        stepNext (u16Loop k) (dst ++ [dec2 a b]) rest
+      else if !rest.isEmpty then do
+        let (c, rest) ← nextB rest
+        if decide (-64 ≤ sx c) then
+          u16Loop k c rest (dst ++ [a.toUInt16, b.toUInt16])
+        else if a < 0xf0 then
+          stepNext (u16Loop k) (dst ++ [dec3 a b c]) rest
+        else if !rest.isEmpty then do
+          let (d, rest) ← nextB rest
+          if decide (-64 ≤ sx d) then
+            u16Loop k d rest (dst ++ [a.toUInt16, b.toUInt16, c.toUInt16])
+          else if a == 0xf0 && b < 0x90 then
+            stepNext (u16Loop k) (dst ++ [dec3 b c d]) rest
+          else
+            stepNext (u16Loop k) (dst ++ [dec4hi a b c, dec4lo c d]) rest
+        else .ok (dst ++ [a.toUInt16, b.toUInt16, c.toUInt16])
+      else .ok (dst ++ [a.toUInt16, b.toUInt16])
+    else stepNext (u16Loop k) (dst ++ [a.toUInt16]) rest
+
+/-- `transcode(UInt16, src::AbstractVector{UInt8})`, `base/strings/cstring.jl:185-234`;
+`transcode(UInt16, s::String)` is this on `codeunits(s)` (`:178`). -/
+def transcode16 (src : List UInt8) : SJl (List UInt16) :=
+  match src with
+  | [] => .ok []
+  | a :: rest => u16Loop src.length a rest []
+
+/-! ## UTF-16 to UTF-8 -/
+
+/-- First loop of `transcode(::Type{UInt8}, src::AbstractVector{UInt16})`,
+`base/strings/cstring.jl:249-269`: the number `m` of bytes to allocate. -/
+def cntLoop : Nat → UInt16 → List UInt16 → JInt64 → SJl JInt64
+  | 0, _, _, _ => .error .assertion
+  | k + 1, a, rest, m =>
+    if a < 0x80 then stepNext (cntLoop k) (m + ix 1) rest
+    else if a < 0x800 then stepNext (cntLoop k) (m + ix 2) rest
+    else if (a &&& 0xfc00) == 0xd800 && !rest.isEmpty then do
+      let (b, rest) ← nextB rest
+      if (b &&& 0xfc00) == 0xdc00 then stepNext (cntLoop k) (m + ix 4) rest
+      else cntLoop k b rest (m + ix 3)
+    else stepNext (cntLoop k) (m + ix 3) rest
+
+/-- `dst[j += 1] = x` for `dst = StringVector(m)`, with `j = dst.length`. -/
+def put (m : JInt64) (dst : List UInt8) (x : UInt8) : SJl (List UInt8) :=
+  if (dst.length : Int) + 1 ≤ m.val then .ok (dst ++ [x]) else .error boundsErr
+
+/-- `0x80 | (x & 0x3f)`: a continuation byte holding the low six bits of `x`. -/
+def cont (x : UInt8) : UInt8 := (0x80 : UInt8) ||| (x &&& (0x3f : UInt8))
+
+/-- The bytes of the 2-byte branch, `base/strings/cstring.jl:278-279`. -/
+def enc2 (a : UInt16) : List UInt8 := [(0xc0 : UInt8) ||| (a >>> 6).toUInt8, cont a.toUInt8]
+
+/-- The bytes of the 3-byte branches, `base/strings/cstring.jl:290-292,298-300`. -/
+def enc3 (a : UInt16) : List UInt8 :=
+  [(0xe0 : UInt8) ||| (a >>> 12).toUInt8, cont (a >>> 6).toUInt8, cont a.toUInt8]
+
+/-- The bytes of the surrogate-pair branch, `base/strings/cstring.jl:284-288`
+(`a +%= 0x2840` first). -/
+def enc4 (a b : UInt16) : List UInt8 :=
+  let a := a + 0x2840
+  [(0xf0 : UInt8) ||| (a >>> 8).toUInt8, (0x80 : UInt8) ||| (a.toUInt8 >>> 2),
+   (0xf0 : UInt8) ^^^ ((a.toUInt8 <<< 4) &&& (0x3f : UInt8)) ^^^ (b >>> 6).toUInt8,
+   cont b.toUInt8]
+
+/-- `dst[j += 1] = x` for each byte of `xs`, in order. -/
+def putAll (m : JInt64) (dst : List UInt8) : List UInt8 → SJl (List UInt8)
+  | [] => .ok dst
+  | x :: xs => do let dst ← put m dst x; putAll m dst xs
+
+/-- Second loop of `transcode(::Type{UInt8}, src::AbstractVector{UInt16})`,
+`base/strings/cstring.jl:274-304`: writes the bytes into `StringVector(m)`. -/
+def wrLoop (m : JInt64) : Nat → UInt16 → List UInt16 → List UInt8 → SJl (List UInt8)
+  | 0, _, _, _ => .error .assertion
+  | k + 1, a, rest, dst =>
+    if a < 0x80 then do
+      let dst ← putAll m dst [a.toUInt8]
+      stepNext (wrLoop m k) dst rest
+    else if a < 0x800 then do
+      let dst ← putAll m dst (enc2 a)
+      stepNext (wrLoop m k) dst rest
+    else if (a &&& 0xfc00) == 0xd800 && !rest.isEmpty then do
+      let (b, rest) ← nextB rest
+      if (b &&& 0xfc00) == 0xdc00 then do
+        let dst ← putAll m dst (enc4 a b)
+        stepNext (wrLoop m k) dst rest
+      else do
+        let dst ← putAll m dst (enc3 a)
+        wrLoop m k b rest dst
+    else do
+      let dst ← putAll m dst (enc3 a)
+      stepNext (wrLoop m k) dst rest
+
+/-- Result of `transcode(UInt8, ::AbstractVector{UInt16})`: the allocated length
+`m` of `StringVector(m)` and the bytes written into it (positions beyond
+`written.length` are left uninitialized). -/
+structure Out where
+  m : JInt64
+  written : List UInt8
+  deriving DecidableEq, Repr
+
+/-- `transcode(::Type{UInt8}, src::AbstractVector{UInt16})`, `base/strings/cstring.jl:236-306`. -/
+def transcode8 (src : List UInt16) : SJl Out :=
+  match src with
+  | [] => .ok ⟨ix 0, []⟩
+  | a :: rest => do
+    let m ← cntLoop src.length a rest (ix 0)
+    let w ← wrLoop m src.length a rest []
+    .ok ⟨m, w⟩
+
+/-! ## UTF-32 -/
+
+/-- `transcode(::Type{UInt32}, src::String) = UInt32[UInt32(c) for c in src]`,
+`base/strings/cstring.jl:164`, with `UInt32(c::Char) = codepoint(c)`. -/
+def transcode32 (s : JStr) : SJl (List UInt32) := (chars s).mapM codepoint
+
+/-- `transcode(::Type{UInt8}, src::Vector{UInt32})`, `base/strings/cstring.jl:170-176`:
+`print(buf, Char(c))` for each element, `Char(::UInt32)` from `base/char.jl`. -/
+def transcode8of32 (src : List UInt32) : SJl (List UInt8) := do
+  let cs ← src.mapM charOfU32
+  .ok (cs.flatMap charBytes)
+
+/-- `Char(x::Int32) = Char(UInt32(x))`: `InexactError` for negative `x`. -/
+def charOfI32 (x : Int) : SJl UInt32 :=
+  if 0 ≤ x then charOfU32 (UInt32.ofNat x.toNat) else .error (.jl (.inexactError "convert"))
+
+/-- `transcode(::Type{UInt8}, src::Vector{Int32})`, `base/strings/cstring.jl:170-176`:
+each element is converted in turn, so the first failing element decides the exception. -/
+def transcode8ofI32 (src : List Int) : SJl (List UInt8) := do
+  let cs ← src.mapM charOfI32
+  .ok (cs.flatMap charBytes)
+
+/-! ## NUL checks -/
+
+/-- `containsnul(s::String)`, `base/strings/cstring.jl:80`: `memchr` for a zero byte. -/
+def containsnulStr (s : JStr) : Bool := s.bytes.contains 0
+
+/-- `containsnul(s::AbstractString) = '\0' in s`, `base/strings/cstring.jl:81`;
+`'\0'` is the bit pattern `0`. -/
+def containsnulAbs (s : JStr) : Bool := (chars s).contains 0
+
+/-- `unsafe_convert(::Type{Cstring}, s::String)`, `base/strings/cstring.jl:83-88`:
+the bytes the C function sees (up to the trailing NUL every `String` has). -/
+def unsafeConvertCstring (s : JStr) : SJl (List UInt8) :=
+  if containsnulStr s then .error (.jl (.argumentError "embedded NULs are not allowed in C strings"))
+  else .ok s.bytes
+
+/-- `cconvert(::Type{Cwstring}, v::Vector{Cwchar_t})`, `base/strings/cstring.jl:92-100`. -/
+def cconvertCwVec {α : Type} [BEq α] [OfNat α 0] (v : List α) : SJl (List α) :=
+  if v.dropLast.any (· == 0) then
+    .error (.jl (.argumentError "embedded NULs are not allowed in C strings"))
+  else match v.getLast? with
+    | none => .error boundsErr
+    | some x => if x == 0 then .ok v
+      else .error (.jl (.argumentError "C string data must be NUL terminated"))
+
+/-- `cconvert(::Type{Cwstring}, s::AbstractString)` on Windows, where
+`Cwchar_t = UInt16`, `base/strings/cstring.jl:69-73`. -/
+def cconvertCwstringWin (s : JStr) : SJl (List UInt16) := do
+  let v ← transcode16 s.bytes
+  cconvertCwVec (v ++ [0])
+
+/-- `cconvert(::Type{Cwstring}, s::AbstractString)` on Linux and macOS, where
+`Cwchar_t = Int32`: `transcode(Int32, s)`, whose values are `codepoint`s
+(below `2^21`, so `Int32(codepoint(c))` never throws). -/
+def cconvertCwstringUnix (s : JStr) : SJl (List UInt32) := do
+  let v ← transcode32 s
+  cconvertCwVec (v ++ [0])
+
+/-- `Base.cwstring(s)` (Windows only), `base/strings/cstring.jl:119-123`. -/
+def cwstring (s : JStr) : SJl (List UInt16) :=
+  if s.bytes.contains 0 then
+    .error (.jl (.argumentError "embedded NULs are not allowed in C strings"))
+  else do
+    let w ← transcode16 s.bytes
+    .ok (w ++ [0])
+
+end JuliaLean.Transcode
+
+namespace JuliaLean.Transcode
+
+open JuliaLean.Strings
+
+/-- `unsafe_load(p, n)` on the readable memory `mem` starting at `p`; a read
+outside it is modelled as `BoundsError` (Julia would fault). -/
+def loadAt (mem : List UInt16) (n : JInt64) : SJl UInt16 :=
+  if 1 ≤ n.val ∧ n.val ≤ mem.length then .ok (mem.getD (n.val.toNat - 1) 0) else .error boundsErr
+
+/-- `n = 1; while unsafe_load(p, n) != 0; n += 1; end`, `base/strings/cstring.jl:325-328`. -/
+def nulScan (mem : List UInt16) : Nat → JInt64 → SJl JInt64
+  | 0, _ => .error .assertion
+  | k + 1, n => do
+    let x ← loadAt mem n
+    if x != 0 then nulScan mem k (n + ix 1) else .ok n
+
+/-- `unsafe_string(p::Ptr{UInt16})`, `base/strings/cstring.jl:324-330`, which calls
+`unsafe_string(p, n - 1) = transcode(String, unsafe_wrap(Array, p, n - 1))` (`:321-323`). -/
+def unsafeString16 (mem : List UInt16) : SJl Out := do
+  let n ← nulScan mem (mem.length + 1) (ix 1)
+  transcode8 (mem.take (n - ix 1).val.toNat)
+
+end JuliaLean.Transcode
+
+
+/-! Models for the uncovered methods in `base/strings/cstring.jl` at Julia `bbfa0ce4150`. -/
+
+namespace JuliaLean.StringsCovA.CStrings
+
+inductive PtrTag where
+  | int8 | uint8 | wchar | void
+  deriving DecidableEq
+
+structure PtrValue where
+  tag : PtrTag
+  address : Nat
+  deriving DecidableEq
+
+abbrev Cstring := PtrValue
+abbrev Cwstring := PtrValue
+
+/-- `Cstring(p)`; `base/strings/cstring.jl:31`. -/
+def cstring (p : PtrValue) : Cstring := ⟨.int8, p.address⟩
+
+/-- `Cwstring(p)`; `base/strings/cstring.jl:32`. -/
+def cwstring (p : PtrValue) : Cwstring := ⟨.wchar, p.address⟩
+
+/-- `Ptr{T}(p::Cstring)` correctly uses `T`; line 33. -/
+def ptrFromCstring (target : PtrTag) (p : Cstring) : PtrValue := ⟨target, p.address⟩
+
+/-- `Ptr{T}(p::Cwstring)` ignores `T` and bitcasts to `Ptr{Cwchar_t}`; line 34. -/
+def ptrFromCwstring (_target : PtrTag) (p : Cwstring) : PtrValue := ⟨.wchar, p.address⟩
+
+/-- The four `convert` wrappers; `base/strings/cstring.jl:36-39`. -/
+def convertCstring (p : PtrValue) := cstring p
+def convertCwstring (p : PtrValue) := cwstring p
+def convertPtrCstring (target : PtrTag) (p : Cstring) := ptrFromCstring target p
+def convertPtrCwstring (target : PtrTag) (p : Cwstring) := ptrFromCwstring target p
+
+/-- `pointer` methods; `base/strings/cstring.jl:55-56`. -/
+def pointerCstring (p : Cstring) : PtrValue := ptrFromCstring .int8 p
+def pointerCwstring (p : Cwstring) : PtrValue := ptrFromCwstring .wchar p
+
+/-- Pointer comparisons; `base/strings/cstring.jl:59-60`. -/
+def eqCptr (x : Cstring) (y : PtrValue) : Bool := x.address == y.address
+def eqPtrC (x : PtrValue) (y : Cstring) : Bool := x.address == y.address
+
+/-- `unsafe_string(::Cstring)` reads through the first NUL; line 62. -/
+def unsafeStringC (memory : List UInt8) : List UInt8 := memory.takeWhile (· != 0)
+
+/-- `cconvert(Cstring, ::String/::AbstractString)`; lines 65-67. -/
+def cconvertString (s : List UInt8) : List UInt8 := s
+def cconvertAbstract (toString : α → List UInt8) (s : α) : List UInt8 := cconvertString (toString s)
+
+/-- `eltype(Cstring/Cwstring)`; lines 75-76. -/
+def eltypeCstring : PtrTag := .int8
+def eltypeCwstring : PtrTag := .wchar
+
+/-- `containsnul(p, len)`; lines 78-79. -/
+def containsnulPtr (memory : List UInt8) (len : Nat) : Bool := (memory.take len).contains 0
+
+/-- Raw-memory and wide-pointer conversion wrappers; lines 90,101-102. -/
+def unsafeConvertMemory (address : Nat) : Cstring := ⟨.int8, address⟩
+def unsafeConvertWide (address : Nat) : Cwstring := ⟨.wchar, address⟩
+def unsafeConvertWideIdentity (s : Cwstring) : Cwstring := s
+
+/-- Symbol conversion wrappers; lines 105-106. -/
+def cconvertSymbol (address : Nat) : Nat := address
+def unsafeConvertSymbol (address : Nat) : Cstring := ⟨.int8, address⟩
+
+/-- Identity `transcode(T, ::AbstractVector{T})`; line 163. -/
+def transcodeIdentity (src : List α) : List α := src
+
+/-- UTF-8 to UTF-32/Int32 comprehensions and their byte wrappers; lines 164-168. -/
+def transcodeString32 (decode : List UInt8 → List UInt32) (src : List UInt8) : List UInt32 := decode src
+def transcodeBytes32 (decode : List UInt8 → List UInt32) (src : List UInt8) : List UInt32 :=
+  transcodeString32 decode src
+def transcodeCodeUnits32 (decode : List UInt8 → List UInt32) (src : List UInt8) : List UInt32 :=
+  transcodeString32 decode src
+
+/-- UTF-32/Int32 to UInt8 prints each Char; lines 170-176. -/
+def transcode32Bytes (encode : UInt32 → List UInt8) (src : List UInt32) : List UInt8 :=
+  (src.map encode).flatten
+
+/-- String conversion wrappers; lines 177-183. -/
+def transcodeStringIdentity (src : List UInt8) : List UInt8 := src
+def transcodeStringViaCodeunits (transcode : List UInt8 → α) (src : List UInt8) : α := transcode src
+def transcodeVectorString (src : List UInt8) : List UInt8 := src
+def transcodeToString (transcode : α → List UInt8) (src : α) : List UInt8 := transcode src
+
+/-- `unsafe_string(p, length)` for wide code units; lines 321-323. -/
+def unsafeStringWideLength (transcode : List α → List UInt8)
+    (memory : List α) (length : Nat) : List UInt8 := transcode (memory.take length)
+
+/-- NUL-terminated `unsafe_string(p)`; lines 324-330. -/
+def unsafeStringWide (zero : α) [BEq α] (transcode : List α → List UInt8)
+    (memory : List α) : List UInt8 := transcode (memory.takeWhile (· != zero))
+
+/-- `unsafe_string(::Cwstring)`; line 331. -/
+def unsafeStringCwstring (zero : α) [BEq α] (transcode : List α → List UInt8)
+    (memory : List α) : List UInt8 := unsafeStringWide zero transcode memory
+
+end JuliaLean.StringsCovA.CStrings
+
+
+namespace JuliaLean.StringsCovA.CStringsFaithful
+
+open JuliaLean
+open JuliaLean.Strings
+open JuliaLean.Transcode
+open JuliaLean.StringsCovA.CStrings
+
+def cstringCtor (p : PtrValue) : Cstring := CStrings.cstring p
+
+def cwstringCtor (p : PtrValue) : Cwstring := CStrings.cwstring p
+
+def ptrCstring (target : PtrTag) (p : Cstring) := CStrings.ptrFromCstring target p
+
+def ptrCwstring (target : PtrTag) (p : Cwstring) := CStrings.ptrFromCwstring target p
+
+def convertCstring (p : PtrValue) := CStrings.cstring p
+
+def convertCwstring (p : PtrValue) := CStrings.cwstring p
+
+def convertPtrCstring (target : PtrTag) (p : Cstring) := ptrCstring target p
+
+def convertPtrCwstring (target : PtrTag) (p : Cwstring) := ptrCwstring target p
+
+def pointerCstring (p : Cstring) := convertPtrCstring .int8 p
+
+def pointerCwstring (p : Cwstring) := convertPtrCwstring .wchar p
+
+def eqCptr (x : PtrValue) (y : PtrValue) : Bool := (if x.tag = .wchar then pointerCwstring x else pointerCstring x).address == y.address
+
+def eqPtrC (x : PtrValue) (y : PtrValue) : Bool := x.address == (if y.tag = .wchar then pointerCwstring y else pointerCstring y).address
+
+structure PtrMemory (α : Type) where
+  pointer : PtrValue
+  cells : List α
+
+def unsafeStringPtr (p : PtrMemory UInt8) : List UInt8 := p.cells.takeWhile (· != 0)
+
+/-- `unsafe_string(s::Cstring)`, `base/strings/cstring.jl:62`. -/
+def unsafeStringCstring (s : Cstring) (cells : List UInt8) : List UInt8 :=
+  unsafeStringPtr ⟨convertPtrCstring .uint8 s, cells⟩
+
+def cconvertString (s : JStr) : JStr := s
+
+/-- Observable operations supplied by an arbitrary `AbstractString`. -/
+structure AbstractStringInput where
+  string : SJl JStr
+  iteration : SJl (List UInt32)
+
+/-- `cconvert(Cstring, s::AbstractString)`, `base/strings/cstring.jl:66-67`. -/
+def cconvertAbstract (s : AbstractStringInput) : SJl JStr := do
+  let concrete ← s.string
+  return cconvertString concrete
+
+def eltypeCstring : PtrTag := .int8
+
+def eltypeCwstring : PtrTag := .wchar
+
+def containsnulPtr (p : PtrMemory UInt8) (len : Nat) : Bool := (p.cells.take len).contains 0
+
+structure StringStorage where
+  value : JStr
+  address : Nat
+
+def unsafeConvertStringPtr (s : StringStorage) : PtrMemory UInt8 :=
+  ⟨⟨.int8, s.address⟩, s.value.bytes ++ [0]⟩
+
+/-- `containsnul(s::String)`, `base/strings/cstring.jl:80`. -/
+def containsnulString (s : StringStorage) : Bool :=
+  containsnulPtr (unsafeConvertStringPtr s) s.value.bytes.length
+
+/-- `containsnul(s::AbstractString)`, `base/strings/cstring.jl:81`. -/
+def containsnulAbstract (s : AbstractStringInput) : SJl Bool := do
+  let characters ← s.iteration
+  return characters.contains 0
+
+/-- `unsafe_convert(Cstring, s::String)`, `base/strings/cstring.jl:83-88`. -/
+def unsafeConvertCstring (s : StringStorage) : SJl Cstring :=
+  let p := unsafeConvertStringPtr s
+  if containsnulPtr p s.value.bytes.length then
+    .error (.jl (.argumentError "embedded NULs are not allowed in C strings"))
+  else
+    .ok (cstringCtor p.pointer)
+
+structure MemoryInput (α : Type) where
+  address : Nat
+  cells : List α
+
+def unsafeConvertMemoryPtr (s : MemoryInput α) : PtrValue := ⟨.void, s.address⟩
+
+/-- `unsafe_convert(Cstring, ::Memory)`, `base/strings/cstring.jl:90`. -/
+def unsafeConvertMemory (s : MemoryInput α) : Cstring :=
+  cstringCtor (unsafeConvertMemoryPtr s)
+
+structure WideInput where
+  pointer : SJl PtrValue
+
+/-- `unsafe_convert(Cwstring, s)`, `base/strings/cstring.jl:101`. -/
+def unsafeConvertWide (s : WideInput) : SJl Cwstring := do
+  let pointer ← s.pointer
+  return cwstringCtor pointer
+
+def unsafeConvertWideIdentity (s : Cwstring) : Cwstring := s
+
+structure SymbolInput where
+  identity : Nat
+  address : Nat
+
+def cconvertSymbol (s : SymbolInput) : SymbolInput := s
+
+def unsafeConvertSymbolPtr (s : SymbolInput) : PtrValue := ⟨.int8, s.address⟩
+def unsafeConvertSymbol (s : SymbolInput) : Cstring := cstringCtor (unsafeConvertSymbolPtr s)
+
+def transcodeIdentity (src : List α) : List α := src
+
+inductive Target32 where | int32 | uint32 deriving DecidableEq
+inductive Vector32 where
+  | int32 (values : List Int)
+  | uint32 (values : List UInt32)
+  deriving DecidableEq
+
+/-- `transcode(T, src::String)`, `base/strings/cstring.jl:164`. -/
+def transcodeString32 (target : Target32) (src : JStr) : SJl Vector32 := do
+  let values ← Transcode.transcode32 src
+  match target with
+  | .uint32 => return .uint32 values
+  | .int32 => return .int32 (values.map (fun value => (value.toNat : Int)))
+
+structure AbstractBytes where
+  vectorCopy : SJl JStr
+
+/-- `transcode(T, src::AbstractVector{UInt8})`, `base/strings/cstring.jl:165-166`. -/
+def transcodeBytes32 (target : Target32) (src : AbstractBytes) : SJl Vector32 := do
+  let copied ← src.vectorCopy
+  transcodeString32 target copied
+
+structure StringCodeUnits where
+  parent : JStr
+
+/-- `transcode(T, src::CodeUnits{UInt8,String})`, `base/strings/cstring.jl:167-168`. -/
+def transcodeCodeunits32 (target : Target32) (src : StringCodeUnits) : SJl Vector32 :=
+  transcodeString32 target src.parent
+
+inductive Source32 where
+  | int32 (values : List Int)
+  | uint32 (values : List UInt32)
+
+def transcode8of32Interleaved : Source32 → SJl (List UInt8)
+  | .uint32 [] => .ok []
+  | .int32 [] => .ok []
+  | .uint32 (value :: values) =>
+      match charOfU32 value with
+      | .error error => .error error
+      | .ok character =>
+          match transcode8of32Interleaved (.uint32 values) with
+          | .error error => .error error
+          | .ok rest => .ok (charBytes character ++ rest)
+  | .int32 (value :: values) =>
+      match charOfI32 value with
+      | .error error => .error error
+      | .ok character =>
+          match transcode8of32Interleaved (.int32 values) with
+          | .error error => .error error
+          | .ok rest => .ok (charBytes character ++ rest)
+
+def transcodeStringIdentity (src : JStr) : JStr := src
+
+def transcodeStringCodeunits (transcode : List UInt8 → α) (src : JStr) : α := transcode src.bytes
+
+/-- `transcode(String, src::Vector{UInt8})`, `base/strings/cstring.jl:182`. -/
+structure VectorStringCall where
+  result : JStr
+  source : JStr
+
+def transcodeVectorString (src : JStr) : VectorStringCall := ⟨⟨src.bytes, src.small⟩, src⟩
+
+structure GenericSource where
+  transcodeUInt8 : SJl JStr
+
+/-- `transcode(String, src)`, `base/strings/cstring.jl:183`. -/
+def transcodeToString (src : GenericSource) : SJl JStr := do
+  let bytes ← src.transcodeUInt8
+  return ⟨bytes.bytes, bytes.small⟩
+
+inductive WidePlatform where | windows | unix
+
+inductive WideVector where
+  | u16 (values : List UInt16)
+  | i32 (values : List Int)
+  deriving DecidableEq
+
+def cconvertCwstringConcrete (platform : WidePlatform) (concrete : JStr) : SJl WideVector :=
+  match platform with
+  | .windows =>
+      do
+        let values ← Transcode.transcode16 concrete.bytes
+        let terminated := values ++ [0]
+        let checked ← Transcode.cconvertCwVec terminated
+        return .u16 checked
+  | .unix =>
+      do
+        let values ← Transcode.transcode32 concrete
+        let terminated := values.map (fun value => (value.toNat : Int)) ++ [0]
+        let checked ← Transcode.cconvertCwVec terminated
+        return .i32 checked
+
+/-- `cconvert(Cwstring, s::AbstractString)`, `base/strings/cstring.jl:69-73`. -/
+def cconvertCwstring (platform : WidePlatform) (s : AbstractStringInput) : SJl WideVector := do
+  let concrete ← s.string
+  cconvertCwstringConcrete platform concrete
+
+/-- `cconvert(Cwstring, v::Vector{Cwchar_t})`, `base/strings/cstring.jl:92-100`. -/
+def cconvertCwstringVector [BEq α] [OfNat α 0] (v : List α) : SJl (List α) :=
+  Transcode.cconvertCwVec v
+
+/-- Windows-only `cwstring(s::AbstractString)`, `base/strings/cstring.jl:119-123`. -/
+def cwstringAbstract (s : AbstractStringInput) : SJl (List UInt16) := do
+  let concrete ← s.string
+  Transcode.cwstring concrete
+
+structure IntegerValue where
+  value : Int
+
+def unsafeStringWideLength (transcode : List α → SJl JStr)
+    (pointer : PtrMemory α) (length : IntegerValue) : SJl JStr :=
+  if length.value < 0 then .error (.jl (.argumentError "invalid array dimensions"))
+  else transcode (pointer.cells.take length.value.toNat)
+
+def firstNul [BEq α] [OfNat α 0] (memory : List α) : Option Nat := memory.findIdx? (· == 0)
+
+def unsafeStringWide [BEq α] [OfNat α 0] (transcode : List α → SJl JStr)
+    (pointer : PtrMemory α) : SJl JStr :=
+  match firstNul pointer.cells with
+  | none => .error .assertion
+  | some length => unsafeStringWideLength transcode pointer ⟨length⟩
+
+structure CwstringMemory (α : Type) where
+  value : Cwstring
+  cells : List α
+
+def unsafeStringCwstring [BEq α] [OfNat α 0] (transcode : List α → SJl JStr)
+    (cw : CwstringMemory α) : SJl JStr :=
+  let pointer := convertPtrCwstring .wchar cw.value
+  unsafeStringWide transcode ⟨pointer, cw.cells⟩
+
+end JuliaLean.StringsCovA.CStringsFaithful

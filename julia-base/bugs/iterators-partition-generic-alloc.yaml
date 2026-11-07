@@ -1,65 +1,81 @@
 id: iterators-partition-generic-alloc
-title: Iterators.partition(itr, n) of a non-array iterator allocates n slots per chunk
+title: Iterators.partition rejects a three-element tuple with a huge chunk limit
 priority: P2
 kind: wrong-exception
 area: Iterators
 files:
-- base/iterators.jl
+  - base/iterators.jl
 functions:
-- iterate(::PartitionIterator)
+  - iterate(::PartitionIterator)
 summary: |
-  The generic iterate(::PartitionIterator) allocates Vector{eltype}(undef,
-  itr.n) before reading any element and shrinks it afterwards. With a large n
-  and a short iterator this throws (ArgumentError "invalid GenericMemory size"
-  for n = typemax(Int), OutOfMemoryError for n = 2^40) or wastes memory (800 MB
-  for the 3-element first chunk with n = 10^8), while partition of a Vector
-  with the same n works.
+  iterate(partition((1, 2, 3), Int(1) << 62)) throws ArgumentError before
+  yielding a chunk. The generic implementation allocates a vector of the
+  requested chunk limit before reading any input, even though this tuple
+  has only three elements. It shrinks the vector only after filling it.
 likelihood: |
-  partition(itr, n) with a large n ("one chunk if small") on a generator,
-  tuple, eachline or other non-array iterator. Plausible; the failure is loud
-  but the memory use is silent.
-maybe_intended: ''
+  A large limit can mean one chunk for a short input. For tuples, generators,
+  or I/O iterators, allocating the entire limit wastes memory or throws.
+  The safe reproducer uses an invalid internal buffer size that Julia rejects
+  before attempting a large allocation.
+maybe_intended: |
+  A full-size buffer simplifies the generic implementation, but the final
+  chunk is explicitly allowed to be shorter. The docstring's example includes
+  a one-element final chunk. The requested limit need not equal the amount
+  of storage needed for a short finite input.
 reproducer: |
-  # partition(itr, n) of a non-array iterator allocates a Vector of n slots for every chunk
-  r = try collect(Iterators.partition((1, 2, 3), typemax(Int))) catch e; e end
-  println("collect(partition((1,2,3), typemax(Int))) = ", r isa Exception ? sprint(showerror, r) : repr(r))
-  println("collect(partition([1,2,3], typemax(Int))) = ", repr(collect(Iterators.partition([1, 2, 3], typemax(Int)))))
-  f() = first(Iterators.partition((i for i in 1:3), 10^8))
-  f()
-  b = @allocated f()
-  println("first chunk of partition((i for i in 1:3), 10^8) allocates ", b, " bytes")
-  r isa ArgumentError && b > 10^8 && println("REPRODUCED iterators-partition-generic-alloc")
+  p = Iterators.partition((1, 2, 3), Int(1) << 62)
+  err = try
+      iterate(p)
+  catch e
+      e
+  end
+  @assert err isa ArgumentError
+  @assert occursin("invalid", sprint(showerror, err))
+  println("REPRODUCED iterators-partition-generic-alloc")
 output:
   release: |
-    collect(partition((1,2,3), typemax(Int))) = ArgumentError: invalid GenericMemory size: the number of elements is either negative or too large for system address width
-    collect(partition([1,2,3], typemax(Int))) = SubArray{Int64, 1, Vector{Int64}, Tuple{UnitRange{Int64}}, true}[[1, 2, 3]]
-    first chunk of partition((i for i in 1:3), 10^8) allocates 800002048 bytes
     REPRODUCED iterators-partition-generic-alloc
   nightly: |
-    collect(partition((1,2,3), typemax(Int))) = ArgumentError: invalid GenericMemory size: the number of elements is either negative or too large for system address width
-    collect(partition([1,2,3], typemax(Int))) = SubArray{Int64, 1, Vector{Int64}, Tuple{UnitRange{Int64}}, true}[[1, 2, 3]]
-    first chunk of partition((i for i in 1:3), 10^8) allocates 800002112 bytes
     REPRODUCED iterators-partition-generic-alloc
 reproduced:
   release: true
   nightly: true
 expected: |
-  collect(partition((1,2,3), typemax(Int))) == [[1, 2, 3]], as for the vector
-  [1, 2, 3], with memory proportional to the chunk actually produced.
+  The first chunk should be [1, 2, 3], followed by completion. Storage should
+  scale with the finite input's actual chunk size rather than the huge limit.
 promised_by: |
-  partition docstring, base/iterators.jl:1424-1426: "Iterate over a collection n
-  elements at a time", for any n >= 1.
+  Pinned source f755f49a9e41380d7da126b3c1db9fe7f83dd027:
+  base/iterators.jl:1426: "Iterate over a collection `n` elements at a time."
+  base/iterators.jl:1430-1434: "julia> collect(Iterators.partition([1,2,3,4,5], 2))
+  3-element Vector{SubArray{Int64, 1, Vector{Int64}, Tuple{UnitRange{Int64}}, true}}:
+   [1, 2]
+   [3, 4]
+   [5]"
+  The example demonstrates a partial final chunk, not a memory-use guarantee.
 cause: |
-  base/iterators.jl:1489, v = Vector{eltype(itr.c)}(undef, itr.n).
+  base/iterators.jl:1489 constructs Vector{eltype(itr.c)}(undef, itr.n) before
+  the first iterate call at line 1491. Only line 1501 shrinks that allocation
+  to the number of elements actually read.
 possible_fix: |
-  Start with an empty vector and sizehint!(v, min(itr.n, some bound)) or push!
-  elements, or allocate min(itr.n, length(c)) when the length is known.
+  For finite inputs with a known length, allocate min(itr.n, length(input))
+  slots. For unknown-length iterators, grow a vector while reading up to
+  itr.n elements rather than allocating the whole limit in advance.
 duplicates:
-  issues: []
+  issues:
+    - number: 45768
+      state: closed
+      relation: related
+  search_notes: |
+    No direct duplicate is known. Issue #45768 concerns unnecessary
+    materialization of string partitions and requests SubString results; it
+    does not report allocating a huge chunk limit before reading a short
+    input.
   queries:
-  - partition allocates
-  - partition memory
-  - partition typemax
+    - partition allocates
+    - partition memory
+    - partition typemax
+    - Iterators.partition allocation
+    - PartitionIterator memory
 lean:
-  property: JuliaLean.Iterators.PartitionFirstChunk
-  theorem: JuliaLean.Iterators.partitionFirstChunk_refuted
+  property: JuliaLean.Proofs.base.iterators.PartitionFirstChunk
+  theorem: JuliaLean.ChatGPT.Batch4.Group5.IteratorsPartitionGenericAlloc_refuted

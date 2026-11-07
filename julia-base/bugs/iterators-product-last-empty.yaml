@@ -1,29 +1,33 @@
 id: iterators-product-last-empty
-title: last(Iterators.product(1:2, 1:0)) returns (2, 0) for an empty product
+title: last of an empty Iterators.product returns a tuple absent from the product
 priority: P3
 kind: missing-error
 area: Iterators
 files:
-- base/iterators.jl
+  - base/iterators.jl
+  - base/abstractarray.jl
 functions:
-- last(::ProductIterator)
+  - last(::ProductIterator)
 summary: |
-  last(p::ProductIterator) = map(last, p.iterators). Ranges return their end
-  point even when empty, so the last element of the empty product(1:2, 1:0) is
-  reported as (2, 0). With an empty Vector factor, last throws as expected.
+  last(product(1:2, 1:0)) returns (2, 0), although the product is empty and
+  contains no such element. Replacing the empty range with an empty vector
+  makes last throw instead. ProductIterator maps last over its factors without
+  checking whether the Cartesian product contains any elements.
 likelihood: |
-  Needs last of a product containing an empty range. Uncommon; silent.
+  Requires calling last on a product with an empty range factor. Range bounds
+  computed from data can produce this situation without an explicit empty input.
 maybe_intended: |
-  last docstring (base/abstractarray.jl:513-520) says last returns "the end
-  point of an AbstractRange even if it is empty", and last(product) follows the
-  factors. The product itself is not a range.
+  The last docstring explicitly allows empty AbstractRange inputs to return
+  their endpoint. ProductIterator inherits that behavior from its factors,
+  which may be convenient, but ProductIterator is not an AbstractRange and
+  the documentation does not extend the exception to Cartesian products.
+  Issue #52195 discusses changing the empty-range behavior itself, rather
+  than this product-specific consequence.
 reproducer: |
-  # last(product(...)) returns a tuple for an empty product of ranges
   p = Iterators.product(1:2, 1:0)
-  r = try last(p) catch e; e end
-  println("isempty(product(1:2, 1:0)) = ", isempty(p), ", last = ", repr(r))
-  println("last(product([1,2], Int[])) throws: ", try last(Iterators.product([1, 2], Int[])); false catch e; true end)
-  isempty(p) && r == (2, 0) && println("REPRODUCED iterators-product-last-empty")
+  isempty(p)  # true
+  last(p)     # (2, 0)
+  last(Iterators.product([1, 2], Int[]))  # throws BoundsError
 output:
   release: |
     isempty(product(1:2, 1:0)) = true, last = (2, 0)
@@ -37,19 +41,40 @@ reproduced:
   release: true
   nightly: true
 expected: |
-  An error (as last of any empty collection), since isempty(product(1:2, 1:0)).
+  last should throw for an empty ProductIterator, or its documentation should
+  explicitly extend the empty-range endpoint convention to products.
 promised_by: |
-  last docstring, base/abstractarray.jl:513-520: "Get the last element of an
-  ordered collection".
+  Pinned source f755f49a9e41380d7da126b3c1db9fe7f83dd027:
+  base/abstractarray.jl:515-517: "Get the last element of an ordered collection, if it can be computed in O(1) time. This is
+  accomplished by calling [`lastindex`](@ref) to get the last index. Return the end
+  point of an [`AbstractRange`](@ref) even if it is empty."
+  The explicit exception names AbstractRange, not ProductIterator.
 cause: |
-  base/iterators.jl:1256, last(p::ProductIterator) = Base.map(last, p.iterators)
-  does not check for empty factors.
+  base/iterators.jl:1256 defines last(p::ProductIterator) as
+  Base.map(last, p.iterators). Empty range factors supply endpoints even
+  though the resulting tuple is not an element of the product.
 possible_fix: |
-  Throw when any factor is empty (any(isempty, p.iterators)).
+  Check for empty factors before mapping last, and throw if any factor is empty.
+  If endpoint propagation is intentional, document that additional exception.
 duplicates:
-  issues: []
+  issues:
+    - number: 52195
+      state: open
+      relation: related
+  prs:
+    - number: 22989
+      state: merged
+      relation: related
+      note: "related ProductIterator implementation history"
+  search_notes: |
+    Issue #52195 discusses empty ranges themselves. PR #22989 replaces the
+    product implementation; its description does not report this
+    empty-product result. No exact duplicate is known.
   queries:
-  - product last empty
+    - product last empty
+    - ProductIterator last
+    - last empty range
+    - last ProductIterator empty
 lean:
-  property: JuliaLean.Iterators.ProductLastNonempty
-  theorem: JuliaLean.Iterators.productLastNonempty_refuted
+  property: JuliaLean.Proofs.base.iterators.ProductLastNonempty
+  theorem: JuliaLean.ChatGPT.Batch4.Group5.IteratorsProductLastEmpty_refuted

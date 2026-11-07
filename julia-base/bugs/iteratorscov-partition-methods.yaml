@@ -1,0 +1,122 @@
+id: iteratorscov-partition-methods
+title: Partition method semantics lose the final two vector elements on overflow
+priority: P2
+kind: wrong-result
+area: Iterators
+files:
+  - base/iterators.jl
+functions:
+  - partition
+  - PartitionIterator
+  - iterate(::PartitionIterator{<:AbstractArray})
+  - length(::PartitionIterator)
+summary: |
+  The vector-chunk clause of the partition method contract fails for the
+  public input Vector{Nothing}(undef, 2^62 + 5) with count 2^62 + 3 on a
+  64-bit system. The iterator advertises two chunks, but returns an empty
+  second chunk instead of the final two elements. This is the same
+  implementation defect as iterators-partition-vector. Both release and
+  pinned nightly reproduce the failure.
+likelihood: |
+  The count and logical input length are large, but both fit in native Int.
+  Nothing has zero-size elements, so constructing this vector requires no
+  element-storage bytes. Two direct iterate calls inspect views in constant
+  work without materializing or traversing the logical input.
+maybe_intended: |
+  The public partition promise and its example require consecutive chunks
+  with the final remainder retained. Native integer wraparound does not
+  explain an intended empty chunk when two elements remain. The constructor
+  permits this positive Int count and has no documented smaller limit.
+reproducer: |
+  # Nothing has zero-size elements; only two partition steps are inspected.
+  @assert Sys.WORD_SIZE == 64
+  L = (Int(1) << 62) + 5
+  n = (Int(1) << 62) + 3
+  xs = Vector{Nothing}(undef, L)
+  @assert sizeof(Nothing) == 0 && sizeof(xs) == 0 && length(xs) == L
+  @assert isassigned(xs, 1) && isassigned(xs, L)
+  @assert xs[1] === nothing && xs[L] === nothing
+  p = Iterators.partition(xs, n)
+  @assert length(p) == 2
+  first_step = iterate(p)
+  @assert first_step !== nothing
+  first_chunk, state = first_step
+  @assert length(first_chunk) == n && state == n + 1
+  @assert L - n == 2
+  second_step = iterate(p, state)
+  @assert second_step !== nothing
+  second_chunk, next_state = second_step
+  @assert length(second_chunk) == 0
+  @assert next_state == typemin(Int) + 7
+  println("REPRODUCED iteratorscov-partition-methods")
+output:
+  release: |
+    REPRODUCED iteratorscov-partition-methods
+  nightly: |
+    REPRODUCED iteratorscov-partition-methods
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  The first chunk should have n elements and the second should have exactly
+  L - n = 2 elements, after which iteration should terminate. The observed
+  defect being asserted is an empty second chunk with negative next state.
+  The reproducer does not iterate further with that malformed state.
+promised_by: |
+  Pinned source f755f49a9e41380d7da126b3c1db9fe7f83dd027:
+  https://github.com/JuliaLang/julia/blob/f755f49a9e41380d7da126b3c1db9fe7f83dd027/base/iterators.jl#L1423-L1440
+  "Iterate over a collection `n` elements at a time." The vector example
+  retains its shorter final chunk [5]. Lines 1437-1439 reject only
+  nonpositive counts before converting to Int; this witness meets those
+  public construction requirements. Lines 1465-1468 advertise cld(l, n)
+  chunks, which equals two for the witness.
+cause: |
+  base/iterators.jl:1476-1479 dispatches vectors to the AbstractArray method.
+  It computes min(state + itr.n - 1, lastindex(itr.c)) using wrapping Int
+  arithmetic. After the correct first chunk, state = 2^62 + 4. Adding
+  n = 2^62 + 3 wraps to typemin(Int) + 7; subtracting one produces the
+  negative endpoint typemin(Int) + 6. The returned view is empty and its
+  next state is typemin(Int) + 7.
+possible_fix: |
+  Compute the array chunk endpoint from the remaining distance before
+  adding an index, avoiding overflowing intermediate sums and terminal
+  state wraparound.
+duplicates:
+  issues:
+    - number: 64143
+      state: closed
+      relation: related
+      note: "String first/partition overflow through nextind; a different implementation path."
+  prs:
+    - number: 64370
+      state: merged
+      relation: related
+      note: "String nextind overflow fix; it does not change array partition arithmetic."
+    - number: 40830
+      state: merged
+      relation: related
+      note: "Historical non-1-indexed array partition support in the failing implementation family."
+    - number: 33533
+      state: merged
+      relation: related
+      note: "Historical array view specialization; no exact zero-size-vector counterexample."
+  search_notes: |
+    Same defect as iterators-partition-vector. Related: issue #64143 and PRs
+    #64370, #40830, #33533. Issues #58967 and #3061 are different
+    memory-leak and combinatorial-partitions problems. No exact duplicate is
+    known.
+  queries:
+    - "gh search issues 'partition overflow' --repo JuliaLang/julia --limit 100 --json number,title,state,url"
+    - "gh search prs 'partition overflow' --repo JuliaLang/julia --limit 100 --json number,title,state,url"
+    - "gh search issues 'partition Nothing' --repo JuliaLang/julia --limit 100 --json number,title,state,url"
+    - "gh search prs 'partition Nothing' --repo JuliaLang/julia --limit 100 --json number,title,state,url"
+    - "gh search issues 'partition typemax' --repo JuliaLang/julia --limit 100 --json number,title,state,url"
+    - "gh search prs 'partition typemax' --repo JuliaLang/julia --limit 100 --json number,title,state,url"
+    - "gh search issues 'Iterators.partition' --repo JuliaLang/julia --limit 100 --json number,title,state,url"
+    - "gh search prs 'Iterators.partition' --repo JuliaLang/julia --limit 100 --json number,title,state,url"
+    - "gh search issues partition overflow --repo JuliaLang/julia --limit 100 --json number,title,state,url"
+    - "gh search prs partition overflow --repo JuliaLang/julia --limit 100 --json number,title,state,url"
+    - "gh search issues partition Nothing --repo JuliaLang/julia --limit 100 --json number,title,state,url"
+lean:
+  property: JuliaLean.Proofs.base.iterators.PartitionMethodSemantics
+  theorem: JuliaLean.ChatGPT.Batch5.Group5.IteratorscovPartitionMethods_refuted

@@ -2,6 +2,7 @@ import JuliaLean.Core
 import JuliaLean.base.int
 import JuliaLean.base.bool
 import JuliaLean.base.float
+import JuliaLean.base.operators
 
 /-!
 # Model of `base/promotion.jl`
@@ -418,7 +419,8 @@ function typejoin(@nospecialize(a), @nospecialize(b))
 end
 ```
 -/
-def typejoinPair (ops : PTypeOps) (join : PType → PType → Option PType)
+-- Source: base/promotion.jl:37-160 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+def typejoinPairMethod (ops : PTypeOps) (join : PType → PType → Option PType)
     (a b : PType) : Option PType :=
   match a, b with
   | .typeVar _ upper, b => join upper b
@@ -433,6 +435,8 @@ def typejoinPair (ops : PTypeOps) (join : PType → PType → Option PType)
         | a, .unionAll v body => do return .unionAll v (← join a body)
         | .union x y, b => do join (← join x y) b
         | a, .union x y => do join a (← join x y)
+        | .typeEgal x, .typeEgal y =>
+            join (ops.typeofParameter x) (ops.typeofParameter y)
         | .typeEgal x, b => join (ops.typeofParameter x) b
         | a, .typeEgal y => join a (ops.typeofParameter y)
         | .typeEq _, b =>
@@ -448,6 +452,11 @@ def typejoinPair (ops : PTypeOps) (join : PType → PType → Option PType)
             else if bn = tupleTypeName then some .any
             else pJoinData ops a b
         | _, _ => some .any
+
+-- Source: base/promotion.jl:37-160 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+def typejoinPair (ops : PTypeOps) (join : PType → PType → Option PType)
+    (a b : PType) : Option PType :=
+  typejoinPairMethod ops join a b
 
 /-! Monotonicity of the tuple-join helpers and of the `typejoin(a, b)` body in the recursive
 `typejoin` callee, so that `typejoin` is the least fixed point of its body (`partial_fixpoint`). -/
@@ -478,7 +487,7 @@ theorem monotone_pJoinTuples {γ : Type} [PartialOrder γ] (F : γ → PType →
 
 theorem typejoinPair_monotone (ops : PTypeOps) (a b : PType) :
     monotone (fun join : PType → PType → Option PType => typejoinPair ops join a b) := by
-  unfold typejoinPair
+  unfold typejoinPair typejoinPairMethod
   repeat' monotonicity
 
 @[partial_fixpoint_monotone]
@@ -1199,8 +1208,8 @@ Julia source: base/promotion.jl:516-516 @ f755f49a9e41380d7da126b3c1db9fe7f83dd0
 ==(x::Number, y::Number) = (==)(promote(x,y)...)
 ```
 -/
-def equalNumber (promote : α → α → m (β × β)) (equal : β → β → m γ)
-    (x y : α) : m γ := do
+def equalNumber (promote : α → β → m (γ × γ)) (equal : γ → γ → m δ)
+    (x : α) (y : β) : m δ := do
   let (px, py) ← promote x y
   equal px py
 
@@ -1210,8 +1219,8 @@ Julia source: base/promotion.jl:517-517 @ f755f49a9e41380d7da126b3c1db9fe7f83dd0
 <( x::Real, y::Real)     = (< )(promote(x,y)...)
 ```
 -/
-def lessNumber (promote : α → α → m (β × β)) (less : β → β → m γ)
-    (x y : α) : m γ := do
+def lessNumber (promote : α → β → m (γ × γ)) (less : γ → γ → m δ)
+    (x : α) (y : β) : m δ := do
   let (px, py) ← promote x y
   less px py
 
@@ -1221,8 +1230,8 @@ Julia source: base/promotion.jl:518-518 @ f755f49a9e41380d7da126b3c1db9fe7f83dd0
 <=(x::Real, y::Real)     = (<=)(promote(x,y)...)
 ```
 -/
-def lessEqualNumber (promote : α → α → m (β × β)) (lessEqual : β → β → m γ)
-    (x y : α) : m γ := do
+def lessEqualNumber (promote : α → β → m (γ × γ)) (lessEqual : γ → γ → m δ)
+    (x : α) (y : β) : m δ := do
   let (px, py) ← promote x y
   lessEqual px py
 
@@ -1254,8 +1263,8 @@ Julia source: base/promotion.jl:522-522 @ f755f49a9e41380d7da126b3c1db9fe7f83dd0
 mod1(x::Real, y::Real) = mod1(promote(x,y)...)
 ```
 -/
-def mod1Number (promote : α → α → m (β × β)) (mod1 : β → β → m γ)
-    (x y : α) : m γ := do
+def mod1Number (promote : α → α' → m (β × β)) (mod1 : β → β → m γ)
+    (x : α) (y : α') : m γ := do
   let (px, py) ← promote x y
   mod1 px py
 
@@ -1748,4 +1757,679 @@ def notSameTypeTripleDispatch {m : Type → Type} [Monad m] {ι : Type} {V : ι 
     notSameTypeEqual sametypeError xs ys
   else notSameTypeDifferent xs ys
 
+
+/- *dispatch*: four-value BitInteger promotion `promote(x, y, z, w)` (`base/promotion.jl:411-415,435-441`).
+Selects the homogeneous fast path `promoteSameType` when all four input types coincide, and
+otherwise dispatches through `promoteManyValues` and `promoteRestValues` (`_promote`) to compute the
+common type across all four operands and convert them in argument order. -/
+def promoteFourBitIntegers {tx ty tz tw : IntTy}
+    (x : JInt tx) (y : JInt ty) (z : JInt tz) (w : JInt tw) :
+    Jl (JInt (((tx.promote ty).promote tz).promote tw) ×
+        JInt (((tx.promote ty).promote tz).promote tw) ×
+        JInt (((tx.promote ty).promote tz).promote tw) ×
+        JInt (((tx.promote ty).promote tz).promote tw)) := do
+  let p := ((tx.promote ty).promote tz).promote tw
+  if hsame : tx = p ∧ ty = p ∧ tz = p ∧ tw = p then
+    let xp : JInt p := hsame.1 ▸ x
+    let yp : JInt p := hsame.2.1 ▸ y
+    let zp : JInt p := hsame.2.2.1 ▸ z
+    let wp : JInt p := hsame.2.2.2 ▸ w
+    match promoteSameType xp yp [zp, wp] with
+    | [a, b, c, d] => pure (a, b, c, d)
+    | _ => .error (.methodError "promote")
+  else
+    let pty := primitivePType (.int p)
+    let convertOne : {s : IntTy} → PType → JInt s → Jl (JInt p) := fun _ v =>
+      JuliaLean.base.int.convert p v
+    let convertRest : PType → List (Sigma JInt) → Jl (List (JInt p)) := fun _ xs =>
+      xs.mapM (fun ⟨_, v⟩ => JuliaLean.base.int.convert p v)
+    let promoteStep := fun (a : JInt tx) (b : JInt ty) (c : JInt tz) (rest : List (Sigma JInt)) =>
+      promoteRestValues (m := Jl) (V := JInt)
+        (fun _ _ _ => pure pty) convertOne convertOne convertRest a b (⟨tz, c⟩ :: rest)
+    let notSame : (JInt tx × JInt ty × JInt tz × List (Sigma JInt)) →
+        (JInt p × JInt p × List (JInt p)) → Jl Unit := fun orig prom =>
+      if tx == p && ty == p && tz == p && tw == p then
+        notSameTypeEqual (fun _ => .error (.argumentError "promotion of types failed to change any arguments")) orig orig
+      else
+        notSameTypeDifferent orig prom
+    let ((px, py), rest) ← promoteManyValues (m := Jl) (V := JInt) promoteStep notSame x y z [⟨tw, w⟩]
+    match rest with
+    | [pz, pw] => pure (px, py, pz, pw)
+    | _ => .error (.methodError "promote")
 end JuliaLean.base.promotion
+
+namespace JuliaLean.NumbersCov
+
+open JuliaLean
+
+namespace PromotionModel
+
+/-! A source-shaped type-object model for `typejoin`. Unlike the compact `Ty`
+model used below for numeric promotion tables, this keeps TypeVar bounds,
+UnionAll binders, DataType supertypes and parameters, tuple Varargs, TypeEq and
+TypeEgal distinct. -/
+
+inductive PType where
+  | bottom
+  | any
+  | typeVar (id : Nat) (upper : PType)
+  | unionAll (var body : PType)
+  | union (left right : PType)
+  | data (name wrapper : String) (params : List PType) (super : Option PType)
+  | typeEq (parameter : PType)
+  | typeEgal (parameter : PType)
+  | vararg (element : PType) (length : Option Nat)
+  | parameter (tag : String)
+  deriving Repr, Inhabited
+
+structure PTypeOps where
+  egal : PType → PType → Bool
+  subtype : PType → PType → Bool
+  typeofParameter : PType → PType
+
+def pIsType : PType → Bool
+  | .bottom | .any | .unionAll .. | .union .. | .data .. | .typeEq .. | .typeEgal .. => true
+  | _ => false
+
+def pUnwrapVa : PType → PType
+  | .vararg t _ => t
+  | t => t
+
+def pIsVararg : PType → Bool
+  | .vararg .. => true
+  | _ => false
+
+def pFullVaLen (ps : List PType) : Nat × Bool :=
+  match ps.getLast? with
+  | none => (0, true)
+  | some (.vararg _ (some n)) => (ps.length + n - 1, true)
+  | some (.vararg _ none) => (ps.length, false)
+  | some _ => (ps.length, true)
+
+def pHasAncestorName : PType → String → Bool
+  | .data name _ _ super, target =>
+      if name = target then true
+      else match super with
+        | some s => pHasAncestorName s target
+        | none => false
+  | _, _ => false
+
+def pAscendToName : PType → String → Option PType
+  | t@(.data name _ _ super), target =>
+      if name = target then some t
+      else match super with
+        | some s => pAscendToName s target
+        | none => none
+  | _, _ => none
+
+def pReplaceMismatchedParams (ops : PTypeOps) : List PType → List PType → List PType
+  | a :: as, b :: bs =>
+      (if ops.egal a b || (ops.subtype a b && ops.subtype b a) then a
+       else .parameter "_") :: pReplaceMismatchedParams ops as bs
+  | _, _ => []
+
+def pJoinParams (ops : PTypeOps) : Nat → List PType → List PType → List PType × List PType
+  | _, [], _ | _, _, [] => ([], [])
+  | i, a :: as, b :: bs =>
+      let rest := pJoinParams ops (i + 1) as bs
+      if ops.egal a b || (ops.subtype a b && ops.subtype b a) then
+        (a :: rest.1, rest.2)
+      else
+        let v := PType.typeVar i .any
+        (v :: rest.1, v :: rest.2)
+
+mutual
+/-- `typejoin(a,b)` in `base/promotion.jl:37-160`. Fuel bounds traversal of
+recursive Union and UnionAll graphs; Julia's runtime type graph is finite. -/
+def pTypejoin (ops : PTypeOps) : Nat → PType → PType → PType
+  | 0, _, _ => .any
+  | fuel + 1, .typeVar _ ub, b => pTypejoin ops fuel ub b
+  | fuel + 1, a, .typeVar _ ub => pTypejoin ops fuel a ub
+  | fuel + 1, a, b =>
+      if ops.egal a b then a
+      else if !pIsType a || !pIsType b then .any
+      else if ops.subtype a b then b
+      else if ops.subtype b a then a
+      else match a, b with
+        | .unionAll v body, b => .unionAll v (pTypejoin ops fuel body b)
+        | a, .unionAll v body => .unionAll v (pTypejoin ops fuel a body)
+        | .union x y, b => pTypejoin ops fuel (pTypejoin ops fuel x y) b
+        | a, .union x y => pTypejoin ops fuel a (pTypejoin ops fuel x y)
+        | .typeEgal x, b => pTypejoin ops fuel (ops.typeofParameter x) b
+        | a, .typeEgal y => pTypejoin ops fuel a (ops.typeofParameter y)
+        | .typeEq _, b =>
+            let a := pAbstractType
+            let b := match b with | .typeEq _ => pAbstractType | _ => b
+            if ops.subtype a b then b else if ops.subtype b a then a else .any
+        | a, .typeEq _ =>
+            let b := pAbstractType
+            if ops.subtype a b then b else if ops.subtype b a then a else .any
+        | a@(.data an _aw ap _asup), b@(.data bn _bw bp _bsup) =>
+            if an = "Tuple" then
+              if bn = "Tuple" then pJoinTuples ops fuel ap bp else .any
+            else if bn = "Tuple" then .any
+            else pJoinData ops fuel a b
+        | _, _ => .any
+
+/-- Join the tuple parameter vectors at `base/promotion.jl:80-124`, including
+empty tuples, fixed/open Vararg lengths, unequal expanded lengths, tail joins,
+and the final-slot Vararg rule. -/
+def pJoinTuples (ops : PTypeOps) (fuel : Nat) (ap bp : List PType) : PType :=
+  let lar := ap.length
+  let lbr := bp.length
+  if lar = 0 then
+    .data "Tuple" "Tuple" [.vararg (pTailFrom ops fuel bp 1) none] (some .any)
+  else if lbr = 0 then
+    .data "Tuple" "Tuple" [.vararg (pTailFrom ops fuel ap 1) none] (some .any)
+  else
+    let av := pFullVaLen ap
+    let bv := pFullVaLen bp
+    let laf := av.1
+    let lbf := bv.1
+    let init : List PType × Nat :=
+      if laf < lbf then
+        if pIsVararg (ap.getLastD .bottom) && !av.2 then
+          let c := List.replicate laf .bottom
+          let joined := pTypejoin ops fuel (pUnwrapVa (ap.getLastD .bottom))
+            (pTailFrom ops fuel bp laf)
+          (if laf = 0 then c else c.set (laf - 1) (.vararg joined none), laf - 1)
+        else
+          let c := (List.replicate (laf + 1) .bottom).set laf
+            (.vararg (pTailFrom ops fuel bp (laf + 1)) none)
+          (c, laf)
+      else if lbf < laf then
+        if pIsVararg (bp.getLastD .bottom) && !bv.2 then
+          let c := List.replicate lbf .bottom
+          let joined := pTypejoin ops fuel (pUnwrapVa (bp.getLastD .bottom))
+            (pTailFrom ops fuel ap lbf)
+          (if lbf = 0 then c else c.set (lbf - 1) (.vararg joined none), lbf - 1)
+        else
+          let c := (List.replicate (lbf + 1) .bottom).set lbf
+            (.vararg (pTailFrom ops fuel ap (lbf + 1)) none)
+          (c, lbf)
+      else (List.replicate laf .bottom, laf)
+    let c := (List.range init.2).foldl (fun c j =>
+      let ai := ap.getD (min j (lar - 1)) .bottom
+      let bi := bp.getD (min j (lbr - 1)) .bottom
+      let ci := pTypejoin ops fuel (pUnwrapVa ai) (pUnwrapVa bi)
+      c.set j (if j + 1 = c.length && (pIsVararg ai || pIsVararg bi)
+        then .vararg ci none else ci)) init.1
+    .data "Tuple" "Tuple" c (some .any)
+
+/-- Ordinary DataType ancestry loop and invariant-parameter join at
+`base/promotion.jl:128-159`. -/
+def pJoinData (ops : PTypeOps) (fuel : Nat) (a b : PType) : PType :=
+  match fuel, b with
+  | 0, _ => .any
+  | _, .any => .any
+  | fuel + 1, .data bn bw bp bsup =>
+      if pHasAncestorName a bn then
+        match pAscendToName a bn with
+        | some (.data _ _ ap asup) =>
+            let joined := pJoinParams ops 1 ap bp
+            joined.2.foldr (fun v body => .unionAll v body)
+              (.data bn bw joined.1 asup)
+        | _ => .any
+      else match bsup with
+        | some s => pJoinData ops fuel a s
+        | none => .any
+  | _, _ => .any
+
+def pTailFrom (ops : PTypeOps) (fuel : Nat) (ps : List PType) (i : Nat) : PType :=
+  if ps.length < i then pUnwrapVa (ps.getLastD .bottom)
+  else (ps.drop (i - 1)).foldl (pTypejoin ops fuel) .bottom
+
+/-- The abstract `Type` kind used when widening TypeEq operands;
+`base/promotion.jl:65-75`. -/
+def pAbstractType : PType := .data "Type" "Type" [] (some .any)
+end
+
+def pTypejoin0 : PType := .bottom
+def pTypejoin1 (t : PType) : PType := t
+def pTypejoin3 (ops : PTypeOps) (a b c : PType) : PType :=
+  pTypejoin ops 64 (pTypejoin ops 64 a b) c
+def pTypejoinMany (ops : PTypeOps) (a b c : PType) (ts : List PType) : PType :=
+  ts.foldl (pTypejoin ops 64) (pTypejoin3 ops a b c)
+
+def pTypesplit (ops : PTypeOps) : PType → PType → PType
+  | a, b => if ops.subtype a b then .bottom else match a with
+    | .union x y => .union (pTypesplit ops x b) (pTypesplit ops y b)
+    | _ => a
+
+def pPromoteTypesubtract (ops : PTypeOps) (nothing missing : PType) (a : PType) : PType :=
+  if ops.egal a .any then a
+  else if ops.subtype (.union nothing missing) a then pTypesplit ops a (.union nothing missing)
+  else if ops.subtype nothing a then pTypesplit ops a nothing
+  else if ops.subtype missing a then pTypesplit ops a missing
+  else a
+
+def pPromoteTypejoin (ops : PTypeOps) (a b : PType) : PType :=
+  .union a (.union b (pTypejoin ops 64 a b))
+
+def pTypejoinUnionParamsWith (ops : PTypeOps) (fuel : Nat) (recur : PType → PType) :
+    List PType → Option (List PType)
+  | [] => some []
+  | p :: ps =>
+      let u := pUnwrapVa p
+      let ci := match u with
+        | .bottom => some PType.bottom
+        | .union a b => some (pTypejoin ops fuel a b)
+        | .unionAll .. => none
+        | t => some (recur t)
+      match ci, pTypejoinUnionParamsWith ops fuel recur ps with
+      | some c, some cs =>
+          let c := match p with
+            | .vararg _ n => PType.vararg c n
+            | _ => c
+          some (c :: cs)
+      | _, _ => none
+
+def pTypejoinUnionTupleWith (ops : PTypeOps) (fuel : Nat) (recur : PType → PType) :
+    PType → PType
+  | .data "Tuple" wrapper ps super =>
+      match pTypejoinUnionParamsWith ops fuel recur ps with
+      | some cs => .data "Tuple" wrapper cs super
+      | none => .any
+  | _ => .any
+
+def pPromoteTypejoinUnion (ops : PTypeOps) : Nat → PType → PType
+  | 0, _ => .any
+  | _, .bottom => .bottom
+  | _, .unionAll .. => .any
+  | fuel + 1, .union a b =>
+      pPromoteTypejoin ops (pPromoteTypejoinUnion ops fuel a)
+        (pPromoteTypejoinUnion ops fuel b)
+  | fuel + 1, t@(.data "Tuple" _ _ _) =>
+      pTypejoinUnionTupleWith ops fuel (pPromoteTypejoinUnion ops fuel) t
+  | _, .data n w ps s => .data n w ps s
+  | _, .typeEq t => .typeEq t
+  | _, _ => .any
+
+def pTypejoinUnionTuple (ops : PTypeOps) (fuel : Nat) (t : PType) : PType :=
+  pTypejoinUnionTupleWith ops fuel (pPromoteTypejoinUnion ops fuel) t
+
+def pTailjoin (ops : PTypeOps) (ps : List PType) (i : Nat) : PType :=
+  if ps.length < i then pUnwrapVa (ps.getLastD .bottom)
+  else (ps.drop (i - 1)).foldl (pTypejoin ops 64) .bottom
+
+inductive Ty where
+  | bottom
+  | any
+  | atom (name : Nat) (ancestors : List Nat)
+  | union (left right : Ty)
+  | typeVar (upper : Ty)
+  | unionAll (body : Ty)
+  | typeEq (parameter : Ty)
+  | tuple (parameters : List Ty)
+  deriving BEq, Repr
+
+def subtype : Ty → Ty → Bool
+  | _, .any => true
+  | .bottom, _ => true
+  | a, b => a == b
+
+def atomJoin (an : Nat) (aa : List Nat) (bn : Nat) (ba : List Nat) : Ty :=
+  if an = bn then .atom an aa
+  else match (an :: aa).find? (fun n => (bn :: ba).contains n) with
+    | some n => .atom n []
+    | none => .any
+
+/-- Finite source model of `typejoin`; it follows the source branch order for
+TypeVar, identity, subtyping, UnionAll, Union, Type equality kinds, tuples, and
+ordinary datatype ancestry. Fuel represents Julia's finite type graph;
+`base/promotion.jl:20-160`. -/
+def typejoin : Nat → Ty → Ty → Ty
+  | 0, _, _ => .any
+  | fuel + 1, a, b =>
+      match a, b with
+      | .typeVar u, b => typejoin fuel u b
+      | a, .typeVar u => typejoin fuel a u
+      | a, b =>
+        if a == b then a
+        else if subtype a b then b
+        else if subtype b a then a
+        else match a, b with
+          | .unionAll body, b => .unionAll (typejoin fuel body b)
+          | a, .unionAll body => .unionAll (typejoin fuel a body)
+          | .union x y, b => typejoin fuel (typejoin fuel x y) b
+          | a, .union x y => typejoin fuel a (typejoin fuel x y)
+          | .typeEq x, b => typejoin fuel x b
+          | a, .typeEq y => typejoin fuel a y
+          | .tuple xs, .tuple ys => .tuple (List.zipWith (typejoin fuel) xs ys)
+          | .tuple _, _ | _, .tuple _ => .any
+          | .atom an aa, .atom bn ba => atomJoin an aa bn ba
+          | _, _ => .any
+
+def typesplit : Ty → Ty → Ty
+  | a, b => if subtype a b then .bottom else match a with
+    | .union x y => .union (typesplit x b) (typesplit y b)
+    | _ => a
+
+def promoteTypejoin (a b : Ty) : Ty := .union a (.union b (typejoin 64 a b))
+
+/-- `_promote_typesubtract`; `base/promotion.jl:202-207`. -/
+def promoteTypesubtract (a : Ty) : Ty :=
+  match a with
+  | .any => .any
+  | .union x y =>
+      let withoutBottom := typesplit (.union x y) .bottom
+      withoutBottom
+  | _ => a
+
+/-- Union normalization used by `promote_typejoin_union` and tuple elements;
+`base/promotion.jl:209-253`. -/
+def promoteTypejoinUnion : Nat → Ty → Ty
+  | 0, _ => .any
+  | _fuel + 1, .bottom => .bottom
+  | _fuel + 1, .unionAll _ => .any
+  | fuel + 1, .union a b => promoteTypejoin (promoteTypejoinUnion fuel a) (promoteTypejoinUnion fuel b)
+  | fuel + 1, .tuple xs => .tuple (xs.map (promoteTypejoinUnion fuel))
+  | _, t => t
+
+/-- `full_va_len` and `tailjoin`; a `none` final length is an open Vararg;
+`base/promotion.jl:256-280`. -/
+def fullVaLen (params : List (Ty × Option Nat)) : Nat × Bool :=
+  match params.getLast? with
+  | none => (0, true)
+  | some (_, some n) => (params.length + n - 1, true)
+  | some (_, none) => (params.length, false)
+
+def tailjoin (params : List Ty) (i : Nat) : Ty :=
+  if params.length < i then params.getLastD .bottom
+  else (params.drop (i - 1)).foldl (typejoin 64) .bottom
+
+def promoteType : Nat → (Ty → Ty → Ty) → Ty → Ty → Ty
+  | 0, _, _, _ => .any
+  | fuel + 1, rule, a, b =>
+      if a == .bottom then b
+      else if b == .bottom then a
+      else if a == b then a
+      else
+        let r1 := rule a b
+        let r2 := rule b a
+        if r1 == .bottom && r2 == .bottom then typejoin fuel a b
+        else promoteType fuel rule r1 r2
+
+def promoteType0 : Ty := .bottom
+def promoteType1 (t : Ty) : Ty := t
+def promoteType3 (rule : Ty → Ty → Ty) (t s u : Ty) : Ty :=
+  promoteType 64 rule (promoteType 64 rule t s) u
+def promoteTypeMany (rule : Ty → Ty → Ty) (t s u : Ty) (ts : List Ty) : Ty :=
+  ts.foldl (promoteType 64 rule) (promoteType3 rule t s u)
+def promoteRuleDefault (_ _ : Ty) : Ty := .bottom
+def promoteRuleBottomLeft (_ : Ty) : Ty := .bottom
+def promoteRuleBottomRight (t : Ty) : Ty := t
+def promoteResult (rule : Ty → Ty → Ty) (t s r1 r2 : Ty) : Ty :=
+  if r1 == .bottom && r2 == .bottom then typejoin 64 t s
+  else promoteType 64 rule r1 r2
+
+/-- Value promotion; `base/promotion.jl:397-441`. -/
+def promote2 (typeOf : α → Ty) (convert : Ty → α → α) (rule : Ty → Ty → Ty)
+    (x y : α) : α × α :=
+  let t := promoteType 64 rule (typeOf x) (typeOf y)
+  (convert t x, convert t y)
+
+def promote3 (typeOf : α → Ty) (convert : Ty → α → α) (rule : Ty → Ty → Ty)
+    (x y z : α) : α × α × α :=
+  let t := promoteType 64 rule (promoteType 64 rule (typeOf x) (typeOf y)) (typeOf z)
+  (convert t x, convert t y, convert t z)
+
+def promoteMany (typeOf : α → Ty) (convert : Ty → α → α) (rule : Ty → Ty → Ty)
+    (xs : List α) : List α :=
+  let t := (xs.map typeOf).foldl (promoteType 64 rule) .bottom
+  xs.map (convert t)
+
+def promoteTypeof1 (typeOf : α → Ty) (x : α) : Ty := typeOf x
+def promoteTypeof2 (typeOf : α → Ty) (rule : Ty → Ty → Ty) (x y : α) : Ty :=
+  promoteType 64 rule (typeOf x) (typeOf y)
+def promoteTypeof3 (typeOf : α → Ty) (rule : Ty → Ty → Ty) (x y z : α) : Ty :=
+  promoteType3 rule (typeOf x) (typeOf y) (typeOf z)
+def promoteTypeofMany (typeOf : α → Ty) (rule : Ty → Ty → Ty)
+    (x y z : α) (xs : List α) : Ty :=
+  (xs.map typeOf).foldl (promoteType 64 rule) (promoteTypeof3 typeOf rule x y z)
+
+def promote0 : List α := []
+def promote1 (x : α) : List α := [x]
+def promoteSame (x y : α) (zs : List α) : List α := x :: y :: zs
+
+/-- Circular-promotion check; `base/promotion.jl:443-452`. -/
+def notSameType (sameType : List α → List α → Bool) (before after : List α) : Jl Unit :=
+  if sameType before after then .error (.argumentError "promotion failed") else .ok ()
+
+/-- Mixed arithmetic forwards after promotion; `base/promotion.jl:454-527`. -/
+def promotedBinary (promote : α → α → α × α) (op : α → α → β) (x y : α) : β :=
+  let p := promote x y
+  op p.1 p.2
+
+def promotedTernary (promote : α → α → α → α × α × α)
+    (op : α → α → α → β) (x y z : α) : β :=
+  let p := promote x y z
+  op p.1 p.2.1 p.2.2
+
+/-- `muladd` preserves strong zero before same-type dispatch;
+`base/promotion.jl:510-514`. -/
+def promotedMuladd (promote : α → α → α → α × α × α)
+    (muladd : α → α → α → α) (isFalse : α → Bool) (a b c : α) : α :=
+  let p := promote a b c
+  if isFalse a || isFalse b then p.2.2 else muladd p.1 p.2.1 p.2.2
+
+/-- `TupleOrBottom`; `base/promotion.jl:529-532`. -/
+def tupleOrBottom (ts : List Ty) : Ty := if ts.contains .bottom then .bottom else .tuple ts
+
+/-- `promote_op`; inference is supplied as the primitive `_return_type`;
+`base/promotion.jl:641-645`. -/
+def promoteOp (returnType : (α → β) → Ty → Ty) (f : α → β) (ts : List Ty) : Ty :=
+  let arg := tupleOrBottom ts
+  if arg == .bottom then .bottom else returnType f arg
+
+/-- Same-type catch-all arithmetic; `base/promotion.jl:650-680`. -/
+def noOp (_name : String) : Jl α := .error (.methodError "numeric operation")
+def fallbackMuladd (mul add : α → α → α) (x y z : α) : α := add (mul x y) z
+def fallbackEq (identical : α → α → Bool) (x y : α) : Bool := identical x y
+def fallbackLe (eq lt : α → α → Bool) (x y : α) : Bool := eq x y || lt x y
+def fallbackMax (lt : α → α → Bool) (x y : α) : α := if lt y x then x else y
+def fallbackMin (lt : α → α → Bool) (x y : α) : α := if lt y x then y else x
+def fallbackMinmax (lt : α → α → Bool) (x y : α) : α × α :=
+  if lt y x then (y, x) else (x, y)
+def fallbackUnary (x : α) : α := x
+
+end PromotionModel
+
+end JuliaLean.NumbersCov
+
+namespace JuliaLean.NumbersCov.Rows.Promotion
+
+open JuliaLean JuliaLean.NumbersCov JuliaLean.NumbersCov.Rows
+
+abbrev PT := PromotionModel.PType
+abbrev POps := PromotionModel.PTypeOps
+abbrev Ty := PromotionModel.Ty
+
+def m20 : PT := PromotionModel.pTypejoin0
+def m21 (t : PT) := PromotionModel.pTypejoin1 t
+def m22 (o : POps) a b c := PromotionModel.pTypejoin3 o a b c
+def m23 (o : POps) a b c ts := PromotionModel.pTypejoinMany o a b c ts
+def m25 (a : PT) name := PromotionModel.pHasAncestorName a name
+def m37 (o : POps) a b := PromotionModel.pTypejoin o 64 a b
+def m166 (o : POps) a b := PromotionModel.pTypesplit o a b
+def m198 (o : POps) a b := PromotionModel.pPromoteTypejoin o a b
+def m202 (o : POps) nothing missing a := PromotionModel.pPromoteTypesubtract o nothing missing a
+def m209 (o : POps) t := PromotionModel.pPromoteTypejoinUnion o 64 t
+def m226 (o : POps) t := PromotionModel.pTypejoinUnionTuple o 64 t
+def m256 ps := PromotionModel.pFullVaLen ps
+def m270 (o : POps) ps i := PromotionModel.pTailjoin o ps i
+def m326 : Ty := PromotionModel.promoteType0
+def m327 (t : Ty) := PromotionModel.promoteType1 t
+def m328 rule t s u := PromotionModel.promoteType3 rule t s u
+def m329 rule t s u ts := PromotionModel.promoteTypeMany rule t s u ts
+def m331 : Ty := .bottom
+def m332 (t : Ty) := t
+def m333 := m332
+def m334 := m332
+def m336 rule t s := PromotionModel.promoteType 64 rule t s
+def m355 (_ _ : Ty) : Ty := .bottom
+def m358 (_ : List Ty) : Ty := .bottom
+def m359 := m358
+def m360 (t : Ty) (_ : List Ty) := t
+def m361 := m360
+def m363 (rule : Ty → Ty → Ty) (_t _s a b : Ty) := PromotionModel.promoteType 64 rule a b
+def m366 (_rule : Ty → Ty → Ty) (t s : Ty) := PromotionModel.typejoin 64 t s
+def m397 (typeOf : α → Ty) (convert : Ty → α → α) (rule : Ty → Ty → Ty)
+    (x y : α) := PromotionModel.promote2 typeOf convert rule x y
+def m402 (typeOf : α → Ty) (x : α) := PromotionModel.promoteTypeof1 typeOf x
+def m403 (typeOf : α → Ty) (rule : Ty → Ty → Ty) (x y : α) :=
+  PromotionModel.promoteTypeof2 typeOf rule x y
+def m404 (typeOf : α → Ty) (rule : Ty → Ty → Ty) (x y z : α) :=
+  PromotionModel.promoteTypeof3 typeOf rule x y z
+def m405 (typeOf : α → Ty) (rule : Ty → Ty → Ty) (x y z : α) (xs : List α) :=
+  PromotionModel.promoteTypeofMany typeOf rule x y z xs
+def m406 := @PromotionModel.promote3
+def m411 (typeOf : α → Ty) (convert : Ty → α → α) (rule : Ty → Ty → Ty)
+    (x y : α) (zs : List α) := PromotionModel.promoteMany typeOf convert rule (x :: y :: zs)
+def m420 : List α := []
+def m421 (x : α) := [x]
+def m423 (promote : α → α → α × α) (same : (α × α) → (α × α) → Bool)
+    (x y : α) : Jl (α × α) :=
+  let p := promote x y
+  if same (x, y) p then .error (.argumentError "promotion failed") else .ok p
+def m429 (promote : α → α → α → α × α × α)
+    (same : (α × α × α) → (α × α × α) → Bool)
+    (x y z : α) : Jl (α × α × α) :=
+  let p := promote x y z
+  if same (x, y, z) p then .error (.argumentError "promotion failed") else .ok p
+def m435 (promote : List α → List α) (same : List α → List α → Bool)
+    (xs : List α) : Jl (List α) :=
+  let p := promote xs
+  if same xs p then .error (.argumentError "promotion failed") else .ok p
+def m441 (x y : α) (zs : List α) := PromotionModel.promoteSame x y zs
+def m443 (_x _y : α) : Jl Unit := .error (.argumentError "promotion failed")
+def m445 (_x : α) (_y : β) : Unit := ()
+def m447 (renderTypes : α → String) (x : α) : Jl β := .error (.argumentError (renderTypes x))
+def forward2 (promote : α → α → α × α) (op : α → α → β) x y :=
+  let p := promote x y
+  op p.1 p.2
+def m454 := @forward2
+def m455 := @forward2
+def m456 := @forward2
+def m457 := @forward2
+def m459 := @forward2
+def m460 := @forward2
+def m461 := @forward2
+def m507 := @forward2
+def m516 := @forward2
+def m517 := @forward2
+def m518 := @forward2
+def m520 := @forward2
+def m521 := @forward2
+def m522 := @forward2
+def m523 := @forward2
+def m525 := @forward2
+def m526 := @forward2
+def m527 := @forward2
+
+def m509 (promote : α → α → α → α × α × α) (op : α → α → α → β)
+    (x y z : α) := PromotionModel.promotedTernary promote op x y z
+def m510 (promote : α → α → α → α × α × α) (muladd : α → α → α → α)
+    (isFalse : α → Bool) (a b c : α) :=
+  PromotionModel.promotedMuladd promote muladd isFalse a b c
+def m529 (ts : List Ty) := PromotionModel.tupleOrBottom ts
+def m641 (returnType : (α → β) → Ty → Ty) (f : α → β) (ts : List Ty) :=
+  PromotionModel.promoteOp returnType f ts
+def noOp (name : String) : Jl α := .error (.methodError name)
+def m650 := @noOp
+def m651 := @noOp
+def m652 := @noOp
+def m653 := @noOp
+def m654 := @noOp
+def m655 := @noOp
+def m657 := @noOp
+def m661 := @noOp
+def m662 := @noOp
+def m663 := @noOp
+def m666 := @noOp
+def m669 := @noOp
+def m670 := @noOp
+def m680 := @noOp
+def m658 (mul add : α → α → α) x y z := add (mul x y) z
+def m659 := @m658
+def m665 (identical : α → α → Bool) x y := identical x y
+def m667 (eq lt : α → α → Bool) x y := eq x y || lt x y
+def m672 (x : α) := x
+def m673 := @m672
+def m674 (x : α) := (x, x)
+def m676 (lt : α → α → Bool) x y := if lt y x then x else y
+def m677 (lt : α → α → Bool) x y := if lt y x then y else x
+def m678 (lt : α → α → Bool) x y := if lt y x then (y, x) else (x, y)
+
+end JuliaLean.NumbersCov.Rows.Promotion
+
+namespace JuliaLean.HashOps
+
+inductive FmaResult (α : Type) where
+  | ok (value : α)
+  | noOperation
+  deriving DecidableEq, Repr
+
+/-- `fma(::T,::T,::T)` catch-all (`base/promotion.jl:657`) and its Integer
+specialization at line 658. -/
+def fmaNumberFallback (_ _ _ : α) : FmaResult α := .noOperation
+def fmaIntegerFallback (o : FallbackOps α) (x y z : α) : FmaResult α :=
+  .ok (o.add (o.mul x y) z)
+
+end JuliaLean.HashOps
+namespace JuliaLean.Promotion
+
+/-- The modelled primitive number types. -/
+inductive NumTy where
+  | bool
+  | int (t : IntTy)
+  | flt (T : FTy)
+  deriving DecidableEq, Repr
+
+def FTy.width : FTy → Nat
+  | .f16 => 16 | .f32 => 32 | .f64 => 64
+
+/-- `promote_rule(T, S)`; `none` is `Bottom` (`base/promotion.jl:355`). Rules:
+`base/bool.jl:6`; integers `base/int.jl:809-822`; float/integer `base/float.jl:243-263`;
+floats `base/float.jl:477-479`. -/
+def promoteRule : NumTy → NumTy → Option NumTy
+  | .bool, s => if s = .bool then none else some s
+  | .int t, .int s =>
+    if t.bits > s.bits then some (.int t)
+    else if t.bits = s.bits ∧ !t.signed ∧ s.signed then some (.int t)
+    else none
+  | .flt T, .int _ => some (.flt T)
+  | .flt T, .bool => some (.flt T)
+  | .flt T, .flt S => if T.width > S.width then some (.flt T) else none
+  | _, _ => none
+
+/-- `promote_type(T, S)`; `base/promotion.jl:332-344` with `promote_result`
+(`base/promotion.jl:363-366`). `none` stands for a non-concrete `typejoin`. -/
+def promoteType (t s : NumTy) : Option NumTy :=
+  if t = s then some t
+  else match promoteRule t s, promoteRule s t with
+    | some a, none => some a
+    | none, some b => some b
+    | some a, some b => if a = b then some a else none
+    | none, none => none
+
+end JuliaLean.Promotion
+
+namespace JuliaLean.IntArith.Division
+
+/-- `base/int.jl:809-822`, `base/promotion.jl:397-401,423-428`: checked value promotion. -/
+def promote (x y : Value) : Jl (Value × Value) := do
+  let t := IntTy.promote x.ty y.ty
+  let a ← JInt.convert (t.name) t x.int.val
+  let b ← JInt.convert (t.name) t y.int.val
+  pure (pack a, pack b)
+
+/-- Same-signedness remainder after checked promotion, `base/promotion.jl:520`,
+`base/int.jl:355-358,1085-1089`. -/
+def promotedRem (x y : Value) : Jl Value := do
+  let t := IntTy.promote x.ty y.ty
+  let a ← JInt.convert (t.name) t x.int.val
+  let b ← JInt.convert (t.name) t y.int.val
+  pure (pack (← JInt.remInt a b))
+
+end JuliaLean.IntArith.Division

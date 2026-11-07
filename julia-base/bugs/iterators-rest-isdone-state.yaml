@@ -1,39 +1,30 @@
 id: iterators-rest-isdone-state
-title: isempty(Iterators.rest(itr, st)) answers for the start of itr, not for st
+title: isempty on Iterators.rest ignores its stored iteration state
 priority: P2
 kind: wrong-result
 area: Iterators
 files:
-- base/iterators.jl
+  - base/iterators.jl
 functions:
-- isdone(::Rest)
-- isempty(::Rest)
-- Iterators.peel
+  - isdone(::Rest)
+  - isempty(::Rest)
+  - Iterators.peel
 summary: |
-  isdone(i::Rest, st...) forwards to isdone(i.itr, st...). Called without a
-  state (as isempty does), it asks whether i.itr is done at its beginning
-  instead of at i.st. For (x, r) = Iterators.peel(take(Stateful([1,2,3]), 1)),
-  isempty(r) is false although r yields nothing; the same happens with
-  take(eachline(io), 1).
+  After peel(take(Stateful([1, 2, 3]), 1)), the remainder yields nothing,
+  yet isempty returns false. Rest forwards isdone without the stored state,
+  while iterate uses that state. The same mismatch occurs with eachline.
 likelihood: |
-  Needs a Rest (from peel or Iterators.rest) over a wrapper whose state matters
-  for isdone, around a stateful iterator, typically a take of eachline or of a
-  Stateful. Plausible in parsing code; the answer is silently wrong.
-maybe_intended: ''
+  Parsing code can peel a bounded stateful iterator and then check whether
+  the remainder is empty. The incorrect answer is silent.
+maybe_intended: |
+  The stored state defines where Rest starts, so ignoring it has no documented
+  justification. Issue #64152 reports this exact failure; merged PR #64314
+  fixes it. The pinned source still contains the faulty method.
 reproducer: |
-  # isempty(rest) after Iterators.peel ignores the state stored in the Rest
   itr = Iterators.take(Iterators.Stateful([1, 2, 3]), 1)
   x, r = Iterators.peel(itr)
-  e = isempty(r)
-  c = collect(r)
-  println("peel(take(Stateful([1,2,3]), 1)) = (", x, ", r); isempty(r) = ", e, ", collect(r) = ", c)
-  io = IOBuffer("a\nb\nc\n")
-  y, r2 = Iterators.peel(Iterators.take(eachline(io), 1))
-  e2 = isempty(r2)
-  println("peel(take(eachline(io), 1)): isempty(rest) = ", e2, ", collect(rest) = ", collect(r2))
-  if !e && isempty(c) && !e2
-      println("REPRODUCED iterators-rest-isdone-state")
-  end
+  isempty(r)  # false
+  collect(r)  # Int64[]
 output:
   release: |
     peel(take(Stateful([1,2,3]), 1)) = (1, r); isempty(r) = false, collect(r) = Int64[]
@@ -47,23 +38,32 @@ reproduced:
   release: true
   nightly: true
 expected: |
-  isempty(r) == true, since collect(r) == [].
+  isempty(r) should return true because r yields no elements.
 promised_by: |
-  peel docstring, base/iterators.jl:701-704: "Returns the first element and an
-  iterator over the remaining elements"; isempty docstring,
-  base/essentials.jl:1204-1206.
+  Pinned source f755f49a9e41380d7da126b3c1db9fe7f83dd027:
+  base/iterators.jl:703: "Returns the first element and an iterator over the remaining elements."
+  base/essentials.jl:1216: "Determine whether a collection is empty (has no elements)."
 cause: |
-  base/iterators.jl:733, isdone(i::Rest, st...) = isdone(i.itr, st...): with no
-  st it drops i.st. iterate(i::Rest, st=i.st) (line 732) uses i.st, so the two
-  disagree.
+  base/iterators.jl:733 defines isdone(i::Rest, st...) = isdone(i.itr, st...).
+  With no explicit state, this discards i.st. The iterate method at line 732
+  defaults to i.st, so isempty and iteration disagree.
 possible_fix: |
-  isdone(i::Rest) = isdone(i.itr, i.st); isdone(i::Rest, st) = isdone(i.itr, st).
+  Give isdone the same st=i.st default as iterate, while continuing to forward
+  explicitly supplied states.
 duplicates:
-  issues: []
+  issues:
+    - number: 64152
+      state: closed
+      relation: duplicate
+  prs:
+    - number: 64314
+      state: merged
+      relation: duplicate
+      note: "fixes duplicate issue 64152"
   queries:
-  - isdone Rest
-  - peel isempty
-  - Iterators.rest isdone
+    - isdone Rest
+    - peel isempty
+    - Iterators.rest state
 lean:
-  property: JuliaLean.Iterators.PeelRestIsempty
-  theorem: JuliaLean.Iterators.peelRestIsempty_refuted
+  property: JuliaLean.Proofs.base.iterators.PeelRestIsempty
+  theorem: JuliaLean.ChatGPT.Batch4.Group5.IteratorsRestIsdoneState_refuted

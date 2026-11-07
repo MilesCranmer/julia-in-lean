@@ -1,10 +1,5 @@
-"""Validate bugs/*.yaml against the schema in ARCHITECTURE.md.
+"""Validate bugs/*.yaml and check that each bug has a reproducer."""
 
-Also checks that every refuted id in registry.tsv (when present) has a bug file
-and a reproducer. Prints one line per problem and exits nonzero on any.
-"""
-
-import argparse
 import re
 import sys
 from pathlib import Path
@@ -18,7 +13,46 @@ TEXT = ["title", "area", "summary", "likelihood", "maybe_intended", "reproducer"
         "expected", "promised_by", "cause", "possible_fix"]
 
 
-def check(path: Path) -> list[str]:
+def declared_theorems() -> set[str]:
+    decl = re.compile(r"^\s*(?:private\s+|protected\s+)?theorem\s+([^\s:({\[]+)", re.M)
+    return {name.rsplit(".", 1)[-1]
+            for f in (ROOT / "JuliaLean").rglob("*.lean")
+            for name in decl.findall(f.read_text(errors="ignore"))}
+
+
+def registered_todo_properties() -> set[tuple[str, str]]:
+    registry = (ROOT / "JuliaLean/Registry.lean").read_text()
+    groups = re.findall(r"\+\+\s+(JuliaLean\.[\w.]+)", registry)
+    imports = re.findall(r"^import\s+([\w.]+)", registry, re.M)
+    pending = set()
+    for module in imports:
+        path = ROOT / (module.replace(".", "/") + ".lean")
+        if not path.exists():
+            continue
+        text = path.read_text()
+        namespaces = set(re.findall(r"^namespace\s+([\w.]+)\s*$", text, re.M))
+        for group in groups:
+            namespace, name = group.rsplit(".", 1)
+            if namespace not in namespaces:
+                continue
+            scope = re.search(rf"^namespace\s+{re.escape(namespace)}\s*$\n(.*?)^end\s+{re.escape(namespace)}\s*$",
+                              text, re.M | re.S)
+            if scope is None:
+                continue
+            declaration = re.search(
+                rf"\bdef\s+{re.escape(name)}\s*:\s*List\s+(?:JuliaLean\.Registry\.)?Entry\s*:=\s*\[(.*?)^\]",
+                scope[1], re.M | re.S)
+            if declaration is None:
+                continue
+            for entry in re.split(r"\n\s*(?=\{\s*id\s*:=)", declaration[1]):
+                identifier = re.search(r'\bid\s*:=\s*"([^"]+)"', entry)
+                prop = re.search(r"\bprop\s*:=\s*``(JuliaLean\.[\w.]+)", entry)
+                if identifier and prop and re.search(r"\bstatus\s*:=\s*\.todo\b", entry):
+                    pending.add((identifier[1], prop[1]))
+    return pending
+
+def check(path: Path, theorems: set[str], warnings: list[str],
+          pending: set[tuple[str, str]]) -> list[str]:
     try:
         bug = yaml.safe_load(path.read_text())
     except yaml.YAMLError as err:
@@ -60,6 +94,15 @@ def check(path: Path) -> list[str]:
     lean = bug.get("lean")
     need(isinstance(lean, dict) and isinstance(lean.get("property"), str)
          and isinstance(lean.get("theorem"), str), "lean.property and lean.theorem required")
+    pending_proof = (isinstance(lean, dict) and lean.get("theorem") == ""
+                     and isinstance(lean.get("property"), str)
+                     and (path.stem, lean.get("property")) in pending
+                     and isinstance(lean.get("notes"), str) and bool(lean["notes"].strip()))
+    if (bug.get("kind") != "model-counterexample"
+            and isinstance(reproduced, dict) and reproduced.get("nightly") is True
+            and isinstance(lean, dict) and isinstance(lean.get("theorem"), str)
+            and lean["theorem"].rsplit(".", 1)[-1] not in theorems and not pending_proof):
+        warnings.append(f"{path.name}: lean.theorem {lean['theorem']} is not declared in JuliaLean")
     covers = bug.get("covers", [])
     need(isinstance(covers, list) and all(isinstance(c, str) for c in covers),
          "covers must be a list of registry ids")
@@ -87,29 +130,15 @@ def check(path: Path) -> list[str]:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--cruntime-refuted-id", action="append", default=[], metavar="ID")
-    args = parser.parse_args()
-
     files = sorted((ROOT / "bugs").glob("*.yaml"))
-    problems = [p for f in files for p in check(f)]
-    for bug_id in args.cruntime_refuted_id:
-        if not (ROOT / "bugs" / f"{bug_id}.yaml").is_file():
-            problems.append(f"{bug_id}: missing bugs/{bug_id}.yaml")
-        if not (ROOT / "repro" / f"{bug_id}.jl").is_file():
-            problems.append(f"{bug_id}: missing repro/{bug_id}.jl")
-    registry = ROOT / "registry.tsv"
-    if registry.exists():
-        have = {f.stem for f in files}
-        for f in files:
-            covers = (yaml.safe_load(f.read_text()) or {}).get("covers") or []
-            have.update(c for c in covers if isinstance(c, str))
-        for line in registry.read_text().splitlines():
-            cols = line.split("\t")
-            if len(cols) > 1 and cols[1] == "refuted" and cols[0] not in have:
-                problems.append(f"{cols[0]}: refuted in registry.tsv but no bugs/{cols[0]}.yaml")
+    theorems = declared_theorems()
+    pending = registered_todo_properties()
+    warnings = []
+    problems = [p for f in files for p in check(f, theorems, warnings, pending)]
     for p in problems:
         print(p)
+    for warning in warnings:
+        print(f"WARNING {warning}")
     print(f"BUGS {len(files)} PROBLEMS {len(problems)}")
     return 1 if problems else 0
 

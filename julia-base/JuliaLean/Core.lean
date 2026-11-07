@@ -28,6 +28,8 @@ inductive JlError where
   | divideError
   | domainError (msg : String)
   | methodError (fn : String)
+  /-- Julia's `EOFError()` (`base/io.jl:12-17`): no more data was available to read. -/
+  | eofError
   deriving Repr, DecidableEq, Inhabited
 
 abbrev Jl (α : Type) := Except JlError α
@@ -102,8 +104,9 @@ variable {t : IntTy}
 def wrap (t : IntTy) (x : Int) : JInt t := ⟨wrapInt t x, wrapInt_bounds t x⟩
 
 /-- `T(x)` / `convert(T, x)`: exact conversion, `InexactError` when out of range. -/
-def convert (t : IntTy) (x : Int) : Jl (JInt t) :=
-  if h : t.min ≤ x ∧ x ≤ t.max then .ok ⟨x, h⟩ else .error (.inexactError t.name)
+def convert (functionName : String) (t : IntTy) (x : Int) : Jl (JInt t) :=
+  if h : t.min ≤ x ∧ x ≤ t.max then .ok ⟨x, h⟩
+  else .error (.inexactError functionName)
 
 def typemin (t : IntTy) : JInt t := wrap t t.min
 def typemax (t : IntTy) : JInt t := wrap t t.max
@@ -159,3 +162,355 @@ def mod (a b : JInt t) : Jl (JInt t) :=
 end JInt
 
 end JuliaLean
+
+namespace JuliaLean.BroadcastViews
+
+open JuliaLean
+
+/-- Julia exception types thrown by the modelled functions. -/
+inductive Err where
+  | dimensionMismatch
+  | boundsError
+  | inexactError
+  | methodError
+  | argumentError
+  deriving Repr, DecidableEq, Inhabited
+
+/-- A Julia call that may throw. -/
+abbrev R (α : Type) := Except Err α
+
+deriving instance DecidableEq for Except
+
+/-- Julia `Int`. -/
+abbrev I64 := JInt .i64
+
+/-- An `Int` literal. -/
+def i64 (x : Int) : I64 := JInt.lit .i64 x
+
+end JuliaLean.BroadcastViews
+
+namespace JuliaLean.Multidim
+
+/-- Julia exception types thrown by the modelled functions. -/
+inductive Err where
+  | argumentError
+  | boundsError
+  | dimensionMismatch
+  | divideError
+  | overflowError
+  deriving Repr, DecidableEq, Inhabited
+
+/-- A Julia call that may throw. -/
+abbrev R (α : Type) := Except Err α
+
+deriving instance DecidableEq for Except
+
+/-- Exception type of an outcome, or `none` when the call returns. -/
+def errKind {α : Type} : R α → Option Err
+  | .ok _ => none
+  | .error e => some e
+
+/-- Julia `Int`. -/
+abbrev I64 := JInt .i64
+
+/-- An `Int` literal. -/
+def i64 (x : Int) : I64 := JInt.lit .i64 x
+
+end JuliaLean.Multidim
+
+namespace JuliaLean.Printf
+
+open JuliaLean
+
+/-- Code units, as natural numbers below 256. -/
+abbrev Bytes := List Nat
+/-- Julia `Int`. -/
+abbrev I := JInt64
+
+/-- An `Int` literal. -/
+def ix (n : Int) : I := JInt.lit .i64 n
+
+/-- Exceptions and undefined behaviour of Printf. -/
+inductive Error where
+  /-- `Printf.InvalidFormatStringError`. -/
+  | invalidFormat
+  /-- A Base exception. -/
+  | julia (e : JlError)
+  /-- A failed `::Integer` type assertion, `Printf.jl:300,304`. -/
+  | typeError
+  /-- A store outside the buffer where bounds checks are off (`@inbounds`, or C code
+  writing through a pointer). Julia does not throw; the heap is corrupted. -/
+  | unsafeWrite
+  /-- An argument/conversion combination outside the model. -/
+  | unmodelled
+  deriving DecidableEq, Repr
+
+abbrev Result (α : Type) := Except Error α
+
+instance {ε α : Type} [DecidableEq ε] [DecidableEq α] : DecidableEq (Except ε α)
+  | .ok a, .ok b => match decEq a b with
+    | .isTrue h => .isTrue (congrArg Except.ok h)
+    | .isFalse h => .isFalse (fun e => h (Except.ok.inj e))
+  | .error a, .error b => match decEq a b with
+    | .isTrue h => .isTrue (congrArg Except.error h)
+    | .isFalse h => .isFalse (fun e => h (Except.error.inj e))
+  | .ok _, .error _ => .isFalse (fun e => nomatch e)
+  | .error _, .ok _ => .isFalse (fun e => nomatch e)
+
+end JuliaLean.Printf
+
+namespace JuliaLean.MissingChar
+
+inductive JV (α : Type) where
+  | missing
+  | nothing
+  | some (v : JV α)
+  | val (a : α)
+  deriving Repr
+
+end JuliaLean.MissingChar
+
+/-!
+Bit-level helpers for unsigned `BitInteger` values, as Julia evaluates them.
+
+All helpers take unsigned `JInt` operands, whose values are nonnegative, and
+return the bit pattern Julia's intrinsics produce:
+
+* `shr x k` is `x >> k` for a nonnegative count (`lshr_int`; a count of at
+  least the width gives zero), `shl x k` is `x << k` (`shl_int`, wrapping).
+* `shrI x k` is `x >> k` for an `Int` count: a negative count shifts left,
+  `base/int.jl:542-560`.
+* `band`, `bor`, `bxor` are `&`, `|`, `xor` (`and_int`, `or_int`, `xor_int`).
+* `ofBool b` is `T(b)`, the value Julia uses for `x + b` with `b::Bool`.
+-/
+
+namespace JuliaLean.ParsePrint
+
+open JuliaLean
+
+variable {t : IntTy}
+
+/-- `x >> k` with a nonnegative count on an unsigned value (`lshr_int`). -/
+def shr (x : JInt t) (k : Nat) : JInt t := JInt.wrap t (x.val.toNat / 2^k)
+
+/-- `x << k` with a nonnegative count (`shl_int`), wrapping. -/
+def shl (x : JInt t) (k : Nat) : JInt t := JInt.wrap t (x.val.toNat * 2^k)
+
+/-- `x >> k` for an `Int` count on an unsigned value, `base/int.jl:542-560`. -/
+def shrI (x : JInt t) (k : Int) : JInt t :=
+  if k ≥ 0 then shr x k.toNat else shl x (-k).toNat
+
+/-- `x << k` for an `Int` count on an unsigned value, `base/int.jl:542-560`. -/
+def shlI (x : JInt t) (k : Int) : JInt t :=
+  if k ≥ 0 then shl x k.toNat else shr x (-k).toNat
+
+/-- `x & y` (`and_int`) on unsigned values. -/
+def band (x y : JInt t) : JInt t := JInt.wrap t (Nat.land x.val.toNat y.val.toNat)
+
+/-- `x | y` (`or_int`) on unsigned values. -/
+def bor (x y : JInt t) : JInt t := JInt.wrap t (Nat.lor x.val.toNat y.val.toNat)
+
+/-- `x ⊻ y` (`xor_int`) on unsigned values. -/
+def bxor (x y : JInt t) : JInt t := JInt.wrap t (Nat.xor x.val.toNat y.val.toNat)
+
+/-- `T(b)` for `b::Bool`: Julia promotes a `Bool` operand to `0` or `1`. -/
+def ofBool (t : IntTy) (b : Bool) : JInt t := JInt.lit t (if b then 1 else 0)
+
+/-- Unsigned truncated division by a nonzero literal (`udiv_int`); no error is possible. -/
+def udivLit (x : JInt t) (d : Nat) : JInt t := JInt.wrap t (x.val.toNat / d)
+
+end JuliaLean.ParsePrint
+
+namespace JuliaLean.IntArith.Rational
+
+/-- `Rational{T}` and `unsafe_rational`; base/rational.jl:9-18. -/
+structure Rat (t : IntTy) where
+  num : JInt t
+  den : JInt t
+  deriving DecidableEq
+
+/-- Rounding modes accepted by integer `div`; base/div.jl:326-373,415-416. -/
+inductive Rounding where
+  | toZero | down | up | nearest | nearestAway | nearestUp | fromZero
+  deriving DecidableEq
+
+end JuliaLean.IntArith.Rational
+
+namespace JuliaLean.AbstractArraySpecs
+
+abbrev I64 := JInt .i64
+
+/-- An `Int` literal. -/
+def i64 (x : Int) : I64 := JInt.lit .i64 x
+
+inductive AxKind where
+  /-- `Base.OneTo{Int}`. -/
+  | oneTo
+  /-- A non-OneTo unit range, represented only by its endpoint values. -/
+  | unit
+  deriving DecidableEq, Repr
+
+/-- A unit-range axis `lo:hi`. -/
+structure Ax where
+  kind : AxKind
+  lo : I64
+  hi : I64
+  deriving DecidableEq, Repr
+
+end JuliaLean.AbstractArraySpecs
+
+/-!
+Shared definitions of the `ReduceCov` area: the exceptions thrown by the modelled
+methods of `base/reduce.jl`, `base/reducedim.jl`, `base/indices.jl`, `base/some.jl`
+and `base/missing.jl` (master `bbfa0ce4150`).
+-/
+
+namespace JuliaLean.ReduceCov
+
+/-- Julia exceptions of this area: the shared `JlError`s and the exception types
+`JlError` does not have. -/
+inductive Err where
+  | jl (e : JlError)
+  | dimensionMismatch (msg : String)
+  | missingException (msg : String)
+  | errorException (msg : String)
+  | typeError
+  deriving Repr, DecidableEq, Inhabited
+
+/-- A Julia call of this area that may throw. -/
+abbrev RJ (α : Type) := Except Err α
+
+instance instDecidableEqRJ {α : Type} [DecidableEq α] : DecidableEq (RJ α) := fun a b =>
+  match a, b with
+  | .ok x, .ok y =>
+    if h : x = y then isTrue (h ▸ rfl) else isFalse (by intro e; cases e; exact h rfl)
+  | .error x, .error y =>
+    if h : x = y then isTrue (h ▸ rfl) else isFalse (by intro e; cases e; exact h rfl)
+  | .ok _, .error _ => isFalse (by intro e; cases e)
+  | .error _, .ok _ => isFalse (by intro e; cases e)
+
+/-- `ArgumentError(msg)`. -/
+def argErr (msg : String) : Err := .jl (.argumentError msg)
+
+/-- `BoundsError`. -/
+def boundsErr : Err := .jl .boundsError
+
+abbrev I64 := JInt .i64
+
+/-- An `Int` literal. -/
+def i64 (x : Int) : I64 := JInt.lit .i64 x
+
+end JuliaLean.ReduceCov
+
+namespace JuliaLean.Reduce
+
+/-- Julia exception types thrown by the modelled reductions. -/
+inductive Err where
+  | argumentError
+  | inexactError
+  | typeError
+  | methodError
+  | dimensionMismatch
+  deriving Repr, DecidableEq, Inhabited
+
+/-- A Julia call that may throw. -/
+abbrev R (α : Type) := Except Err α
+
+deriving instance DecidableEq for Except
+
+end JuliaLean.Reduce
+
+namespace JuliaLean.MiscCov
+
+/-- The exception types thrown by the modelled methods. Messages are kept only
+where a property is about them. -/
+inductive Err where
+  | errorException (msg : String)
+  | argumentError (msg : String)
+  | typeError
+  | methodError
+  | inexactError
+  | overflowError
+  | boundsError
+  | undefRefError
+  | assertionError
+  | fieldError
+  | other (name : String)
+  deriving Repr, DecidableEq, Inhabited
+
+deriving instance DecidableEq for Except
+
+/-- A Julia computation that returns a value or throws. -/
+abbrev M (α : Type) := Except Err α
+
+/-- Julia syntax values: `Symbol`s, literals, `QuoteNode`, `GlobalRef`,
+`LineNumberNode`, other runtime values (by a descriptive tag) and `Expr`. -/
+inductive Ex where
+  | sym (name : String)
+  | str (value : String)
+  | int (value : Int)
+  | bool (value : Bool)
+  | nothing
+  | qn (value : Ex)
+  | gref (mod name : String)
+  | lnn
+  | val (tag : String)
+  | expr (head : String) (args : List Ex)
+  deriving Repr, Inhabited
+
+namespace Ex
+
+/-- `Meta.isexpr(ex, head)`. -/
+def isExpr (ex : Ex) (head : String) : Bool :=
+  match ex with
+  | .expr h _ => h == head
+  | _ => false
+
+/-- `ex.args` of an `Expr`; `none` for other values (a `FieldError` in Julia). -/
+def args? : Ex → Option (List Ex)
+  | .expr _ a => some a
+  | _ => none
+
+/-- `ex isa LineNumberNode`. -/
+def isLnn : Ex → Bool
+  | .lnn => true
+  | _ => false
+
+/-- `ex === :name`. -/
+def isSym (name : String) : Ex → Bool
+  | .sym s => s == name
+  | _ => false
+
+/-- `esc(ex)`, `base/essentials.jl`. -/
+def esc (ex : Ex) : Ex := .expr "escape" [ex]
+
+end Ex
+
+end JuliaLean.MiscCov
+
+namespace JuliaLean.ShellCmd
+
+open JuliaLean
+
+/-- Exceptions thrown by the modelled functions. `error` is the
+`ErrorException` thrown by `error(msg)`; `typeError` is the `TypeError` of a
+failed `x::T` assertion; `fuel` marks a loop bound that is never reached. -/
+inductive ShErr where
+  | jl (e : JlError)
+  | error (msg : String)
+  | stringIndex
+  | typeError
+  | outOfMemory
+  | fuel
+  deriving Repr, DecidableEq, Inhabited
+
+abbrev SH (α : Type) := Except ShErr α
+
+deriving instance DecidableEq for Except
+
+/-- A Julia `Char`: its raw bits. -/
+abbrev JC := UInt32
+/-- A Julia string: the characters iteration yields. -/
+abbrev JS := List UInt32
+
+end JuliaLean.ShellCmd

@@ -9,7 +9,7 @@ summary: |
   deleteat!(a, lo:hi) with hi near typemax(Int) throws an internal error instead of
   BoundsError, because the range length or index sum wraps in Int arithmetic. On
   1.13.2, 1:typemax(Int) throws ArgumentError("_deletebeg! requires delta in
-  0:length(a)"), because i + delta wraps in _deleteat!. On target nightly that case
+  0:length(a)"), because i + delta wraps in _deleteat!. On nightly that case
   correctly throws BoundsError, but -1:typemax(Int) still fails on both versions:
   length(r) overflows to -9223372036854775807, and _deleteat! throws
   ArgumentError("_deleteat! requires delta >= 0") instead of BoundsError for the
@@ -69,13 +69,13 @@ promised_by: |
   indices); _deleteat! itself reports out-of-range deletions as BoundsError
   (base/array.jl:1311-1312). Invariant: index arithmetic does not wrap.
 cause: |
-  On target nightly, deleteat!(::Vector, ::AbstractUnitRange) (base/array.jl:1900-1909)
+  On nightly, deleteat!(::Vector, ::AbstractUnitRange) (base/array.jl:1900-1909)
   passes delta = length(r) to _deleteat!. For -1:typemax(Int), length(r) wraps to a
   negative Int, so the check `0 <= delta` at base/array.jl:1310 throws its internal
   ArgumentError before the bounds check `1 <= i <= len` at line 1311 sees i = -1.
   On 1.13.2 the end check was `i + delta <= len + 1`, which wraps for
   1:typemax(Int); the front-deletion branch then reached _deletebeg!, whose
-  ArgumentError (base/array.jl:1277-1278 on nightly) escaped. Target nightly
+  ArgumentError (base/array.jl:1277-1278 on nightly) escaped. Nightly
   replaced that check with `delta <= len + 1 - i` (line 1312).
 possible_fix: |
   Check the bounds of first(r) and last(r) against the vector before computing
@@ -85,5 +85,5 @@ duplicates:
     - {number: 22055, state: closed, relation: related}
   queries: ["deleteat overflow", "deleteat typemax", "deleteat! BoundsError", "deleteat", "deleteat! range overflow", "_deleteat! requires delta", "deleteat! ArgumentError BoundsError range", "deleteat! negative length range"]
 lean:
-  property: JuliaLean.ArrayOps.DeleteatRangeSpec
-  theorem: JuliaLean.ArrayOps.deleteatRangeSpec_refuted
+  property: JuliaLean.Proofs.base.array.round4.DeleteatRangeSpec
+  theorem: JuliaLean.Proofs.base.array.round4.deleteatRangeSpec_refuted

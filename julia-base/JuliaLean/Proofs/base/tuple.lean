@@ -1,6 +1,12 @@
 import JuliaLean.base.tuple
 import JuliaLean.base.reduce
 import JuliaLean.Registry.Types
+import JuliaLean.Proofs.base.tuple.basic
+import JuliaLean.Proofs.base.tuple.compare
+import JuliaLean.Proofs.base.tuple.refutations
+import JuliaLean.Proofs.base.tuple.validation
+import JuliaLean.Proofs.base.tuple.circshift
+import JuliaLean.Proofs.base.namedtuple.tuple_properties
 
 /-!
 # Specifications of `base/tuple.jl`
@@ -1699,12 +1705,12 @@ theorem findLastTupleEq {α : Type} (f : α → Bool) (t : List α) :
 theorem filterRecEq {α : Type}
     (afoldl : (List α → α → List α) → List α → List α → List α)
     (hfold : ∀ op initial xs, afoldl op initial xs = xs.foldl op initial)
-    (f : α → Bool) (t : List α) : filterRec afoldl f t = t.filter f := by
+    (f : α → Bool) (t : List α) : filterRec (m := Id) afoldl f t = t.filter f := by
   unfold filterRec
   rw [hfold]
   suffices ∀ acc, t.foldl (fun ys x => if f x then ys ++ [x] else ys) acc =
       acc ++ t.filter f by
-    simpa using this []
+    exact (this []).trans (List.nil_append _)
   induction t with
   | nil => simp
   | cons a r ih =>
@@ -1720,7 +1726,7 @@ def FindFilterCorrect : Prop :=
     (∀ predicate xs, filterVector predicate xs = xs.filter predicate) →
     findFirstTuple f t = (t.findIdx? f).map (· + 1) ∧
     findLastTuple f t = lastIndex f t ∧
-    filterTuple afoldl filterVector f t = t.filter f
+    filterTuple (m := Id) afoldl id filterVector id f t = t.filter f
 
 theorem findFilterCorrect : FindFilterCorrect := by
   intro α f t afoldl filterVector hfold hfilter
@@ -2988,6 +2994,50 @@ private def entry (id : String) (functions statement source : String) (status : 
     statement := statement, source := source, status := status, prop := prop,
     thm := proofName, issue := issue }
 
+end JuliaLean.Proofs.base.tuple
+
+namespace JuliaLean.Proofs.base.tuple.Archive20261101
+
+open JuliaLean JuliaLean.base.tuple JuliaLean.Proofs.base.tuple
+
+/-- The recursive Tuple front method returns the prefix excluding the final field, raises the documented ArgumentError on empty input, and the exact-32-field overload returns the same prefix.
+Julia source: base/tuple.jl:344-353,375-378 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+Julia documentation: base/tuple.jl:329-343; doc/src/base/collections.md:150 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-/
+def FrontRecursivePrefix : Prop :=
+  (∀ (α : Type) (t : List α),
+    frontTuple t =
+      if t = [] then .error (.julia (.argumentError "Cannot call front on an empty tuple."))
+      else .ok t.dropLast) ∧
+  (∀ (α : Type) (t : List α) (h : t.length = 32),
+    front32 t h = .ok t.dropLast)
+
+end JuliaLean.Proofs.base.tuple.Archive20261101
+
+namespace JuliaLean.Proofs.base.tuple
+
+open JuliaLean.Registry
+
+end JuliaLean.Proofs.base.tuple
+
+
+namespace JuliaLean.ChatGPT.Batch4.Group21
+open JuliaLean.Proofs.base.tuple
+
+/-- tuples-front-recursive: The recursive Tuple front method returns the prefix excluding the final field, raises the documented ArgumentError on empty input, and the exact-32-field overload returns the same prefix. -/
+theorem TuplesFrontRecursive_proven : JuliaLean.Proofs.base.tuple.Archive20261101.FrontRecursivePrefix := by
+  constructor
+  · intro α t
+    exact frontArgs_correct t
+  · intro α t h
+    exact (frontTailCorrect α t).2.1 h
+
+end JuliaLean.ChatGPT.Batch4.Group21
+
+namespace JuliaLean.Proofs.base.tuple
+
+open JuliaLean.Registry
+
 def entries : List Entry := [
   entry "tuples-split-rest-state" "split_rest(t::Tuple, n, i), _split_tuple"
     "Base.split_rest promises the tail starting at itr_state, partitioned into all but its last n elements and its last n elements; a short remainder must raise ArgumentError."
@@ -3104,7 +3154,12 @@ def entries : List Entry := [
   entry "sorttuplescov-tuple-construction" "(::Type{T})(x::Tuple), Tuple(x::Ref), Tuple(x::Array{T,0}), (::Type{T})(itr), _totuple, _totuple_err"
     "Tuple construction preserves compatible tuples, converts incompatible tuples to their target type, preserves iterator order for fixed, variable-length and generic targets, and reports conversion or insufficient-length errors."
     "base/tuple.jl:470-518"
-    .proven ``FullTupleConstructionCorrect (some ``fullTupleConstructionCorrect)
+    .proven ``FullTupleConstructionCorrect (some ``fullTupleConstructionCorrect),
+  { id := "tuples-front-recursive", juliaFile := "base/tuple.jl",
+    juliaFns := ["front(::Tuple)", "front(::NTuple{32, Any})"],
+    statement := "The recursive Tuple front method returns the prefix excluding the final field, raises the documented ArgumentError on empty input, and the exact-32-field overload returns the same prefix.",
+    source := "base/tuple.jl:344-353,375-378", status := .proven,
+    prop := ``JuliaLean.Proofs.base.tuple.Archive20261101.FrontRecursivePrefix, thm := some ``JuliaLean.ChatGPT.Batch4.Group21.TuplesFrontRecursive_proven }
 ]
 
 end JuliaLean.Proofs.base.tuple

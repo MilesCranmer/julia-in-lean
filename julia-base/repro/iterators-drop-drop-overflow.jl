@@ -1,9 +1,12 @@
-# drop(drop(itr, a), b) adds a + b with wraparound
-r = try
-    collect(Iterators.drop(Iterators.drop([1, 2, 3], typemax(Int)), 1))
-catch e
-    e
+function reproduce_iterators_drop_drop_overflow()
+    try
+        result = Iterators.drop(Iterators.drop([1, 2, 3], typemax(Int)), 1)
+        values = collect(result)
+        isempty(values) || error("unexpected values: $(repr(values))")
+    catch err
+        err isa ArgumentError || rethrow()
+        println("REPRODUCED iterators-drop-drop-overflow")
+    end
 end
-println("collect(drop(drop([1,2,3], typemax(Int)), 1)) = ", r isa Exception ? sprint(showerror, r) : repr(r))
-println("collect(drop([1,2,3], typemax(Int))) = ", repr(collect(Iterators.drop([1, 2, 3], typemax(Int)))))
-r isa ArgumentError && println("REPRODUCED iterators-drop-drop-overflow")
+
+reproduce_iterators_drop_drop_overflow()

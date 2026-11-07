@@ -34,8 +34,21 @@ cause: |
 possible_fix: |
   Declare `maxsize::Integer` and convert with Int(maxsize).
 duplicates:
-  issues: []
-  queries: ["PipeBuffer maxsize Integer", "PipeBuffer maxsize"]
+  issues:
+    - number: 23398
+      state: closed
+      relation: related
+      note: "Historical IOBuffer default-writability documentation issue; no Integer maxsize failure."
+  prs:
+    - number: 57570
+      state: merged
+      relation: related
+      note: "IOBuffer refactor and maxsize invariants; body does not report this Integer dispatch failure."
+  queries:
+    - "gh search issues PipeBuffer maxsize --repo JuliaLang/julia --limit 100 --json number,title,state,url"
+    - "gh search prs PipeBuffer maxsize --repo JuliaLang/julia --limit 100 --json number,title,state,url"
+    - "gh search issues PipeBuffer TypeError --repo JuliaLang/julia --limit 100 --json number,title,state,url"
+    - "gh search prs PipeBuffer Integer --repo JuliaLang/julia --limit 100 --json number,title,state,url"
 lean:
-  property: JuliaLean.IOBuffers.PipeBufferMaxsizeInteger
-  theorem: JuliaLean.IOBuffers.pipeBufferMaxsizeInteger_refuted
+  property: JuliaLean.Proofs.base.iobuffer.PipeBufferMaxsizeInteger
+  theorem: JuliaLean.ChatGPT.Batch6.Group1.IobuffersPipebufferMaxsizeType_refuted

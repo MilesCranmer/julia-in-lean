@@ -1,131 +1,131 @@
 file	line	endline	name	signature	status	entry	note
-base/reduce.jl	16	16	add_sum	add_sum(x, y)	todo		
-base/reduce.jl	17	17	add_sum	add_sum(x::Union{Bool,BitIntegerSmall}, y::Union{Bool,BitIntegerSmall})	todo		
-base/reduce.jl	18	18	add_sum	add_sum(x::BitUnsignedSmall, y::BitUnsignedSmall)	todo		
-base/reduce.jl	19	19	add_sum	add_sum(x::Real, y::Real)::Real	todo		
-base/reduce.jl	27	27	mul_prod	mul_prod(x, y)	todo		
-base/reduce.jl	28	28	mul_prod	mul_prod(x::BitSignedSmall, y::BitSignedSmall)	todo		
-base/reduce.jl	29	29	mul_prod	mul_prod(x::BitUnsignedSmall, y::BitUnsignedSmall)	todo		
-base/reduce.jl	30	30	mul_prod	mul_prod(x::Real, y::Real)::Real	todo		
-base/reduce.jl	32	32	and_all	and_all(x, y)	todo		
-base/reduce.jl	33	33	or_any	or_any(x, y)	todo		
-base/reduce.jl	35	35	and_all	and_all(x::Bool, y::Bool)	todo		
-base/reduce.jl	36	36	or_any	or_any(x::Bool, y::Bool)	todo		
-base/reduce.jl	40	43	mapfoldl_impl	mapfoldl_impl(f::F, op::OP, nt, itr) where {F,OP}	todo		
-base/reduce.jl	45	49	foldl_impl	foldl_impl(op::OP, nt, itr) where {OP}	todo		
-base/reduce.jl	51	63	_foldl_impl	_foldl_impl(op::OP, init, itr) where {OP}	todo		
-base/reduce.jl	65	68	_foldl_impl	_foldl_impl(op, init, itr::Union{Tuple,NamedTuple})	todo		
-base/reduce.jl	83	83	(op::BottomRF)	(op::BottomRF)(::_InitialValue, x)	todo		
-base/reduce.jl	84	84	(op::BottomRF)	(op::BottomRF)(acc, x)	todo		
-base/reduce.jl	94	94	MappingRF	MappingRF(f::F, rf::T) where {F,T}	todo		
-base/reduce.jl	95	95	MappingRF	MappingRF(::Type{f}, rf::T) where {f,T}	todo		
-base/reduce.jl	98	98	(op::MappingRF)	(op::MappingRF)(acc, x)	todo		
-base/reduce.jl	110	110	(op::FilteringRF)	(op::FilteringRF)(acc, x)	todo		
-base/reduce.jl	122	125	(op::FlatteningRF)	(op::FlatteningRF)(acc, x)	todo		
-base/reduce.jl	146	149	_xfadjoint	_xfadjoint(op, itr)	todo		
-base/reduce.jl	151	151	_xfadjoint_unwrap	_xfadjoint_unwrap(itr)	todo		
-base/reduce.jl	152	156	_xfadjoint_unwrap	_xfadjoint_unwrap(itr::Generator)	todo		
-base/reduce.jl	157	160	_xfadjoint_unwrap	_xfadjoint_unwrap(itr::Filter)	todo		
-base/reduce.jl	161	164	_xfadjoint_unwrap	_xfadjoint_unwrap(itr::Flatten)	todo		
-base/reduce.jl	173	173	mapfoldl	mapfoldl(f, op, itr; init=_InitialValue())	todo		
-base/reduce.jl	196	196	foldl	foldl(op, itr; kw...)	todo		
-base/reduce.jl	200	203	mapfoldr_impl	mapfoldr_impl(f, op, nt, itr)	todo		
-base/reduce.jl	206	206	_reverse_iter	_reverse_iter(itr)	todo		
+base/reduce.jl	16	16	add_sum	add_sum(x, y)	modelled	reduce-generic-operator-forwarding	Source-mirrored model JuliaLean.base.reduce.add_sum; reviewed against Julia f755f49.
+base/reduce.jl	17	17	add_sum	add_sum(x::Union{Bool,BitIntegerSmall}, y::Union{Bool,BitIntegerSmall})	modelled	reduce-add-sum-small-exact	Source-mirrored model JuliaLean.base.reduce.Models2Group7.addSumSmall; reviewed against Julia f755f49.
+base/reduce.jl	18	18	add_sum	add_sum(x::BitUnsignedSmall, y::BitUnsignedSmall)	modelled	reduce-add-sum-unsigned-small-exact	Source-mirrored model JuliaLean.base.reduce.Models2Group7.addSumUnsignedSmall; reviewed against Julia f755f49.
+base/reduce.jl	19	19	add_sum	add_sum(x::Real, y::Real)::Real	modelled	reduce-real-operator-observation	Source-mirrored model JuliaLean.base.reduce.Models2Group7.addSumReal; reviewed against Julia f755f49.
+base/reduce.jl	27	27	mul_prod	mul_prod(x, y)	modelled	reduce-generic-operator-forwarding	Source-mirrored model JuliaLean.base.reduce.mul_prod; reviewed against Julia f755f49.
+base/reduce.jl	28	28	mul_prod	mul_prod(x::BitSignedSmall, y::BitSignedSmall)	modelled	reduce-mul-prod-signed-small-exact	Source-mirrored model JuliaLean.base.reduce.Models2Group7.mulProdSignedSmall; reviewed against Julia f755f49.
+base/reduce.jl	29	29	mul_prod	mul_prod(x::BitUnsignedSmall, y::BitUnsignedSmall)	modelled	reduce-mul-prod-unsigned-small-exact	Source-mirrored model JuliaLean.base.reduce.Models2Group7.mulProdUnsignedSmall; reviewed against Julia f755f49.
+base/reduce.jl	30	30	mul_prod	mul_prod(x::Real, y::Real)::Real	modelled	reduce-real-operator-observation	Source-mirrored model JuliaLean.base.reduce.Models2Group7.mulProdReal; reviewed against Julia f755f49.
+base/reduce.jl	32	32	and_all	and_all(x, y)	modelled	reduce-and-all-truth-errors	Source-mirrored model JuliaLean.base.reduce.and_all; reviewed against Julia f755f49.
+base/reduce.jl	33	33	or_any	or_any(x, y)	modelled	reduce-or-any-truth-errors	Source-mirrored model JuliaLean.base.reduce.or_any; reviewed against Julia f755f49.
+base/reduce.jl	35	35	and_all	and_all(x::Bool, y::Bool)	modelled	reduce-and-all-bool-truth	Source-mirrored model JuliaLean.base.reduce.Models2Group7.andAllBool; reviewed against Julia f755f49.
+base/reduce.jl	36	36	or_any	or_any(x::Bool, y::Bool)	modelled	reduce-or-any-bool-truth	Source-mirrored model JuliaLean.base.reduce.Models2Group7.orAnyBool; reviewed against Julia f755f49.
+base/reduce.jl	40	43	mapfoldl_impl	mapfoldl_impl(f::F, op::OP, nt, itr) where {F,OP}	modelled	reduce-mapped-empty-dispatch,arrayops-find-extrema,reduce-pairwise-foldl	Reviewed line by line against pinned f755f49 source.
+base/reduce.jl	45	49	foldl_impl	foldl_impl(op::OP, nt, itr) where {OP}	modelled	reduce-foldl-dispatch-observation	Source-mirrored model JuliaLean.base.reduce.Models2Group7.foldlImpl; reviewed against Julia f755f49.
+base/reduce.jl	51	63	_foldl_impl	_foldl_impl(op::OP, init, itr) where {OP}	modelled	reduce-generic-fold-observation;reduce-rest-construction-observation;reduce-rest-iteration-observation	Source-mirrored model JuliaLean.base.reduce.Models2Group7.foldlGeneric; reviewed against Julia f755f49.
+base/reduce.jl	65	68	_foldl_impl	_foldl_impl(op, init, itr::Union{Tuple,NamedTuple})	modelled	reduce-tuple-fold-contents;reduce-tuple-fold-dispatch	Source-mirrored model JuliaLean.base.reduce.Models2Group7.foldlTuple; reviewed against Julia f755f49.
+base/reduce.jl	83	83	(op::BottomRF)	(op::BottomRF)(::_InitialValue, x)	modelled	reduce-bottom-rf-observation	Source-mirrored model JuliaLean.base.reduce.Models2Group7.bottomInitial; reviewed against Julia f755f49.
+base/reduce.jl	84	84	(op::BottomRF)	(op::BottomRF)(acc, x)	modelled	reduce-bottom-rf-observation	Source-mirrored model JuliaLean.base.reduce.Models2Group7.bottomApply; reviewed against Julia f755f49.
+base/reduce.jl	94	94	MappingRF	MappingRF(f::F, rf::T) where {F,T}	modelled	reduce-mapping-constructors-fields	Source-mirrored model JuliaLean.base.reduce.mappingRF_constructor; reviewed against Julia f755f49.
+base/reduce.jl	95	95	MappingRF	MappingRF(::Type{f}, rf::T) where {f,T}	modelled	reduce-mapping-constructors-fields	Source-mirrored model JuliaLean.base.reduce.mappingRF_type_constructor; reviewed against Julia f755f49.
+base/reduce.jl	98	98	(op::MappingRF)	(op::MappingRF)(acc, x)	modelled	reduce-mapping-rf-observation	Source-mirrored model JuliaLean.base.reduce.Models2Group7.mappingApply; reviewed against Julia f755f49.
+base/reduce.jl	110	110	(op::FilteringRF)	(op::FilteringRF)(acc, x)	modelled	reduce-filtering-rf-observation	Source-mirrored model JuliaLean.base.reduce.Models2Group7.filteringApply; reviewed against Julia f755f49.
+base/reduce.jl	122	125	(op::FlatteningRF)	(op::FlatteningRF)(acc, x)	modelled	reduce-flattening-rf-observation	Source-mirrored model JuliaLean.base.reduce.Models2Group7.flatteningApply; reviewed against Julia f755f49.
+base/reduce.jl	146	149	_xfadjoint	_xfadjoint(op, itr)	modelled	reduce-adjoint-observation	Source-mirrored model JuliaLean.base.reduce.Models2Group7.xfadjoint; reviewed against Julia f755f49.
+base/reduce.jl	151	151	_xfadjoint_unwrap	_xfadjoint_unwrap(itr)	modelled	reduce-unwrap-fallback-identity	Source-mirrored model JuliaLean.base.reduce.Models2Group7.xfadjointUnwrapFallback; reviewed against Julia f755f49.
+base/reduce.jl	152	156	_xfadjoint_unwrap	_xfadjoint_unwrap(itr::Generator)	modelled	reduce-mapped-empty-dispatch,arrayops-find-extrema,reduce-pairwise-foldl	Reviewed line by line against pinned f755f49 source.
+base/reduce.jl	157	160	_xfadjoint_unwrap	_xfadjoint_unwrap(itr::Filter)	modelled	reduce-mapped-empty-dispatch,arrayops-find-extrema,reduce-pairwise-foldl	Reviewed line by line against pinned f755f49 source.
+base/reduce.jl	161	164	_xfadjoint_unwrap	_xfadjoint_unwrap(itr::Flatten)	modelled	reduce-mapped-empty-dispatch,arrayops-find-extrema,reduce-pairwise-foldl	Reviewed line by line against pinned f755f49 source.
+base/reduce.jl	173	173	mapfoldl	mapfoldl(f, op, itr; init=_InitialValue())	modelled	reduce-mapfoldl-public-forwarding	Source-mirrored model JuliaLean.base.reduce.Models2Group7.mapfoldlPublic; reviewed against Julia f755f49.
+base/reduce.jl	196	196	foldl	foldl(op, itr; kw...)	modelled	reduce-foldl-public-forwarding	Source-mirrored model JuliaLean.base.reduce.Models2Group7.foldlPublic; reviewed against Julia f755f49.
+base/reduce.jl	200	203	mapfoldr_impl	mapfoldr_impl(f, op, nt, itr)	modelled	reduce-mapped-empty-dispatch,arrayops-find-extrema,reduce-pairwise-foldl	Reviewed line by line against pinned f755f49 source.
+base/reduce.jl	206	206	_reverse_iter	_reverse_iter(itr)	modelled	reduce-reverse-iter-forwarding	Source-mirrored model JuliaLean.base.reduce.Models2Group7.reverseIterDefault; JuliaLean.base.reduce.Models2Group7.ReverseIterOps; reviewed against Julia f755f49.
 base/reduce.jl	207	207	_reverse_iter	_reverse_iter(itr::Union{Tuple,NamedTuple})	todo		
-base/reduce.jl	213	213	(f::FlipArgs)	(f::FlipArgs)(x, y)	todo		
-base/reduce.jl	222	222	mapfoldr	mapfoldr(f::F, op::F2, itr; init=_InitialValue()) where {F,F2}	todo		
-base/reduce.jl	241	241	foldr	foldr(op::F, itr; kw...) where {F}	todo		
-base/reduce.jl	252	274	mapreduce_impl	mapreduce_impl(f, op, A::AbstractArrayOrBroadcasted, ifirst::Integer, ilast::Integer, blksize::Int)	todo		
-base/reduce.jl	276	277	mapreduce_impl	mapreduce_impl(f, op, A::AbstractArrayOrBroadcasted, ifirst::Integer, ilast::Integer)	todo		
-base/reduce.jl	306	306	mapreduce	mapreduce(f, op, itr; kw...)	todo		
-base/reduce.jl	307	307	mapreduce	mapreduce(f, op, itr, itrs...; kw...)	todo		
-base/reduce.jl	311	311	pairwise_blocksize	pairwise_blocksize(f, op)	todo		
-base/reduce.jl	314	314	pairwise_blocksize	pairwise_blocksize(::typeof(abs2), ::typeof(+))	todo		
-base/reduce.jl	318	318	_empty_reduce_error	_empty_reduce_error()	todo		
-base/reduce.jl	319	319	reduce_empty	reduce_empty(f, T)	todo		
-base/reduce.jl	320	320	mapreduce_empty	mapreduce_empty(f, op, T)	todo		
-base/reduce.jl	321	321	reduce_empty	reduce_empty(f, ::Type{Union{}}, splat...)	todo		
-base/reduce.jl	322	322	mapreduce_empty	mapreduce_empty(f, op, ::Type{Union{}}, splat...)	todo		
-base/reduce.jl	342	342	reduce_empty	reduce_empty(::typeof(+), ::Type{T}) where {T}	todo		
-base/reduce.jl	343	343	reduce_empty	reduce_empty(::typeof(+), ::Type{Bool})	todo		
-base/reduce.jl	344	344	reduce_empty	reduce_empty(::typeof(*), ::Type{T}) where {T}	todo		
-base/reduce.jl	345	345	reduce_empty	reduce_empty(::typeof(*), ::Type{<:AbstractChar})	todo		
-base/reduce.jl	346	346	reduce_empty	reduce_empty(::typeof(&), ::Type{Bool})	todo		
-base/reduce.jl	347	347	reduce_empty	reduce_empty(::typeof(|), ::Type{Bool})	todo		
-base/reduce.jl	348	348	reduce_empty	reduce_empty(::typeof(and_all), ::Type{T}) where {T}	todo		
-base/reduce.jl	349	349	reduce_empty	reduce_empty(::typeof(or_any), ::Type{T}) where {T}	todo		
-base/reduce.jl	351	351	reduce_empty	reduce_empty(::typeof(add_sum), ::Type{T}) where {T}	todo		
-base/reduce.jl	352	352	reduce_empty	reduce_empty(::typeof(add_sum), ::Type{T}) where {T<:BitSignedSmall}	todo		
-base/reduce.jl	353	353	reduce_empty	reduce_empty(::typeof(add_sum), ::Type{T}) where {T<:BitUnsignedSmall}	todo		
-base/reduce.jl	354	354	reduce_empty	reduce_empty(::typeof(mul_prod), ::Type{T}) where {T}	todo		
-base/reduce.jl	355	355	reduce_empty	reduce_empty(::typeof(mul_prod), ::Type{T}) where {T<:BitSignedSmall}	todo		
-base/reduce.jl	356	356	reduce_empty	reduce_empty(::typeof(mul_prod), ::Type{T}) where {T<:BitUnsignedSmall}	todo		
-base/reduce.jl	358	358	reduce_empty	reduce_empty(op::BottomRF, ::Type{T}) where {T}	todo		
-base/reduce.jl	359	359	reduce_empty	reduce_empty(op::MappingRF, ::Type{T}) where {T}	todo		
-base/reduce.jl	360	360	reduce_empty	reduce_empty(op::FilteringRF, ::Type{T}) where {T}	todo		
-base/reduce.jl	361	361	reduce_empty	reduce_empty(op::FlatteningRF, ::Type{T}) where {T}	todo		
-base/reduce.jl	362	362	reduce_empty	reduce_empty(op::FlipArgs, ::Type{T}) where {T}	todo		
-base/reduce.jl	371	371	mapreduce_empty	mapreduce_empty(::typeof(identity), op, T)	todo		
-base/reduce.jl	372	372	mapreduce_empty	mapreduce_empty(::typeof(abs), op, T)	todo		
-base/reduce.jl	373	373	mapreduce_empty	mapreduce_empty(::typeof(abs2), op, T)	todo		
-base/reduce.jl	375	375	mapreduce_empty	mapreduce_empty(f::typeof(abs), ::typeof(max), T)	todo		
-base/reduce.jl	376	376	mapreduce_empty	mapreduce_empty(f::typeof(abs2), ::typeof(max), T)	todo		
-base/reduce.jl	379	380	mapreduce_empty_iter	mapreduce_empty_iter(f::F, op::F2, itr, ItrEltype) where {F,F2}	todo		
-base/reduce.jl	382	382	reduce_empty_iter	reduce_empty_iter(op, itr)	todo		
-base/reduce.jl	383	383	reduce_empty_iter	reduce_empty_iter(op::FlatteningRF, itr)	todo		
-base/reduce.jl	384	384	reduce_empty_iter	reduce_empty_iter(op, itr, ::HasEltype)	todo		
-base/reduce.jl	391	392	reduce_empty_iter	reduce_empty_iter(op, itr::Tuple{Vararg{T}}, ::HasEltype) where {T}	todo		
-base/reduce.jl	393	395	reduce_empty_iter	reduce_empty_iter(op, itr, ::EltypeUnknown)	todo		
-base/reduce.jl	411	411	reduce_first	reduce_first(op, x)	todo		
-base/reduce.jl	412	412	reduce_first	reduce_first(::typeof(+), x::Bool)	todo		
-base/reduce.jl	413	413	reduce_first	reduce_first(::typeof(*), x::AbstractChar)	todo		
-base/reduce.jl	415	415	reduce_first	reduce_first(::typeof(add_sum), x)	todo		
-base/reduce.jl	416	416	reduce_first	reduce_first(::typeof(add_sum), x::BitSignedSmall)	todo		
-base/reduce.jl	417	417	reduce_first	reduce_first(::typeof(add_sum), x::BitUnsignedSmall)	todo		
-base/reduce.jl	418	418	reduce_first	reduce_first(::typeof(mul_prod), x)	todo		
-base/reduce.jl	419	419	reduce_first	reduce_first(::typeof(mul_prod), x::BitSignedSmall)	todo		
-base/reduce.jl	420	420	reduce_first	reduce_first(::typeof(mul_prod), x::BitUnsignedSmall)	todo		
-base/reduce.jl	421	421	reduce_first	reduce_first(::typeof(vcat), x)	todo		
-base/reduce.jl	422	422	reduce_first	reduce_first(::typeof(hcat), x)	todo		
-base/reduce.jl	423	423	reduce_first	reduce_first(op::FlipArgs, x)	todo		
-base/reduce.jl	435	435	mapreduce_first	mapreduce_first(f, op, x)	todo		
-base/reduce.jl	437	437	_mapreduce	_mapreduce(f, op, A::AbstractArrayOrBroadcasted)	todo		
-base/reduce.jl	439	460	_mapreduce	_mapreduce(f, op, ::IndexLinear, A::AbstractArrayOrBroadcasted)	todo		
-base/reduce.jl	462	462	mapreduce	mapreduce(f, op, a::Number)	todo		
-base/reduce.jl	464	464	_mapreduce	_mapreduce(f, op, ::IndexCartesian, A::AbstractArrayOrBroadcasted)	todo		
-base/reduce.jl	501	501	reduce	reduce(op, itr; kw...)	todo		
-base/reduce.jl	503	503	reduce	reduce(op, a::Number)	todo		
-base/reduce.jl	546	546	sum	sum(f, a; kw...)	todo		
-base/reduce.jl	575	575	sum	sum(a; kw...)	todo		
-base/reduce.jl	576	577	sum	sum(a::AbstractArray{Bool}; kw...)	todo		
-base/reduce.jl	602	602	prod	prod(f, a; kw...)	todo		
-base/reduce.jl	631	631	prod	prod(a; kw...)	todo		
-base/reduce.jl	659	659	maximum	maximum(f, a; kw...)	todo		
-base/reduce.jl	686	686	minimum	minimum(f, a; kw...)	todo		
-base/reduce.jl	718	718	maximum	maximum(a; kw...)	todo		
-base/reduce.jl	750	750	minimum	minimum(a; kw...)	todo		
-base/reduce.jl	779	779	extrema	extrema(itr; kw...)	todo		
-base/reduce.jl	809	809	extrema	extrema(f, itr; kw...)	todo		
-base/reduce.jl	816	816	ExtremaMap	ExtremaMap(::Type{T}) where {T}	todo		
-base/reduce.jl	817	817	(f::ExtremaMap)	(f::ExtremaMap)(x)	todo		
-base/reduce.jl	819	819	_extrema_rf	_extrema_rf((min1, max1), (min2, max2))	todo		
-base/reduce.jl	854	854	findmax	findmax(f, domain)	todo		
-base/reduce.jl	855	855	_findmax	_findmax(f, domain, ::Colon)	todo		
-base/reduce.jl	856	856	_rf_findmax	_rf_findmax((fm, im), (fx, ix))	todo		
-base/reduce.jl	883	883	findmax	findmax(itr)	todo		
-base/reduce.jl	884	884	_findmax	_findmax(a, ::Colon)	todo		
-base/reduce.jl	920	920	findmin	findmin(f, domain)	todo		
-base/reduce.jl	921	921	_findmin	_findmin(f, domain, ::Colon)	todo		
-base/reduce.jl	922	922	_rf_findmin	_rf_findmin((fm, im), (fx, ix))	todo		
-base/reduce.jl	949	949	findmin	findmin(itr)	todo		
-base/reduce.jl	950	950	_findmin	_findmin(a, ::Colon)	todo		
-base/reduce.jl	976	976	argmax	argmax(f, domain)	todo		
-base/reduce.jl	1005	1005	argmax	argmax(itr)	todo		
-base/reduce.jl	1034	1034	argmin	argmin(f, domain)	todo		
-base/reduce.jl	1063	1063	argmin	argmin(itr)	todo		
-base/reduce.jl	1067	1067	_bool	_bool(f)	todo		
-base/reduce.jl	1094	1094	count	count(itr; init=0)	todo		
-base/reduce.jl	1096	1096	count	count(f, itr; init=0)	todo		
-base/reduce.jl	1098	1098	_simple_count	_simple_count(pred, itr, init)	todo		
-base/reduce.jl	1100	1116	_simple_count	_simple_count(::typeof(identity), x::Array{Bool}, init=0)	todo		
-base/reduce.jl	1120	1122	_foldl_impl	_foldl_impl(op::typeof(BottomRF($f)), init, r::AbstractRange)	todo		generated-loop: (fred, f) in ((maximum, max), (minimum, min), (sum, add_sum))
+base/reduce.jl	213	213	(f::FlipArgs)	(f::FlipArgs)(x, y)	modelled	reduce-flip-adapter-observation	Source-mirrored model JuliaLean.base.reduce.Models2Group7.flipApply; JuliaLean.base.reduce.Models2Group7.FlipAdapter; JuliaLean.base.reduce.Models2Group7.FlipAdapterOps; reviewed against Julia f755f49.
+base/reduce.jl	222	222	mapfoldr	mapfoldr(f::F, op::F2, itr; init=_InitialValue()) where {F,F2}	modelled	reduce-mapfoldr-public-forwarding	Source-mirrored model JuliaLean.base.reduce.Models2Group7.mapfoldrPublic; reviewed against Julia f755f49.
+base/reduce.jl	241	241	foldr	foldr(op::F, itr; kw...) where {F}	modelled	reduce-foldr-public-forwarding	Source-mirrored model JuliaLean.base.reduce.Models2Group7.foldrPublic; JuliaLean.base.reduce.Models2Group7.PublicFoldrOps; reviewed against Julia f755f49.
+base/reduce.jl	252	274	mapreduce_impl	mapreduce_impl(f, op, A::AbstractArrayOrBroadcasted, ifirst::Integer, ilast::Integer, blksize::Int)	modelled	reduce-pairwise-body-observation	Source-mirrored model JuliaLean.base.reduce.Models2Group7.mapreduceImpl; reviewed against Julia f755f49.
+base/reduce.jl	276	277	mapreduce_impl	mapreduce_impl(f, op, A::AbstractArrayOrBroadcasted, ifirst::Integer, ilast::Integer)	modelled	reduce-pairwise-default-observation	Source-mirrored model JuliaLean.base.reduce.Models2Group7.mapreduceImplDefault; reviewed against Julia f755f49.
+base/reduce.jl	306	306	mapreduce	mapreduce(f, op, itr; kw...)	modelled	reduce-mapreduce-public-forwarding	Source-mirrored model JuliaLean.base.reduce.Models2Group7.mapreducePublic; reviewed against Julia f755f49.
+base/reduce.jl	307	307	mapreduce	mapreduce(f, op, itr, itrs...; kw...)	modelled	reduce-mapreduce-multi-provenance	Source-mirrored model JuliaLean.base.reduce.Models2Group7.mapreduceMultiPublic; reviewed against Julia f755f49.
+base/reduce.jl	311	311	pairwise_blocksize	pairwise_blocksize(f, op)	modelled	reduce-pairwise-blocksize-values	Source-mirrored model JuliaLean.base.reduce.Models2Group7.pairwiseBlocksize; reviewed against Julia f755f49.
+base/reduce.jl	314	314	pairwise_blocksize	pairwise_blocksize(::typeof(abs2), ::typeof(+))	modelled	reduce-pairwise-blocksize-values	Source-mirrored model JuliaLean.base.reduce.Models2Group7.pairwiseBlocksizeAbs2Plus; reviewed against Julia f755f49.
+base/reduce.jl	318	318	_empty_reduce_error	_empty_reduce_error()	modelled	reduce-empty-errors	Source-mirrored model JuliaLean.base.reduce._empty_reduce_error; reviewed against Julia f755f49.
+base/reduce.jl	319	319	reduce_empty	reduce_empty(f, T)	modelled	reduce-empty-errors	Source-mirrored model JuliaLean.base.reduce.Models2Group7.emptyFallback; reviewed against Julia f755f49.
+base/reduce.jl	320	320	mapreduce_empty	mapreduce_empty(f, op, T)	modelled	reduce-empty-errors	Source-mirrored model JuliaLean.base.reduce.Models2Group7.mapemptyFallback; reviewed against Julia f755f49.
+base/reduce.jl	321	321	reduce_empty	reduce_empty(f, ::Type{Union{}}, splat...)	modelled	reduce-empty-errors	Source-mirrored model JuliaLean.base.reduce.Models2Group7.emptyUnion; reviewed against Julia f755f49.
+base/reduce.jl	322	322	mapreduce_empty	mapreduce_empty(f, op, ::Type{Union{}}, splat...)	modelled	reduce-empty-errors	Source-mirrored model JuliaLean.base.reduce.Models2Group7.mapemptyUnion; reviewed against Julia f755f49.
+base/reduce.jl	342	342	reduce_empty	reduce_empty(::typeof(+), ::Type{T}) where {T}	modelled	reduce-empty-scalar-dispatch	Source-mirrored model JuliaLean.base.reduce.Models2Group7.emptyPlus; reviewed against Julia f755f49.
+base/reduce.jl	343	343	reduce_empty	reduce_empty(::typeof(+), ::Type{Bool})	modelled	reduce-empty-native-identities	Source-mirrored model JuliaLean.base.reduce.Models2Group7.emptyPlusBool; reviewed against Julia f755f49.
+base/reduce.jl	344	344	reduce_empty	reduce_empty(::typeof(*), ::Type{T}) where {T}	modelled	reduce-empty-scalar-dispatch	Source-mirrored model JuliaLean.base.reduce.Models2Group7.emptyTimes; reviewed against Julia f755f49.
+base/reduce.jl	345	345	reduce_empty	reduce_empty(::typeof(*), ::Type{<:AbstractChar})	modelled	reduce-empty-closed-values	Source-mirrored model JuliaLean.base.reduce.reduce_empty_mul_char; reviewed against Julia f755f49.
+base/reduce.jl	346	346	reduce_empty	reduce_empty(::typeof(&), ::Type{Bool})	modelled	reduce-empty-closed-values	Source-mirrored model JuliaLean.base.reduce.reduce_empty_and_bool; reviewed against Julia f755f49.
+base/reduce.jl	347	347	reduce_empty	reduce_empty(::typeof(|), ::Type{Bool})	modelled	reduce-empty-closed-values	Source-mirrored model JuliaLean.base.reduce.reduce_empty_or_bool; reviewed against Julia f755f49.
+base/reduce.jl	348	348	reduce_empty	reduce_empty(::typeof(and_all), ::Type{T}) where {T}	modelled	reduce-empty-closed-values	Source-mirrored model JuliaLean.base.reduce.reduce_empty_and_all; reviewed against Julia f755f49.
+base/reduce.jl	349	349	reduce_empty	reduce_empty(::typeof(or_any), ::Type{T}) where {T}	modelled	reduce-empty-closed-values	Source-mirrored model JuliaLean.base.reduce.reduce_empty_or_any; reviewed against Julia f755f49.
+base/reduce.jl	351	351	reduce_empty	reduce_empty(::typeof(add_sum), ::Type{T}) where {T}	modelled	reduce-empty-scalar-dispatch	Source-mirrored model JuliaLean.base.reduce.Models2Group7.emptyAddSum; reviewed against Julia f755f49.
+base/reduce.jl	352	352	reduce_empty	reduce_empty(::typeof(add_sum), ::Type{T}) where {T<:BitSignedSmall}	modelled	reduce-empty-native-identities	Source-mirrored model JuliaLean.base.reduce.Models2Group7.emptyAddSumSigned; reviewed against Julia f755f49.
+base/reduce.jl	353	353	reduce_empty	reduce_empty(::typeof(add_sum), ::Type{T}) where {T<:BitUnsignedSmall}	modelled	reduce-empty-native-identities	Source-mirrored model JuliaLean.base.reduce.Models2Group7.emptyAddSumUnsigned; reviewed against Julia f755f49.
+base/reduce.jl	354	354	reduce_empty	reduce_empty(::typeof(mul_prod), ::Type{T}) where {T}	modelled	reduce-empty-scalar-dispatch	Source-mirrored model JuliaLean.base.reduce.Models2Group7.emptyMulProd; reviewed against Julia f755f49.
+base/reduce.jl	355	355	reduce_empty	reduce_empty(::typeof(mul_prod), ::Type{T}) where {T<:BitSignedSmall}	modelled	reduce-empty-native-identities	Source-mirrored model JuliaLean.base.reduce.Models2Group7.emptyMulProdSigned; reviewed against Julia f755f49.
+base/reduce.jl	356	356	reduce_empty	reduce_empty(::typeof(mul_prod), ::Type{T}) where {T<:BitUnsignedSmall}	modelled	reduce-empty-native-identities	Source-mirrored model JuliaLean.base.reduce.Models2Group7.emptyMulProdUnsigned; reviewed against Julia f755f49.
+base/reduce.jl	358	358	reduce_empty	reduce_empty(op::BottomRF, ::Type{T}) where {T}	modelled	reduce-empty-adapters-observation	Source-mirrored model JuliaLean.base.reduce.Models2Group7.emptyBottom; reviewed against Julia f755f49.
+base/reduce.jl	359	359	reduce_empty	reduce_empty(op::MappingRF, ::Type{T}) where {T}	modelled	reduce-empty-adapters-observation	Source-mirrored model JuliaLean.base.reduce.Models2Group7.emptyMapping; reviewed against Julia f755f49.
+base/reduce.jl	360	360	reduce_empty	reduce_empty(op::FilteringRF, ::Type{T}) where {T}	modelled	reduce-empty-adapters-observation	Source-mirrored model JuliaLean.base.reduce.Models2Group7.emptyFiltering; reviewed against Julia f755f49.
+base/reduce.jl	361	361	reduce_empty	reduce_empty(op::FlatteningRF, ::Type{T}) where {T}	modelled	reduce-empty-adapters-observation	Source-mirrored model JuliaLean.base.reduce.Models2Group7.emptyFlattening; reviewed against Julia f755f49.
+base/reduce.jl	362	362	reduce_empty	reduce_empty(op::FlipArgs, ::Type{T}) where {T}	modelled	reduce-empty-adapters-observation	Source-mirrored model JuliaLean.base.reduce.Models2Group7.emptyFlip; reviewed against Julia f755f49.
+base/reduce.jl	371	371	mapreduce_empty	mapreduce_empty(::typeof(identity), op, T)	modelled	reduce-empty-adapters-observation	Source-mirrored model JuliaLean.base.reduce.Models2Group7.mapemptyIdentity; reviewed against Julia f755f49.
+base/reduce.jl	372	372	mapreduce_empty	mapreduce_empty(::typeof(abs), op, T)	modelled	reduce-empty-adapters-observation	Source-mirrored model JuliaLean.base.reduce.Models2Group7.mapemptyAbsolute; reviewed against Julia f755f49.
+base/reduce.jl	373	373	mapreduce_empty	mapreduce_empty(::typeof(abs2), op, T)	modelled	reduce-empty-adapters-observation	Source-mirrored model JuliaLean.base.reduce.Models2Group7.mapemptyAbsolute2; reviewed against Julia f755f49.
+base/reduce.jl	375	375	mapreduce_empty	mapreduce_empty(f::typeof(abs), ::typeof(max), T)	modelled	reduce-empty-adapters-observation	Source-mirrored model JuliaLean.base.reduce.Models2Group7.mapemptyAbsoluteMax; reviewed against Julia f755f49.
+base/reduce.jl	376	376	mapreduce_empty	mapreduce_empty(f::typeof(abs2), ::typeof(max), T)	modelled	reduce-empty-adapters-observation	Source-mirrored model JuliaLean.base.reduce.Models2Group7.mapemptyAbsolute2Max; reviewed against Julia f755f49.
+base/reduce.jl	379	380	mapreduce_empty_iter	mapreduce_empty_iter(f::F, op::F2, itr, ItrEltype) where {F,F2}	modelled	reduce-empty-iterator-observation	Source-mirrored model JuliaLean.base.reduce.Models2Group7.mapemptyIterator; reviewed against Julia f755f49.
+base/reduce.jl	382	382	reduce_empty_iter	reduce_empty_iter(op, itr)	modelled	reduce-empty-iterator-observation	Source-mirrored model JuliaLean.base.reduce.Models2Group7.emptyIterator; reviewed against Julia f755f49.
+base/reduce.jl	383	383	reduce_empty_iter	reduce_empty_iter(op::FlatteningRF, itr)	modelled	reduce-empty-iterator-observation	Source-mirrored model JuliaLean.base.reduce.Models2Group7.emptyIteratorFlattening; reviewed against Julia f755f49.
+base/reduce.jl	384	384	reduce_empty_iter	reduce_empty_iter(op, itr, ::HasEltype)	modelled	reduce-empty-iterator-observation	Source-mirrored model JuliaLean.base.reduce.Models2Group7.emptyIteratorHasEltype; reviewed against Julia f755f49.
+base/reduce.jl	391	392	reduce_empty_iter	reduce_empty_iter(op, itr::Tuple{Vararg{T}}, ::HasEltype) where {T}	modelled	reduce-empty-iterator-observation	Source-mirrored model JuliaLean.base.reduce.Models2Group7.emptyIteratorTuple; reviewed against Julia f755f49.
+base/reduce.jl	393	395	reduce_empty_iter	reduce_empty_iter(op, itr, ::EltypeUnknown)	modelled	reduce-empty-iterator-error	Source-mirrored model JuliaLean.base.reduce.Models2Group7.emptyIteratorUnknown; reviewed against Julia f755f49.
+base/reduce.jl	411	411	reduce_first	reduce_first(op, x)	modelled	reduce-first-identity	Source-mirrored model JuliaLean.base.reduce.reduce_first; reviewed against Julia f755f49.
+base/reduce.jl	412	412	reduce_first	reduce_first(::typeof(+), x::Bool)	modelled	reduce-first-native-values	Source-mirrored model JuliaLean.base.reduce.Models2Group7.firstPlusBool; reviewed against Julia f755f49.
+base/reduce.jl	413	413	reduce_first	reduce_first(::typeof(*), x::AbstractChar)	modelled	reduce-first-selected-forwarding	Source-mirrored model JuliaLean.base.reduce.Models2Group7.firstTimesChar; reviewed against Julia f755f49.
+base/reduce.jl	415	415	reduce_first	reduce_first(::typeof(add_sum), x)	modelled	reduce-first-selected-forwarding	Source-mirrored model JuliaLean.base.reduce.reduce_first_add_sum; reviewed against Julia f755f49.
+base/reduce.jl	416	416	reduce_first	reduce_first(::typeof(add_sum), x::BitSignedSmall)	modelled	reduce-first-native-values	Source-mirrored model JuliaLean.base.reduce.Models2Group7.firstAddSumSigned; reviewed against Julia f755f49.
+base/reduce.jl	417	417	reduce_first	reduce_first(::typeof(add_sum), x::BitUnsignedSmall)	modelled	reduce-first-native-values	Source-mirrored model JuliaLean.base.reduce.Models2Group7.firstAddSumUnsigned; reviewed against Julia f755f49.
+base/reduce.jl	418	418	reduce_first	reduce_first(::typeof(mul_prod), x)	modelled	reduce-first-selected-forwarding	Source-mirrored model JuliaLean.base.reduce.reduce_first_mul_prod; reviewed against Julia f755f49.
+base/reduce.jl	419	419	reduce_first	reduce_first(::typeof(mul_prod), x::BitSignedSmall)	modelled	reduce-first-native-values	Source-mirrored model JuliaLean.base.reduce.Models2Group7.firstMulProdSigned; reviewed against Julia f755f49.
+base/reduce.jl	420	420	reduce_first	reduce_first(::typeof(mul_prod), x::BitUnsignedSmall)	modelled	reduce-first-native-values	Source-mirrored model JuliaLean.base.reduce.Models2Group7.firstMulProdUnsigned; reviewed against Julia f755f49.
+base/reduce.jl	421	421	reduce_first	reduce_first(::typeof(vcat), x)	modelled	reduce-first-selected-forwarding	Source-mirrored model JuliaLean.base.reduce.reduce_first_vcat; reviewed against Julia f755f49.
+base/reduce.jl	422	422	reduce_first	reduce_first(::typeof(hcat), x)	modelled	reduce-first-selected-forwarding	Source-mirrored model JuliaLean.base.reduce.reduce_first_hcat; reviewed against Julia f755f49.
+base/reduce.jl	423	423	reduce_first	reduce_first(op::FlipArgs, x)	modelled	reduce-first-flip-observation	Source-mirrored model JuliaLean.base.reduce.Models2Group7.firstFlip; reviewed against Julia f755f49.
+base/reduce.jl	435	435	mapreduce_first	mapreduce_first(f, op, x)	modelled	reduce-mapreduce-first-observation	Source-mirrored model JuliaLean.base.reduce.Models2Group7.mapreduceFirst; reviewed against Julia f755f49.
+base/reduce.jl	437	437	_mapreduce	_mapreduce(f, op, A::AbstractArrayOrBroadcasted)	modelled	reduce-array-mapreduce-dispatch	Source-mirrored model JuliaLean.base.reduce.Models2Group7.ArrayMapreduceDispatchOps; JuliaLean.base.reduce.Models2Group7.mapreduceArrayDispatch; reviewed against Julia f755f49.
+base/reduce.jl	439	460	_mapreduce	_mapreduce(f, op, ::IndexLinear, A::AbstractArrayOrBroadcasted)	modelled	reduce-linear-mapreduce-observation	Source-mirrored model JuliaLean.base.reduce.Models2Group7.LinearValue; JuliaLean.base.reduce.Models2Group7.LinearMapreduceOps; JuliaLean.base.reduce.Models2Group7.linearAssertBool; JuliaLean.base.reduce.Models2Group7.linearEqualLiteral; JuliaLean.base.reduce.Models2Group7.linearLessLiteral; JuliaLean.base.reduce.Models2Group7.linearLess; JuliaLean.base.reduce.Models2Group7.linearIncrement; JuliaLean.base.reduce.Models2Group7.mapreduceLinearWhile; JuliaLean.base.reduce.Models2Group7.mapreduceLinear; reviewed against Julia f755f49.
+base/reduce.jl	462	462	mapreduce	mapreduce(f, op, a::Number)	modelled	reduce-number-mapreduce-forwarding	Source-mirrored model JuliaLean.base.reduce.Models2Group7.NumberMapreduceOps; JuliaLean.base.reduce.Models2Group7.mapreduceNumber; reviewed against Julia f755f49.
+base/reduce.jl	464	464	_mapreduce	_mapreduce(f, op, ::IndexCartesian, A::AbstractArrayOrBroadcasted)	modelled	reduce-cartesian-mapreduce-forwarding	Source-mirrored model JuliaLean.base.reduce.Models2Group7.CartesianMapreduceOps; JuliaLean.base.reduce.Models2Group7.mapreduceCartesian; reviewed against Julia f755f49.
+base/reduce.jl	501	501	reduce	reduce(op, itr; kw...)	modelled	reduce-public-forwarding	Source-mirrored model JuliaLean.base.reduce.Models2Group7.PublicReduceOps; JuliaLean.base.reduce.Models2Group7.reducePublic; reviewed against Julia f755f49.
+base/reduce.jl	503	503	reduce	reduce(op, a::Number)	modelled	reduce-number-identity	Source-mirrored model JuliaLean.base.reduce.Models2Group7.reduceNumber; reviewed against Julia f755f49.
+base/reduce.jl	546	546	sum	sum(f, a; kw...)	modelled	reduce-reduction-public-forwarding	Source-mirrored model JuliaLean.base.reduce.Models2Group7.sumMapped; reviewed against Julia f755f49.
+base/reduce.jl	575	575	sum	sum(a; kw...)	modelled	reduce-reduction-public-forwarding	Source-mirrored model JuliaLean.base.reduce.Models2Group7.sumPublic; reviewed against Julia f755f49.
+base/reduce.jl	576	577	sum	sum(a::AbstractArray{Bool}; kw...)	modelled	reduce-bool-sum-observation	Source-mirrored model JuliaLean.base.reduce.Models2Group7.sumBoolArray; reviewed against Julia f755f49.
+base/reduce.jl	602	602	prod	prod(f, a; kw...)	modelled	reduce-reduction-public-forwarding	Source-mirrored model JuliaLean.base.reduce.Models2Group7.prodMapped; reviewed against Julia f755f49.
+base/reduce.jl	631	631	prod	prod(a; kw...)	modelled	reduce-reduction-public-forwarding	Source-mirrored model JuliaLean.base.reduce.Models2Group7.prodPublic; reviewed against Julia f755f49.
+base/reduce.jl	659	659	maximum	maximum(f, a; kw...)	modelled	reduce-reduction-public-forwarding	Source-mirrored model JuliaLean.base.reduce.Models2Group7.maximumMapped; reviewed against Julia f755f49.
+base/reduce.jl	686	686	minimum	minimum(f, a; kw...)	modelled	reduce-reduction-public-forwarding	Source-mirrored model JuliaLean.base.reduce.Models2Group7.minimumMapped; reviewed against Julia f755f49.
+base/reduce.jl	718	718	maximum	maximum(a; kw...)	modelled	reduce-reduction-public-forwarding	Source-mirrored model JuliaLean.base.reduce.Models2Group7.maximumPublic; reviewed against Julia f755f49.
+base/reduce.jl	750	750	minimum	minimum(a; kw...)	modelled	reduce-reduction-public-forwarding	Source-mirrored model JuliaLean.base.reduce.Models2Group7.minimumPublic; reviewed against Julia f755f49.
+base/reduce.jl	779	779	extrema	extrema(itr; kw...)	modelled	reduce-reduction-public-forwarding	Source-mirrored model JuliaLean.base.reduce.Models2Group7.extremaPublic; reviewed against Julia f755f49.
+base/reduce.jl	809	809	extrema	extrema(f, itr; kw...)	modelled	reduce-extrema-public-observation	Source-mirrored model JuliaLean.base.reduce.Models2Group7.extremaMapped; reviewed against Julia f755f49.
+base/reduce.jl	816	816	ExtremaMap	ExtremaMap(::Type{T}) where {T}	modelled	reduce-extrema-constructor-fields	Source-mirrored model JuliaLean.base.reduce.extremaMap_type; reviewed against Julia f755f49.
+base/reduce.jl	817	817	(f::ExtremaMap)	(f::ExtremaMap)(x)	modelled	reduce-extrema-map-aliasing	Source-mirrored model JuliaLean.base.reduce.Models2Group7.extremaMapApply; reviewed against Julia f755f49.
+base/reduce.jl	819	819	_extrema_rf	_extrema_rf((min1, max1), (min2, max2))	modelled	reduce-extrema-reducer-observation	Source-mirrored model JuliaLean.base.reduce.Models2Group7.extremaReduce; reviewed against Julia f755f49.
+base/reduce.jl	854	854	findmax	findmax(f, domain)	modelled	reduce-find-max-mapped-observation	Source-mirrored model JuliaLean.base.reduce.Models2Group7.findMaxMapped; reviewed against Julia f755f49.
+base/reduce.jl	855	855	_findmax	_findmax(f, domain, ::Colon)	modelled	reduce-find-max-colon-observation;reduce-find-indexed-closure-observation	Source-mirrored model JuliaLean.base.reduce.Models2Group7.findMaxColon; reviewed against Julia f755f49.
+base/reduce.jl	856	856	_rf_findmax	_rf_findmax((fm, im), (fx, ix))	modelled	reduce-find-max-reducer-observation	Source-mirrored model JuliaLean.base.reduce.Models2Group7.findReduceMax; reviewed against Julia f755f49.
+base/reduce.jl	883	883	findmax	findmax(itr)	modelled	reduce-find-max-single-observation	Source-mirrored model JuliaLean.base.reduce.Models2Group7.findMaxSingle; reviewed against Julia f755f49.
+base/reduce.jl	884	884	_findmax	_findmax(a, ::Colon)	modelled	reduce-find-max-identity-observation	Source-mirrored model JuliaLean.base.reduce.Models2Group7.findMaxIdentity; reviewed against Julia f755f49.
+base/reduce.jl	920	920	findmin	findmin(f, domain)	modelled	reduce-find-min-mapped-observation	Source-mirrored model JuliaLean.base.reduce.Models2Group7.findMinMapped; reviewed against Julia f755f49.
+base/reduce.jl	921	921	_findmin	_findmin(f, domain, ::Colon)	modelled	reduce-find-min-colon-observation;reduce-find-indexed-closure-observation	Source-mirrored model JuliaLean.base.reduce.Models2Group7.findMinColon; reviewed against Julia f755f49.
+base/reduce.jl	922	922	_rf_findmin	_rf_findmin((fm, im), (fx, ix))	modelled	reduce-find-min-reducer-observation	Source-mirrored model JuliaLean.base.reduce.Models2Group7.findReduceMin; reviewed against Julia f755f49.
+base/reduce.jl	949	949	findmin	findmin(itr)	modelled	reduce-find-min-single-observation	Source-mirrored model JuliaLean.base.reduce.Models2Group7.findMinSingle; reviewed against Julia f755f49.
+base/reduce.jl	950	950	_findmin	_findmin(a, ::Colon)	modelled	reduce-find-min-identity-observation	Source-mirrored model JuliaLean.base.reduce.Models2Group7.findMinIdentity; reviewed against Julia f755f49.
+base/reduce.jl	976	976	argmax	argmax(f, domain)	modelled	reduce-arg-max-mapped-observation;reduce-find-value-closure-observation	Source-mirrored model JuliaLean.base.reduce.Models2Group7.argMaxMapped; reviewed against Julia f755f49.
+base/reduce.jl	1005	1005	argmax	argmax(itr)	modelled	reduce-arg-max-single-observation	Source-mirrored model JuliaLean.base.reduce.Models2Group7.argMaxSingle; reviewed against Julia f755f49.
+base/reduce.jl	1034	1034	argmin	argmin(f, domain)	modelled	reduce-arg-min-mapped-observation;reduce-find-value-closure-observation	Source-mirrored model JuliaLean.base.reduce.Models2Group7.argMinMapped; reviewed against Julia f755f49.
+base/reduce.jl	1063	1063	argmin	argmin(itr)	modelled	reduce-arg-min-single-observation	Source-mirrored model JuliaLean.base.reduce.Models2Group7.argMinSingle; reviewed against Julia f755f49.
+base/reduce.jl	1067	1067	_bool	_bool(f)	modelled	reduce-bool-closure-observation	Source-mirrored model JuliaLean.base.reduce.Models2Group7.makeBoolClosure; JuliaLean.base.reduce.Models2Group7.applyBoolClosure; reviewed against Julia f755f49.
+base/reduce.jl	1094	1094	count	count(itr; init=0)	modelled	reduce-count-forwarding-observation	Source-mirrored model JuliaLean.base.reduce.Models2Group7.countPublic; reviewed against Julia f755f49.
+base/reduce.jl	1096	1096	count	count(f, itr; init=0)	modelled	reduce-count-forwarding-observation	Source-mirrored model JuliaLean.base.reduce.Models2Group7.countMapped; reviewed against Julia f755f49.
+base/reduce.jl	1098	1098	_simple_count	_simple_count(pred, itr, init)	modelled	reduce-count-forwarding-observation	Source-mirrored model JuliaLean.base.reduce.Models2Group7.simpleCount; reviewed against Julia f755f49.
+base/reduce.jl	1100	1116	_simple_count	_simple_count(::typeof(identity), x::Array{Bool}, init=0)	modelled	reduce-mapped-empty-dispatch,arrayops-find-extrema,reduce-pairwise-foldl	Reviewed line by line against pinned f755f49 source.
+base/reduce.jl	1120	1122	_foldl_impl	_foldl_impl(op::typeof(BottomRF($f)), init, r::AbstractRange)	modelled	reduce-range-fold-observation	Source-mirrored model JuliaLean.base.reduce.Models2Group7.foldlRangeSpecial; reviewed against Julia f755f49.

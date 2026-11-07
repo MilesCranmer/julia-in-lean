@@ -48,7 +48,8 @@ possible_fix: |
 duplicates:
   issues:
     - {number: 53887, state: closed, relation: related}
+    - {number: 64162, state: open, relation: duplicate}
   queries: ["exponent Rational", "exponent rational rounding", "exponent of Rational", "exponent"]
 lean:
-  property: JuliaLean.MathFuncs.exponentRationalDefinition
-  theorem: JuliaLean.MathFuncs.exponentRationalDefinition_refuted
+  property: JuliaLean.Proofs.base.math.Round6.exponentRationalExact
+  theorem: JuliaLean.ChatGPT.Batch3.Group2.MathfuncsExponentRational_refuted

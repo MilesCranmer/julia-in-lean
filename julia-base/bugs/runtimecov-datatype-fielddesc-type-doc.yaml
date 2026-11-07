@@ -50,5 +50,5 @@ duplicates:
   issues: []
   queries: ["datatype_fielddesc_type"]
 lean:
-  property: JuliaLean.RuntimeCov.Layout.FielddescTypeDoc
-  theorem: JuliaLean.RuntimeCov.Layout.fielddescTypeDoc_refuted
+  property: JuliaLean.Proofs.base.runtime_internals.FielddescTypeDoc
+  theorem: JuliaLean.Proofs.base.runtime_internals.fielddescTypeDoc_refuted

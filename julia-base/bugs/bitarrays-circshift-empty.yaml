@@ -43,5 +43,5 @@ duplicates:
     - {number: 54294, state: closed, relation: related}
   queries: ["issues: circshift", "issues: circshift DivideError", "issues: circshift BitVector", "issues: circshift! BitVector", "prs: BitVector circshift", "prs: circshift empty"]
 lean:
-  property: JuliaLean.BitArrays.CircshiftAgrees
-  theorem: JuliaLean.BitArrays.circshiftAgrees_refuted
+  property: JuliaLean.Proofs.base.bitarray.Round2.CircshiftEmptyAgrees
+  theorem: JuliaLean.Proofs.base.bitarray.JuliaLean.ChatGPT.Batch3.Group2.BitarraysCircshiftEmpty_refuted

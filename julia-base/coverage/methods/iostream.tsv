@@ -1,52 +1,52 @@
 file	line	endline	name	signature	status	entry	note
-base/iostream.jl	21	21	IOStream	IOStream(name::AbstractString, buf::Vector{UInt8})	todo		
-base/iostream.jl	24	31	IOStream	IOStream(name::AbstractString, finalize::Bool)	todo		
-base/iostream.jl	32	32	IOStream	IOStream(name::AbstractString)	todo		
-base/iostream.jl	34	34	unsafe_convert	unsafe_convert(T::Type{Ptr{Cvoid}}, s::IOStream)	todo		
-base/iostream.jl	35	35	show	show(io::IO, s::IOStream)	todo		
-base/iostream.jl	37	47	_lock_ios	_lock_ios(s, expr)	todo		
-base/iostream.jl	74	74	fd	fd(s::IOStream)	todo		
-base/iostream.jl	76	76	stat	stat(s::IOStream)	todo		
-base/iostream.jl	88	88	isopen	isopen(s::IOStream)	todo		
-base/iostream.jl	90	93	close	close(s::IOStream)	todo		
-base/iostream.jl	95	95	closewrite	closewrite(s::IOStream)	todo		
-base/iostream.jl	97	102	flush	flush(s::IOStream)	todo		
-base/iostream.jl	104	104	iswritable	iswritable(s::IOStream)	todo		
-base/iostream.jl	106	106	isreadable	isreadable(s::IOStream)	todo		
-base/iostream.jl	137	141	truncate	truncate(s::IOStream, n::Integer)	todo		
-base/iostream.jl	158	163	seek	seek(s::IOStream, n::Integer)	todo		
-base/iostream.jl	185	185	seekstart	seekstart(s::IO)	todo		
-base/iostream.jl	192	196	seekend	seekend(s::IOStream)	todo		
-base/iostream.jl	215	220	skip	skip(s::IOStream, delta::Integer)	todo		
-base/iostream.jl	247	251	position	position(s::IOStream)	todo		
-base/iostream.jl	253	260	filesize	filesize(s::IOStream)	todo		
-base/iostream.jl	262	262	_eof_nolock	_eof_nolock(s::IOStream)	todo		
-base/iostream.jl	263	268	eof	eof(s::IOStream; cancel::CancelTokenArg=DEFAULT_CANCEL)	todo		
-base/iostream.jl	281	286	fdio	fdio(name::AbstractString, fd::Integer, own::Bool=false)	todo		
-base/iostream.jl	287	287	fdio	fdio(fd::Integer, own::Bool=false)	todo		
-base/iostream.jl	316	345	open	open(fname::String; lock = true, read :: Union{Bool,Nothing} = nothing, write :: Union{Bool,Nothing} = nothing, create :: Union{Bool,Nothing} = nothing, truncate :: Union{Bool,Nothing} = nothing, append :: Union{Bool,Nothing} = nothing, )	todo		
-base/iostream.jl	346	346	open	open(fname::AbstractString; kwargs...)	todo		
-base/iostream.jl	399	407	open	open(fname::AbstractString, mode::AbstractString; lock = true)	todo		
-base/iostream.jl	411	414	write	write(s::IOStream, b::UInt8)	todo		
-base/iostream.jl	416	426	unsafe_write	unsafe_write(s::IOStream, p::Ptr{UInt8}, nb::UInt; cancel::CancelTokenArg=DEFAULT_CANCEL)	todo		
-base/iostream.jl	429	429	bytesavailable	bytesavailable(s::IOStream)	todo		
-base/iostream.jl	431	447	readavailable	readavailable(s::IOStream; cancel::CancelTokenArg=DEFAULT_CANCEL)	todo		
-base/iostream.jl	449	455	read	read(s::IOStream, ::Type{UInt8})	todo		
-base/iostream.jl	458	470	read	read(s::IOStream, T::Union{Type{Int16},Type{UInt16},Type{Int32},Type{UInt32},Type{Int64},Type{UInt64}})	todo		
-base/iostream.jl	472	472	read	read(s::IOStream, ::Type{Float16})	todo		
-base/iostream.jl	473	473	read	read(s::IOStream, ::Type{Float32})	todo		
-base/iostream.jl	474	474	read	read(s::IOStream, ::Type{Float64})	todo		
-base/iostream.jl	477	483	unsafe_read	unsafe_read(s::IOStream, p::Ptr{UInt8}, nb::UInt)	todo		
-base/iostream.jl	487	488	take!	take!(s::IOStream)	todo		
-base/iostream.jl	490	493	readuntil	readuntil(s::IOStream, delim::UInt8; keep::Bool=false, cancel::CancelTokenArg=DEFAULT_CANCEL)	todo		
-base/iostream.jl	496	498	readuntil_string	readuntil_string(s::IOStream, delim::UInt8, keep::Bool)	todo		
-base/iostream.jl	499	503	readuntil	readuntil(s::IOStream, delim::AbstractChar; keep::Bool=false, cancel::CancelTokenArg=DEFAULT_CANCEL)	todo		
-base/iostream.jl	505	508	readline	readline(s::IOStream; keep::Bool=false, cancel::CancelTokenArg=DEFAULT_CANCEL)	todo		
-base/iostream.jl	510	533	copyuntil	copyuntil(out::IOBuffer, s::IOStream, delim::UInt8; keep::Bool=false, cancel::CancelTokenArg=DEFAULT_CANCEL)	todo		
-base/iostream.jl	535	540	copyuntil	copyuntil(out::IOStream, s::IOStream, delim::UInt8; keep::Bool=false, cancel::CancelTokenArg=DEFAULT_CANCEL)	todo		
-base/iostream.jl	542	568	readbytes_all!	readbytes_all!(s::IOStream, b::MutableDenseArrayType{UInt8}, nb::Integer)	todo		
-base/iostream.jl	570	585	readbytes_some!	readbytes_some!(s::IOStream, b::MutableDenseArrayType{UInt8}, nb::Integer)	todo		
-base/iostream.jl	599	603	readbytes!	readbytes!(s::IOStream, b::MutableDenseArrayType{UInt8}, nb=length(b); all::Bool=true, cancel::CancelTokenArg=DEFAULT_CANCEL)	todo		
-base/iostream.jl	605	634	read	read(s::IOStream)	todo		
-base/iostream.jl	646	654	read	read(s::IOStream, nb::Integer; all::Bool=true, cancel::CancelTokenArg=DEFAULT_CANCEL)	todo		
-base/iostream.jl	658	664	peek	peek(s::IOStream, ::Type{UInt8})	todo		
+base/iostream.jl	21	21	IOStream	IOStream(name::AbstractString, buf::Vector{UInt8})	modelled	iostream-inner-buffer-state;iostream-inner-string-bypass;iostream-inner-string-bytes;iostream-inner-converted-bytes;iostream-inner-conversion-before-lock;iostream-inner-lock-error-before-typeerror;iostream-inner-typeerror-lock-effects	Source-mirrored model JuliaLean.base.iostream.Models2Group18.newStreamWithBuffer; reviewed against Julia f755f49.
+base/iostream.jl	24	31	IOStream	IOStream(name::AbstractString, finalize::Bool)	modelled	iostream-allocation-dimensions;iostream-fill-identity;iostream-constructor-finalization-disabled;iostream-constructor-result-identity;iostream-zeros-fill-arguments;iostream-custom-finalizer-dispatch	Source-mirrored model JuliaLean.base.iostream.Models2Group18.newStreamFinalized; reviewed against Julia f755f49.
+base/iostream.jl	32	32	IOStream	IOStream(name::AbstractString)	modelled	iostream-default-finalization	Source-mirrored model JuliaLean.base.iostream.newStream; reviewed against Julia f755f49.
+base/iostream.jl	34	34	unsafe_convert	unsafe_convert(T::Type{Ptr{Cvoid}}, s::IOStream)	modelled	iostream-unsafe-convert-current-address;iostream-shared-buffer-pointer	Source-mirrored model JuliaLean.base.iostream.Models2Group18.unsafeConvert; reviewed against Julia f755f49.
+base/iostream.jl	35	35	show	show(io::IO, s::IOStream)	modelled	iostream-show-name-dispatch;iostream-show-result	Source-mirrored model JuliaLean.base.iostream.Models2Group18.showStream; reviewed against Julia f755f49.
+base/iostream.jl	37	47	_lock_ios	_lock_ios(s, expr)	modelled	iostream-lock-macro-input-graph;iostream-lock-macro-sharing	Source-mirrored model JuliaLean.base.iostream.Models2Group18.lockIosMacro; reviewed against Julia f755f49.
+base/iostream.jl	74	74	fd	fd(s::IOStream)	modelled	iostream-descriptor-exact	Source-mirrored model JuliaLean.base.iostream.Models2Group18.fd; reviewed against Julia f755f49.
+base/iostream.jl	76	76	stat	stat(s::IOStream)	modelled	iostream-constructor-finalization-disabled,iostream-constructor-result-identity,iostream-show-result	Reviewed line by line against pinned f755f49 source.
+base/iostream.jl	88	88	isopen	isopen(s::IOStream)	modelled	iostream-query-snapshot;iostream-query-error-state	Source-mirrored model JuliaLean.base.iostream.Models2Group18.isopen; reviewed against Julia f755f49.
+base/iostream.jl	90	93	close	close(s::IOStream)	modelled	iostream-constructor-finalization-disabled,iostream-constructor-result-identity,iostream-show-result	Reviewed line by line against pinned f755f49 source.
+base/iostream.jl	95	95	closewrite	closewrite(s::IOStream)	modelled	iostream-closewrite-world	Source-mirrored model JuliaLean.base.iostream.closewrite; reviewed against Julia f755f49.
+base/iostream.jl	97	102	flush	flush(s::IOStream)	modelled	iostream-constructor-finalization-disabled,iostream-constructor-result-identity,iostream-show-result	Reviewed line by line against pinned f755f49 source.
+base/iostream.jl	104	104	iswritable	iswritable(s::IOStream)	modelled	iostream-query-snapshot;iostream-closed-capability-isolation;iostream-query-error-state	Source-mirrored model JuliaLean.base.iostream.Models2Group18.iswritable; reviewed against Julia f755f49.
+base/iostream.jl	106	106	isreadable	isreadable(s::IOStream)	modelled	iostream-query-snapshot;iostream-closed-capability-isolation;iostream-query-error-state	Source-mirrored model JuliaLean.base.iostream.Models2Group18.isreadable; reviewed against Julia f755f49.
+base/iostream.jl	137	141	truncate	truncate(s::IOStream, n::Integer)	modelled	iostream-constructor-finalization-disabled,iostream-constructor-result-identity,iostream-show-result	Reviewed line by line against pinned f755f49 source.
+base/iostream.jl	158	163	seek	seek(s::IOStream, n::Integer)	modelled	iostream-constructor-finalization-disabled,iostream-constructor-result-identity,iostream-show-result	Reviewed line by line against pinned f755f49 source.
+base/iostream.jl	185	185	seekstart	seekstart(s::IO)	modelled	iostream-seekstart-origin;iostream-seekstart-custom-outcomes	Source-mirrored model JuliaLean.base.iostream.Models2Group18.seekstart; reviewed against Julia f755f49.
+base/iostream.jl	192	196	seekend	seekend(s::IOStream)	modelled	iostream-constructor-finalization-disabled,iostream-constructor-result-identity,iostream-show-result	Reviewed line by line against pinned f755f49 source.
+base/iostream.jl	215	220	skip	skip(s::IOStream, delta::Integer)	modelled	iostream-constructor-finalization-disabled,iostream-constructor-result-identity,iostream-show-result	Reviewed line by line against pinned f755f49 source.
+base/iostream.jl	247	251	position	position(s::IOStream)	modelled	iostream-constructor-finalization-disabled,iostream-constructor-result-identity,iostream-show-result	Reviewed line by line against pinned f755f49 source.
+base/iostream.jl	253	260	filesize	filesize(s::IOStream)	modelled	iostream-constructor-finalization-disabled,iostream-constructor-result-identity,iostream-show-result	Reviewed line by line against pinned f755f49 source.
+base/iostream.jl	262	262	_eof_nolock	_eof_nolock(s::IOStream)	modelled	iostream-eof-observed-end;iostream-eof-open-independence	Source-mirrored model JuliaLean.base.iostream.Models2Group18.eofNolock; reviewed against Julia f755f49.
+base/iostream.jl	263	268	eof	eof(s::IOStream; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	iostream-constructor-finalization-disabled,iostream-constructor-result-identity,iostream-show-result	Reviewed line by line against pinned f755f49 source.
+base/iostream.jl	281	286	fdio	fdio(name::AbstractString, fd::Integer, own::Bool=false)	modelled	iostream-fdio-constructed-identity;iostream-fdio-constructor-failure;iostream-fdio-conversion-stages;iostream-fdio-abi-assertion;iostream-fdio-unsafe-before-abi	Source-mirrored model JuliaLean.base.iostream.Models2Group18.fdioNamed; reviewed against Julia f755f49.
+base/iostream.jl	287	287	fdio	fdio(fd::Integer, own::Bool=false)	modelled	iostream-fdio-default-protocol;iostream-fdio-string-failure	Source-mirrored model JuliaLean.base.iostream.Models2Group18.fdio; reviewed against Julia f755f49.
+base/iostream.jl	316	345	open	open(fname::String; lock = true, read :: Union{Bool,Nothing} = nothing, write :: Union{Bool,Nothing} = nothing, create :: Union{Bool,Nothing} = nothing, truncate :: Union{Bool,Nothing} = nothing, append :: Union{Bool,Nothing} = nothing, )	modelled	iostream-open-mode-order,iostream-open-mode-keywords-result,iostream-open-mode-bool-check	Reviewed line by line against pinned f755f49 source.
+base/iostream.jl	346	346	open	open(fname::AbstractString; kwargs...)	modelled	iostream-open-string-assertion;iostream-open-string-effects	Runtime-value model openAbstractStringRuntime binds installed Core.typeassert, retaining expected String and actual converted value; selected convert/open preserve errors, effects and divergence. Reviewed against Julia f755f49.
+base/iostream.jl	399	407	open	open(fname::AbstractString, mode::AbstractString; lock = true)	modelled	iostream-open-mode-order;iostream-open-mode-keywords-result;iostream-open-mode-bool-check;iostream-open-mode-invalid-throw	Source-mirrored model JuliaLean.base.iostream.Models2Group18.openMode; reviewed against Julia f755f49.
+base/iostream.jl	411	414	write	write(s::IOStream, b::UInt8)	modelled	iostream-byte-write-unwritable	Reviewed f755f49 line by line: writeByte checks iswritable before locking, passes the Cint byte to ios_putc, then checked-converts its result to Int.
+base/iostream.jl	416	426	unsafe_write	unsafe_write(s::IOStream, p::Ptr{UInt8}, nb::UInt; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	iostream-byte-write-unwritable;iostream-closed-capability-isolation	Reviewed f755f49 line by line: unsafeWrite performs explicit-token precheck, writable check, locked ios_write, then checked Int conversion; precheck is the cancellation runtime boundary.
+base/iostream.jl	429	429	bytesavailable	bytesavailable(s::IOStream)	modelled	iostream-available-signed-count	Reviewed f755f49 line by line: bytesavailable locks around jl_nb_available and preserves its signed Int32 result.
+base/iostream.jl	431	447	readavailable	readavailable(s::IOStream; cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	iostream-cancellation-entry-failure	Reviewed f755f49 line by line: readavailable/readavailableVector preserve unconditional lock, refill/requery, installed Vector allocation, exact-count EOF check and both explicit unlock sites.
+base/iostream.jl	449	455	read	read(s::IOStream, ::Type{UInt8})	modelled	iostream-byte-read-peek-eof	Reviewed f755f49 line by line: readByte executes locked ios_getc, recognizes only -1 as EOF, and wraps the remaining Cint to UInt8.
+base/iostream.jl	458	470	read	read(s::IOStream, T::Union{Type{Int16},Type{UInt16},Type{Int32},Type{UInt32},Type{Int64},Type{UInt64}})	modelled	iostream-byte-read-peek-eof	Reviewed f755f49 line by line: readInteger computes sizeof(T), captures lock state, checks buffer_n, unlocks before EOF, reduces little-endian UInt64 to T, then unlocks.
+base/iostream.jl	472	472	read	read(s::IOStream, ::Type{Float16})	modelled	iostream-float-read-error-state	Reviewed f755f49 line by line: readFloat16Stream binds readInteger at Int16 before installed Float16 reinterpretation.
+base/iostream.jl	473	473	read	read(s::IOStream, ::Type{Float32})	modelled	iostream-float-read-error-state	Reviewed f755f49 line by line: readFloat32Stream binds readInteger at Int32 before installed Float32 reinterpretation.
+base/iostream.jl	474	474	read	read(s::IOStream, ::Type{Float64})	modelled	iostream-float-read-error-state	Reviewed f755f49 line by line: readFloat64Stream binds readInteger at Int64 before installed Float64 reinterpretation.
+base/iostream.jl	477	483	unsafe_read	unsafe_read(s::IOStream, p::Ptr{UInt8}, nb::UInt)	modelled	iostream-unsafe-read-short-count	Reviewed f755f49 line by line: unsafeRead compares the locked ios_readall count with nb after unlock and raises EOFError on any unequal count.
+base/iostream.jl	487	488	take!	take!(s::IOStream)	modelled	iostream-constructor-finalization-disabled,iostream-constructor-result-identity,iostream-show-result	Reviewed line by line against pinned f755f49 source.
+base/iostream.jl	490	493	readuntil	readuntil(s::IOStream, delim::UInt8; keep::Bool=false, cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	iostream-cancellation-entry-failure	Reviewed f755f49 line by line: readuntilByte checks cancellation before locking and passes delim, str=0 and chomp=!keep unchanged to jl_readuntil.
+base/iostream.jl	496	498	readuntil_string	readuntil_string(s::IOStream, delim::UInt8, keep::Bool)	modelled	iostream-constructor-finalization-disabled,iostream-constructor-result-identity,iostream-show-result	Reviewed line by line against pinned f755f49 source.
+base/iostream.jl	499	503	readuntil	readuntil(s::IOStream, delim::AbstractChar; keep::Bool=false, cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	iostream-cancellation-entry-failure	Reviewed f755f49 line by line: readuntilCharSharedIOBuffer binds actual IOBuffer defaults and takestring! over concrete shared fields/ByteMemory; jl_alloc_string/jl_string_to_genericmemory/jl_genericmemory_to_string stay typed C boundaries; selected non-ASCII copyuntil receives the resolved token.
+base/iostream.jl	505	508	readline	readline(s::IOStream; keep::Bool=false, cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	iostream-cancellation-entry-failure	Reviewed f755f49 line by line: readline checks cancellation before locked jl_readuntil with LF, str=1 and chomp=(keep ? 0 : 2).
+base/iostream.jl	510	533	copyuntil	copyuntil(out::IOBuffer, s::IOStream, delim::UInt8; keep::Bool=false, cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	iostream-cancellation-entry-failure	Reviewed f755f49 line by line: copyuntilSharedIOBuffer/copyuntilBufferPreserved retain source GC scope, Memory identity and one shared ByteHeap, native growth, short-circuit exits, ordered field updates, installed ensureroom/default EOF and exact assertion payload.
+base/iostream.jl	535	540	copyuntil	copyuntil(out::IOStream, s::IOStream, delim::UInt8; keep::Bool=false, cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	iostream-cancellation-entry-failure	Reviewed f755f49 line by line: copyuntilStream checks cancellation, nests output/source lock scopes in order, calls ios_copyuntil, discards its count and returns the original output.
+base/iostream.jl	542	568	readbytes_all!	readbytes_all!(s::IOStream, b::MutableDenseArrayType{UInt8}, nb::Integer)	modelled	iostream-cancellation-entry-failure;iostream-unsafe-read-short-count	Reviewed f755f49 line by line: readbytesAllPreserved retains GC-preserved unbounded source loop, wrapping Int growth, resize catch/unlock/rethrow, selected dense-array/Integer dispatch, EOF short circuits and final shrink; readbytesAllVector closes the fixed Vector/Int caller.
+base/iostream.jl	570	585	readbytes_some!	readbytes_some!(s::IOStream, b::MutableDenseArrayType{UInt8}, nb::Integer)	modelled	iostream-unsafe-read-short-count	Reviewed f755f49 line by line: readbytesSomePreserved keeps selected dense-array/Integer resize, GC preservation inside the lock, one ios_read, checked Int conversion, fresh length query and conditional shrink.
+base/iostream.jl	599	603	readbytes!	readbytes!(s::IOStream, b::MutableDenseArrayType{UInt8}, nb=length(b); all::Bool=true, cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	iostream-cancellation-entry-failure	Reviewed f755f49 line by line: readbytes checks cancellation before selecting exactly one all/some callee; readbytesDefault evaluates length(b) before entering that method.
+base/iostream.jl	605	634	read	read(s::IOStream)	modelled	iostream-read-all-buffer-identity	Reviewed f755f49 line by line: readAllVector closes StringVector/readbytes_all!/resize! and stream queries, catches only IOError hints, preserves wrapping remaining-size arithmetic, and returns the allocated vector rather than resize's result.
+base/iostream.jl	646	654	read	read(s::IOStream, nb::Integer; all::Bool=true, cancel::CancelTokenArg=DEFAULT_CANCEL)	modelled	iostream-cancellation-entry-failure	Reviewed f755f49 line by line: readCountVector checks cancellation, short-circuits the typemax test, binds fixed 1024-byte allocation, retains Integer-selected allocation/read dispatch, ignores resize's result and returns the allocated vector.
+base/iostream.jl	658	664	peek	peek(s::IOStream, ::Type{UInt8})	modelled	iostream-byte-read-peek-eof	Reviewed f755f49 line by line: peekByte executes locked ios_peekc, recognizes only -1 as EOF, and wraps remaining Cint values to UInt8.

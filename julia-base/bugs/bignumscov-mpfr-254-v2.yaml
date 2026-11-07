@@ -1,0 +1,93 @@
+id: bignumscov-mpfr-254-v2
+title: Scoped BigFloat rounding is not equivalent to the documented save and restore program
+priority: P3
+kind: documentation
+area: BigNums
+files:
+  - base/mpfr.jl
+  - base/rounding.jl
+functions:
+  - setrounding(::Function, ::Type{BigFloat}, ::RoundingMode)
+summary: |
+  A RoundUp callback scope keeps reporting RoundUp after the callback calls
+  the global setter with RoundDown. After the scope, RoundDown remains as the
+  default. The documented save/set/callback/restore program instead reports
+  RoundDown inside the callback and restores the initial RoundNearest default.
+likelihood: |
+  A callback, or a library it calls, must use the global setter while a scoped
+  rounding override is active. Ordinary scopes without such mutation are unaffected.
+maybe_intended: |
+  This is a documentation mismatch. PR #51362 deliberately introduced ScopedValues
+  for MPFR rounding to address thread safety. A lexical override has priority
+  over the global default, so changing that default does not change the active
+  scope. Reinstating global save-and-restore would undo the intended isolation.
+reproducer: |
+  old = rounding(BigFloat)
+  try
+      setrounding(BigFloat, RoundNearest)
+      observed = setrounding(BigFloat, RoundUp) do
+          setrounding(BigFloat, RoundDown)
+          rounding(BigFloat)
+      end
+      @assert observed == RoundUp && rounding(BigFloat) == RoundDown
+      println("REPRODUCED bignumscov-mpfr-254-v2")
+  finally
+      setrounding(BigFloat, old)
+  end
+output:
+  release: |
+    REPRODUCED bignumscov-mpfr-254-v2
+  nightly: |
+    REPRODUCED bignumscov-mpfr-254-v2
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  Document the scoped override separately from the global default. Explain
+  that a global setter inside a scope changes the default that becomes visible
+  when the scope ends, while the active lexical override keeps priority.
+promised_by: |
+  At pinned source f755f49a9e41380d7da126b3c1db9fe7f83dd027,
+  base/rounding.jl:228-234 says:
+  "Change the rounding mode of floating point type `T` for the duration of `f`. It is logically
+  equivalent to:
+
+      old = rounding(T)
+      setrounding(T, mode)
+      f()
+      setrounding(T, old)"
+  This equivalence fails for the callback in the reproducer.
+cause: |
+  base/mpfr.jl:254-255 delegates to the scoped raw setter at lines 248-250,
+  which binds CURRENT_ROUNDING_MODE with ScopedValues.@with. The reader at
+  line 246 prefers this binding, while the global setter at line 247 writes
+  ROUNDING_MODE[]. Exiting the binding does not restore that separate global Ref.
+possible_fix: |
+  Replace the global-setter equivalence in the callback docstring with the
+  lexical-override semantics. Keep the global setter's warning distinct from
+  the scoped method's task-inherited behavior.
+duplicates:
+  issues:
+    - number: 51277
+      state: open
+      relation: related
+      note: Task-state floating-point environment proposal, not this doc mismatch
+  prs:
+    - number: 51362
+      state: merged
+      relation: related
+      note: Implementation change introducing ScopedValues for MPFR rounding
+  queries:
+    - tool: gh search issues --repo JuliaLang/julia
+      query: setrounding
+    - tool: gh search issues --repo JuliaLang/julia
+      query: setrounding modes
+    - tool: gh search issues --repo JuliaLang/julia
+      query: setrounding scoped
+    - tool: gh search prs --repo JuliaLang/julia
+      query: setrounding ScopedValue
+    - tool: gh search prs --repo JuliaLang/julia
+      query: setrounding modes
+lean:
+  property: JuliaLean.Proofs.base.mpfr.Round1.ScopedSetRoundingDocumentedCorrect
+  theorem: JuliaLean.ChatGPT.Batch4.Group3.BignumscovMpfr254V2_refuted

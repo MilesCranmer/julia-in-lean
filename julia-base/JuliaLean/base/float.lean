@@ -2264,8 +2264,14 @@ Julia source: base/float.jl:706-706 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 isfinite(x::Real) = decompose(x)[3] != 0
 ```
 -/
-def isfinite_Real {R N E : Type} (decompose : R → N × E × JInt .i64) (x : R) : Bool :=
-  !(int.eq (decompose x).2.2 (int.lit .i64 0))
+def isfinite_Real {R N E D : Type}
+    (decompose : R → N × E × D)
+    (notEqualZero : D → JInt .i64 → Bool) (x : R) : Bool :=
+  notEqualZero (decompose x).2.2 (JInt.lit .i64 0)
+
+def isfiniteReal {R N E D : Type} (decompose : R → N × E × D)
+    (zero : D) (equal : D → D → Bool) (x : R) : Bool :=
+  !(equal (decompose x).2.2 zero)
 
 /--
 Julia source: base/float.jl:707-708 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -2485,13 +2491,15 @@ function _precision(x, base::Integer)
 end
 ```
 -/
-def _precision {α : Type} {t : IntTy} (_precision_with_base_2 : α → JInt .i64)
-    (floor_div_log2 : JInt .i64 → JInt t → Jl (JInt .i64)) (x : α) (base : JInt t) : Jl (JInt .i64) :=
-  if !(int.lt (int.lit .i64 1) base) then
+def _precision {α B : Type} (_precision_with_base_2 : α → JInt .i64)
+    (base_gt_one base_is_two : B → Bool)
+    (floor_div_log2 : JInt .i64 → B → Jl (JInt .i64))
+    (x : α) (base : B) : Jl (JInt .i64) :=
+  if !(base_gt_one base) then
     .error (.domainError "`base` cannot be less than 2.")
   else
     let p := _precision_with_base_2 x
-    if int.eq base (int.lit .i64 2) then .ok p else floor_div_log2 p base
+    if base_is_two base then .ok p else floor_div_log2 p base
 
 /--
 Julia source: base/float.jl:805-805 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -2499,9 +2507,10 @@ Julia source: base/float.jl:805-805 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 precision(::Type{T}; base::Integer=2) where {T<:AbstractFloat} = _precision(T, base)
 ```
 -/
-def precision_Type {α : Type} {t : IntTy} (_precision_with_base_2 : α → JInt .i64)
-    (floor_div_log2 : JInt .i64 → JInt t → Jl (JInt .i64)) (T : α) (base : JInt t) : Jl (JInt .i64) :=
-  _precision _precision_with_base_2 floor_div_log2 T base
+def precision_Type {α B : Type} (_precision_with_base_2 : α → JInt .i64)
+    (base_gt_one base_is_two : B → Bool)
+    (floor_div_log2 : JInt .i64 → B → Jl (JInt .i64)) (T : α) (base : B) : Jl (JInt .i64) :=
+  _precision _precision_with_base_2 base_gt_one base_is_two floor_div_log2 T base
 def precision_Type_default (T : FTy) : JInt .i64 :=
   _precision_with_base_2 T
 
@@ -2517,9 +2526,10 @@ def precision_AbstractFloat {F T B R : Type} (typeof : F → T)
 def precision_AbstractFloat_default {F T R : Type} (typeof : F → T)
     (precision_Type_default : T → R) (x : F) : R :=
   precision_Type_default (typeof x)
-def precision_val {T : FTy} {t : IntTy} (floor_div_log2 : JInt .i64 → JInt t → Jl (JInt .i64))
-    (x : FV T) (base : JInt t) : Jl (JInt .i64) :=
-  precision_AbstractFloat (fun _ => T) (precision_Type _precision_with_base_2 floor_div_log2) x base
+def precision_val {T : FTy} {B : Type} (base_gt_one base_is_two : B → Bool)
+    (floor_div_log2 : JInt .i64 → B → Jl (JInt .i64)) (x : FV T) (base : B) : Jl (JInt .i64) :=
+  precision_AbstractFloat (fun _ => T)
+    (precision_Type _precision_with_base_2 base_gt_one base_is_two floor_div_log2) x base
 def precision_val_default {T : FTy} (x : FV T) : JInt .i64 :=
   precision_AbstractFloat_default (fun _ => T) precision_Type_default x
 
@@ -3498,3 +3508,542 @@ def float_LinRange {T L FT Res : Type} (floatT : T → FT)
   LinRange_ctor (floatT r.start) (floatT r.stop) (length r)
 
 end JuliaLean.base.float
+
+namespace JuliaLean.RandomSampling
+
+open JuliaLean.Float
+
+/-- `y <= x` for `y::Int64`, `x::Float64` (Julia's `x >= y`), `base/float.jl:649-664`:
+`fy = Float64(y); (fy < x) | ((fy == x) & ((fy == Float64(typemax(Int))) | (y <= unsafe_trunc(Int, fy))))`.
+`unsafe_trunc` is only reached for finite `fy`, where it is exact truncation. -/
+def intLeF64 (y : JInt64) (x : F64) : Bool :=
+  let fy := F64.ofInt y.val
+  let q := F64.toRat fy
+  F64.lt fy x || (F64.eq fy x &&
+    (F64.eq fy (F64.ofInt (2 ^ 63 - 1)) || decide (y.val ≤ q.1.tdiv (q.2 : Int))))
+
+end JuliaLean.RandomSampling
+
+namespace JuliaLean.Float.F64
+
+/-- `base/float.jl:853,863`: `n` applications of nextfloat, with negative steps reversed. -/
+def nextfloat (x : F64) (n : Int := 1) : F64 := JuliaLean.Float.F64.extraNext x (decide (n < 0)) n.natAbs
+
+/-- `base/float.jl:871,879`: `n` applications of prevfloat, with negative steps reversed. -/
+def prevfloat (x : F64) (n : Int := 1) : F64 := JuliaLean.Float.F64.extraNext x (decide (n > 0)) n.natAbs
+/-- `base/float.jl:981,987-995`: epsilon via the rounded difference after toggling bit zero. -/
+def eps (x : F64 := one) : F64 := abs (sub x (ofBits (Nat.xor (toBits x) 1)))
+/-- Safe call sites of `base/float.jl:408-433`: exact truncation followed by the fixed-width intrinsic. -/
+private def extraUnsafeTrunc (t : IntTy) (x : F64) : JInt t :=
+  let (n, d) := toRat x
+  JInt.wrap t (n.tdiv (Int.ofNat d))
+
+/-- `base/float.jl:881-931`: the unsigned/small-signed and large-signed range-check branches. -/
+def truncInt (t : IntTy) (x : F64) : Jl (JInt t) :=
+  let lo := ofJInt (JInt.typemin t)
+  let hi := ofJInt (JInt.typemax t)
+  let valid := if !t.signed || t.bits < 64 then
+      lt (sub lo one) x && lt x (add hi one)
+    else le lo x && lt x hi
+  if valid then .ok (extraUnsafeTrunc t x) else .error (.inexactError "round")
+
+/-- `base/float.jl:895-927`: exact integer conversion checks integrality after the range checks. -/
+def int (t : IntTy) (x : F64) : Jl (JInt t) :=
+  let lo := ofJInt (JInt.typemin t)
+  let hi := ofJInt (JInt.typemax t)
+  let upper := if !t.signed || t.bits < 64 then add hi one else hi
+  if le lo x && lt x upper && isinteger x then .ok (extraUnsafeTrunc t x)
+  else .error (.inexactError t.name)
+
+end JuliaLean.Float.F64
+namespace JuliaLean.Promotion
+
+open JuliaLean.Float
+
+
+/-- `Float32(x::UInt128)` after `abs`; `base/float.jl:307-319`, with UInt32 arithmetic. -/
+def f32MagnitudeBits (x : Nat) : Nat :=
+  let n := x.log2 + 1
+  let y :=
+    if n ≤ 24 then (x % 2 ^ 32) * 2 ^ (24 - n) % 2 ^ 32 % 2 ^ 23
+    else
+      let y := (x / 2 ^ (n - 25)) % 2 ^ 32 % 2 ^ 24
+      let y := (y + 1) / 2
+      if x % 2 ^ (n - 25) == 0 && (x / 2 ^ (n - 25)) % 2 == 1 then y - y % 2 else y
+  let d := (n + 126) % 2 ^ 32 * 2 ^ 23 % 2 ^ 32
+  (d + y) % 2 ^ 32
+
+/-- `Float32(x::UInt128)`; `base/float.jl:307-319`. `trailing_zeros(x) == n-25` holds
+exactly when the bits below position `n-25` are zero and bit `n-25` is set. -/
+def float32OfUInt128 (x : JInt .u128) : Fl single :=
+  if x.val = 0 then Fl.zero else Fl.ofBits (f32MagnitudeBits x.val.toNat)
+
+/-- `Float32(x::Int128)`; `base/float.jl:321-336`. -/
+def float32OfInt128 (x : JInt .i128) : Fl single :=
+  if x.val = 0 then Fl.zero
+  else
+    let s := if x.val < 0 then 2 ^ 31 else 0
+    Fl.ofBits ((s + f32MagnitudeBits x.val.natAbs) % 2 ^ 32)
+
+/-- `Tf(y)` for a `BitInteger` `y`: `sitofp`/`uitofp` (`base/float.jl:243-256`), the
+128-bit methods `base/float.jl:265-336`, and `Float16(x::Int128) = Float16(Float64(x))`
+(`base/float.jl:339-340`). -/
+def ofJInt {t : IntTy} : (T : FTy) → JInt t → FV T
+  | .f64, y => Fl.ofF64 (F64.ofJInt y)
+  | .f32, y =>
+    match t, y with
+    | .u128, y => float32OfUInt128 y
+    | .i128, y => float32OfInt128 y
+    | _, y => Fl.ofInt y.val
+  | .f16, y =>
+    match t with
+    | .u128 | .i128 => Fl.convert (Fl.ofF64 (F64.ofJInt y))
+    | _ => Fl.ofInt y.val
+
+/-- How `op(x::Tf, y::Ti)` dispatches for `op ∈ (==, <, <=)`. -/
+inductive Rule where
+  /-- The exact methods generated at `base/float.jl:649-676`. -/
+  | exact
+  /-- `op(Float64(x), Float64(y))`; `base/float.jl:680-684`. -/
+  | viaF64
+  /-- `op(Float32(x), Float32(y))`; `base/float.jl:686-687`. -/
+  | viaF32
+  /-- `op(promote(x, y)...)` with `promote_type(Tf, Ti) == Tf`; `base/promotion.jl:516-518`,
+  `base/float.jl:243-263`. -/
+  | promote
+  deriving DecidableEq, Repr
+
+def rule : FTy → IntTy → Rule
+  | .f32, .i64 | .f32, .u64 | .f32, .i128 | .f32, .u128 => .exact
+  | .f64, .i64 | .f64, .u64 | .f64, .i128 | .f64, .u128 => .exact
+  | .f16, .i64 | .f16, .u64 | .f16, .i128 | .f16, .u128 => .viaF64
+  | .f16, .i32 | .f16, .u32 | .f32, .i32 | .f32, .u32 => .viaF64
+  | .f16, .i16 | .f16, .u16 => .viaF32
+  | _, _ => .promote
+
+/-- Comparison operators of `base/float.jl:649-690`. -/
+inductive Op where
+  | eq | lt | le
+  deriving DecidableEq, Repr
+
+def Op.float {f : Fmt} : Op → Fl f → Fl f → Bool
+  | .eq => Fl.eq | .lt => Fl.lt | .le => Fl.le
+
+def Op.int : Op → Int → Int → Bool
+  | .eq => fun a b => decide (a = b) | .lt => fun a b => decide (a < b) | .le => fun a b => decide (a ≤ b)
+
+/-- `op(x::Tf, y::Ti)`. -/
+def cmpFI (op : Op) {T : FTy} {t : IntTy} (x : FV T) (y : JInt t) : Bool :=
+  match rule T t with
+  | .exact =>
+    let fy := ofJInt T y
+    let tmax := ofJInt T (JInt.typemax t)
+    let ty := (fy.unsafeTrunc t).val
+    match op with
+    | .eq => Fl.eq x fy && !Fl.eq fy tmax && y.val == ty
+    | .lt => Fl.lt x fy || (Fl.eq x fy && Fl.lt fy tmax && decide (ty < y.val))
+    | .le => Fl.lt x fy || (Fl.eq x fy && Fl.lt fy tmax && decide (ty ≤ y.val))
+  | .viaF64 => op.float (Fl.convert (f := double) x) (ofJInt .f64 y)
+  | .viaF32 => op.float (Fl.convert (f := single) x) (ofJInt .f32 y)
+  | .promote => op.float x (ofJInt T y)
+
+/-- `op(x::Ti, y::Tf)`; `==(y::Ti, x::Tf) = x==y` at `base/float.jl:656`. -/
+def cmpIF (op : Op) {T : FTy} {t : IntTy} (x : JInt t) (y : FV T) : Bool :=
+  match rule T t with
+  | .exact =>
+    let fx := ofJInt T x
+    let tmax := ofJInt T (JInt.typemax t)
+    let tx := (fx.unsafeTrunc t).val
+    match op with
+    | .eq => cmpFI .eq y x
+    | .lt => Fl.lt fx y || (Fl.eq fx y && (Fl.eq fx tmax || decide (x.val < tx)))
+    | .le => Fl.lt fx y || (Fl.eq fx y && (Fl.eq fx tmax || decide (x.val ≤ tx)))
+  | .viaF64 => op.float (ofJInt .f64 x) (Fl.convert (f := double) y)
+  | .viaF32 => op.float (ofJInt .f32 x) (Fl.convert (f := single) y)
+  | .promote => op.float (ofJInt T x) y
+
+/-! Float-to-integer conversion, `base/float.jl:881-931`. -/
+
+/-- `Tf(typemin(Ti))` and `Tf(typemax(Ti))`, evaluated when the methods are generated. -/
+def lo (T : FTy) (t : IntTy) : FV T := ofJInt T (JInt.typemin t)
+def hi (T : FTy) (t : IntTy) : FV T := ofJInt T (JInt.typemax t)
+
+/-- The first branch (`Ti <: Unsigned || sizeof(Ti) < sizeof(Tf)`); `base/float.jl:883`. -/
+def smallBranch (T : FTy) (t : IntTy) : Bool := !t.signed || t.bits / 8 < T.bytes
+
+/-- `round(Ti, x::Tf, RoundToZero)`, i.e. `trunc(Ti, x)`; `base/float.jl:888-894,914-920`. -/
+def truncTo (T : FTy) (t : IntTy) (x : FV T) : Jl (JInt t) :=
+  let valid :=
+    if smallBranch T t then
+      Fl.lt (Fl.add (lo T t) (Fl.neg (one T))) x && Fl.lt x (Fl.add (hi T t) (one T))
+    else
+      let lower := if (lo T t).toBits == (Fl.inf true : FV T).toBits then Fl.lt (lo T t) x
+        else Fl.le (lo T t) x
+      lower && Fl.lt x (hi T t)
+  if valid then .ok (x.unsafeTrunc t) else .error (.inexactError "round")
+
+/-- `Ti(x::Tf)`; `base/float.jl:895-902,921-927`. -/
+def toInt (T : FTy) (t : IntTy) (x : FV T) : Jl (JInt t) :=
+  let upper := if smallBranch T t then Fl.add (hi T t) (one T) else hi T t
+  if Fl.le (lo T t) x && Fl.lt x upper && x.isinteger then .ok (x.unsafeTrunc t)
+  else .error (.inexactError t.name)
+
+end JuliaLean.Promotion
+
+namespace JuliaLean.IntArith.Division
+
+/-- `base/float.jl:235-236`: unsigned absolute value reinterprets signed abs. -/
+def uabs (x : Value) : Value := if x.ty.signed then unsigned (abs x) else abs x
+
+end JuliaLean.IntArith.Division
+
+namespace JuliaLean.IntArith.NumberTheory
+
+/-- `uabs`, `base/float.jl:235-236`, as used by `base/intfuncs.jl:544`.
+Reinterpretation follows the wrapping absolute value, including signed typemin. -/
+def uabs {t : IntTy} (a : JInt t) : JInt t.toUnsigned :=
+  JInt.rem t.toUnsigned (abs a)
+
+end JuliaLean.IntArith.NumberTheory
+
+namespace JuliaLean.FloatRanges
+
+open JuliaLean.Float
+
+/-- A correctly rounded decimal literal `n / d`, as Julia's parser produces it. -/
+def dec (n : Int) (d : Nat := 1) : F64 := F64.roundRat n d false
+
+/-- `+0.0`, `zero(Float64)`. -/
+def fzero : F64 := F64.zero false
+
+/-- `Float64(i)` for a machine integer; `base/float.jl:243-305`. -/
+def flt {t : IntTy} (i : JInt t) : F64 := F64.ofJInt i
+
+/-- `maxintfloat(Float32, Int)`, a Float32 promoted to Float64 by the comparison in
+`rat`; `base/floatfuncs.jl:35,46`. -/
+def ratBound : F64 := dec 16777216
+
+/-- `maxintfloat(Float64, Int)`, `base/floatfuncs.jl:34,46`. -/
+def maxintF : F64 := dec 9007199254740992
+
+end JuliaLean.FloatRanges
+
+namespace JuliaLean.Promotion
+
+/-- `decompose(x)` for an `IEEEFloat`; `base/float.jl:747-778`. -/
+def decomposeF {f : Fmt} (x : Fl f) : Int × Int × Int :=
+  if x.isnan then (0, 0, 0)
+  else if x.isinf then (if x.signbit then -1 else 1, 0, 0)
+  else
+    let e := x.expField
+    let s : Int := x.frac + if e == 0 then 0 else 2 ^ f.sb
+    (s, (e : Int) - (f.bias + f.sb) + (if e == 0 then 1 else 0),
+      if x.signbit then -1 else 1)
+
+end JuliaLean.Promotion
+
+namespace JuliaLean.FloatIntCov.Float
+
+open JuliaLean JuliaLean.Promotion
+
+/-- `base/float.jl:235-236`: integer uabs, reusing the fixed-width source model. -/
+def integerUabs (x : JuliaLean.IntArith.Division.Value) : JuliaLean.IntArith.Division.Value :=
+  JuliaLean.IntArith.Division.uabs x
+
+def uintTy : FTy → IntTy | .f16 => .u16 | .f32 => .u32 | .f64 => .u64
+def intTy : FTy → IntTy | .f16 => .i16 | .f32 => .i32 | .f64 => .i64
+
+def signMask (T : FTy) : Nat := 2 ^ (T.fmt.eb + T.fmt.sb)
+def exponentMask (T : FTy) : Nat := T.fmt.emax * 2 ^ T.fmt.sb
+def exponentOne (T : FTy) : Nat := T.fmt.bias * 2 ^ T.fmt.sb
+def exponentHalf (T : FTy) : Nat := (T.fmt.bias - 1) * 2 ^ T.fmt.sb
+def significandMask (T : FTy) : Nat := 2 ^ T.fmt.sb - 1
+def mantissa {T : FTy} (x : FV T) : Nat := x.toBits % 2 ^ T.fmt.sb
+def significandBits (T : FTy) : Nat := T.fmt.sb
+def exponentBits (T : FTy) : Nat := T.fmt.eb
+def exponentBias (T : FTy) : Nat := T.fmt.bias
+def exponentMax (T : FTy) : Int := (T.fmt.emax : Int) - T.fmt.bias - 1
+def exponentRawMax (T : FTy) : Nat := T.fmt.emax
+def ieee754ExponentMin (T : FTy) : Int := 1 - exponentMax T
+def exponentMin (T : FTy) : Int := 1 - exponentMax T
+
+/-- `base/float.jl:100-137`: reinterpretations, masks, and format traits. -/
+def reinterpretUnsigned {T : FTy} (x : FV T) : JInt (uintTy T) :=
+  JInt.wrap (uintTy T) (Int.ofNat x.toBits)
+
+def reinterpretSigned {T : FTy} (x : FV T) : JInt (intTy T) :=
+  JInt.wrap (intTy T) (Int.ofNat x.toBits)
+
+/-- `base/float.jl:171-223`: assemble a sign, exponent field, and significand. -/
+def ieee754Representation (T : FTy) (sign : Bool) (exponent significand : Nat) : FV T :=
+  Fl.ofBits ((if sign then 1 else 0) * 2 ^ (T.fmt.eb + T.fmt.sb) +
+    exponent * 2 ^ T.fmt.sb + significand)
+
+def ieeeOmega (T : FTy) (sign : Bool) : FV T :=
+  ieee754Representation T sign (T.fmt.emax - 1) (significandMask T)
+def ieeeNanPayload (T : FTy) (sign : Bool) (payload : Nat) : FV T :=
+  ieee754Representation T sign T.fmt.emax payload
+def ieeeNan (T : FTy) (sign : Bool) : FV T :=
+  ieeeNanPayload T sign (2 ^ (T.fmt.sb - 1))
+def ieeeInf (T : FTy) (sign : Bool) : FV T := ieeeNanPayload T sign 0
+def ieeeSubnormal (T : FTy) (sign : Bool) (payload : Nat) : FV T :=
+  ieee754Representation T sign 0 payload
+def ieeeZero (T : FTy) (sign : Bool) : FV T := ieeeSubnormal T sign 0
+
+/-- Fixed-width conversions and promotions at `base/float.jl:241-350`. -/
+def floatOfInteger (T : FTy) {t : IntTy} (x : JInt t) : FV T := ofJInt T x
+def float16IntegerFallback {α : Type} (toFloat32 : α → FV .f32) (x : α) : FV .f16 :=
+  Fl.convert (toFloat32 x)
+def floatConvert (T S : FTy) (x : FV S) : FV T := Fl.convert x
+def abstractFloatOfInteger {t : IntTy} (x : JInt t) : FV .f64 := ofJInt .f64 x
+
+def floatPromoteRule (T : FTy) (_t : IntTy) : FTy := T
+def floatWiden : FTy → FTy | .f16 => .f32 | .f32 => .f64 | .f64 => .f64
+
+def boolOfFloat16 (x : FV .f16) : Jl Bool :=
+  if Fl.eq x (Fl.zero : FV .f16) then .ok false
+  else if Fl.eq x (Fl.ofInt 1 : FV .f16) then .ok true
+  else .error (.inexactError "Bool")
+
+/-- Scalar and type routes at `base/float.jl:367-387`. -/
+def floatScalar {α β : Type} (abstractFloat : α → β) (x : α) : β := abstractFloat x
+def floatNumberType {α β : Type} (zero : α) (float : α → β) : β := float zero
+def floatAbstractType (T : FTy) : FTy := T
+def floatBottomType : Option FTy := none
+def floatBottomError {α : Type} : Jl α := .error (.methodError "float")
+
+/-- `base/float.jl:408-450`: unsafe truncation has arbitrary out-of-range behavior;
+the model fixes that behavior to wrapping the exact truncation. -/
+def unsafeTrunc (T : FTy) (t : IntTy) (x : FV T) : JInt t := x.unsafeTrunc t
+
+/-- Generated checked Float-to-Integer conversions at `base/float.jl:881-931`. -/
+def checkedTrunc (T : FTy) (t : IntTy) (x : FV T) := truncTo T t x
+def checkedInteger (T : FTy) (t : IntTy) (x : FV T) := toInt T t x
+def roundSigned (T : FTy) (x : FV T) := truncTo T .i64 x
+def roundUnsigned (T : FTy) (x : FV T) := truncTo T .u64 x
+
+inductive RoundDir where | down | up | toZero | fromZero
+  deriving DecidableEq, Repr
+
+/-- `base/float.jl:463-466`. -/
+def roundsUp (negative : Bool) : RoundDir → Bool
+  | .down => false | .up => true | .toZero => negative | .fromZero => !negative
+
+/-- `_round_convert` at `base/float.jl:467-474`, with conversion and adjacent-float primitives explicit. -/
+def roundConvert {α : Type} (convert : Int → α) (lt gt : α → α → Bool)
+    (next prev : α → α) (xInteger : Int) (x : α) (up : Bool) : α :=
+  let xt := convert xInteger
+  if up then if lt xt x then next xt else xt
+  else if gt xt x then prev xt else xt
+
+/-- Primitive calls at `base/float.jl:458-492`, kept explicit because LLVM supplies them. -/
+structure PrimitiveOps (T : FTy) where
+  neg : FV T → FV T
+  add : FV T → FV T → FV T
+  sub : FV T → FV T → FV T
+  mul : FV T → FV T → FV T
+  div : FV T → FV T → FV T
+  muladd : FV T → FV T → FV T → FV T
+  trunc : FV T → FV T
+  floor : FV T → FV T
+  ceil : FV T → FV T
+  nearest : FV T → FV T
+
+def primitiveCalls {T : FTy} (ops : PrimitiveOps T) (x y z : FV T) :=
+  (ops.neg x, ops.add x y, ops.sub x y, ops.mul x y, ops.div x y, ops.muladd x y z,
+   ops.trunc x, ops.floor x, ops.ceil x, ops.nearest x)
+
+/-- `base/float.jl:498-506`: raw exponent and explicit finite mantissa. -/
+def unbiasedExponent {T : FTy} (x : FV T) : Nat := x.expField
+def explicitMantissa {T : FTy} (x : FV T) : Nat :=
+  x.frac + if x.expField = 0 then 0 else 2 ^ T.fmt.sb
+
+def leadingZeros (width n : Nat) : Nat := if n = 0 then width else width - 1 - n.log2
+
+/-- `_to_float` at `base/float.jl:508-522`: normalize a mantissa, adjust its exponent, and pack fields. -/
+def toFloatFields (T : FTy) (number : Nat) (ep : Int) : FV T :=
+  let lz : Int := leadingZeros T.fmt.width number - T.fmt.eb
+  let shifted := if lz ≥ 0 then number * 2 ^ lz.toNat else number / 2 ^ (-lz).toNat
+  let ep := ep - lz
+  let bits := if ep ≥ 0 then
+      shifted % 2 ^ T.fmt.sb + ((ep + 1).toNat * 2 ^ T.fmt.sb) % (2 ^ T.fmt.width)
+    else (shifted / 2 ^ (-ep).toNat) % 2 ^ T.fmt.sb
+  Fl.ofBits bits
+
+/-- Exact mathematical remainder of finite nonzero IEEE inputs, used to specify `rem_internal`. -/
+def remInternal {T : FTy} (x y : FV T) : FV T :=
+  let a := x.toRat
+  let b := y.toRat
+  let numerator := a.1 * (b.2 : Int)
+  let denominator := b.1 * (a.2 : Int)
+  let q := numerator.tdiv denominator
+  Fl.roundRat (a.1 * (b.2 : Int) - b.1 * (a.2 : Int) * q) (a.2 * b.2) x.signbit
+
+/-- `base/float.jl:590-598`. -/
+def rem {T : FTy} (x y : FV T) : FV T :=
+  if x.isfinite && !x.iszero && y.isfinite && !y.iszero then
+    remInternal x y
+  else if x.isinf || y.isnan || y.iszero then Fl.nan
+  else x
+
+/-- `base/float.jl:600-612`. -/
+def mod {T : FTy} (x y : FV T) : FV T :=
+  if y.isinf && x.isfinite then x
+  else
+    let r := rem x y
+    if r.iszero then Fl.zero y.signbit
+    else if Fl.lt (Fl.zero) r != Fl.lt (Fl.zero) y then Fl.add r y
+    else r
+
+/-- Comparison bodies at `base/float.jl:615-634`. -/
+def fpKey {T : FTy} (x : FV T) : Int :=
+  let i := (reinterpretSigned x).val
+  if i < 0 then -(2 ^ (T.fmt.width - 1) : Int) - 1 - i else i
+
+/-- Generated mixed float/integer comparison methods at `base/float.jl:649-687`. -/
+def mixedComparisons {T : FTy} {t : IntTy} (x : FV T) (y : JInt t) :=
+  (cmpFI .eq x y, cmpFI .lt x y, cmpFI .le x y,
+   cmpIF .eq y x, cmpIF .lt y x, cmpIF .le y x)
+
+def floatAbs {T : FTy} (x : FV T) : FV T := Fl.ofBits x.magnitude
+
+def genericIsnanNumber {α : Type} (_x : α) : Bool := false
+def abstractIsnan {α : Type} (ne : α → α → Bool) (x : α) : Bool := ne x x
+def abstractIsfinite {α : Type} (sub : α → α → α) (isnan : α → Bool) (x : α) : Bool :=
+  !isnan (sub x x)
+def genericIsfiniteReal {α : Type} (decompose : α → Int × Int × Int) (x : α) : Bool :=
+  (decompose x).2.2 != 0
+def genericIsfiniteInteger (_x : Int) : Bool := true
+def genericIsinfReal {α : Type} (isnan isfinite : α → Bool) (x : α) : Bool :=
+  !isnan x && !isfinite x
+
+/-- `base/float.jl:745-778`: `(num,pow,den)` decomposition. -/
+def decompose {T : FTy} (x : FV T) : Int × Int × Int :=
+  if x.isnan then (0, 0, 0)
+  else if x.isinf then (if x.signbit then -1 else 1, 0, 0)
+  else
+    let e := x.expField
+    let s := x.frac + if e = 0 then 0 else 2 ^ T.fmt.sb
+    ((s : Int), (e : Int) - T.fmt.bias - T.fmt.sb + if e = 0 then 1 else 0,
+      if x.signbit then -1 else 1)
+
+def decomposeInteger (x : Int) : Int × Int × Int := (x, 0, 1)
+
+def precision2 (T : FTy) : Nat := T.fmt.sb + 1
+def precisionBase (log2 : Nat → Nat) (T : FTy) (base : Nat) : Jl Nat :=
+  if base < 2 then .error (.domainError "base")
+  else if base = 2 then .ok (precision2 T)
+  else .ok (precision2 T / log2 base)
+def precisionBottom {α : Type} : Jl α := .error (.methodError "precision")
+
+/-- `base/float.jl:810-879`: sign-magnitude stepping for every IEEE format. -/
+def nextFloatRaw (T : FTy) (f : FV T) (dneg : Bool) (da : Nat) : FV T := Id.run do
+  if f.isnan then return f
+  let maxBits := exponentMask T
+  let mut neg := f.signbit
+  let mut mag := f.magnitude
+  if da > 2 ^ T.fmt.width - 1 then
+    neg := dneg
+    mag := maxBits
+  else if neg != dneg then
+    if da > mag then
+      mag := min maxBits (da - mag)
+      neg := !neg
+    else mag := mag - da
+  else if maxBits - mag < da then mag := maxBits
+  else mag := mag + da
+  return Fl.ofBits (mag + if neg then signMask T else 0)
+
+def nextFloat (T : FTy) (f : FV T) (d : Int := 1) : FV T :=
+  nextFloatRaw T f (decide (d < 0)) d.natAbs
+def prevFloat (T : FTy) (f : FV T) (d : Int := 1) : FV T :=
+  nextFloatRaw T f (decide (d > 0)) d.natAbs
+
+def isSubnormal {T : FTy} (x : FV T) : Bool := x.expField == 0 && x.frac != 0
+def natCountOnes (width n : Nat) : Nat :=
+  ((List.range width).filter fun k => n / 2 ^ k % 2 = 1).length
+
+def isPow2 {T : FTy} (x : FV T) : Bool :=
+  !x.signbit && !x.iszero && x.isfinite &&
+    (if x.expField = 0 then natCountOnes T.fmt.sb x.frac = 1 else x.frac = 0)
+def isEvenFloat {T : FTy} (x : FV T) : Bool := x.isinteger && x.truncVal % 2 = 0
+def isOddFloat {T : FTy} (x : FV T) : Bool := x.isinteger && x.truncVal % 2 != 0
+
+def typeMin (T : FTy) : FV T := Fl.inf true
+def typeMax (T : FTy) : FV T := Fl.inf false
+def floatMin (T : FTy) : FV T := Fl.ofBits (2 ^ T.fmt.sb)
+def floatMax (T : FTy) : FV T := Fl.floatmax
+def typeEps (T : FTy) : FV T := Fl.ofBits ((T.fmt.bias - T.fmt.sb) * 2 ^ T.fmt.sb)
+def valueEps {T : FTy} (sub : FV T → FV T → FV T) (x : FV T) : FV T :=
+  floatAbs (sub x (Fl.ofBits (Nat.xor x.toBits 1)))
+
+def limitOfValue {α β : Type} (typeOf : α → β) (limit : β → α) (x : α) : α :=
+  limit (typeOf x)
+def defaultLimit {α : Type} (limit64 : α) : α := limit64
+def limitBottom {α : Type} (name : String) : Jl α := .error (.methodError name)
+def genericEps {α : Type} (isfinite ge : α → Bool) (_floatmin ldexp next zero nan : α → α)
+    (abs : α → α) (x : α) : α :=
+  if isfinite x then if ge (abs x) then ldexp x else next (zero x) else nan x
+
+/-- `base/float.jl:1133-1148`: byte swap and float/integer type traits. -/
+def bswap {T : FTy} (x : FV T) : FV T :=
+  Fl.ofBits ((List.range (T.fmt.width / 8)).foldl (fun out j =>
+    out + (x.toBits / 2 ^ (8*j) % 256) * 2 ^ (8 * (T.fmt.width / 8 - 1 - j))) 0)
+def floatType : IntTy → FTy
+  | .u16 | .i16 => .f16 | .u32 | .i32 => .f32 | _ => .f64
+
+structure RangeModel (α : Type) where
+  start : α
+  step : α
+  stop : α
+  length : Nat
+  offset : Nat
+  deriving DecidableEq, Repr
+
+/-- Array and range routes at `base/float.jl:1166-1181`. -/
+def floatArray (f : α → β) (xs : List α) : List β := xs.map f
+def floatArrayAlready (xs : List α) : List α := xs
+def floatArrayGeneric (concrete : Bool) (convert : List α → Jl (List β)) (xs : List α) : Jl (List β) :=
+  if concrete then convert xs else .error (.argumentError "abstract element type")
+def floatRange (f : α → β) (r : RangeModel α) : RangeModel β :=
+  ⟨f r.start, f r.step, f r.stop, r.length, r.offset⟩
+
+end JuliaLean.FloatIntCov.Float
+
+namespace JuliaLean.MathCov.FP
+
+open JuliaLean JuliaLean.Promotion
+
+variable {T : FTy}
+
+/-- `eps(x)` for finite `x`: the gap to the next float of larger magnitude;
+`base/float.jl:1089-1099`. -/
+def epsOf (x : FV T) : FV T :=
+  abs (sub (FloatIntCov.Float.nextFloat T (abs x)) (abs x))
+
+/-- `eps(T)`; `base/float.jl:1080-1082`. -/
+def epsT (T : FTy) : FV T := FloatIntCov.Float.typeEps T
+def floatminT (T : FTy) : FV T := FloatIntCov.Float.floatMin T
+def floatmaxT (T : FTy) : FV T := Fl.floatmax
+def nextfloat (x : FV T) (n : Int := 1) : FV T := FloatIntCov.Float.nextFloat T x n
+def prevfloat (x : FV T) (n : Int := 1) : FV T := FloatIntCov.Float.prevFloat T x n
+
+end JuliaLean.MathCov.FP
+
+namespace JuliaLean.MathCov.Special
+
+open JuliaLean.Promotion
+
+/-- `widen(T)` for the narrow formats. -/
+def widenTy : FTy → FTy | .f16 => .f32 | .f32 => .f64 | .f64 => .f64
+
+end JuliaLean.MathCov.Special
+
+namespace JuliaLean.MathFuncs
+
+open JuliaLean.Float
+
+/-- Binary32 multiplication, `base/float.jl:489`. -/
+def mul32 (x y : F32) : F32 := toF32 (F64.mul (ofF32 x) (ofF32 y))
+
+end JuliaLean.MathFuncs

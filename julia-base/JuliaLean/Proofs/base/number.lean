@@ -852,9 +852,37 @@ theorem integerRealSign_proven : IntegerRealSign := by
         JuliaLean.base.number.convertSame, JuliaLean.base.int.ifelse, hzero,
         Bind.bind, Except.bind, Pure.pure, Except.pure]
 
+/-- `convert` to a value's own type returns it; for a Real, `conj` and `transpose` return the
+value and `adjoint` is `conj`; `angle` of a Real is `atan(zero(z), z)`; `map` over numbers
+applies `f` directly, propagating errors from each callee. -/
+def RealScalarIdentities : Prop :=
+  (∀ {α : Type} (x : α),
+    JuliaLean.base.number.convertSame x = x ∧
+    JuliaLean.base.number.conj x = x ∧ JuliaLean.base.number.transpose x = x) ∧
+  (∀ {α β : Type} (conj : α → Jl β) (x : α), JuliaLean.base.number.adjoint conj x = conj x) ∧
+  (∀ {α β : Type} (zero : α → Jl α) (atan : α → α → Jl β) (z : α),
+    JuliaLean.base.number.angle zero atan z =
+      match zero z with
+      | .ok zz => atan zz z
+      | .error e => .error e) ∧
+  (∀ {α Args γ : Type} (f : α → Args → Jl γ) (x : α) (ys : Args),
+    JuliaLean.base.number.map f x ys = f x ys)
+
+theorem realScalarIdentities_proven : RealScalarIdentities := by
+  refine ⟨fun _ => ⟨rfl, rfl, rfl⟩, fun _ _ => rfl, ?_, fun _ _ _ => rfl⟩
+  intro α β zero atan z
+  unfold JuliaLean.base.number.angle
+  cases zero z <;> rfl
+
 open JuliaLean.Registry
 
 def entries : List Entry := [
+  { id := "number-real-scalar-identities", juliaFile := "base/number.jl"
+    juliaFns := ["convert(::Type{T}, x::T)", "conj(x::Real)", "transpose(x::Number)",
+      "adjoint(x::Number)", "angle(z::Real)", "map(f, x::Number, ys::Number...)"]
+    statement := "Converting a number to its own type returns it; conj and transpose of a Real return it and adjoint is conj; angle of a Real is atan(zero(z), z); map over numbers applies f directly; errors from each callee propagate."
+    source := "base/number.jl:6,273-276,334"
+    status := .proven, prop := ``RealScalarIdentities, thm := some ``realScalarIdentities_proven },
   { id := "number-scalar-shape", juliaFile := "base/number.jl"
     juliaFns := ["size(x::Number)", "axes(x::Number)", "eltype(::Type{T})",
       "ndims(x::Number)", "ndims(::Type{<:Number})", "length(x::Number)",

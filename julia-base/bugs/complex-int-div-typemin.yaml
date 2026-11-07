@@ -51,5 +51,5 @@ duplicates:
   issues: []
   queries: ["complex typemin", "Complex Int division", "complex integer division NaN", "complex division NaN"]
 lean:
-  property: JuliaLean.Complex.IntDivNoNaN
-  theorem: JuliaLean.Complex.intDivNoNaN_refuted
+  property: JuliaLean.Proofs.base.complex.IntDivNoNaN
+  theorem: JuliaLean.Proofs.base.complex.intDivNoNaN_refuted

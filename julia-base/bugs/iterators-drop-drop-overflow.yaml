@@ -1,62 +1,53 @@
 id: iterators-drop-drop-overflow
-title: drop(drop(itr, a), b) throws ArgumentError when a + b overflows
-priority: P2
+title: "drop(drop(itr, a), b) throws ArgumentError when the combined count overflows"
+priority: P3
 kind: wrong-exception
 area: Iterators
-files:
-- base/iterators.jl
-functions:
-- drop(::Drop, n)
-- drop(::Take, n)
+files: [base/iterators.jl]
+functions: ["drop(::Drop, n)", "drop(::Take, n)"]
 summary: |
-  drop(xs::Drop, n) builds Drop(xs.xs, Int(n) + xs.n). When the two counts add
-  up past typemax(Int) the sum wraps negative and the constructor throws
-  ArgumentError("Drop length must be non-negative"), although dropping that
-  many elements is valid and yields an empty iterator. drop(take(drop(x, a),
-  k), b) goes through the same addition.
+  drop(::Drop, n) adds the two valid counts using Int arithmetic. If the sum
+  exceeds typemax(Int), it wraps negative and the Drop constructor throws
+  ArgumentError instead of returning an iterator that has dropped those values.
+  On a finite vector, dropping past its length should produce an empty iterator.
 likelihood: |
-  Needs a drop count near typemax(Int), e.g. drop(itr, typemax(Int)) used as
-  "drop everything" followed by another drop. Rare; the error is loud.
-maybe_intended: ''
+  Requires a drop count near typemax(Int), followed by another positive drop.
+  The reproduced call uses ordinary vector data and two nonnegative Int counts.
+maybe_intended: |
+  Nested drop should retain its documented suffix behavior without throwing
+  when the combined nonnegative count exceeds typemax(Int).
 reproducer: |
-  # drop(drop(itr, a), b) adds a + b with wraparound
-  r = try
-      collect(Iterators.drop(Iterators.drop([1, 2, 3], typemax(Int)), 1))
-  catch e
-      e
-  end
-  println("collect(drop(drop([1,2,3], typemax(Int)), 1)) = ", r isa Exception ? sprint(showerror, r) : repr(r))
-  println("collect(drop([1,2,3], typemax(Int))) = ", repr(collect(Iterators.drop([1, 2, 3], typemax(Int)))))
-  r isa ArgumentError && println("REPRODUCED iterators-drop-drop-overflow")
+  Stored at repro/iterators-drop-drop-overflow.jl. It evaluates
+  collect(Iterators.drop(Iterators.drop([1, 2, 3], typemax(Int)), 1)) and prints
+  REPRODUCED iterators-drop-drop-overflow when the nested call throws ArgumentError.
 output:
   release: |
-    collect(drop(drop([1,2,3], typemax(Int)), 1)) = ArgumentError: Drop length must be non-negative
-    collect(drop([1,2,3], typemax(Int))) = Int64[]
     REPRODUCED iterators-drop-drop-overflow
   nightly: |
-    collect(drop(drop([1,2,3], typemax(Int)), 1)) = ArgumentError: Drop length must be non-negative
-    collect(drop([1,2,3], typemax(Int))) = Int64[]
     REPRODUCED iterators-drop-drop-overflow
-reproduced:
-  release: true
-  nightly: true
+reproduced: {release: true, nightly: true}
 expected: |
-  An empty iterator: collect(drop(drop([1,2,3], typemax(Int)), 1)) == Int[],
-  the same as collect(drop([1,2,3], typemax(Int))).
+  Int[]. The first drop already removes all three vector elements, so another
+  drop leaves the empty iterator unchanged.
 promised_by: |
-  drop docstring, base/iterators.jl:847-849: "An iterator that generates all but
-  the first n elements of iter", for any n >= 0.
+  base/iterators.jl:847-850 documents `drop(iter, n)` as "An iterator that
+  generates all but the first `n` elements of `iter`." Both calls use
+  nonnegative Int counts accepted by drop.
 cause: |
-  base/iterators.jl:873, Int(n) + xs.n wraps; base/iterators.jl:841 rejects the
-  negative result.
+  base/iterators.jl:872-873 computes `Int(n) + xs.n` for drop(::Drop, n).
+  The sum wraps to typemin(Int), then the Drop constructor at base/iterators.jl:839-842
+  rejects the negative count with ArgumentError.
 possible_fix: |
-  Saturate the sum: Drop(xs.xs, Base.Checked.checked_add(...)) falling back to
-  typemax(Int) on overflow, or nest Drop(xs, n) when the sum overflows.
+  Avoid combining the counts with unchecked Int arithmetic. Preserve nested Drop
+  wrappers or use a representation that can hold the combined count.
 duplicates:
-  issues: []
+  issues:
+    - {number: 39079, state: open, relation: related}
+    - {number: 50486, state: open, relation: related}
+  prs: []
   queries:
-  - drop overflow
-  - Drop length must be non-negative
+    - "issues: Iterators.drop nested overflow typemax"
+    - "PRs: Iterators.drop nested overflow typemax"
 lean:
-  property: JuliaLean.Iterators.DropDropCorrect
-  theorem: JuliaLean.Iterators.dropDropCorrect_refuted
+  property: JuliaLean.Proofs.base.iterators.Round4.DropDropCorrect
+  theorem: JuliaLean.Proofs.base.iterators.dropDropCorrect_refuted

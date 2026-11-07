@@ -44,5 +44,5 @@ duplicates:
     - {number: 56699, state: open, relation: duplicate}
   queries: ["evalpoly empty", "evalpoly empty tuple", "evalpoly"]
 lean:
-  property: JuliaLean.MathFuncs.evalpolyEmptyZero
-  theorem: JuliaLean.MathFuncs.evalpolyEmptyZero_refuted
+  property: JuliaLean.Proofs.base.math.EvalpolyEmptyZero
+  theorem: JuliaLean.ChatGPT.Batch4.Group9.MathfuncsEvalpolyEmpty_refuted

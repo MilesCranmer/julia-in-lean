@@ -44,5 +44,5 @@ duplicates:
   issues: []
   queries: ["BigInt ZERO rem Bool segfault", "GMP ZERO unsafe_load rem"]
 lean:
-  property: JuliaLean.MemSafety.G2.GmpBoolRemInBounds
-  theorem: JuliaLean.MemSafety.G2.gmpBoolRemInBounds_refuted
+  property: JuliaLean.Proofs.base.gmp.MemSafetyRetired.GmpBoolRemInBounds
+  theorem: JuliaLean.Proofs.base.gmp.MemSafetyRetired.gmpBoolRemInBounds_refuted

@@ -8,10 +8,10 @@ functions: ["intersect(::StepRange, ::StepRange)"]
 summary: |
   Intersecting two Int8 step ranges returns an upper endpoint of 110.
   The shared value 116 is omitted even though the common step 6 fits Int8.
-  Intersecting Int8(-128):Int8(127):Int8(126) with itself drops its last value 126
-  (Lean witness JuliaLean.Ranges.intersectSelfDropsLast). A descending example,
+  Intersecting Int8(-128):Int8(127):Int8(126) with itself drops its last value 126.
+  A descending example,
   intersect(Int8(120):Int8(-3):Int8(-128), Int8(-100):Int8(7):Int8(120)), starts
-  at 104, which is absent from the first input; see intersectDescendingWrongFirst.
+  at 104, which is absent from the first input.
 likelihood: |
   Plausible for byte-sized coordinates with positive steps spanning negative
   and positive values. Input endpoints and the correct intersection all fit Int8.

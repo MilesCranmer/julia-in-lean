@@ -1,0 +1,58 @@
+id: div-bitinteger-remainder-equation-v2
+title: "RoundUp rem violates the exact remainder equation for a signed minimum divisor"
+priority: P2
+kind: wrong-result
+area: Div
+files:
+  - base/div.jl
+functions:
+  - "rem(::BitInteger,::BitInteger,::RoundingMode)"
+summary: |
+  rem(Int8(-127), Int8(-128), RoundUp) returns -127. The quotient is 1, so the exact remainder is -127 - (-128)*1 = 1. This contradicts both the integer-value remainder equation and its RoundUp interval.
+likelihood: |
+  Signed minimum divisors in any fixed-width integer type can trigger this error, including tiny, easily constructed Int8 examples.
+maybe_intended: |
+  The correct result is representable in Int8. Open PR #62283 directly addresses the negation overflow and PR #62319 includes it in a broader fix.
+reproducer: |
+  x, y = Int8(-127), typemin(Int8)
+  q, r = div(x, y, RoundUp), rem(x, y, RoundUp)
+  @assert q === Int8(1) && r === Int8(-127)
+  @assert BigInt(r) != BigInt(x) - BigInt(y)*BigInt(q)
+  println("REPRODUCED div-bitinteger-remainder-equation-v2")
+output:
+  release: |
+    REPRODUCED div-bitinteger-remainder-equation-v2
+  nightly: |
+    REPRODUCED div-bitinteger-remainder-equation-v2
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  Return Int8(1), preserving the exact remainder equation for this representable result.
+promised_by: |
+  base/div.jl:82-87 defines remainder as "x - y * round(x / y, r)" and says "without any intermediate rounding." base/div.jl:99-101 gives the RoundUp interval ``[0, |y|)`` for a negative divisor.
+  All source references are pinned to Julia commit f755f49a9e41380d7da126b3c1db9fe7f83dd027.
+  https://github.com/JuliaLang/julia/blob/f755f49a9e41380d7da126b3c1db9fe7f83dd027/base/div.jl
+cause: |
+  RoundUp rem uses mod(x, -y) at base/div.jl:129. Fixed-width negation preserves typemin instead of producing its positive magnitude, so mod sees the wrong divisor sign.
+possible_fix: |
+  Avoid source-type divisor negation and derive the remainder through exact or widened arithmetic with explicit representability handling.
+duplicates:
+  issues: []
+  prs:
+    - number: 62283
+      state: open
+      relation: duplicate
+    - number: 62319
+      state: open
+      relation: related
+  queries:
+    - "issues: rem typemin RoundUp"
+    - "prs: rem typemin RoundUp"
+    - "issues: rem RoundUp"
+    - "prs: rem RoundUp"
+    - "issues: mod typemin"
+    - "prs: mod typemin"
+lean:
+  property: JuliaLean.Proofs.base.div.Round1.SameTypeBitIntegerRemainderEquation
+  theorem: JuliaLean.ChatGPT.Batch4.Group17.DivBitintegerRemainderEquationV2_refuted

@@ -887,7 +887,7 @@ theorem rawSubstringWithinParent_proven : RawSubstringWithinParent := by
   split at h
   · cases h
   · rename_i hc
-    simp only [Bool.or_eq_true, decide_eq_true_eq, not_or] at hc
+    simp only [Bool.true_and, Bool.or_eq_true, decide_eq_true_eq, not_or] at hc
     have hi : 1 ≤ first.val := by omega
     have hav := available_val (ops.ncodeunits s) first hn hi
     simp only [pure, Except.pure, Except.ok.injEq] at h
@@ -902,7 +902,7 @@ theorem rawSubstringAllWithinParent_proven : RawSubstringAllWithinParent := by
   split at h
   · cases h
   · rename_i hc
-    simp only [Bool.or_eq_true, decide_eq_true_eq, not_or] at hc
+    simp only [Bool.true_and, Bool.or_eq_true, decide_eq_true_eq, not_or] at hc
     have hi : 1 ≤ first.val := by omega
     obtain ⟨ho, hn, hbound⟩ := hv
     have hav := available_val ss.ncodeunits first hn hi
@@ -1222,13 +1222,9 @@ theorem substringConversions_proven : SubstringConversions := by
       simp [hrun, assertLaw] at h
       subst ss
       rfl
-  have hnonneg : 0 ≤ (ops.ncodeunits parent).val := by rw [hn]; exact Int.natCast_nonneg _
-  have hspan := rawSubstringWithinParent_proven ops parent one (ops.ncodeunits parent) ss hnonneg he
   have hr : ss.string = parent ∧ ss.offset = zero ∧ ss.ncodeunits = ops.ncodeunits parent := by
-    have hav := available_val (ops.ncodeunits parent) one hnonneg (by simp [one_val])
     have hz : one - one = zero := by decide
-    have hnot : ¬ (ops.ncodeunits parent).val < 0 := by omega
-    simp [subStringWhole, rawSubstring, hnot, hav, one_val, hz] at he
+    simp [subStringWhole, rawSubstring, hz] at he
     cases he
     exact ⟨rfl, rfl, rfl⟩
   exact ⟨congrArg bytes hr.1, by simpa [ncodeunitsSubString, hr.2.2] using hn,
@@ -1275,109 +1271,192 @@ theorem wholeViewSemantics_proven : WholeViewSemantics := by
   have hlen : lengthSubString ops (typedWholeSubString ops s) = .ok len := by
     simpa [lengthSubString, typedWholeSubString, hzero, hfirst] using hl
   refine ⟨hlen, typedWholeSubString ops s, ?_, hlen, rfl⟩
-  have hav := available_val (ops.ncodeunits s) one hn (by simp [one_val])
-  rw [one_val] at hav
   have hz : one - one = zero := by decide
-  simp [subStringWhole, rawSubstring, hn, hav, one_val, hz, typedWholeSubString]
+  simp [subStringWhole, rawSubstring, hz, typedWholeSubString]
 
 theorem substringAllViewIntervals_proven : SubstringAllViewIntervals :=
   ⟨substringViewIntervalSemantics_proven, wholeViewSemantics_proven⟩
 
-/-! Nothing to promise:
-- `raw_substring@47`: generic function declaration only; executable methods are listed separately.
-- `SubString@71`: the type declaration records the parent and byte interval; behavior belongs to its methods.
-- `SubString@108`: forwards Int endpoints to the typed constructor.
-- `SubString@109`: converts integer endpoints and supplies the default last index before forwarding.
-- `SubString@110`: extracts range endpoints and forwards to the endpoint constructor.
-- `SubString@118`: identity conversion of an existing view.
-- `view@120`: forwards a range to the SubString constructor.
-- `maybeview@121`: forwards a range to `view`.
-- `convert@126`: same-type identity conversion.
-- `convert@129`: chooses the unchanged String variant of the regex input union.
-- `convert@130`: chooses the unchanged SubString variant of the regex input union.
-- `convert@131`: forwards abstract-string conversion to `convert(String, s)`.
-- `ncodeunits@139`: retrieves the stored byte-count field.
-- `codeunit@140`: forwards code-unit type lookup to the parent.
-- `iterate(default)@151`: supplies `firstindex(s)` to the indexed iterator.
-- `isascii@166`: forwards the byte sequence to the external ASCII predicate.
-- `parent@180`: retrieves the stored parent field.
-- `cconvert@193`: identity conversion retaining the object for pointer lifetime.
-- `cconvert@194`: identity conversion retaining the object for pointer lifetime.
-- `Symbol@211`: forwards the preserved view pointer and byte count to `jl_symbol_n`; interning is external.
-- `string@252`: forwards the restricted argument union to `_string`.
-- `string@254`: forwards all supported argument variants to `_string`.
-- `repeat@287`: selects the Integer overload through `@invoke`.
-- `getindex@322`: forwards a range to the SubString constructor.
-- `maybeview@122`: generic fallback forwards arbitrary indexing arguments to `getindex`.
-- `thisind@174`, `nextind@175`, `lastindex@178`: forward String index arithmetic to the helpers in `string.jl`.
-- `_isannotated@206`: internal classification forwards to the parent's type method.
-- `string(::String)@208`: delegates to the existing same-type String conversion.
--/
 
-/-! Method -> property table:
-| Julia method | Property |
-|---|---|
-| SubString{T}(s,i,j)@76 | AllViewConstructors, EmptySubstringOffset |
-| raw_substring(s::T,first,n)@86 | RawSubstringAllWithinParent, RawSubstringIterates |
-| raw_substring(s::SubString,first,n)@93 | RawSubstringAllWithinParent |
-| SubString{T}(s)@103 | SubstringAllViewIntervals |
-| SubString(s::T,i,j)@108 | Nothing to promise |
-| SubString(s,i::Integer,j::Integer)@109 | Nothing to promise |
-| SubString(s,i::Integer)@109 | Nothing to promise |
-| SubString(s,r::AbstractUnitRange)@110 | Nothing to promise |
-| SubString(s::SubString,i,j)@112 | AllViewConstructors, SubstringIndexInBounds |
-| SubString(s::AbstractString)@117 | SubstringAllViewIntervals |
-| SubString(s::SubString)@118 | Nothing to promise |
-| view(s,r)@120 | Nothing to promise |
-| maybeview(s,r)@121 | Nothing to promise |
-| maybeview(s,args...)@122 | Nothing to promise |
-| convert(::Type{SubString{S}},s)@124 | SubstringConversionSemantics |
-| convert(::Type{T},s::T)@126 | Nothing to promise |
-| convert(::Type{Union{String,SubString{String}}},s::String)@129 | Nothing to promise |
-| convert(::Type{Union{String,SubString{String}}},s::SubString)@130 | Nothing to promise |
-| convert(::Type{Union{String,SubString{String}}},s::AbstractString)@131 | Nothing to promise |
-| String(s::SubString{String})@133 | StringConversionCopiesView |
-| ncodeunits(s::SubString)@139 | Nothing to promise |
-| codeunit(s::SubString)@140 | Nothing to promise |
-| length(s::SubString)@141 | SubstringAllViewIntervals |
-| length(s::SubString{String})@144 | SubstringAllViewIntervals |
-| codeunit(s::SubString,i::Integer)@146 | SubstringReadUsesParent, InvalidReadsRejected |
-| iterate(s::SubString)@151 | Nothing to promise |
-| iterate(s::SubString,i::Integer)@151 | RawSubstringIterates |
-| getindex(s::SubString,i::Integer)@160 | SubstringReadUsesParent, InvalidReadsRejected |
-| isascii(s::SubString{String})@166 | Nothing to promise |
-| isvalid(s::SubString,i::Integer)@168 | SubstringValidity, InvalidReadsRejected |
-| thisind(s::SubString{String},i::Int)@174 | Nothing to promise |
-| nextind(s::SubString{String},i::Int)@175 | Nothing to promise |
-| lastindex(s::SubString{String})@178 | Nothing to promise |
-| parent(s::SubString)@180 | Nothing to promise |
-| parentindices(s::SubString)@181 | ParentIndices |
-| ==(a,b)@183 | SubstringComparison |
-| cmp(a,b)@187 | SubstringComparison |
-| cconvert(::Type{Ptr{UInt8}},s)@193 | Nothing to promise |
-| cconvert(::Type{Ptr{Int8}},s)@194 | Nothing to promise |
-| unsafe_convert(::Type{Ptr{R}},s)@196 | SubstringPointerUsesParentOffset |
-| pointer(s::SubString)@200 | SubstringPointerUsesParentOffset |
-| pointer(s::SubString,i::Integer)@201 | SubstringPointerUsesParentOffset |
-| hash(s::SubString,h::UInt)@203 | SubstringPointerUsesParentOffset |
-| _isannotated(::SubString{T})@206 | Nothing to promise |
-| string(s::String)@208 | Nothing to promise |
-| string(s::SubString{String})@209 | StringConversionCopiesView |
-| Symbol(s::SubString{String})@211 | Nothing to promise |
-| __unsafe_string!(out,c::Char,offs)@215 | StringBuilderWritesInBounds |
-| __unsafe_string!(out,s::String,offs)@233 | StringBuilderWritesInBounds |
-| __unsafe_string!(out,s::SubString,offs)@239 | StringBuilderWritesInBounds |
-| __unsafe_string!(out,s::Symbol,offs)@245 | StringBuilderWritesInBounds |
-| string(::Union{Char,String,Symbol}...)@252 | Nothing to promise |
-| string(::Union{Char,String,SubString,Symbol}...)@254 | Nothing to promise |
-| _string(...)@256 | StringBuilderWritesInBounds |
-| repeat(::String,::BitInteger)@287 | Nothing to promise |
-| repeat(::Union{String,SubString},::Integer)@289 | RepeatSize |
-| filter(f,::Union{String,SubString})@309 | FilterKeepsAcceptedCharacters |
-| getindex(::AbstractString,::AbstractUnitRange)@322 | Nothing to promise |
--/
+
+/-- Integer and range constructors select exactly the converted endpoint interval. -/
+def ConvertedViewSpec : Prop :=
+  ∀ {S C CT E I R : Type} (ops : SubStringOps S C CT E)
+    (toInt : I → Except E Index) (range : RangeOps R I) (s : S) (a b : I)
+    (r : R) (i j next : Index) (out : SubString S),
+    toInt a = .ok i → toInt b = .ok j → range.first r = a → range.last r = b →
+    1 ≤ i.val → i.val ≤ j.val → j.val < next.val →
+    ops.checkboundsRange s i j = .ok () →
+    ops.isvalid s i = .ok true → ops.isvalid s j = .ok true →
+    ops.nextind s j = .ok next →
+    (subStringInteger ops toInt s a b = .ok out ∨
+      subStringRange ops range toInt s r = .ok out ∨
+      viewString ops range toInt s r = .ok out ∨
+      maybeviewRange ops range toInt s r = .ok out ∨
+      getindexStringRange ops range toInt s r = .ok out) →
+    out.string = s ∧ out.offset.val = i.val - 1 ∧
+      0 < out.ncodeunits.val ∧ out.offset.val + out.ncodeunits.val = next.val - 1
+
+theorem convertedView_proven : ConvertedViewSpec := by
+  intro S C CT E I R ops toInt range s a b r i j next out ha hb hra hrb hi hij hjn hc hvi hvj hn h
+  have htyped : typedSubString ops s i j = .ok out := by
+    rcases h with h | h | h | h | h <;>
+      simpa [subStringInteger, subStringRange, viewString, maybeviewRange,
+        getindexStringRange, subStringInt, hra, hrb, ha, hb] using h
+  exact (allViewConstructors_proven.1.1 ops s i j next out hi hij hjn hc hvi hvj hn htyped)
+
+/-- Identity and regex-union conversions retain the same underlying string or view. -/
+def ViewIdentitySpec : Prop :=
+  (∀ {S : Type} (s : SubString S), convertSubStringIdentity s = s ∧
+    cconvertUInt8 s = s ∧ cconvertInt8 s = s ∧ convertRegexSubString s = .substring s) ∧
+  (∀ {S : Type} (s : S), convertRegexString s = .string s) ∧
+  (∀ {A S E : Type} (convert : A → Except E S) (s : A) (out : S),
+    convert s = .ok out → convertRegexAbstract convert s = .ok (.string out))
+
+theorem viewIdentity_proven : ViewIdentitySpec := by
+  refine ⟨?_, ?_, ?_⟩
+  · intros; exact ⟨rfl, rfl, rfl, rfl⟩
+  · intros; rfl
+  · intro A S E convert s out h
+    simp [convertRegexAbstract, h]
+
+/-- Generic maybeview and string preserve successful indexing and String conversion results. -/
+def ViewForwardingSpec : Prop :=
+  (∀ {S A V E : Type} (get : S → A → Except E V) (s : S) (args : A) (out : V),
+    get s args = .ok out → maybeviewArgs get s args = .ok out) ∧
+  (∀ {S E : Type} (convert : S → Except E S) (s : S),
+    convert s = .ok s → stringString convert s = .ok s) ∧
+  (∀ {S : Type} (isAnnotated : Type → Bool) (s : SubString S),
+    isannotatedSubString isAnnotated s = isAnnotated S) ∧
+  (∀ {S C CT E : Type} (ops : SubStringOps S C CT E) (s : SubString S),
+    codeunitTypeSubString ops s = ops.codeunitType s.string)
+
+theorem viewForwarding_proven : ViewForwardingSpec := by
+  exact ⟨by intros; assumption, by intros; assumption, by intros; rfl, by intros; rfl⟩
+
+/-- String-index wrappers retain the index guarantees of the shared String helpers. -/
+def ViewIndexWrapperSpec : Prop :=
+  ∀ {S E : Type} (this next : SubString S → Index → Except E Index)
+    (s : SubString S) (i start after : Index),
+    this s i = .ok start → next s i = .ok after →
+    thisindSubString this s i = .ok start ∧ nextindSubString next s i = .ok after ∧
+    (∀ last, this s s.ncodeunits = .ok last → lastindexSubString this s = .ok last)
+
+theorem viewIndexWrapper_proven : ViewIndexWrapperSpec := by
+  intro S E this next s i start after ht hn
+  exact ⟨ht, hn, fun _ h => h⟩
+
+/-- Concrete substring ASCII classification sees exactly the view bytes. -/
+def ViewAsciiSpec : Prop :=
+  ∀ {S C CT E : Type} (ops : SubStringOps S C CT E)
+    (bytes : SubString S → List UInt8) (s : SubString S),
+    (∀ v, ops.isasciiCodeunits (JuliaLean.base.strings.basic.codeunits (fun _ => UInt8) v) =
+      .ok ((bytes v).all (fun b => decide (b.toNat < 128)))) →
+    isasciiSubString ops s = .ok ((bytes s).all (fun b => decide (b.toNat < 128)))
+
+theorem viewAscii_proven : ViewAsciiSpec := by
+  intro S C CT E ops bytes s h
+  exact h s
+
+/-- BitInteger repetition preserves the byte count of the general Integer method. -/
+def BitIntegerRepeatSpec : Prop :=
+  ∀ {S Out E I : Type} (ops : RepeatOps S Out E I) (s : S)
+    (r : I) (count : Nat) (out : Out),
+    RepeatInterface ops → ops.toUInt r = .ok count →
+    repeatBitInteger ops s r = .ok out →
+    ops.outputSize out = count * ops.sizeof (.string s)
+
+theorem bitIntegerRepeat_proven : BitIntegerRepeatSpec := by
+  intro S Out E I ops s r count out laws hc h
+  apply repeatSize_proven ops (.string s) r count out laws hc
+  simpa [repeatBitInteger] using h
+
+/-- Both string argument unions concatenate the encoded arguments in order. -/
+def StringUnionBuilderSpec : Prop :=
+  (∀ {C S Sym Out E : Type} (ops : StringBuilderOps C S Sym Out E)
+    (args : List (StringArg C S Sym)) (out : Out) (safe : Out → Prop),
+    BuilderInterface ops safe →
+    Int.ofNat (args.map ops.argumentBytes).flatten.length < IntTy.max .i64 →
+    stringAny ops args = .ok out →
+    ops.outputBytes out = (args.map ops.argumentBytes).flatten) ∧
+  (∀ {C S Sym Out E : Type} (ops : StringBuilderOps C S Sym Out E)
+    (args : List (RestrictedStringArg C S Sym)) (out : Out) (safe : Out → Prop),
+    BuilderInterface ops safe →
+    Int.ofNat ((args.map liftRestrictedStringArg).map ops.argumentBytes).flatten.length < IntTy.max .i64 →
+    stringRestricted ops args = .ok out →
+    ops.outputBytes out = ((args.map liftRestrictedStringArg).map ops.argumentBytes).flatten)
+
+theorem stringUnionBuilder_proven : StringUnionBuilderSpec := by
+  constructor
+  · intro C S Sym Out E ops args out safe laws hb h
+    exact (stringBuilderWritesInBounds_proven ops args out safe laws hb
+      (by simpa [stringAny] using h)).1
+  · intro C S Sym Out E ops args out safe laws hb h
+    exact (stringBuilderWritesInBounds_proven ops (args.map liftRestrictedStringArg) out safe laws hb
+      (by simpa [stringRestricted] using h)).1
+
+/-- Interning uses the complete view byte span, including malformed UTF-8 bytes. -/
+def ViewSymbolSpec : Prop :=
+  ∀ {S Sym E : Type} (ops : PointerOps S)
+    (convert : ops.Pointer → Except E ops.Pointer)
+    (add : ops.Pointer → Index → Except E ops.Pointer)
+    (size : SubString S → Index)
+    (intern : SubString S → ops.Pointer → Index → Except E Sym)
+    (viewBytes : SubString S → List UInt8) (symbolBytes : Sym → List UInt8)
+    (s : SubString S) (out : Sym),
+    (∀ view p symbol, intern view p (size view) = .ok symbol →
+      symbolBytes symbol = viewBytes view) →
+    symbolSubString ops convert add size intern s = .ok out →
+    symbolBytes out = viewBytes s
+
+theorem viewSymbol_proven : ViewSymbolSpec := by
+  intro S Sym E ops convert add size intern viewBytes symbolBytes s out law h
+  unfold symbolSubString at h
+  cases hp : unsafeConvertSubString ops convert add (cconvertUInt8 s) with
+  | error err => simp [hp] at h
+  | ok p =>
+    simp only [hp, bind, Except.bind] at h
+    exact law s p out h
+
 
 def entries : List Entry := [
+  { id := "substring-converted-view-endpoints", juliaFile := "base/strings/substring.jl"
+    juliaFns := ["SubString(s::AbstractString, i::Integer, j::Integer=lastindex(s))", "SubString(s::AbstractString, r::AbstractUnitRange{<:Integer})", "view(s::AbstractString, r::AbstractUnitRange{<:Integer})", "maybeview(s::AbstractString, r::AbstractUnitRange{<:Integer})", "getindex(s::AbstractString, r::AbstractUnitRange{<:Integer})"]
+    statement := "Integer and range constructors preserve the parent and select exactly the converted endpoint interval."
+    source := "base/strings/substring.jl:109,110,120,121,322", status := .proven, prop := ``ConvertedViewSpec, thm := some ``convertedView_proven },
+  { id := "substring-identity-wrappers", juliaFile := "base/strings/substring.jl"
+    juliaFns := ["convert(::Type{T}, s::T) where {T<:SubString}", "convert(::Type{Union{String, SubString{String}}}, s::String)", "convert(::Type{Union{String, SubString{String}}}, s::SubString{String})", "convert(::Type{Union{String, SubString{String}}}, s::AbstractString)", "cconvert(::Type{Ptr{UInt8}}, s::SubString{String})", "cconvert(::Type{Ptr{Int8}}, s::SubString{String})"]
+    statement := "Same-type, regex-union and C-call conversions preserve the underlying string or substring."
+    source := "base/strings/substring.jl:126,129,130,131,193,194", status := .proven, prop := ``ViewIdentitySpec, thm := some ``viewIdentity_proven },
+  { id := "substring-forwarding-wrappers", juliaFile := "base/strings/substring.jl"
+    juliaFns := ["maybeview(s::AbstractString, args...)", "codeunit(s::SubString)", "_isannotated(::SubString{T}) where {T}", "string(a::String)"]
+    statement := "Indexing and conversion wrappers preserve their results, annotation classification and parent code-unit type."
+    source := "base/strings/substring.jl:122,140,206,208", status := .proven, prop := ``ViewForwardingSpec, thm := some ``viewForwarding_proven },
+  { id := "substring-index-wrappers", juliaFile := "base/strings/substring.jl"
+    juliaFns := ["thisind(s::SubString{String}, i::Int)", "nextind(s::SubString{String}, i::Int)", "lastindex(s::SubString{String})"]
+    statement := "Substring index wrappers preserve the shared String helpers character-boundary results."
+    source := "base/strings/substring.jl:174,175,178", status := .proven, prop := ``ViewIndexWrapperSpec, thm := some ``viewIndexWrapper_proven },
+  { id := "substring-ascii-wrapper", juliaFile := "base/strings/substring.jl"
+    juliaFns := ["isascii(ss::SubString{String})"]
+    statement := "Substring ASCII classification examines exactly the view bytes."
+    source := "base/strings/substring.jl:166", status := .proven, prop := ``ViewAsciiSpec, thm := some ``viewAscii_proven },
+  { id := "substring-symbol-bytes", juliaFile := "base/strings/substring.jl"
+    juliaFns := ["Symbol(s::SubString{String})"]
+    statement := "Interning a substring preserves its complete byte span, including malformed UTF-8 bytes."
+    source := "base/strings/substring.jl:211", status := .proven, prop := ``ViewSymbolSpec, thm := some ``viewSymbol_proven },
+  { id := "substring-byte-builder", juliaFile := "base/strings/substring.jl"
+    juliaFns := ["__unsafe_string!(out, s::String, offs::Integer)", "__unsafe_string!(out, s::SubString{String}, offs::Integer)", "__unsafe_string!(out, s::Symbol, offs::Integer)", "_string(a::Union{Char, String, SubString{String}, Symbol}...)"]
+    statement := "The string builder copies the complete encoded arguments in order, with the exact output byte count."
+    source := "base/strings/substring.jl:233,239,245,256", status := .proven, prop := ``StringBuilderWritesInBounds, thm := some ``stringBuilderWritesInBounds_proven },
+  { id := "substring-string-union-builders", juliaFile := "base/strings/substring.jl"
+    juliaFns := ["string(a::Union{Char, String, Symbol}...)", "string(a::Union{Char, String, SubString{String}, Symbol}...)"]
+    statement := "Both supported argument unions concatenate the encoded argument bytes in order."
+    source := "base/strings/substring.jl:252,254", status := .proven, prop := ``StringUnionBuilderSpec, thm := some ``stringUnionBuilder_proven },
+  { id := "substring-bitinteger-repeat", juliaFile := "base/strings/substring.jl"
+    juliaFns := ["repeat(s::String, r::BitInteger)"]
+    statement := "Successful BitInteger repetition returns exactly count times the source byte length."
+    source := "base/strings/substring.jl:287", status := .proven, prop := ``BitIntegerRepeatSpec, thm := some ``bitIntegerRepeat_proven },
+
   { id := "strings-repeat-size", juliaFile := "base/strings/substring.jl"
     juliaFns := ["repeat(::String, ::Integer)", "repeat(::Union{String,SubString{String}}, ::Integer)"]
     statement := "Successful string repetition returns exactly the requested number of source bytes, without a wrapped allocation size."
@@ -1394,11 +1473,6 @@ def entries : List Entry := [
     statement := "Constructors check the parent endpoints, and every SubString operation checks its local index before adding the stored in-parent offset."
     source := "base/strings/substring.jl:71-171; base/strings/string.jl:252-271"
     status := .proven, prop := ``SubstringIndexInBounds, thm := some ``substringIndexInBounds_proven },
-  { id := "memsafety-strings-build", juliaFile := "base/strings/substring.jl"
-    juliaFns := ["_string", "__unsafe_string!"]
-    statement := "For representable combined byte lengths, sizing and writing use the same byte widths, writes stay within the allocation, and construction preserves every memory invariant preserved by valid primitive writes."
-    source := "base/strings/substring.jl:215-283; successful jl_alloc_string length is Int-representable"
-    status := .proven, prop := ``StringBuilderWritesInBounds, thm := some ``stringBuilderWritesInBounds_proven },
   { id := "stringscova-substring-empty-offset", juliaFile := "base/strings/substring.jl"
     juliaFns := ["SubString{T}(::T,::Int,::Int)"]
     statement := "An empty SubString preserves the requested insertion offset, so its stored offset is first minus one."
@@ -1445,11 +1519,6 @@ def entries : List Entry := [
     statement := "Converting a substring to String copies exactly its stored byte span from the parent."
     source := "base/strings/substring.jl:133-137,209"
     status := .proven, prop := ``StringConversionCopiesView, thm := some ``stringConversionCopiesView_proven },
-  { id := "substring-builder-bytes", juliaFile := "base/strings/substring.jl"
-    juliaFns := ["__unsafe_string!", "_string"]
-    statement := "For representable combined byte lengths, string construction writes each argument's encoded bytes in order, sizes them exactly, and preserves memory safety."
-    source := "base/strings/substring.jl:215-283"
-    status := .proven, prop := ``StringBuilderWritesInBounds, thm := some ``stringBuilderWritesInBounds_proven },
   { id := "substring-filter-order", juliaFile := "base/strings/substring.jl"
     juliaFns := ["filter(::Any,::Union{String,SubString{String}})"]
     statement := "Filtering retains exactly the accepted characters in their original order."

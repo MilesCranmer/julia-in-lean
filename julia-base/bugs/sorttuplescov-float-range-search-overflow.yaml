@@ -41,7 +41,19 @@ possible_fix: |
 duplicates:
   issues:
     - {number: 34408, state: open, relation: related}
-  queries: ["issues: searchsorted float range InexactError", "issues: searchsortedlast range Inf", "issues: searchsorted range overflow float", "issues/prs: searchsorted Float64 range", "issues/prs: searchsortedfirst StepRangeLen"]
+  search_notes: |
+    No exact duplicate is known; issue #34408 remains related. Both the range and LinRange examples reproduce on the release and pinned nightly.
+  queries: ["issues: searchsorted float range InexactError", "issues: searchsortedlast range Inf", "issues: searchsorted range overflow float", "issues/prs: searchsorted Float64 range", "issues/prs: searchsortedfirst StepRangeLen", "gh search issues 'searchsorted range InexactError' --repo JuliaLang/julia --limit 50 --json number,title,state,url", "gh search issues 'searchsorted range' --repo JuliaLang/julia --limit 100 --json number,title,state,url", "gh search prs 'searchsorted overflow' --repo JuliaLang/julia --limit 100 --json number,title,state,url", "gh search issues 'searchsorted InexactError' --repo JuliaLang/julia --limit 100 --json number,title,state,url", "gh search issues '34408' --repo JuliaLang/julia --limit 10 --json number,title,state,url"]
 lean:
-  property: JuliaLean.SortTuplesCov.FloatRangeSearchNoThrow
-  theorem: JuliaLean.SortTuplesCov.floatRangeSearchNoThrow_refuted
+  property: JuliaLean.Proofs.base.sort.FloatRangeSearchNoThrow
+  theorem: JuliaLean.ChatGPT.Batch8.Group10.SorttuplescovFloatRangeSearchOverflow_refuted
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: true
+  output: |
+    2 InexactError
+    REPRODUCED sorttuplescov-float-range-search-overflow
+    LinRange searchsortedfirst expected 3 got InexactError
+    LinRange searchsortedlast expected 2 got InexactError
+    LinRange searchsorted expected 3:2 got InexactError
+    REPRODUCED exact-LinRange-all-searchsorted

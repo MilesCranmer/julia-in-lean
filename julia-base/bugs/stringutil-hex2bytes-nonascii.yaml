@@ -1,60 +1,74 @@
 id: stringutil-hex2bytes-nonascii
-title: "hex2bytes on a SubString with non-ASCII characters throws InexactError or InvalidCharError instead of ArgumentError"
-priority: P2
-kind: wrong-exception
+title: "hex2bytes accepts an overlong UTF-8 encoding of an ASCII hex digit"
+priority: P3
+kind: wrong-result
 area: StringUtil
-files: [base/strings/util.jl]
+files: [base/char.jl, base/strings/util.jl]
 functions: ["hex2bytes(::AbstractString)", "hex2bytes!(::AbstractArray{UInt8}, ::Any)", "number_from_hex(::Char)"]
 summary: |
-  hex2bytes("ĀĀ") and hex2bytes("\xff\xff") throw ArgumentError, but the same text as a
-  SubString throws InexactError (characters above U+00FF) or InvalidCharError (malformed
-  characters). The generic path converts each Char with UInt8(c) before checking that it is a
-  hex digit.
+  On Julia nightly, hex2bytes(SubString(String(UInt8[0xc0, 0xb0, 0x30])))
+  returns UInt8[0x00]. The first two bytes are the overlong UTF-8 encoding of
+  the ASCII digit '0', so the input is not a sequence of ASCII hex digits.
+  Julia 1.13.2 rejects the same input with InvalidCharError.
 likelihood: |
-  Parsing hex from a slice of user input (SubString from split or a regex match) that contains
-  non-Latin-1 or invalid bytes. Code that catches ArgumentError to report bad input misses
-  these errors.
-maybe_intended: ""
+  This affects SubString and other generic AbstractString inputs containing
+  overlong encodings of ASCII hexadecimal digits. Ordinary String inputs still
+  take the specialized byte-validation path and reject multibyte input.
+maybe_intended: |
+  PR #55152 intentionally made codepoint conversion accept overlong encodings,
+  but hex2bytes promises ASCII input and should not treat an overlong byte
+  sequence as an ASCII digit.
 reproducer: |
-  show_result(x) = try repr(hex2bytes(x)) catch e sprint(showerror, e) end
-  println("hex2bytes(\"ĀĀ\")                = ", show_result("ĀĀ"))
-  println("hex2bytes(SubString(\"ĀĀ\"))     = ", show_result(SubString("ĀĀ")))
-  println("hex2bytes(\"\\xff\\xff\")            = ", show_result("\xff\xff"))
-  println("hex2bytes(SubString(\"\\xff\\xff\")) = ", show_result(SubString("\xff\xff")))
-  println("hex2bytes(SubString(\"éé\"))     = ", show_result(SubString("éé")))
-  a = try hex2bytes(SubString("ĀĀ")) catch e e end
-  b = try hex2bytes(SubString("\xff\xff")) catch e e end
-  a isa InexactError && b isa Base.InvalidCharError && println("REPRODUCED stringutil-hex2bytes-nonascii")
+  Stored at repro/stringutil-hex2bytes-nonascii.jl. It constructs the bytes
+  0xc0 0xb0 0x30, checks the first character's conversion, and calls
+  hex2bytes on a SubString. Run with
+  `julia repro/stringutil-hex2bytes-nonascii.jl`.
 output:
   release: |
-    hex2bytes("ĀĀ")                = ArgumentError: input string must consist of hexadecimal characters only
-    hex2bytes(SubString("ĀĀ"))     = InexactError: trunc(UInt8, 0x00000100)
-    hex2bytes("\xff\xff")            = ArgumentError: byte is not an ASCII hexadecimal digit
-    hex2bytes(SubString("\xff\xff")) = Base.InvalidCharError{Char}('\xff')
-    hex2bytes(SubString("éé"))     = ArgumentError: byte is not an ASCII hexadecimal digit
-    REPRODUCED stringutil-hex2bytes-nonascii
+    JULIA 1.13.2 COMMIT 45b6d15e34bbd2003a31acce0b1847b63dad029c
+    VERSION 1.13.2
+    INPUT_CODEUNITS UInt8[0xc0, 0xb0, 0x30]
+    ISOVERLONG true ISMALFORMED false
+    UInt8(Char) ERROR Base.InvalidCharError{Char} Base.InvalidCharError{Char}('\xc0\xb0')
+    hex2bytes(SubString) ERROR Base.InvalidCharError{Char} Base.InvalidCharError{Char}('\xc0\xb0')
   nightly: |
-    hex2bytes("ĀĀ")                = ArgumentError: input string must consist of hexadecimal characters only
-    hex2bytes(SubString("ĀĀ"))     = InexactError: trunc(UInt8, 0x00000100)
-    hex2bytes("\xff\xff")            = ArgumentError: byte is not an ASCII hexadecimal digit
-    hex2bytes(SubString("\xff\xff")) = Base.InvalidCharError{Char}('\xff')
-    hex2bytes(SubString("éé"))     = ArgumentError: byte is not an ASCII hexadecimal digit
+    JULIA 1.15.0-DEV.unknown COMMIT f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    VERSION 1.15.0-DEV.unknown
+    INPUT_CODEUNITS UInt8[0xc0, 0xb0, 0x30]
+    ISOVERLONG true ISMALFORMED false
+    UInt8(Char) RESULT 48
+    hex2bytes(SubString) RESULT UInt8[0x00]
     REPRODUCED stringutil-hex2bytes-nonascii
-reproduced: {release: true, nightly: true}
+reproduced: {release: false, nightly: true}
 expected: |
-  ArgumentError for every input that is not a sequence of ASCII hex digits, as for String.
+  Reject the overlong encoding because the hex2bytes contract requires ASCII
+  hexadecimal codes. The conversion must not return UInt8[0x00].
 promised_by: |
-  The String method (base/strings/util.jl:1240-1244) and number_from_hex(::UInt8)
-  (:1278-1283) throw ArgumentError for non-hex input; the hex2bytes docstring (:1195-1201) asks
-  for ASCII hexadecimal digits. The SubString path should be consistent.
+  The hex2bytes docstring at base/strings/util.jl:1195-1201 requires an iterable
+  of ASCII codes. The comment at base/strings/util.jl:1239 says valid bytes are
+  checked in the generic implementation.
 cause: |
-  number_from_hex(c::Char) = number_from_hex(UInt8(c)) (base/strings/util.jl:1277): UInt8(c)
-  throws InexactError for c > '\xff' and InvalidCharError for malformed c before the digit check.
+  PR #55152 changed UInt32(::Char) at base/char.jl:164-166 to accept overlong
+  encodings. number_from_hex(::Char) at base/strings/util.jl:1277 converts the
+  Char through UInt8 before checking the digit. The overlong encoding of '0'
+  therefore becomes 0x30 and is accepted as a hex digit.
 possible_fix: |
-  Return the ArgumentError when !isascii(c) (or codepoint(c) > 0x7f) before converting to UInt8.
+  Make number_from_hex(::Char) reject any character whose stored encoding is
+  not one ASCII byte before converting it to UInt8.
 duplicates:
   issues: []
-  queries: ["issues: hex2bytes", "prs: hex2bytes", "issues: hex2bytes InexactError", "issues: hex2bytes SubString", "issues: hex2bytes InvalidCharError"]
+  prs:
+    - {number: 55152, state: merged, relation: related}
+    - {number: 27380, state: closed, relation: related}
+    - {number: 11004, state: closed, relation: related}
+    - {number: 11103, state: closed, relation: related}
+  queries:
+    - "issues: overlong UInt8 Char"
+    - "issues: hex2bytes overlong"
+    - "PRs: overlong UInt8 Char"
+    - "PRs: hex2bytes overlong"
+    - "issues: \"UInt8(::Char)\" overlong"
+    - "PRs: \"UInt8(::Char)\" overlong"
 lean:
-  property: JuliaLean.StringUtil.Hex2bytesArgError
-  theorem: JuliaLean.StringUtil.hex2bytesArgError_refuted
+  property: JuliaLean.Proofs.base.strings.util.Round15.Hex2bytesNonAsciiError
+  theorem: JuliaLean.Proofs.base.strings.util.Round15.hex2bytesNonAsciiError_refuted

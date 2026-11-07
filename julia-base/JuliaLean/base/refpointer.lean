@@ -506,3 +506,74 @@ def setindexRefArray {T A R : Type} (setindex : A → I64 → T → Jl A)
   pure { b with x := array }
 
 end JuliaLean.base.refpointer
+
+namespace JuliaLean.NumMisc
+/-- `Ref(x::Ptr{T}, i)`, `base/refpointer.jl:150`. -/
+def refPointer (p : Ptr64) (elementBytes index : Int) : Ptr64 :=
+  ptrAdd p ((index - 1) * elementBytes)
+
+/-- `RefArray` construction defers the array bounds check until `getindex`,
+`base/refpointer.jl:116-125,193`. The returned natural is the zero-based slot. -/
+def derefArray (len : Nat) (index : Int) : Jl Nat :=
+  if 1 ≤ index ∧ index ≤ len then .ok (index - 1).toNat else .error .boundsError
+
+/-- `cconvert(Ref{T}, t::NTuple{N,T})`, `base/refpointer.jl:182`: the rooted Ref
+contains the whole tuple. -/
+def tupleRef {α : Type} (xs : List α) : List α := xs
+
+end JuliaLean.NumMisc
+
+namespace JuliaLean.NumMisc.Coverage
+
+open JuliaLean
+
+/-! ## `base/refpointer.jl:97-150` -/
+
+structure RefModel where
+  values : List (Option Nat)
+  index : Int
+  roots : List Nat
+  deriving DecidableEq, Repr
+
+def refLength (_ : RefModel) : Nat := 1
+def refEmpty (_ : RefModel) : Bool := false
+def refDims (_ : RefModel) : Nat := 0
+def refSize (_ : RefModel) : List Nat := []
+def refAxes (_ : RefModel) : List (Nat × Nat) := []
+def refElementType (tag : Nat) : Nat := tag
+def refIteratorRank : Nat := 0
+def refIterate (ref : RefModel) (started : Bool) : Option (Option Nat) :=
+  if started then none else some (ref.values.getD (ref.index - 1).toNat none)
+
+def makeRefArray (values : List (Option Nat)) (index : Int) (roots : List Nat) : RefModel :=
+  ⟨values, index, roots⟩
+
+inductive RefPointerRoute where | inline | boxed | unionLayout deriving DecidableEq, Repr
+
+def refPointerRoute (isBitsOrInline unionLayout : Bool) : RefPointerRoute :=
+  if isBitsOrInline then .inline else if unionLayout then .unionLayout else .boxed
+
+def singleRefIndex (index : Int) : Jl Unit :=
+  if index == 1 then .ok () else .error (.argumentError "Ref only has one element")
+/-! ## `base/refpointer.jl:154-194` -/
+
+structure PointerArrayRoots where
+  pointers : List Nat
+  roots : List Nat
+  terminated : Bool
+  deriving DecidableEq, Repr
+
+def rootPointerArray (pointers roots : List Nat) : PointerArrayRoots :=
+  ⟨pointers ++ [0], roots, true⟩
+
+def tupleRoot (values : List Nat) : List Nat := values
+
+def refArrayAt (values : List (Option Nat)) (index : Int) (roots : List Nat) : RefModel :=
+  ⟨values, index, roots⟩
+
+def refGet (ref : RefModel) : Option Nat := ref.values.getD (ref.index - 1).toNat none
+
+def refSet (ref : RefModel) (value : Option Nat) : RefModel :=
+  { ref with values := ref.values.set (ref.index - 1).toNat value }
+
+end JuliaLean.NumMisc.Coverage

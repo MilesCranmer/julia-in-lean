@@ -64,5 +64,5 @@ duplicates:
     - "issues: count regex overlap empty"
     - "prs: replace empty match regex"
 lean:
-  property: JuliaLean.RegexUnicode.Core.ReplaceAssemblesEachmatch
-  theorem: JuliaLean.RegexUnicode.Core.replaceAssemblesEachmatch_refuted
+  property: JuliaLean.Proofs.base.strings.util.Round6.ReplaceAssemblesEachmatch
+  theorem: JuliaLean.Proofs.base.strings.util.ArgminProbe.replaceAssemblesEachmatch_refuted

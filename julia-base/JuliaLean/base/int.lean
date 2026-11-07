@@ -176,7 +176,7 @@ theorem bits_eq_of_sizeofT {a b : IntTy} (h1 : ¬ sizeofT a < sizeofT b)
 
 /-- `convert(T, x)` / `T(x)` between BitInteger types (`boot.jl` `toInt8` … `toUInt128`):
 the same value, or `InexactError` when `T` cannot represent it. -/
-def convert (T : IntTy) {S : IntTy} (x : JInt S) : Jl (JInt T) := JInt.convert T x.val
+def convert (T : IntTy) {S : IntTy} (x : JInt S) : Jl (JInt T) := JInt.convert (if T.bits = S.bits then "convert" else "trunc") T x.val
 
 /-- `T(x)` / `convert(T, x)` / `oftype` when `x`'s type is unsigned or has `T`'s signedness and
 `T` is at least as wide: `boot.jl` selects `zext_int`, `sext_int` or the identity, which keep
@@ -3105,162 +3105,362 @@ def mul_hi_Int128 (a b : JInt .i128) : JInt .i128 :=
 
 /-! ## 32-bit platforms (lines 931-1081) -/
 
--- UNTRANSLATED
--- defined only when Int === Int32; not defined on the 64-bit target
--- Source: base/int.jl:931-1082 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
--- ## wide multiplication, Int128 multiply and divide ##
--- 
--- if Core.sizeof(Int) == 4
---     function widemul(u::Int64, v::Int64)
---         local u0::UInt64, v0::UInt64, w0::UInt64
---         local u1::Int64, v1::Int64, w1::UInt64, w2::Int64, t::UInt64
--- 
---         u0 = u & 0xffffffff; u1 = u >> 32
---         v0 = v & 0xffffffff; v1 = v >> 32
---         w0 = u0 *% v0
---         t = reinterpret(UInt64, u1) *% v0 +% (w0 >>> 32)
---         w2 = reinterpret(Int64, t) >> 32
---         w1 = u0 *% reinterpret(UInt64, v1) +% (t & 0xffffffff)
---         hi = u1 *% v1 +% w2 +% (reinterpret(Int64, w1) >> 32)
---         lo = (w0 & 0xffffffff) +% (w1 << 32)
---         return (Int128(hi) << 64) +% Int128(lo)
---     end
--- 
---     function widemul(u::UInt64, v::UInt64)
---         local u0::UInt64, v0::UInt64, w0::UInt64
---         local u1::UInt64, v1::UInt64, w1::UInt64, w2::UInt64, t::UInt64
--- 
---         u0 = u & 0xffffffff; u1 = u >>> 32
---         v0 = v & 0xffffffff; v1 = v >>> 32
---         w0 = u0 *% v0
---         t = u1 *% v0 +% (w0 >>> 32)
---         w2 = t >>> 32
---         w1 = u0 *% v1 +% (t & 0xffffffff)
---         hi = u1 *% v1 +% w2 +% (w1 >>> 32)
---         lo = (w0 & 0xffffffff) +% (w1 << 32)
---         return (UInt128(hi) << 64) +% UInt128(lo)
---     end
--- 
---     function *(u::Int128, v::Int128)
---         u0 = u % UInt64; u1 = Int64(u >> 64)
---         v0 = v % UInt64; v1 = Int64(v >> 64)
---         lolo = widemul(u0, v0)
---         lohi = widemul(reinterpret(Int64, u0), v1)
---         hilo = widemul(u1, reinterpret(Int64, v0))
---         t = reinterpret(UInt128, hilo) +% (lolo >>> 64)
---         w1 = reinterpret(UInt128, lohi) +% (t & 0xffffffffffffffff)
---         return Int128(lolo & 0xffffffffffffffff) +% (reinterpret(Int128, w1) << 64)
---     end
--- 
---     function *(u::UInt128, v::UInt128)
---         u0 = u % UInt64; u1 = UInt64(u>>>64)
---         v0 = v % UInt64; v1 = UInt64(v>>>64)
---         lolo = widemul(u0, v0)
---         lohi = widemul(u0, v1)
---         hilo = widemul(u1, v0)
---         t = hilo +% (lolo >>> 64)
---         w1 = lohi +% (t & 0xffffffffffffffff)
---         return (lolo & 0xffffffffffffffff) +% (UInt128(w1) << 64)
---     end
--- 
---     function _setbit(x::UInt128, i)
---         # faster version of `return x | (UInt128(1) << i)`
---         j = i >> 5
---         y = UInt128(one(UInt32) << (i & 0x1f))
---         if j == 0
---             return x | y
---         elseif j == 1
---             return x | (y << 32)
---         elseif j == 2
---             return x | (y << 64)
---         elseif j == 3
---             return x | (y << 96)
---         end
---         return x
---     end
--- 
---     function divrem(x::UInt128, y::UInt128)
---         iszero(y) && throw(DivideError())
---         if (x >> 64) % UInt64 == 0
---             if (y >> 64) % UInt64 == 0
---                 # fast path: upper 64 bits are zero, so we can fallback to UInt64 division
---                 q64, x64 = divrem(x % UInt64, y % UInt64)
---                 return UInt128(q64), UInt128(x64)
---             else
---                 # this implies y>x, so
---                 return zero(UInt128), x
---             end
---         end
---         n = leading_zeros(y) - leading_zeros(x)
---         q = zero(UInt128)
---         ys = y << n
---         while n >= 0
---             # ys == y * 2^n
---             if ys <= x
---                 x -= ys
---                 q = _setbit(q, n)
---                 if (x >> 64) % UInt64 == 0
---                     # exit early, similar to above fast path
---                     if (y >> 64) % UInt64 == 0
---                         q64, x64 = divrem(x % UInt64, y % UInt64)
---                         q |= q64
---                         x = UInt128(x64)
---                     end
---                     return q, x
---                 end
---             end
---             ys >>>= 1
---             n -= 1
---         end
---         return q, x
---     end
--- 
---     function div(x::Int128, y::Int128)
---         (x == typemin(Int128)) & (y == -1) && throw(DivideError())
---         return Int128(div(BigInt(x), BigInt(y)))::Int128
---     end
---     div(x::UInt128, y::UInt128) = divrem(x, y)[1]
--- 
---     function rem(x::Int128, y::Int128)
---         return Int128(rem(BigInt(x), BigInt(y)))::Int128
---     end
--- 
---     function rem(x::UInt128, y::UInt128)
---         iszero(y) && throw(DivideError())
---         if (x >> 64) % UInt64 == 0
---             if (y >> 64) % UInt64 == 0
---                 # fast path: upper 64 bits are zero, so we can fallback to UInt64 division
---                 return UInt128(rem(x % UInt64, y % UInt64))
---             else
---                 # this implies y>x, so
---                 return x
---             end
---         end
---         n = leading_zeros(y) - leading_zeros(x)
---         ys = y << n
---         while n >= 0
---             # ys == y * 2^n
---             if ys <= x
---                 x -= ys
---                 if (x >> 64) % UInt64 == 0
---                     # exit early, similar to above fast path
---                     if (y >> 64) % UInt64 == 0
---                         x = UInt128(rem(x % UInt64, y % UInt64))
---                     end
---                     return x
---                 end
---             end
---             ys >>>= 1
---             n -= 1
---         end
---         return x
---     end
--- 
---     function mod(x::Int128, y::Int128)
---         return Int128(mod(BigInt(x), BigInt(y)))::Int128
---     end
--- else
--- /Source
+/-! ## 32-bit platform implementations (lines 931-1081) -/
+
+namespace Int32Platform
+
+abbrev DivremUInt64 := JInt .u64 → JInt .u64 → Jl (JInt .u64 × JInt .u64)
+abbrev RemUInt64 := JInt .u64 → JInt .u64 → Jl (JInt .u64)
+
+/--
+Julia source: base/int.jl:934-947 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+```julia
+    function widemul(u::Int64, v::Int64)
+        local u0::UInt64, v0::UInt64, w0::UInt64
+        local u1::Int64, v1::Int64, w1::UInt64, w2::Int64, t::UInt64
+
+        u0 = u & 0xffffffff; u1 = u >> 32
+        v0 = v & 0xffffffff; v1 = v >> 32
+        w0 = u0 *% v0
+        t = reinterpret(UInt64, u1) *% v0 +% (w0 >>> 32)
+        w2 = reinterpret(Int64, t) >> 32
+        w1 = u0 *% reinterpret(UInt64, v1) +% (t & 0xffffffff)
+        hi = u1 *% v1 +% w2 +% (reinterpret(Int64, w1) >> 32)
+        lo = (w0 & 0xffffffff) +% (w1 << 32)
+        return (Int128(hi) << 64) +% Int128(lo)
+    end
+```
+-/
+def widemulInt64 (u v : JInt .i64) : JInt .i128 := Id.run do
+  let mask := lit .u64 0xffffffff
+  let uBits := bitcast .u64 u (by rfl)
+  let vBits := bitcast .u64 v (by rfl)
+  let u0 := band uBits mask
+  let u1 := shr_Int u (lit .i64 32)
+  let v0 := band vBits mask
+  let v1 := shr_Int v (lit .i64 32)
+  let w0 := mulWrap u0 v0
+  let t := addWrap (mulWrap (bitcast .u64 u1 (by rfl)) v0)
+    (lshr_Int w0 (lit .i64 32))
+  let w2 := shr_Int (bitcast .i64 t (by rfl)) (lit .i64 32)
+  let w1 := addWrap (mulWrap u0 (bitcast .u64 v1 (by rfl))) (band t mask)
+  let hi := addWrap (addWrap (mulWrap u1 v1) w2)
+    (shr_Int (bitcast .i64 w1 (by rfl)) (lit .i64 32))
+  let lo := addWrap (band w0 mask) (shl_Int w1 (lit .i64 32))
+  return addWrap (shl_Int (widenTo .i128 hi) (lit .i64 64)) (widenTo .i128 lo)
+
+/--
+Julia source: base/int.jl:949-962 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+```julia
+    function widemul(u::UInt64, v::UInt64)
+        local u0::UInt64, v0::UInt64, w0::UInt64
+        local u1::UInt64, v1::UInt64, w1::UInt64, w2::UInt64, t::UInt64
+
+        u0 = u & 0xffffffff; u1 = u >>> 32
+        v0 = v & 0xffffffff; v1 = v >>> 32
+        w0 = u0 *% v0
+        t = u1 *% v0 +% (w0 >>> 32)
+        w2 = t >>> 32
+        w1 = u0 *% v1 +% (t & 0xffffffff)
+        hi = u1 *% v1 +% w2 +% (w1 >>> 32)
+        lo = (w0 & 0xffffffff) +% (w1 << 32)
+        return (UInt128(hi) << 64) +% UInt128(lo)
+    end
+```
+-/
+def widemulUInt64 (u v : JInt .u64) : JInt .u128 := Id.run do
+  let mask := lit .u64 0xffffffff
+  let u0 := band u mask
+  let u1 := lshr_Int u (lit .i64 32)
+  let v0 := band v mask
+  let v1 := lshr_Int v (lit .i64 32)
+  let w0 := mulWrap u0 v0
+  let t := addWrap (mulWrap u1 v0) (lshr_Int w0 (lit .i64 32))
+  let w2 := lshr_Int t (lit .i64 32)
+  let w1 := addWrap (mulWrap u0 v1) (band t mask)
+  let hi := addWrap (addWrap (mulWrap u1 v1) w2) (lshr_Int w1 (lit .i64 32))
+  let lo := addWrap (band w0 mask) (shl_Int w1 (lit .i64 32))
+  return addWrap (shl_Int (widenTo .u128 hi) (lit .i64 64)) (widenTo .u128 lo)
+
+/--
+Julia source: base/int.jl:964-973 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+```julia
+    function *(u::Int128, v::Int128)
+        u0 = u % UInt64; u1 = Int64(u >> 64)
+        v0 = v % UInt64; v1 = Int64(v >> 64)
+        lolo = widemul(u0, v0)
+        lohi = widemul(reinterpret(Int64, u0), v1)
+        hilo = widemul(u1, reinterpret(Int64, v0))
+        t = reinterpret(UInt128, hilo) +% (lolo >>> 64)
+        w1 = reinterpret(UInt128, lohi) +% (t & 0xffffffffffffffff)
+        return Int128(lolo & 0xffffffffffffffff) +% (reinterpret(Int128, w1) << 64)
+    end
+```
+-/
+def mulInt128 (u v : JInt .i128) : JInt .i128 := Id.run do
+  let u0 := remT .u64 u
+  let u1 := remT .i64 (shr_Int u (lit .i64 64))
+  let v0 := remT .u64 v
+  let v1 := remT .i64 (shr_Int v (lit .i64 64))
+  let lolo := widemulUInt64 u0 v0
+  let lohi := widemulInt64 (bitcast .i64 u0 (by rfl)) v1
+  let hilo := widemulInt64 u1 (bitcast .i64 v0 (by rfl))
+  let t := addWrap (bitcast .u128 hilo (by rfl)) (lshr_Int lolo (lit .i64 64))
+  let mask64 := lit .u128 0xffffffffffffffff
+  let w1 := addWrap (bitcast .u128 lohi (by rfl)) (band t mask64)
+  let lo := widenTo .i128 (band lolo mask64)
+  let hi := shl_Int (bitcast .i128 w1 (by rfl)) (lit .i64 64)
+  return addWrap lo hi
+
+/--
+Julia source: base/int.jl:975-984 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+```julia
+    function *(u::UInt128, v::UInt128)
+        u0 = u % UInt64; u1 = UInt64(u>>>64)
+        v0 = v % UInt64; v1 = UInt64(v>>>64)
+        lolo = widemul(u0, v0)
+        lohi = widemul(u0, v1)
+        hilo = widemul(u1, v0)
+        t = hilo +% (lolo >>> 64)
+        w1 = lohi +% (t & 0xffffffffffffffff)
+        return (lolo & 0xffffffffffffffff) +% (UInt128(w1) << 64)
+    end
+```
+-/
+def mulUInt128 (u v : JInt .u128) : JInt .u128 := Id.run do
+  let u0 := remT .u64 u
+  let u1 := remT .u64 (lshr_Int u (lit .i64 64))
+  let v0 := remT .u64 v
+  let v1 := remT .u64 (lshr_Int v (lit .i64 64))
+  let lolo := widemulUInt64 u0 v0
+  let lohi := widemulUInt64 u0 v1
+  let hilo := widemulUInt64 u1 v0
+  let t := addWrap hilo (lshr_Int lolo (lit .i64 64))
+  let mask64 := lit .u128 0xffffffffffffffff
+  let w1 := addWrap lohi (band t mask64)
+  return addWrap (band lolo mask64) (shl_Int w1 (lit .i64 64))
+
+/--
+Julia source: base/int.jl:986-1000 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+```julia
+    function _setbit(x::UInt128, i)
+        # faster version of `return x | (UInt128(1) << i)`
+        j = i >> 5
+        y = UInt128(one(UInt32) << (i & 0x1f))
+        if j == 0
+            return x | y
+        elseif j == 1
+            return x | (y << 32)
+        elseif j == 2
+            return x | (y << 64)
+        elseif j == 3
+            return x | (y << 96)
+        end
+        return x
+    end
+```
+-/
+def setbitUInt128 (x : JInt .u128) (i : JInt .i32) : JInt .u128 := Id.run do
+  let j := shr_Int i (lit .i64 5)
+  let shift := remT .u32 (band i (lit .i32 0x1f))
+  let y := widenTo .u128 (shl_int (lit .u32 1) shift)
+  if eq j (lit .i32 0) then return bor x y
+  else if eq j (lit .i32 1) then return bor x (shl_Int y (lit .i64 32))
+  else if eq j (lit .i32 2) then return bor x (shl_Int y (lit .i64 64))
+  else if eq j (lit .i32 3) then return bor x (shl_Int y (lit .i64 96))
+  else return x
+
+private def upper64UInt128 (x : JInt .u128) : JInt .u64 :=
+  remT .u64 (lshr_Int x (lit .i64 64))
+
+private def divremUInt128Loop (divrem64 : DivremUInt64) :
+    Nat → JInt .u128 → JInt .u128 → JInt .u128 → JInt .u128 → JInt .i32 →
+      Jl (JInt .u128 × JInt .u128)
+  | 0, q, x, _y, _ys, _n => pure (q, x)
+  | fuel + 1, q, x, y, ys, n =>
+      if !le (lit .i32 0) n then pure (q, x)
+      else if le ys x then
+        let x := subWrap x ys
+        let q := setbitUInt128 q n
+        if eq (upper64UInt128 x) (lit .u64 0) then
+          if eq (upper64UInt128 y) (lit .u64 0) then do
+            let (q64, x64) ← divrem64 (remT .u64 x) (remT .u64 y)
+            pure (bor q (widenTo .u128 q64), widenTo .u128 x64)
+          else pure (q, x)
+        else
+          divremUInt128Loop divrem64 fuel q x y (lshr_Int ys (lit .i64 1))
+            (subWrap n (lit .i32 1))
+      else
+        divremUInt128Loop divrem64 fuel q x y (lshr_Int ys (lit .i64 1))
+          (subWrap n (lit .i32 1))
+
+/--
+Julia source: base/int.jl:1002-1036 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+```julia
+    function divrem(x::UInt128, y::UInt128)
+        iszero(y) && throw(DivideError())
+        if (x >> 64) % UInt64 == 0
+            if (y >> 64) % UInt64 == 0
+                # fast path: upper 64 bits are zero, so we can fallback to UInt64 division
+                q64, x64 = divrem(x % UInt64, y % UInt64)
+                return UInt128(q64), UInt128(x64)
+            else
+                # this implies y>x, so
+                return zero(UInt128), x
+            end
+        end
+        n = leading_zeros(y) - leading_zeros(x)
+        q = zero(UInt128)
+        ys = y << n
+        while n >= 0
+            # ys == y * 2^n
+            if ys <= x
+                x -= ys
+                q = _setbit(q, n)
+                if (x >> 64) % UInt64 == 0
+                    # exit early, similar to above fast path
+                    if (y >> 64) % UInt64 == 0
+                        q64, x64 = divrem(x % UInt64, y % UInt64)
+                        q |= q64
+                        x = UInt128(x64)
+                    end
+                    return q, x
+                end
+            end
+            ys >>>= 1
+            n -= 1
+        end
+        return q, x
+    end
+```
+-/
+def divremUInt128 (divrem64 : DivremUInt64) (x y : JInt .u128) :
+    Jl (JInt .u128 × JInt .u128) := do
+  if eq y (lit .u128 0) then throw .divideError
+  if eq (upper64UInt128 x) (lit .u64 0) then
+    if eq (upper64UInt128 y) (lit .u64 0) then do
+      let (q64, x64) ← divrem64 (remT .u64 x) (remT .u64 y)
+      pure (widenTo .u128 q64, widenTo .u128 x64)
+    else pure (lit .u128 0, x)
+  else
+    let n := remT .i32 (sub (leading_zeros y) (leading_zeros x))
+    let q := lit .u128 0
+    let ys := shl_Int y (widenTo .i64 n)
+    let fuel := if n.val < 0 then 0 else n.val.toNat + 1
+    divremUInt128Loop divrem64 fuel q x y ys n
+
+/--
+Julia source: base/int.jl:1038-1041 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+```julia
+    function div(x::Int128, y::Int128)
+        (x == typemin(Int128)) & (y == -1) && throw(DivideError())
+        return Int128(div(BigInt(x), BigInt(y)))::Int128
+    end
+```
+-/
+def divInt128 (divBig : Int → Int → Jl Int) (x y : JInt .i128) : Jl (JInt .i128) := do
+  if eq x (lit .i128 (-(2 ^ 127 : Int))) && eq y (lit .i128 (-1)) then
+    throw .divideError
+  pure (JInt.wrap .i128 (← divBig x.val y.val))
+
+/--
+Julia source: base/int.jl:1042-1042 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+```julia
+    div(x::UInt128, y::UInt128) = divrem(x, y)[1]
+```
+-/
+def divUInt128 (divrem64 : DivremUInt64) (x y : JInt .u128) : Jl (JInt .u128) := do
+  let (q, _) ← divremUInt128 divrem64 x y
+  pure q
+
+/--
+Julia source: base/int.jl:1044-1046 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+```julia
+    function rem(x::Int128, y::Int128)
+        return Int128(rem(BigInt(x), BigInt(y)))::Int128
+    end
+```
+-/
+def remInt128 (remBig : Int → Int → Jl Int) (x y : JInt .i128) : Jl (JInt .i128) := do
+  pure (JInt.wrap .i128 (← remBig x.val y.val))
+
+private def remUInt128Loop (rem64 : RemUInt64) :
+    Nat → JInt .u128 → JInt .u128 → JInt .u128 → JInt .i32 → Jl (JInt .u128)
+  | 0, x, _y, _ys, _n => pure x
+  | fuel + 1, x, y, ys, n =>
+      if !le (lit .i32 0) n then pure x
+      else if le ys x then
+        let x := subWrap x ys
+        if eq (upper64UInt128 x) (lit .u64 0) then
+          if eq (upper64UInt128 y) (lit .u64 0) then
+            widenTo .u128 <$> rem64 (remT .u64 x) (remT .u64 y)
+          else pure x
+        else
+          remUInt128Loop rem64 fuel x y (lshr_Int ys (lit .i64 1))
+            (subWrap n (lit .i32 1))
+      else
+        remUInt128Loop rem64 fuel x y (lshr_Int ys (lit .i64 1))
+          (subWrap n (lit .i32 1))
+
+/--
+Julia source: base/int.jl:1048-1077 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+```julia
+    function rem(x::UInt128, y::UInt128)
+        iszero(y) && throw(DivideError())
+        if (x >> 64) % UInt64 == 0
+            if (y >> 64) % UInt64 == 0
+                # fast path: upper 64 bits are zero, so we can fallback to UInt64 division
+                return UInt128(rem(x % UInt64, y % UInt64))
+            else
+                # this implies y>x, so
+                return x
+            end
+        end
+        n = leading_zeros(y) - leading_zeros(x)
+        ys = y << n
+        while n >= 0
+            # ys == y * 2^n
+            if ys <= x
+                x -= ys
+                if (x >> 64) % UInt64 == 0
+                    # exit early, similar to above fast path
+                    if (y >> 64) % UInt64 == 0
+                        x = UInt128(rem(x % UInt64, y % UInt64))
+                    end
+                    return x
+                end
+            end
+            ys >>>= 1
+            n -= 1
+        end
+        return x
+    end
+```
+-/
+def remUInt128 (rem64 : RemUInt64) (x y : JInt .u128) : Jl (JInt .u128) := do
+  if eq y (lit .u128 0) then throw .divideError
+  if eq (upper64UInt128 x) (lit .u64 0) then
+    if eq (upper64UInt128 y) (lit .u64 0) then
+      widenTo .u128 <$> rem64 (remT .u64 x) (remT .u64 y)
+    else pure x
+  else
+    let n := remT .i32 (sub (leading_zeros y) (leading_zeros x))
+    let ys := shl_Int y (widenTo .i64 n)
+    let fuel := if n.val < 0 then 0 else n.val.toNat + 1
+    remUInt128Loop rem64 fuel x y ys n
+
+/--
+Julia source: base/int.jl:1079-1081 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+```julia
+    function mod(x::Int128, y::Int128)
+        return Int128(mod(BigInt(x), BigInt(y)))::Int128
+    end
+```
+-/
+def modInt128 (modBig : Int → Int → Jl Int) (x y : JInt .i128) : Jl (JInt .i128) := do
+  pure (JInt.wrap .i128 (← modBig x.val y.val))
+
+end Int32Platform
 
 /-! ## `bitreverse` (lines 1102-1134) -/
 
@@ -3702,3 +3902,633 @@ def mulWrap_Integer {A B Ty : Type} {V : Ty → Type}
 end Generated
 
 end JuliaLean.base.int
+
+namespace JuliaLean.RandomSampling
+
+/-- `Base.top_set_bit(x)`, `base/int.jl`: the number of significant bits. -/
+def topSetBit (n : Nat) : Nat := if n = 0 then 0 else n.log2 + 1
+
+/-- `x & mask` on an unsigned type. -/
+def band {u : IntTy} (x y : JInt u) : JInt u := JInt.wrap u (x.val.toNat &&& y.val.toNat)
+
+end JuliaLean.RandomSampling
+
+namespace JuliaLean.FloatRanges
+
+/-- Julia `Int` on 64-bit platforms. -/
+abbrev I64 := JInt .i64
+
+/-- An `Int` literal. -/
+def i64 (n : Int) : I64 := JInt.lit .i64 n
+
+/-- `abs(x::Int)`, wrapping at typemin; `base/int.jl:233`. -/
+def iabs (x : I64) : I64 := if x.val < 0 then -x else x
+
+/-- `max(x, y)` on Int. -/
+def imax (x y : I64) : I64 := if y.val > x.val then y else x
+
+/-- `min(x, y)` on Int. -/
+def imin (x y : I64) : I64 := if y.val < x.val then y else x
+
+/-- `top_set_bit(x::Int)`, `base/int.jl:569`: `64 - leading_zeros(x)`. -/
+def topSetBit (x : I64) : Int :=
+  if x.val < 0 then 64 else if x.val = 0 then 0 else (x.val.toNat.log2 : Int) + 1
+
+/-- `typemax(UInt64) << nb`, Julia's shift by a signed count; `base/int.jl:613-614`. -/
+def shlMask (nb : Int) : Nat :=
+  if nb ≥ 64 then 0
+  else if nb ≥ 0 then ((2^64 - 1) <<< nb.toNat) % 2^64
+  else if nb ≤ -64 then 0
+  else (2^64 - 1) >>> nb.natAbs
+
+end JuliaLean.FloatRanges
+
+namespace JuliaLean.IntArith.PowersDigits
+
+/-- `base/int.jl:488,569`: ctlz on the unsigned bit pattern, including zero. -/
+def leadingZeros {t : IntTy} (x : JInt t) : Nat :=
+  t.bits - (JInt.rem t.toUnsigned x).val.toNat.log2 -
+    (if x.val = 0 then 0 else 1)
+
+/-- `base/int.jl:569`: bit width minus ctlz. -/
+def topSetBit {t : IntTy} (x : JInt t) : Nat :=
+  t.bits - leadingZeros x
+
+/-- `base/int.jl:501`: cttz returns the type width for zero. -/
+def trailingZeros {t : IntTy} (x : JInt t) : Nat :=
+  ((List.range t.bits).find? fun k =>
+    ((JInt.rem t.toUnsigned x).val.toNat / 2^k) % 2 = 1).getD t.bits
+
+/-- `base/int.jl:475`: ctpop of the complete fixed-width representation. -/
+def countOnes {t : IntTy} (x : JInt t) : Nat :=
+  ((List.range t.bits).filter fun k =>
+    ((JInt.rem t.toUnsigned x).val.toNat / 2^k) % 2 = 1).length
+
+/-- `base/int.jl:606,613-614`: nonnegative wrapping left shift. -/
+def shl {t : IntTy} (x : JInt t) (k : Nat) : JInt t :=
+  JInt.wrap t (x.val * (2^k : Int))
+
+/-- Runtime-typed intermediate needed when ndigits changes signedness. -/
+abbrev Box := Σ t : IntTy, JInt t
+
+end JuliaLean.IntArith.PowersDigits
+
+namespace JuliaLean.IntArith.NumberTheory
+
+/-- `abs`, `base/int.jl:233-234`; the negation wraps at signed typemin. -/
+def abs {t : IntTy} (a : JInt t) : JInt t := if a.val < 0 then -a else a
+
+/-- Working type for the explicit `widen(Int128) == BigInt` branches in
+`base/intfuncs.jl:328-332,587`. `none` denotes Julia BigInt. -/
+abbrev WorkTy := Option IntTy
+
+/-- Integer remainder-to-type conversion, `base/int.jl:618-634,695-698`.
+Finite work types always use Core's JInt two's-complement conversion. -/
+def norm : WorkTy → Int → Int
+  | some t, x => (JInt.wrap t x).val
+  | none, x => x
+
+/-- Wrapping addition, `base/int.jl:88,93`; BigInt addition is exact. -/
+def add (t : WorkTy) (a b : Int) : Int := match t with
+  | some t => ((JInt.wrap t a) + (JInt.wrap t b)).val
+  | none => a + b
+
+/-- Wrapping subtraction, `base/int.jl:87,92`; BigInt subtraction is exact. -/
+def sub (t : WorkTy) (a b : Int) : Int := match t with
+  | some t => ((JInt.wrap t a) - (JInt.wrap t b)).val
+  | none => a - b
+
+/-- Wrapping multiplication, `base/int.jl:89,94`; BigInt multiplication is exact. -/
+def mul (t : WorkTy) (a b : Int) : Int := match t with
+  | some t => ((JInt.wrap t a) * (JInt.wrap t b)).val
+  | none => a * b
+
+/-- Wrapping unary negation, `base/int.jl:86,91`. -/
+def neg (t : WorkTy) (a : Int) : Int := match t with
+  | some t => (-(JInt.wrap t a)).val
+  | none => -a
+
+/-- `abs` on a work type, `base/int.jl:233-234`. -/
+def absVal (t : WorkTy) (a : Int) : Int := if a < 0 then neg t a else a
+
+/-- `widen`, `base/int.jl:911-918`, and `base/gmp.jl:298-299`. -/
+def widen : IntTy → WorkTy
+  | .i8 => some .i16 | .i16 => some .i32 | .i32 => some .i64
+  | .i64 => some .i128 | .u8 => some .u16 | .u16 => some .u32
+  | .u32 => some .u64 | .u64 => some .u128 | .i128 | .u128 => none
+
+/-- `divrem`'s exception check, `base/int.jl:355-358,1085-1089`.
+The Euclidean state below stores remainders without a second conversion:
+`natAbs_tmod` ensures each nonzero remainder is smaller than the divisor,
+so the checked intrinsic's final conversion cannot change it. -/
+def divOverflow (t : WorkTy) (a b : Int) : Bool := match t with
+  | some t => t.signed && a == t.min && b == -1
+  | none => false
+
+/-- Count trailing zero bits, `base/int.jl:501`.
+For zero the intrinsic returns the full bit width. -/
+def trailingZeros (t : IntTy) (x : Int) : Nat :=
+  ((List.range t.bits).find? (fun k => (x / (2 ^ k : Int)) % 2 != 0)).getD t.bits
+
+/-- Arithmetic right shift, `base/int.jl:604-605,611-612`. -/
+def shiftRight {t : IntTy} (x : JInt t) (k : Nat) : JInt t :=
+  JInt.wrap t (x.val / (2 ^ k : Int))
+
+/-- Left shift, `base/int.jl:606,613-614`. -/
+def shiftLeft {t : IntTy} (x : JInt t) (k : Nat) : JInt t :=
+  JInt.wrap t (x.val * (2 ^ k : Int))
+
+end JuliaLean.IntArith.NumberTheory
+
+namespace JuliaLean.IntArith.Division
+
+/-- A fixed-width integer with its runtime type, as used by mixed dispatch. -/
+structure Value where
+  ty : IntTy
+  int : JInt ty
+  deriving DecidableEq
+
+/-- Pack a typed primitive without changing its bits. -/
+def pack {t : IntTy} (x : JInt t) : Value := ⟨t, x⟩
+
+/-- Julia literal of an explicitly supplied integer type. -/
+def lit (t : IntTy) (x : Int) : Value := pack (JInt.lit t x)
+
+/-- `base/int.jl:183-184`: unsigned sign bits are always false. -/
+def signbit (x : Value) : Bool := decide (x.int.val < 0)
+
+/-- `base/int.jl:261-262`: same-width reinterpretation, including negative inputs. -/
+def unsigned (x : Value) : Value := pack (JInt.rem x.ty.toUnsigned x.int)
+
+/-- `base/int.jl:272-273`: same-width reinterpretation, including large unsigned inputs. -/
+def signed (x : Value) : Value := pack (JInt.rem x.ty.toSigned x.int)
+
+/-- `base/int.jl:188-194`, `base/number.jl:255`: promote signed operands,
+flip the promoted intrinsic sign, and truncate back to the first operand's type. -/
+def flipsign (x y : Value) : Value :=
+  if x.ty.signed && y.ty.signed then
+    let t := IntTy.promote x.ty y.ty
+    let a := JInt.rem t x.int
+    let b := JInt.rem t y.int
+    pack (JInt.rem x.ty (if b.val < 0 then -a else a))
+  else if x.ty.signed then
+    let b := -(JInt.lit x.ty (if signbit y then 1 else 0))
+    pack (if b.val < 0 then -x.int else x.int)
+  else pack (if signbit y then -x.int else x.int)
+
+/-- `base/int.jl:196-200`, `base/number.jl:271`: the sign of signed XOR
+is the XOR of sign bits after sign-extending promotion. -/
+def copysign (x y : Value) : Value :=
+  if x.ty.signed && y.ty.signed then
+    let t := IntTy.promote x.ty y.ty
+    let a := JInt.rem t x.int
+    let b := JInt.rem t y.int
+    flipsign x (lit t (if (a.val < 0) ↔ (b.val < 0) then 0 else -1))
+  else if x.ty.signed then
+    let b := -(JInt.lit x.ty (if signbit y then 1 else 0))
+    flipsign x (lit x.ty (if (x.int.val < 0) ↔ (b.val < 0) then 0 else -1))
+  else pack (if signbit x != signbit y then -x.int else x.int)
+
+/-- `base/int.jl:233-234`: signed absolute value uses wrapping flipsign. -/
+def abs (x : Value) : Value := if x.ty.signed then flipsign x x else x
+
+/-- Arithmetic promotion is wrapping, `base/int.jl:1092-1100`; unlike
+`promote`, mixed arithmetic never exact-converts negative signed operands. -/
+def mul (x y : Value) : Value :=
+  let t := IntTy.promote x.ty y.ty
+  pack (JInt.rem t x.int * JInt.rem t y.int)
+
+/-- Wrapping promoted subtraction, `base/int.jl:1092-1100`. -/
+def sub (x y : Value) : Value :=
+  let t := IntTy.promote x.ty y.ty
+  pack (JInt.rem t x.int - JInt.rem t y.int)
+
+/-- Wrapping promoted addition, `base/int.jl:1092-1100`. -/
+def add (x y : Value) : Value :=
+  let t := IntTy.promote x.ty y.ty
+  pack (JInt.rem t x.int + JInt.rem t y.int)
+
+/-- `base/int.jl:275-276`: mixed division unsigned-divides magnitudes,
+reinterprets its quotient as signed, flips the original sign, then optionally
+reinterprets back to unsigned. No promote-first mixed conversion occurs. -/
+def div (promotedDiv : Value → Value → Jl Value) (x y : Value) : Jl Value := do
+  if x.ty.signed && !y.ty.signed then
+    pure (flipsign (signed (← promotedDiv (unsigned (abs x)) y)) x)
+  else if !x.ty.signed && y.ty.signed then
+    pure (unsigned (flipsign (signed (← promotedDiv x (unsigned (abs y)))) y))
+  else promotedDiv x y
+
+/-- `base/int.jl:278-279`: mixed remainder keeps the numerator's sign. -/
+def rem (promotedRem : Value → Value → Jl Value) (x y : Value) : Jl Value := do
+  if x.ty.signed && !y.ty.signed then
+    pure (flipsign (signed (← promotedRem (unsigned (abs x)) y)) x)
+  else if !x.ty.signed && y.ty.signed then
+    promotedRem x (unsigned (abs y))
+  else promotedRem x y
+
+/-- `base/int.jl:281-289`: mixed `divrem` computes unsigned magnitudes
+before independently restoring quotient and remainder signs. -/
+def divrem (promotedDivrem : Value → Value → Jl (Value × Value))
+    (x y : Value) : Jl (Value × Value) := do
+  if x.ty.signed && !y.ty.signed then
+    let (q, r) ← promotedDivrem (unsigned (abs x)) y
+    pure (flipsign (signed q) x, flipsign (signed r) x)
+  else if !x.ty.signed && y.ty.signed then
+    let (q, r) ← promotedDivrem x (unsigned (abs y))
+    pure (unsigned (flipsign (signed q) y), r)
+  else promotedDivrem x y
+
+/-- `base/int.jl:331-351`: mixed signed/unsigned mod restores the divisor's
+sign using wrapping promoted arithmetic; same-signedness mod promotes first. -/
+def mod (rem : Value → Value → Jl Value) (x y : Value) : Jl Value := do
+  if x.ty.signed && !y.ty.signed then
+    let r ← rem x y
+    pure (unsigned (add r (mul (lit y.ty (if r.int.val < 0 then 1 else 0)) y)))
+  else if !x.ty.signed && y.ty.signed then
+    let r := signed (← rem x y)
+    pure (add r (mul (lit y.ty (if r.int.val ≠ 0 ∧ y.int.val < 0 then 1 else 0)) y))
+  else
+    let t := IntTy.promote x.ty y.ty
+    let a ← JInt.convert (t.name) t x.int.val
+    let b ← JInt.convert (t.name) t y.int.val
+    pure (pack (← JInt.mod a b))
+
+end JuliaLean.IntArith.Division
+
+namespace JuliaLean.IntArith.Rational
+
+/-- Division by an unsigned gcd, preserving the dividend's type, including
+`typemin`; base/int.jl:275 and base/rational.jl:59-62. The unsigned quotient
+is cast to signed before `flipsign`, and finally to the original type. -/
+def divUnsigned {t u} (uabs : JInt t → JInt t.toUnsigned)
+    (x : JInt t) (g : JInt u) : Jl (JInt t) := do
+  let p := IntTy.promote t.toUnsigned u
+  let q ← JInt.div (JInt.wrap p (uabs x).val) (JInt.wrap p g.val)
+  let signedQ := JInt.wrap p.toSigned q.val
+  let signedQ := if x.val < 0 then -signedQ else signedQ
+  return JInt.wrap t signedQ.val
+
+/-- `widemul`: fixed-width widened multiplication below 128 bits;
+BigInt multiplication at 128 bits. Mixed signedness converts the widened
+unsigned factor to signed; base/int.jl:911-924 and base/operators.jl:975. -/
+def widemul {t s} (x : JInt t) (y : JInt s) : Int :=
+  match NumberTheory.widen t, NumberTheory.widen s with
+  | some a, some b =>
+    let a := if t.signed != s.signed then a.toSigned else a
+    let b := if t.signed != s.signed then b.toSigned else b
+    let p := IntTy.promote a b
+    ((JInt.wrap p x.val) * (JInt.wrap p y.val)).val
+  | _, _ => x.val * y.val
+
+end JuliaLean.IntArith.Rational
+
+namespace JuliaLean.IntArith.NumberTheory
+
+/-- Mixed remainder result type, `base/int.jl:278-279,342-351`:
+the modulus supplies signedness, while the wider operand supplies width. -/
+def modTy (s t : IntTy) : IntTy :=
+  if t.signed then (IntTy.promote s t).toSigned else (IntTy.promote s t).toUnsigned
+
+/-- Mixed `mod`, `base/int.jl:342-351`. Each reinterpretation and correction
+is retained; using an exact mathematical remainder here would hide the
+signed reinterpretation edge cases. -/
+def mixedMod (uabs : {r : IntTy} → JInt r → JInt r.toUnsigned)
+    {s t : IntTy} (a : JInt s) (b : JInt t) : Jl (JInt (modTy s t)) := do
+  let r := IntTy.promote s t
+  if b.val = 0 then .error .divideError
+  else if s.signed = t.signed then
+    let x := JInt.rem r a
+    let y := JInt.rem r b
+    let z ← JInt.mod x y
+    pure (JInt.rem (modTy s t) z)
+  else if s.signed then
+    let u := r.toUnsigned
+    let remval := JInt.wrap u ((uabs a).val.tmod b.val)
+    let signedRem := JInt.wrap r.toSigned remval.val
+    let remval := if a.val < 0 then -signedRem else signedRem
+    let correction := if remval.val < 0 then b.val else 0
+    let corrected := add (some r) remval.val correction
+    pure (JInt.wrap (modTy s t) corrected)
+  else
+    let remval := JInt.wrap r.toUnsigned (a.val.tmod (uabs b).val)
+    let remval := JInt.wrap r.toSigned remval.val
+    let correction := if remval.val ≠ 0 ∧ b.val < 0 then b.val else 0
+    pure (JInt.wrap (modTy s t) (add (some r.toSigned) remval.val correction))
+
+end JuliaLean.IntArith.NumberTheory
+
+namespace JuliaLean.ReinterpretArrays
+
+open JuliaLean
+
+/-- `mul_hi(a, b)`, `base/int.jl:123-141`: the high half of the exact double-width product. -/
+def mulHi {t : IntTy} (a b : JInt t) : JInt t :=
+  JInt.wrap t ((a.val * b.val) / (2 ^ t.bits : Int))
+
+/-- Arithmetic (signed) or logical (unsigned) right shift `x >> k`, `base/int.jl:597-605`. -/
+def shr {t : IntTy} (x : JInt t) (k : Nat) : JInt t :=
+  JInt.wrap t (x.val / (2 ^ k : Int))
+
+/-- Left shift `x << 1`, `base/int.jl:606`. -/
+def shl1 {t : IntTy} (x : JInt t) : JInt t := JInt.wrap t (x.val * 2)
+
+/-- `flipsign(x, y)` for same-type `BitSigned`, `base/int.jl:188`. -/
+def flipsign {t : IntTy} (x y : JInt t) : JInt t := if y.val < 0 then -x else x
+
+/-- `abs(x)` on `BitInteger`, `base/int.jl:176-180` (wraps at `typemin`). -/
+def jabs {t : IntTy} (x : JInt t) : JInt t := if x.val < 0 then -x else x
+
+end JuliaLean.ReinterpretArrays
+
+namespace JuliaLean.Ranges
+
+deriving instance DecidableEq for Except
+
+/-- `base/int.jl:10-36`, `base/bool.jl:3-6`: built-in integer scalar types. -/
+inductive NType where
+  | bool
+  | bit (t : IntTy)
+  deriving DecidableEq, Repr
+
+/-- `base/bool.jl:3`, `base/int.jl:10-36`: scalar storage uses Core's fixed-width integers. -/
+def NVal : NType → Type
+  | .bool => Bool
+  | .bit t => JInt t
+
+instance (t : NType) : DecidableEq (NVal t) := by
+  cases t <;> unfold NVal <;> infer_instance
+
+/-- `base/int.jl:10-36`, `base/bool.jl:3`: a dynamically typed built-in integer. -/
+structure Num where
+  ty : NType
+  value : NVal ty
+  deriving DecidableEq
+
+namespace NType
+
+/-- `base/int.jl:26-36`: signed integer classification. -/
+def signed : NType → Bool
+  | .bool => false
+  | .bit t => t.signed
+
+/-- `base/int.jl:10-24`: machine integer widths; Bool occupies one byte. -/
+def bits : NType → Nat
+  | .bool => 8
+  | .bit t => t.bits
+
+/-- `base/range.jl:810-814`: the small-integer specialization on 64-bit Julia. -/
+def small : NType → Bool
+  | .bool => false
+  | .bit t => t.bits < 64
+
+/-- `base/int.jl:74-80,256-273`: unsigned reinterpretation type. -/
+def unsigned : NType → NType
+  | .bool => .bit .u64
+  | .bit t => .bit t.toUnsigned
+
+/-- `base/int.jl:74-80`: signed reinterpretation type. -/
+def signedType : NType → NType
+  | .bool => .bit .i64
+  | .bit t => .bit t.toSigned
+
+/-- `base/int.jl:911-918`: widening of inputs in the BitInteger64 specialization. -/
+def widen64 (ty : NType) (h : ty.bits ≤ 64) : NType :=
+  match ty with
+  | .bool => .bool
+  | .bit .i8 => .bit .i16
+  | .bit .i16 => .bit .i32
+  | .bit .i32 => .bit .i64
+  | .bit .i64 => .bit .i128
+  | .bit .u8 => .bit .u16
+  | .bit .u16 => .bit .u32
+  | .bit .u32 => .bit .u64
+  | .bit .u64 => .bit .u128
+  | .bit .i128 => False.elim (by simp [NType.bits, IntTy.bits] at h)
+  | .bit .u128 => False.elim (by simp [NType.bits, IntTy.bits] at h)
+
+end NType
+
+namespace Num
+
+/-- `base/int.jl:10-36`, `base/bool.jl:166-170`: mathematical interpretation. -/
+def val (x : Num) : Int :=
+  match x with
+  | ⟨.bool, b⟩ => if (show Bool from b) then 1 else 0
+  | ⟨.bit _, n⟩ => n.val
+
+/-- `base/int.jl:632-648,694-701`: `% T` wrapping conversion, including parity for Bool. -/
+def lit (ty : NType) (x : Int) : Num :=
+  match ty with
+  | .bool => ⟨.bool, decide (x % 2 ≠ 0)⟩
+  | .bit t => ⟨.bit t, JInt.wrap t x⟩
+
+/-- `base/int.jl:97`, `base/bool.jl:170`: exact conversion can throw InexactError. -/
+def cast (ty : NType) (x : Num) : Jl Num :=
+  match ty with
+  | .bool => if x.val = 0 ∨ x.val = 1 then .ok (lit .bool x.val)
+      else .error (.inexactError "Bool")
+  | .bit t => do
+      let n ← JInt.convert (t.name) t x.val
+      pure ⟨.bit t, n⟩
+
+/-- `base/int.jl:809-825`, `base/bool.jl:6`: wider type wins; unsigned wins ties. -/
+def promote (a b : NType) : NType :=
+  match a, b with
+  | .bool, t | t, .bool => t
+  | .bit s, .bit t => .bit (IntTy.promote s t)
+
+/-- `base/number.jl:364`, `base/bool.jl:8`: integer zero. -/
+def zero (ty : NType) : Num := lit ty 0
+
+/-- `base/number.jl:405,430-431`, `base/bool.jl:9`: integer unit. -/
+def one (ty : NType) : Num := lit ty 1
+
+/-- `base/int.jl:85-94,1093-1100`, `base/bool.jl:145-148`: wrapping addition. -/
+def add (a b : Num) : Num :=
+  let ty := if a.ty = .bool ∧ b.ty = .bool then .bit .i64 else promote a.ty b.ty
+  match ty with
+  | .bool => lit ty (a.val + b.val)
+  | .bit t => ⟨.bit t, JInt.wrap t a.val + JInt.wrap t b.val⟩
+
+/-- `base/int.jl:85-94,1093-1100`, `base/bool.jl:146-148`: wrapping subtraction. -/
+def sub (a b : Num) : Num :=
+  let ty := if a.ty = .bool ∧ b.ty = .bool then .bit .i64 else promote a.ty b.ty
+  match ty with
+  | .bool => lit ty (a.val - b.val)
+  | .bit t => ⟨.bit t, JInt.wrap t a.val - JInt.wrap t b.val⟩
+
+/-- `base/int.jl:85-94,1093-1100`, `base/bool.jl:149-150`: Bool product remains Bool. -/
+def mul (a b : Num) : Num :=
+  match promote a.ty b.ty with
+  | .bool => lit .bool (a.val * b.val)
+  | .bit t => ⟨.bit t, JInt.wrap t a.val * JInt.wrap t b.val⟩
+
+/-- `base/int.jl:85`, `base/bool.jl:142-143`: unary minus wraps; Bool yields Int. -/
+def neg (a : Num) : Num :=
+  match a.ty with
+  | .bool => ⟨.bit .i64, -(JInt.wrap .i64 a.val)⟩
+  | .bit t => ⟨.bit t, -(JInt.wrap t a.val)⟩
+
+/-- `base/bool.jl:140-141`: unary plus converts Bool to Int. -/
+def pos (a : Num) : Num := if a.ty = .bool then lit (.bit .i64) a.val else a
+
+/-- `base/int.jl:96-97`, `base/boot.jl:1206-1214`: negate unsigned exactly as signed. -/
+def negate (a : Num) : Jl Num := do
+  if a.ty = .bool ∨ a.ty.signed then pure (neg a)
+  else
+    let s ← cast a.ty.signedType a
+    pure (neg s)
+
+/-- `base/int.jl:256-273`: unsigned reinterprets the bit pattern. -/
+def unsigned (a : Num) : Num := lit a.ty.unsigned a.val
+
+/-- `base/int.jl:193-201`, `base/number.jl:255`: flipsign retains integer width; Bool becomes Int. -/
+def flipsign (a s : Num) : Num := if s.val < 0 then neg a else pos a
+
+/-- `base/int.jl:203-207`: sign-copying for integer unit steps. -/
+def copysign (a s : Num) : Num :=
+  if decide (a.val < 0) != decide (s.val < 0) then neg a else pos a
+
+
+/-- `base/int.jl:357-360,1085-1090`, `base/bool.jl:166-168`: same-sign scalar intrinsic. -/
+def primitiveDivRem (remainder : Bool) (a b : Num) : Jl Num := do
+  let ty := promote a.ty b.ty
+  let a ← cast ty a
+  let b ← cast ty b
+  match ty with
+  | .bool =>
+      if b.val = 0 then .error .divideError
+      else pure (if remainder then zero .bool else a)
+  | .bit t =>
+      let x := JInt.wrap t a.val
+      let y := JInt.wrap t b.val
+      let z ← if remainder then JInt.remInt x y else JInt.div x y
+      pure ⟨.bit t, z⟩
+
+/-- `base/int.jl:275-279`: mixed sign division first divides unsigned absolute values. -/
+def div (a b : Num) : Jl Num := do
+  if a.ty = .bool ∨ b.ty = .bool ∨ a.ty.signed = b.ty.signed then
+    primitiveDivRem false a b
+  else if a.ty.signed then
+    let q ← primitiveDivRem false (unsigned (flipsign a a)) b
+    pure (flipsign (lit q.ty.signedType q.val) a)
+  else
+    let q ← primitiveDivRem false a (unsigned (flipsign b b))
+    pure (unsigned (flipsign (lit q.ty.signedType q.val) b))
+
+/-- `base/int.jl:278-279`: mixed sign remainder retains the dividend's signedness. -/
+def rem (a b : Num) : Jl Num := do
+  if a.ty = .bool ∨ b.ty = .bool ∨ a.ty.signed = b.ty.signed then
+    primitiveDivRem true a b
+  else if a.ty.signed then
+    let r ← primitiveDivRem true (unsigned (flipsign a a)) b
+    pure (flipsign (lit r.ty.signedType r.val) a)
+  else primitiveDivRem true a (unsigned (flipsign b b))
+
+/-- `base/int.jl:331-352`: mixed-sign modulus follows the explicit rem/correction branches. -/
+def mod (a b : Num) : Jl Num := do
+  if a.ty = .bool ∨ b.ty = .bool ∨ a.ty.signed = b.ty.signed then
+    let ty := promote a.ty b.ty
+    let a ← cast ty a
+    let b ← cast ty b
+    match ty with
+    | .bool => rem a b
+    | .bit t => do
+        let z ← JInt.mod (JInt.wrap t a.val) (JInt.wrap t b.val)
+        pure ⟨.bit t, z⟩
+  else if a.ty.signed then
+    let r ← rem a b
+    pure (unsigned (add r (mul (lit .bool (if r.val < 0 then 1 else 0)) b)))
+  else
+    let r ← rem a b
+    let r := lit r.ty.signedType r.val
+    pure (add r (mul (lit .bool (if r.val ≠ 0 ∧ b.val < 0 then 1 else 0)) b))
+
+/-- `base/checked.jl:26-27,166-175,228-234`: checked arithmetic uses exact promotion. -/
+def checkedBinary (subtract : Bool) (a b : Num) : Jl Num := do
+  let ty := promote a.ty b.ty
+  let a ← cast ty a
+  let b ← cast ty b
+  let z := if subtract then a.val - b.val else a.val + b.val
+  match ty with
+  | .bool => pure (if subtract then sub a b else add a b)
+  | .bit t =>
+      if t.min ≤ z ∧ z ≤ t.max then pure (if subtract then sub a b else add a b)
+      else .error (.overflowError "checked arithmetic")
+
+/-- `base/checked.jl:26,166-175`: checked addition. -/
+def checkedAdd : Num → Num → Jl Num := checkedBinary false
+
+/-- `base/checked.jl:27,228-234`: checked subtraction. -/
+def checkedSub : Num → Num → Jl Num := checkedBinary true
+
+/-- `base/int.jl:596-597`, `base/promotion.jl:526,677`: mixed min returns the signed type. -/
+def min (a b : Num) : Num :=
+  let ty := if a.ty ≠ .bool ∧ b.ty ≠ .bool ∧ a.ty.signed ≠ b.ty.signed then
+      if a.ty.signed then a.ty else b.ty
+    else promote a.ty b.ty
+  lit ty (if a.val < b.val then a.val else b.val)
+
+/-- `base/int.jl:591-594`, `base/promotion.jl:525,676`: max wraps to the promoted type. -/
+def max (a b : Num) : Num :=
+  lit (promote a.ty b.ty) (if a.val < b.val then b.val else a.val)
+
+/-- `base/int.jl:575-588`, `base/bool.jl:135-136`: exact mixed integer equality. -/
+def eq (a b : Num) : Bool := decide (a.val = b.val)
+
+/-- `base/int.jl:911-929`, `base/number.jl:327`: widened multiplication for BitInteger64 inputs. -/
+def widemul64 (a b : Num) (ha : a.ty.bits ≤ 64) (hb : b.ty.bits ≤ 64) : Num :=
+  if a.ty = .bool ∨ b.ty = .bool then mul a b
+  else
+    let aty := a.ty.widen64 ha
+    let bty := b.ty.widen64 hb
+    let ty := if a.ty.signed ≠ b.ty.signed then (promote aty bty).signedType
+      else promote aty bty
+    mul (lit ty a.val) (lit ty b.val)
+
+theorem sub_one_bits_le64 (i : Num) (h : i.ty.bits ≤ 64) :
+    (sub i (one i.ty)).ty.bits ≤ 64 := by
+  rcases i with ⟨ty, v⟩
+  cases ty with
+  | bool => cases v <;> decide
+  | bit t =>
+      cases t <;> simp_all [sub, one, lit, promote, IntTy.promote, NType.bits, IntTy.bits]
+
+end Num
+end JuliaLean.Ranges
+
+namespace JuliaLean.ArrayOps
+
+open JuliaLean
+
+/-- `a + b` for `BitInteger`s of possibly different types: both operands are reduced
+into the promoted type with `%` and added with wrapping (`base/int.jl`, the mixed
+`+(a::Integer, b::Integer)` methods over `promote_typeof`). -/
+def addMixed {s t : IntTy} (a : JInt s) (b : JInt t) : JInt (IntTy.promote s t) :=
+  JInt.wrap _ (a.val + b.val)
+
+/-- `Int(x)` for a value of any integer type. -/
+def toInt {t : IntTy} (x : JInt t) : Jl JInt64 := JInt.convert (IntTy.i64.name) .i64 x.val
+
+end JuliaLean.ArrayOps
+
+namespace JuliaLean.FloatFuncs
+
+/-- `uabs(x::Int64) = unsigned(abs(x))`, `base/int.jl`: the magnitude as a UInt64 value. -/
+def uabs64 (x : JInt .i64) : Nat := x.val.natAbs
+
+end JuliaLean.FloatFuncs
+
+namespace JuliaLean.ArrayOps
+
+open JuliaLean
+
+variable {α β : Type}
+
+/-- `mod(shift, n)` for a shift of any integer type and `n::Int > 0`
+(`base/int.jl:331-351`: same-type `mod` after promotion, or the mixed
+`mod(x::Unsigned, y::Signed)`/`mod(x::BitSigned, y::Unsigned)` methods). For
+`n > 0` every one of them returns the floored remainder exactly. -/
+def modShift {t : IntTy} (shift : JInt t) (n : Nat) : Int := shift.val % (n : Int)
+
+end JuliaLean.ArrayOps

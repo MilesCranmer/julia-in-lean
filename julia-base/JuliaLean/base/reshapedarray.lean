@@ -1,3 +1,5 @@
+import JuliaLean.base.boot
+import JuliaLean.base.multinverses
 import JuliaLean.Core
 import JuliaLean.base.int
 import JuliaLean.base.abstractarray
@@ -26,6 +28,8 @@ inductive ReshapedError where
   | overflowError
   | inexactError (name : String)
   | divideError
+  | undefinedReference
+  | showError (error : JuliaLean.Strings.ShowErrorKind)
   deriving Repr, DecidableEq, Inhabited
 
 abbrev RResult (α : Type) := Except ReshapedError α
@@ -626,7 +630,7 @@ rdims(out::Tuple{Any}, inds::NTuple{M,Any}) where {M} = (oneto(rdims_trailing(in
 def rdimsSingletonMany {A B N : Type}
     (trailing : List B → RResult N) (oneto : N → RResult A)
     (_out : List A) (first second : B) (rest : List B) : RResult (List A) := do
-  let product ← trailing (second :: rest)
+  let product ← trailing (first :: second :: rest)
   let axis ← oneto product
   .ok [axis]
 
@@ -719,12 +723,13 @@ function _reshape(parent::AbstractArray, dims::Dims)
 end
 ```
 -/
-def reshapeAbstractArray {P D S R : Type}
-    (length : P → RResult I64) (checkedDims : D → RResult I64)
-    (throwDmrs : I64 → String → D → RResult R)
-    (indexStyle : P → RResult S)
-    (construct : P × S → D → RResult R)
-    (parent : P) (dims : D) : RResult R := do
+def reshapeAbstractArray {m : Type → Type} [Monad m] [MonadExceptOf ReshapedError m]
+    {P D S R : Type}
+    (length : P → m I64) (checkedDims : D → m I64)
+    (throwDmrs : I64 → String → D → m R)
+    (indexStyle : P → m S)
+    (construct : P × S → D → m R)
+    (parent : P) (dims : D) : m R := do
   let n ← length parent
   let product ← checkedDims dims
   if product != n then
@@ -780,18 +785,19 @@ function __reshape(p::Tuple{AbstractArray,IndexStyle}, dims::Dims)
 end
 ```
 -/
-def constructReshapedCartesian {T : Type} {N : Nat} {P A S MI : Type}
-    (size : P → RResult (List S)) (front : List S → List S)
-    (toInt : S → RResult I64) (makeInverse : I64 → MI)
-    (pair : P × A) (dims : Vector I64 N) : RResult (ReshapedArray T N P MI) := do
+def constructReshapedCartesian {m : Type → Type} [Monad m] [MonadExceptOf ReshapedError m]
+    {T : Type} {N : Nat} {P A S MI : Type}
+    (size : P → m (List S)) (front : List S → m (List S))
+    (toInt : S → m I64) (makeInverse : I64 → m MI)
+    (pair : P × A) (dims : Vector I64 N) : m (ReshapedArray T N P MI) := do
   let parent := pair.1
   let shape ← size parent
-  let leading := front shape
+  let leading ← front shape
   let adjusted ← leading.mapM fun value => do
     let n ← toInt value
-    .ok (if n.val < 1 then JInt.lit .i64 1 else n)
-  let inverses := adjusted.map makeInverse
-  .ok (reshapedArrayConstructor parent dims inverses)
+    pure (if n.val < 1 then JInt.lit .i64 1 else n)
+  let inverses ← adjusted.mapM makeInverse
+  pure (reshapedArrayConstructor parent dims inverses)
 
 /--
 Julia source: base/reshapedarray.jl:243-246 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -1122,11 +1128,12 @@ Julia source: base/reshapedarray.jl:294-299 @ f755f49a9e41380d7da126b3c1db9fe7f8
 end
 ```
 -/
-def getindexReshapedLinear {T : Type} {N : Nat} {P E : Type}
-    (boundsChecking : Bool) (checkbounds : ReshapedArrayLF T N P → I64 → RResult Unit)
-    (firstArray : ReshapedArrayLF T N P → RResult I64)
-    (firstParent : P → RResult I64) (getindex : P → I64 → RResult E)
-    (array : ReshapedArrayLF T N P) (index : I64) : RResult E := do
+def getindexReshapedLinear {m : Type → Type} [Monad m] [MonadExceptOf ReshapedError m]
+    {T : Type} {N : Nat} {P E : Type}
+    (boundsChecking : Bool) (checkbounds : ReshapedArrayLF T N P → I64 → m Unit)
+    (firstArray : ReshapedArrayLF T N P → m I64)
+    (firstParent : P → m I64) (getindex : P → I64 → m E)
+    (array : ReshapedArrayLF T N P) (index : I64) : m E := do
   if boundsChecking then checkbounds array index
   let arrayFirst ← firstArray array
   let parentArray := reshapedParent array
@@ -1143,10 +1150,11 @@ Julia source: base/reshapedarray.jl:300-303 @ f755f49a9e41380d7da126b3c1db9fe7f8
 end
 ```
 -/
-def getindexReshapedCartesian {T : Type} {N : Nat} {P MI E : Type}
-    (boundsChecking : Bool) (checkbounds : ReshapedArray T N P MI → List I64 → RResult Unit)
-    (unsafeGet : ReshapedArray T N P MI → List I64 → RResult E)
-    (array : ReshapedArray T N P MI) (indices : List I64) : RResult E := do
+def getindexReshapedCartesian {m : Type → Type} [Monad m] [MonadExceptOf ReshapedError m]
+    {T : Type} {N : Nat} {P MI E : Type}
+    (boundsChecking : Bool) (checkbounds : ReshapedArray T N P MI → List I64 → m Unit)
+    (unsafeGet : ReshapedArray T N P MI → List I64 → m E)
+    (array : ReshapedArray T N P MI) (indices : List I64) : m E := do
   if boundsChecking then checkbounds array indices
   unsafeGet array indices
 
@@ -1160,10 +1168,11 @@ Julia source: base/reshapedarray.jl:304-308 @ f755f49a9e41380d7da126b3c1db9fe7f8
 end
 ```
 -/
-def getindexReshapedIndex {T : Type} {N : Nat} {P I E : Type} {MI : Type}
-    (boundsChecking : Bool) (checkbounds : P → I → RResult Unit)
-    (getindex : P → I → RResult E)
-    (array : ReshapedArray T N P MI) (index : ReshapedIndex I) : RResult E := do
+def getindexReshapedIndex {m : Type → Type} [Monad m] [MonadExceptOf ReshapedError m]
+    {T : Type} {N : Nat} {P I E : Type} {MI : Type}
+    (boundsChecking : Bool) (checkbounds : P → I → m Unit)
+    (getindex : P → I → m E)
+    (array : ReshapedArray T N P MI) (index : ReshapedIndex I) : m E := do
   if boundsChecking then checkbounds (reshapedParent array) index.parentindex
   getindex (reshapedParent array) index.parentindex
 
@@ -1178,13 +1187,14 @@ Julia source: base/reshapedarray.jl:310-315 @ f755f49a9e41380d7da126b3c1db9fe7f8
 end
 ```
 -/
-def unsafeGetindexReshaped {T : Type} {N : Nat} {P AX MI E : Type}
-    (axes : P → RResult (List AX))
-    (sub2ind : Vector I64 N → List I64 → RResult I64)
-    (offset : I64 → List AX → RResult I64)
-    (ind2sub : List AX → List MI → I64 → RResult (List I64))
-    (unsafeGet : P → List I64 → RResult E)
-    (array : ReshapedArray T N P MI) (indices : List I64) : RResult E := do
+def unsafeGetindexReshaped {m : Type → Type} [Monad m] [MonadExceptOf ReshapedError m]
+    {T : Type} {N : Nat} {P AX MI E : Type}
+    (axes : P → m (List AX))
+    (sub2ind : Vector I64 N → List I64 → m I64)
+    (offset : I64 → List AX → m I64)
+    (ind2sub : List AX → List MI → I64 → m (List I64))
+    (unsafeGet : P → List I64 → m E)
+    (array : ReshapedArray T N P MI) (indices : List I64) : m E := do
   let parentAxes ← axes array.parent
   let linear ← sub2ind (reshapedSize array) indices
   let adjusted ← offset linear parentAxes
@@ -1197,8 +1207,9 @@ Julia source: base/reshapedarray.jl:316-316 @ f755f49a9e41380d7da126b3c1db9fe7f8
 @inline _unsafe_getindex_rs(A, i::Integer) = (@inbounds ret = A[i]; ret)
 ```
 -/
-def unsafeGetindexReshapedScalar {A I E : Type}
-    (getindex : A → I → RResult E) (array : A) (index : I) : RResult E :=
+def unsafeGetindexReshapedScalar {m : Type → Type} [Monad m] [MonadExceptOf ReshapedError m]
+    {A I E : Type}
+    (getindex : A → I → m E) (array : A) (index : I) : m E :=
   getindex array index
 
 /--
@@ -1207,8 +1218,9 @@ Julia source: base/reshapedarray.jl:317-317 @ f755f49a9e41380d7da126b3c1db9fe7f8
 @inline _unsafe_getindex_rs(A, I) = (@inbounds ret = A[I...]; ret)
 ```
 -/
-def unsafeGetindexReshapedTuple {A I E : Type}
-    (getindex : A → I → RResult E) (array : A) (indices : I) : RResult E :=
+def unsafeGetindexReshapedTuple {m : Type → Type} [Monad m] [MonadExceptOf ReshapedError m]
+    {A I E : Type}
+    (getindex : A → I → m E) (array : A) (indices : I) : m E :=
   getindex array indices
 
 /--
@@ -1821,4 +1833,752 @@ def inReshapedArray {T : Type} {N : Nat} {P MI R : Type}
     (array : ReshapedArray T N P MI) : RResult Bool :=
   contains value (reshapedParent array)
 
+/-- reshapedarray.lean `inReshapedArray` (reshapedarray.jl:474 `in(x, R::ReshapedArray)
+= in(x, parent(R))`) with the parent's `in` in any monad, since `RResult` cannot carry the
+parent's exceptions, and with its result type (`Truth` here). -/
+def inReshapedArrayM {m : Type → Type} {T : Type} {N : Nat} {P MI γ : Type}
+    (contains : T → P → m γ) (value : T) (array : ReshapedArray T N P MI) :
+    m γ :=
+  contains value (reshapedParent array)
+
 end JuliaLean.base.reshapedarray
+
+namespace JuliaLean.ArrayCov
+
+/-- `iterate(R::ReshapedArrayIterator, i...)`, `base/reshapedarray.jl:31-34`.
+The body calls the parent iterator and destructures its result immediately;
+destructuring `nothing` raises the modelled `MethodError`. -/
+def reshapedIteratorStep
+    (parentIterate : Nat → Option (Nat × Nat)) (state : Nat) :
+    Jl (Option (Nat × Nat)) :=
+  match parentIterate state with
+  | some (item, nextState) => .ok (some (item, nextState))
+  | none => .error (.methodError "iterate")
+
+end JuliaLean.ArrayCov
+
+namespace JuliaLean.ArrayCov
+
+
+structure ReshapedValue where
+  parent : List Int
+  dims : List Int
+  mi : List Int
+  deriving Repr, DecidableEq
+
+structure ReshapedIteratorValue where
+  iter : List Int
+  mi : List Int
+  deriving Repr, DecidableEq
+
+inductive ReshapedError where
+  | dimensionMismatch
+  | errorException
+  deriving Repr, DecidableEq
+
+abbrev ReshapedJl (α : Type) := Except ReshapedError α
+
+/-- Outer constructor, `base/reshapedarray.jl:10`. -/
+def reshaped10Constructor (parent : List Int) (dims mi : List Int) : ReshapedValue :=
+  ⟨parent, dims, mi⟩
+
+/-- Iterator constructor wrapper, `base/reshapedarray.jl:20`. -/
+def reshaped20IteratorConstructor
+    (parent : ReshapedValue → List Int)
+    (rsIterator : List Int → List Int → ReshapedIteratorValue)
+    (array : ReshapedValue) : ReshapedIteratorValue :=
+  rsIterator (parent array) array.mi
+
+/-- `_rs_iterator`, `base/reshapedarray.jl:21-24`. -/
+def reshaped21Iterator (eachIndex : List Int → List Int)
+    (parent mi : List Int) : ReshapedIteratorValue :=
+  let iter := eachIndex parent
+  ⟨iter, mi⟩
+
+/-- Iterator length forwarding, `base/reshapedarray.jl:35`. -/
+def reshaped35IteratorLength (length : List Int → Nat)
+    (iterator : ReshapedIteratorValue) : Nat := length iterator.iter
+
+/-- Iterator eltype branch, `base/reshapedarray.jl:36`. -/
+def reshaped36IteratorEltype (isDefined : Int → Bool) (eltype : Int → Int)
+    (iteratorType anyType : Int) : Int :=
+  if isDefined iteratorType then eltype iteratorType else anyType
+
+/-- `throw_dmrsa`, `base/reshapedarray.jl:38-39`. -/
+def reshaped38ThrowDimensionMismatch (_dims : List Int) (_length : Int) : ReshapedJl Unit :=
+  .error .dimensionMismatch
+/-- `size(A::ReshapedArray)`, `base/reshapedarray.jl:253`. -/
+def reshaped253Size (array : ReshapedValue) : List Int := array.dims
+
+/-- `length(A::ReshapedArray)`, `base/reshapedarray.jl:254`. -/
+def reshaped254Length (length : List Int → Nat) (array : ReshapedValue) : Nat :=
+  length array.parent
+
+/-- `similar(A, eltype, dims)`, `base/reshapedarray.jl:255`. -/
+def reshaped255Similar (similar : List Int → Int → List Int → Jl Int)
+    (array : ReshapedValue) (elementType : Int) (dims : List Int) : Jl Int :=
+  similar array.parent elementType dims
+
+/-- Type-level `similar`, `base/reshapedarray.jl:256`. -/
+def reshaped256SimilarType (similar : Int → List Int → Jl Int)
+    (parentType : Int) (dims : List Int) : Jl Int := similar parentType dims
+
+/-- Linear index style specialization, `base/reshapedarray.jl:257`. -/
+def reshaped257IndexStyle (_ : Unit) : Int := 1
+
+def reshaped258Parent (array : ReshapedValue) : List Int := array.parent
+
+/-- `parentindices`, `base/reshapedarray.jl:259`. -/
+def reshaped259ParentIndices (size : List Int → List Int) (oneto : Int → Int)
+    (array : ReshapedValue) : List Int :=
+  (size array.parent).map oneto
+
+/-- Parent elsize forwarding, `base/reshapedarray.jl:260`. -/
+def reshaped260Elsize (elsize : Int → JInt64) (parentType : Int) : JInt64 :=
+  elsize parentType
+
+/-- `unaliascopy`, `base/reshapedarray.jl:262`. -/
+def reshaped262UnaliasCopy (copy : List Int → List Int)
+    (array : ReshapedValue) : ReshapedValue :=
+  ⟨copy array.parent, array.dims, array.mi⟩
+
+def reshaped263DataIds (dataids : List Int → List Int)
+    (array : ReshapedValue) : List Int := dataids array.parent
+
+def reshaped265MightAlias (mightAlias : List Int → List Int → Bool)
+    (left right : ReshapedValue) : Bool := mightAlias left.parent right.parent
+
+def reshaped267MightAliasSub (mightAlias : List Int → List Int → Bool)
+    (left : ReshapedValue) (right : List Int) : Bool := mightAlias left.parent right
+
+def reshaped268SubMightAlias (mightAlias : List Int → List Int → Bool)
+    (left : List Int) (right : ReshapedValue) : Bool := mightAlias left right.parent
+/-- `_rs_setindex!_err`, `base/reshapedarray.jl:348`. -/
+def reshaped348SetRangeError (_ : Unit) : ReshapedJl Unit :=
+  .error .errorException
+
+def reshaped344SetRangeLinear (_array _value _index : Int) : ReshapedJl Unit :=
+  reshaped348SetRangeError ()
+
+def reshaped345SetRangeCartesian (_array _value : Int) (_indices : List Int) : ReshapedJl Unit :=
+  reshaped348SetRangeError ()
+
+def reshaped346SetRangeIndex (_array _value _parentIndex : Int) : ReshapedJl Unit :=
+  reshaped348SetRangeError ()
+
+def reshaped350Cconvert (cconvert : List Int → Int) (array : ReshapedValue) : Int :=
+  cconvert array.parent
+
+def reshaped351UnsafeConvert (unsafeConvert : List Int → Int)
+    (array : ReshapedValue) : Int := unsafeConvert array.parent
+
+def reshaped355ViewIndexingSlice (_ : Unit) : Int := 1
+def reshaped356ViewIndexingRange (_ : Unit) : Int := 1
+
+/-- `compute_stride1`, `base/reshapedarray.jl:357`, with wrapping Int multiplication. -/
+def reshaped357ComputeStride (step : Int → JInt64) (stride : JInt64)
+    (parentRange : Int) : JInt64 := stride * step parentRange
+
+def reshaped417ContiguousAbstract (_ : Unit) : Bool := false
+def reshaped420ContiguousDense (_ : Unit) : Bool := true
+def reshaped421ContiguousReshaped (parentContiguous : List Int → Bool)
+    (array : ReshapedValue) : Bool := parentContiguous array.parent
+def reshaped422ContiguousSubarray (parentContiguous : List Int → Bool)
+    (parent : List Int) : Bool := parentContiguous parent
+
+def reshaped448MergeEmpty (_ : Unit) : Int × Int × Int := (1, 1, 0)
+def reshaped449MergeOne (size stride : Int) : Int × Int × Int := (size, stride, 1)
+
+def reshaped466Map (mapParent : (Int → Int) → List Int → List Int)
+    (reshape : List Int → List Int → Jl ReshapedValue)
+    (f : Int → Int) (array : ReshapedValue) : Jl ReshapedValue :=
+  reshape (mapParent f array.parent) array.dims
+
+def reshaped468Iterate (iterate : List Int → Option (Int × Int))
+    (array : ReshapedValue) : Option (Int × Int) := iterate array.parent
+
+def reshaped469IterateState (iterate : List Int → Int → Option (Int × Int))
+    (array : ReshapedValue) (state : Int) : Option (Int × Int) :=
+  iterate array.parent state
+
+def reshaped471Mapfoldl (mapfold : (Int → Int) → (Int → Int → Int) → Int → List Int → Int)
+    (f : Int → Int) (op : Int → Int → Int) (neutral : Int)
+    (array : ReshapedValue) : Int := mapfold f op neutral array.parent
+
+def reshaped472Mapfoldr (mapfold : (Int → Int) → (Int → Int → Int) → Int → List Int → Int)
+    (f : Int → Int) (op : Int → Int → Int) (neutral : Int)
+    (array : ReshapedValue) : Int := mapfold f op neutral array.parent
+
+def reshaped474In (contains : Int → List Int → Bool)
+    (value : Int) (array : ReshapedValue) : Bool := contains value array.parent
+
+end JuliaLean.ArrayCov
+
+namespace JuliaLean.ArrayCov
+
+
+inductive ReshapeDim where
+  | integer (value : Int)
+  | colon
+  deriving Repr, DecidableEq
+
+def reshaped122Varargs (reshapeTuple : List Int → Jl Int)
+    (dims : List Int) : Jl Int := reshapeTuple dims
+
+def reshaped123AbstractAxes (toShape : List Int → List Int)
+    (reshapeTuple : List Int → Jl Int) (shape : List Int) : Jl Int :=
+  reshapeTuple (toShape shape)
+
+def reshaped126OneToAxes (toShape : List Int → List Int)
+    (reshapeTuple : List Int → Jl Int) (shape : List Int) : Jl Int :=
+  reshapeTuple (toShape shape)
+
+def reshaped127ConvertDims (convertInt : Int → Jl Int)
+    (reshapeTuple : List Int → Jl Int) (dims : List Int) : Jl Int := do
+  let dims ← dims.mapM convertInt
+  reshapeTuple dims
+
+def reshaped128Dims (_reshape : List Int → Jl Int) (dims : List Int) : Jl Int :=
+  _reshape dims
+
+def reshaped131VectorColon (parent : List Int) : List Int := parent
+def reshaped132VectorColonTuple (parent : List Int) : List Int := parent
+
+def reshaped133IntVarargs (reshapeTuple : List Int → Jl Int)
+    (dims : List Int) : Jl Int := reshapeTuple dims
+
+def reshaped134IntegerVarargs (reshapeTuple : List Int → Jl Int)
+    (dims : List Int) : Jl Int := reshapeTuple dims
+
+def reshaped135ColonVarargs (reshapeTuple : List ReshapeDim → Jl Int)
+    (dims : List ReshapeDim) : Jl Int := reshapeTuple dims
+
+def reshaped136ColonTuple (uncolon : List ReshapeDim → Jl (List Int))
+    (reshapeDims : List Int → Jl Int) (dims : List ReshapeDim) : Jl Int := do
+  let dims ← uncolon dims
+  reshapeDims dims
+
+def reshapeAnyColon : List ReshapeDim → Bool
+  | [] => false
+  | .colon :: _ => true
+  | .integer _ :: tail => reshapeAnyColon tail
+
+abbrev ReshapeTupleResult := Except JlError (List ReshapeDim)
+
+def reshapeBeforeColon : List ReshapeDim → ReshapeTupleResult
+  | [] => .error (.methodError "_before_colon")
+  | .colon :: _ => .ok []
+  | head@(.integer _) :: tail => do
+      let rest ← reshapeBeforeColon tail
+      .ok (head :: rest)
+
+def reshapeAfterColon : List ReshapeDim → ReshapeTupleResult
+  | [] => .error (.methodError "_after_colon")
+  | .colon :: tail => .ok tail
+  | .integer _ :: tail => reshapeAfterColon tail
+
+def reshaped186SameRank (parent : List Int) (_rank : Nat) : List Int := parent
+
+def reshaped194Trailing : List JInt64 → JInt64
+  | [] => JInt.lit .i64 1
+  | length :: rest => length * reshaped194Trailing rest
+
+def reshaped195TrailingOne (length : JInt64) : JInt64 := length
+
+def reshaped196RdimsVal (rdims : List JInt64 → List JInt64 → List JInt64)
+    (rank : Nat) (indices : List JInt64) : List JInt64 :=
+  rdims (List.replicate rank (JInt.lit .i64 1)) indices
+
+def reshaped197RdimsEmptyEmpty (_ : Unit) : List JInt64 := []
+def reshaped198RdimsEmptyOne (_index : JInt64) : List JInt64 := []
+def reshaped199RdimsEmptyMany (_indices : List JInt64) : List JInt64 := []
+def reshaped200RdimsOneEmpty (output : JInt64) : List JInt64 := [output]
+def reshaped201RdimsManyEmpty (output : List JInt64) : List JInt64 := output
+def reshaped202RdimsOneOne (index : JInt64) : List JInt64 := [index]
+
+def reshaped203RdimsOneMany (oneto : JInt64 → JInt64)
+    (indices : List JInt64) : List JInt64 :=
+  [oneto (reshaped194Trailing indices)]
+
+def reshaped204RdimsEqual (indices : List JInt64) : List JInt64 := indices
+
+def reshaped205RdimsRecursive
+    (rdims : List JInt64 → List JInt64 → List JInt64)
+    (output indices : List JInt64) : List JInt64 :=
+  match indices with
+  | [] => output
+  | first :: tail => first :: rdims output.tail tail
+
+def reshaped209VectorOne (parent : List Int) (_dims : List Int) : List Int := parent
+def reshaped210ArrayOne (reshape : List Int → List Int → Jl Int)
+    (parent dims : List Int) : Jl Int := reshape parent dims
+def reshaped211ArrayDims (reshape : List Int → List Int → Jl Int)
+    (parent dims : List Int) : Jl Int := reshape parent dims
+def reshaped232NestedVector (reshape : List Int → List Int → Jl Int)
+    (parent dims : List Int) : Jl Int := reshape parent dims
+def reshaped233Nested (reshape : List Int → List Int → Jl Int)
+    (parent dims : List Int) : Jl Int := reshape parent dims
+
+end JuliaLean.ArrayCov
+
+namespace JuliaLean.ArrayCov
+
+
+structure ReshapedView where
+  parent : List Int
+  firstIndex : JInt64
+  parentFirstIndex : JInt64
+  firstIndices : List JInt64
+  deriving Repr, DecidableEq
+
+structure OffsetConvertModel where
+  byteOffset : JInt64
+  parent : Int
+  deriving Repr, DecidableEq
+
+def reshaped358ComputeOffset (firstRange axesFirst : Int → JInt64)
+    (stride : JInt64) (range : Int) : JInt64 :=
+  firstRange range - axesFirst range * stride
+
+def reshaped360Substrides (sizeToStrides : JInt64 → List JInt64 → List JInt64)
+    (step : Int → JInt64) (size : Int → List JInt64)
+    (recurse : List JInt64 → List Int → List JInt64)
+    (strides : List JInt64) (indices : List Int) : List JInt64 :=
+  match strides, indices with
+  | stride :: restStrides, range :: restIndices =>
+      sizeToStrides (stride * step range) (size range) ++ recurse restStrides restIndices
+  | _, _ => recurse strides indices
+
+def reshaped368UnsafeConvert (contiguous : List Int → Bool)
+    (elsize : List Int → JInt64)
+    (memoryOffset : List Int → List JInt64 → JInt64)
+    (unsafeConvert : List Int → JInt64)
+    (view : ReshapedView) : JInt64 :=
+  let delta := if contiguous view.parent then
+    (view.firstIndex - view.parentFirstIndex) * elsize view.parent
+  else memoryOffset view.parent view.firstIndices
+  unsafeConvert view.parent + delta
+
+def reshaped384OffsetNested (recurse : JInt64 → Int → OffsetConvertModel)
+    (byteOffset : JInt64) (parent : OffsetConvertModel) : OffsetConvertModel :=
+  recurse (parent.byteOffset + byteOffset) parent.parent
+
+def reshaped391OffsetNew (byteOffset : JInt64) (parent : Int) : OffsetConvertModel :=
+  ⟨byteOffset, parent⟩
+
+def reshaped398UnsafeOffset (unsafeConvert : Int → JInt64)
+    (offset : OffsetConvertModel) : JInt64 :=
+  unsafeConvert offset.parent + offset.byteOffset
+
+def reshaped402Cconvert (cconvert : List Int → Int)
+    (contiguous : List Int → Bool) (elsize : List Int → JInt64)
+    (memoryOffset : List Int → List JInt64 → JInt64)
+    (offsetConvert : JInt64 → Int → OffsetConvertModel)
+    (view : ReshapedView) : OffsetConvertModel :=
+  let parent := cconvert view.parent
+  let delta := if contiguous view.parent then
+    (view.firstIndex - view.parentFirstIndex) * elsize view.parent
+  else memoryOffset view.parent view.firstIndices
+  offsetConvert delta parent
+
+inductive ReshapedStrideError where
+  | notStrided
+  deriving Repr, DecidableEq
+
+abbrev ReshapedStrideJl (α : Type) := Except ReshapedStrideError α
+
+def reshaped424Strides (contiguous : ReshapedValue → Bool)
+    (sizeArray : ReshapedValue → List JInt64)
+    (sizeParent stridesParent : List Int → List JInt64)
+    (sizeToStrides : JInt64 → List JInt64 → List JInt64)
+    (merge : List JInt64 → List JInt64 → JInt64 × JInt64 × Nat)
+    (recurse : List JInt64 → JInt64 → JInt64 → JInt64 → Nat →
+      List JInt64 → List JInt64 → ReshapedStrideJl (List JInt64))
+    (array : ReshapedValue) : ReshapedStrideJl (List JInt64) :=
+  if contiguous array then .ok (sizeToStrides (JInt.lit .i64 1) (sizeArray array))
+  else
+    let parentSize := sizeParent array.parent
+    let parentStrides := stridesParent array.parent
+    let (mergedSize, mergedStride, n) := merge parentSize parentStrides
+    if n = parentSize.length then .ok (sizeToStrides mergedStride (sizeArray array))
+    else recurse (sizeArray array) (JInt.lit .i64 1) mergedSize mergedStride n
+      parentSize parentStrides
+
+def reshaped433StridesEmpty (reshaped mergedSize : JInt64) :
+    ReshapedStrideJl (List JInt64) :=
+  if reshaped = mergedSize then .ok [] else .error .notStrided
+
+def reshaped437Strides (merge : List JInt64 → List JInt64 → Nat →
+      JInt64 × JInt64 × Nat)
+    (recurse : List JInt64 → JInt64 → JInt64 → JInt64 → Nat →
+      List JInt64 → List JInt64 → ReshapedStrideJl (List JInt64))
+    (size : List JInt64) (reshaped mergedSize mergedStride : JInt64)
+    (n : Nat) (parentSize parentStrides : List JInt64) : ReshapedStrideJl (List JInt64) :=
+  match size with
+  | [] => reshaped433StridesEmpty reshaped mergedSize
+  | first :: tail => do
+      let stride := reshaped * mergedStride
+      let reshaped := reshaped * first
+      let (mergedSize, mergedStride, n, reshaped) :=
+        if !tail.isEmpty && reshaped = mergedSize && tail.getD 0 (JInt.lit .i64 0) != JInt.lit .i64 1 then
+          let merged := merge parentSize parentStrides (n + 1)
+          (merged.1, merged.2.1, merged.2.2, JInt.lit .i64 1)
+        else (mergedSize, mergedStride, n, reshaped)
+      let rest ← recurse tail reshaped mergedSize mergedStride n parentSize parentStrides
+      pure (stride :: rest)
+
+def reshaped450MergeLoop : List JInt64 → List JInt64 → Nat → Nat →
+    JInt64 × JInt64 × Nat
+  | sizes, strides, n, 0 =>
+      (sizes.getD (n - 1) (JInt.lit .i64 1),
+       strides.getD (n - 1) (JInt.lit .i64 1), n)
+  | sizes, strides, n, fuel + 1 =>
+      let size := sizes.getD (n - 1) (JInt.lit .i64 1)
+      let stride := strides.getD (n - 1) (JInt.lit .i64 1)
+      if n ≥ sizes.length then (size, stride, n)
+      else
+        let nextSize := sizes.getD n (JInt.lit .i64 1)
+        let nextStride := strides.getD n (JInt.lit .i64 1)
+        if size = JInt.lit .i64 1 then
+          let sizes := sizes.set (n - 1) nextSize
+          let strides := strides.set (n - 1) nextStride
+          reshaped450MergeLoop sizes strides (n + 1) fuel
+        else if nextStride = stride * size || nextSize = JInt.lit .i64 1 then
+          let sizes := sizes.set (n - 1) (size * nextSize)
+          reshaped450MergeLoop sizes strides (n + 1) fuel
+        else (size, stride, n)
+
+def reshaped450Merge (sizes strides : List JInt64) (n : Nat) :
+    JInt64 × JInt64 × Nat :=
+  reshaped450MergeLoop sizes strides n (sizes.length - n)
+
+end JuliaLean.ArrayCov
+
+namespace JuliaLean.ArrayCov
+
+
+def reshaped270Ind2subEmpty (_axes : List (List JInt64)) (index : JInt64) : List JInt64 :=
+  [index]
+
+def reshaped271Ind2sub (aux : List (List JInt64) → List JInt64 → JInt64 → List JInt64)
+    (axes : List (List JInt64)) (divisors : List JInt64) (index : JInt64) : List JInt64 :=
+  aux axes divisors (index - JInt.lit .i64 1)
+
+def reshaped272Ind2subAuxEmpty (first : List JInt64 → JInt64)
+    (axes : List (List JInt64)) (index : JInt64) : List JInt64 :=
+  [index + first (axes.getLastD [])]
+
+def reshaped273Ind2subAux (divrem : JInt64 → JInt64 → JInt64 × JInt64)
+    (first : List JInt64 → JInt64) :
+    List (List JInt64) → List JInt64 → JInt64 → List JInt64
+  | axes, [], index => reshaped272Ind2subAuxEmpty first axes index
+  | [], _ :: _, index => [index]
+  | axis :: axes, divisor :: divisors, index =>
+      let (quotient, remainder) := divrem index divisor
+      (remainder + first axis) ::
+        reshaped273Ind2subAux divrem first axes divisors quotient
+
+def reshaped277OffsetVector (first : List JInt64 → JInt64)
+    (index : JInt64) (axes : List (List JInt64)) : JInt64 :=
+  index + first (axes.getD 0 []) - JInt.lit .i64 1
+
+def reshaped278OffsetGeneral (index : JInt64) (_axes : List (List JInt64)) : JInt64 :=
+  index
+
+inductive ReshapedIndexError where
+  | bounds
+  deriving Repr, DecidableEq
+
+abbrev ReshapedIndexJl (α : Type) := Except ReshapedIndexError α
+
+structure ReshapedAccessState where
+  parent : List Int
+  dims : List JInt64
+  axes : List (List JInt64)
+  divisors : List JInt64
+  deriving Repr, DecidableEq
+
+def reshaped280IsAssignedLinear (checkbounds : ReshapedAccessState → JInt64 → Bool)
+    (firstArray firstParent : ReshapedAccessState → JInt64)
+    (isassigned : List Int → JInt64 → Bool)
+    (array : ReshapedAccessState) (index : JInt64) : Bool :=
+  if !checkbounds array index then false
+  else
+    let parentIndex := index - firstArray array + firstParent array
+    isassigned array.parent parentIndex
+
+def reshaped286IsAssignedCartesian
+    (checkbounds : ReshapedAccessState → List JInt64 → Bool)
+    (size : ReshapedAccessState → List JInt64)
+    (axes : List Int → List (List JInt64))
+    (sub2ind : List JInt64 → List JInt64 → JInt64)
+    (offset : JInt64 → List (List JInt64) → JInt64)
+    (ind2sub : List (List JInt64) → List JInt64 → JInt64 → List JInt64)
+    (isassigned : List Int → List JInt64 → Bool)
+    (array : ReshapedAccessState) (indices : List JInt64) : Bool :=
+  if !checkbounds array indices then false
+  else
+    let parentAxes := axes array.parent
+    let linear := offset (sub2ind (size array) indices) parentAxes
+    isassigned array.parent (ind2sub parentAxes array.divisors linear)
+
+def reshaped294GetLinear (checkbounds : ReshapedAccessState → JInt64 → Bool)
+    (firstArray firstParent : ReshapedAccessState → JInt64)
+    (getindex : List Int → JInt64 → ReshapedIndexJl Int)
+    (array : ReshapedAccessState) (index : JInt64) : ReshapedIndexJl Int := do
+  if checkbounds array index then pure () else throw .bounds
+  let parentIndex := index - firstArray array + firstParent array
+  getindex array.parent parentIndex
+
+def reshaped300GetCartesian
+    (checkbounds : ReshapedAccessState → List JInt64 → Bool)
+    (unsafeGet : ReshapedAccessState → List JInt64 → ReshapedIndexJl Int)
+    (array : ReshapedAccessState) (indices : List JInt64) : ReshapedIndexJl Int := do
+  if checkbounds array indices then pure () else throw .bounds
+  unsafeGet array indices
+
+def reshaped304GetReshapedIndex (checkbounds : List Int → JInt64 → Bool)
+    (getindex : List Int → JInt64 → ReshapedIndexJl Int)
+    (array : ReshapedAccessState) (parentIndex : JInt64) : ReshapedIndexJl Int := do
+  if checkbounds array.parent parentIndex then pure () else throw .bounds
+  getindex array.parent parentIndex
+
+def reshaped310UnsafeGet
+    (size : ReshapedAccessState → List JInt64)
+    (axes : List Int → List (List JInt64))
+    (sub2ind : List JInt64 → List JInt64 → JInt64)
+    (offset : JInt64 → List (List JInt64) → JInt64)
+    (ind2sub : List (List JInt64) → List JInt64 → JInt64 → List JInt64)
+    (unsafeGetParent : List Int → List JInt64 → ReshapedIndexJl Int)
+    (array : ReshapedAccessState) (indices : List JInt64) : ReshapedIndexJl Int :=
+  let parentAxes := axes array.parent
+  let linear := offset (sub2ind (size array) indices) parentAxes
+  unsafeGetParent array.parent (ind2sub parentAxes array.divisors linear)
+
+def reshaped316UnsafeGetScalar (getindex : List Int → JInt64 → Int)
+    (parent : List Int) (index : JInt64) : Int := getindex parent index
+
+def reshaped317UnsafeGetTuple (getindex : List Int → List JInt64 → Int)
+    (parent : List Int) (indices : List JInt64) : Int := getindex parent indices
+
+def reshaped319SetLinear (checkbounds : ReshapedAccessState → JInt64 → Bool)
+    (firstArray firstParent : ReshapedAccessState → JInt64)
+    (setindex : List Int → Int → JInt64 → ReshapedIndexJl (List Int))
+    (array : ReshapedAccessState) (value : Int) (index : JInt64) :
+    ReshapedIndexJl (Int × List Int) := do
+  if checkbounds array index then pure () else throw .bounds
+  let parentIndex := index - firstArray array + firstParent array
+  let parent ← setindex array.parent value parentIndex
+  pure (value, parent)
+
+def reshaped325SetCartesian
+    (checkbounds : ReshapedAccessState → List JInt64 → Bool)
+    (unsafeSet : ReshapedAccessState → Int → List JInt64 →
+      ReshapedIndexJl (Int × List Int))
+    (array : ReshapedAccessState) (value : Int) (indices : List JInt64) :
+    ReshapedIndexJl (Int × List Int) := do
+  if checkbounds array indices then pure () else throw .bounds
+  unsafeSet array value indices
+
+def reshaped329SetReshapedIndex (checkbounds : List Int → JInt64 → Bool)
+    (setindex : List Int → Int → JInt64 → ReshapedIndexJl (List Int))
+    (array : ReshapedAccessState) (value : Int) (parentIndex : JInt64) :
+    ReshapedIndexJl (Int × List Int) := do
+  if checkbounds array.parent parentIndex then pure () else throw .bounds
+  let parent ← setindex array.parent value parentIndex
+  pure (value, parent)
+
+def reshaped335UnsafeSet
+    (size : ReshapedAccessState → List JInt64)
+    (axes : List Int → List (List JInt64))
+    (sub2ind : List JInt64 → List JInt64 → JInt64)
+    (offset : JInt64 → List (List JInt64) → JInt64)
+    (ind2sub : List (List JInt64) → List JInt64 → JInt64 → List JInt64)
+    (setindex : List Int → Int → List JInt64 → List Int)
+    (array : ReshapedAccessState) (value : Int) (indices : List JInt64) : Int × List Int :=
+  let parentAxes := axes array.parent
+  let linear := offset (sub2ind (size array) indices) parentAxes
+  let parentIndices := ind2sub parentAxes array.divisors linear
+  (value, setindex array.parent value parentIndices)
+
+end JuliaLean.ArrayCov
+
+namespace JuliaLean.ArrayCov
+
+
+inductive ReshapeCoreError where
+  | argumentError
+  | dimensionMismatch
+  | methodError
+  deriving Repr, DecidableEq
+
+abbrev ReshapeCoreJl (α : Type) := Except ReshapeCoreError α
+
+structure ArrayReshapeState where
+  parent : List Int
+  dims : List JInt64
+  mi : List JInt64 := []
+  deriving Repr, DecidableEq
+
+def reshaped43Array (checkedDims : List JInt64 → ReshapeCoreJl JInt64)
+    (parent : List Int) (dims : List JInt64) : ReshapeCoreJl ArrayReshapeState := do
+  let length ← checkedDims dims
+  if length.val != parent.length then throw .dimensionMismatch
+  pure ⟨parent, dims, []⟩
+
+def reshaped55ArrayBang (checkedDims : List JInt64 → ReshapeCoreJl JInt64)
+    (array : ArrayReshapeState) (dims : List JInt64) : ReshapeCoreJl ArrayReshapeState := do
+  let length ← checkedDims dims
+  if length.val != array.parent.length then throw .dimensionMismatch
+  pure { array with dims := dims }
+
+def reshaped138ThrowManyColon (_dims : List ReshapeDim) : ReshapeCoreJl Unit :=
+  .error .dimensionMismatch
+
+def reshaped140ThrowIndivisible (_length : JInt64) (_dims : List ReshapeDim) :
+    ReshapeCoreJl Unit := .error .dimensionMismatch
+
+def reshaped143Uncolon (promote : Int → ReshapeCoreJl Int)
+    (before : List ReshapeDim → ReshapeCoreJl (List JInt64))
+    (after : List ReshapeDim → ReshapeCoreJl (List ReshapeDim))
+    (anyColon : List ReshapeDim → Bool)
+    (compute : JInt64 → List ReshapeDim → List JInt64 → List JInt64 →
+      ReshapeCoreJl (List JInt64))
+    (parent : List Int) (rawDims : List ReshapeDim) : ReshapeCoreJl (List JInt64) := do
+  let dims ← rawDims.mapM fun dim =>
+    match dim with
+    | .colon => pure .colon
+    | .integer value => .integer <$> promote value
+  let pre ← before dims
+  let post ← after dims
+  if anyColon post then throw .dimensionMismatch
+  let post := post.filterMap fun dim => match dim with
+    | .colon => none
+    | .integer value => some (JInt.lit .i64 value)
+  compute (JInt.lit .i64 parent.length) dims pre post
+
+def reshaped152ComputeInt (checkedDims : List JInt64 → ReshapeCoreJl JInt64)
+    (length : JInt64) (_dims : List ReshapeDim) (pre post : List JInt64) :
+    ReshapeCoreJl (List JInt64) := do
+  let size ← if length.val = 0 then pure (JInt.lit .i64 0) else do
+    let product ← checkedDims (pre ++ post)
+    if product.val = 0 then throw .dimensionMismatch
+    let quotient ← JInt.div length product |>.mapError fun _ => .argumentError
+    let remainder ← JInt.remInt length product |>.mapError fun _ => .argumentError
+    if remainder.val != 0 then throw .dimensionMismatch
+    pure quotient
+  pure (pre ++ [size] ++ post)
+
+def reshaped172ComputeNonempty (isZero : Int → Bool)
+    (divrem : Int → Int → ReshapeCoreJl (Int × Int))
+    (length : Int) (_dims : List ReshapeDim) (product : Int) : ReshapeCoreJl Int := do
+  if isZero product then throw .dimensionMismatch
+  let (quotient, remainder) ← divrem length product
+  if !isZero remainder then throw .dimensionMismatch
+  pure quotient
+
+def reshaped163ComputeGeneric (product : List Int → Int)
+    (isZero : Int → Bool) (promotedZero : Int → Int → Int)
+    (compute : Int → List ReshapeDim → Int → ReshapeCoreJl Int)
+    (length : Int) (dims : List ReshapeDim) (pre post : List Int) :
+    ReshapeCoreJl (List Int) := do
+  let product := product (pre ++ post)
+  let size ← if isZero length then pure (promotedZero length product)
+    else compute length dims product
+  pure (pre ++ [size] ++ post)
+
+def reshaped187Val (axes : List Int → List Int)
+    (rdims : Nat → List Int → List JInt64)
+    (reshape : List Int → List JInt64 → ReshapeCoreJl ArrayReshapeState)
+    (parent : List Int) (rank : Nat) : ReshapeCoreJl ArrayReshapeState :=
+  reshape parent (rdims rank (axes parent))
+
+def reshaped214VectorOne (oneBased : List Int → ReshapeCoreJl Unit)
+    (parent : List Int) (length : JInt64) : ReshapeCoreJl (List Int) := do
+  oneBased parent
+  if length.val != parent.length then throw .dimensionMismatch
+  pure parent
+
+def reshaped221General (checkedDims : List JInt64 → ReshapeCoreJl JInt64)
+    (construct : List Int → List JInt64 → ReshapeCoreJl ArrayReshapeState)
+    (parent : List Int) (dims : List JInt64) : ReshapeCoreJl ArrayReshapeState := do
+  let product ← checkedDims dims
+  if product.val != parent.length then throw .dimensionMismatch
+  construct parent dims
+
+def reshaped227ThrowDmrs (_length : JInt64) (_kind : String) (_dims : List JInt64) :
+    ReshapeCoreJl Unit := .error .dimensionMismatch
+
+def reshaped235ConstructCartesian (size : List Int → List JInt64)
+    (makeMi : List JInt64 → List JInt64) (parent : List Int)
+    (dims : List JInt64) : ArrayReshapeState :=
+  let sizes := (size parent).dropLast.map fun value =>
+    if value.val < 1 then JInt.lit .i64 1 else value
+  ⟨parent, dims, makeMi sizes⟩
+
+def reshaped243ConstructZero (parent : List Int) (dims : List JInt64) : ArrayReshapeState :=
+  ⟨parent, dims, []⟩
+
+def reshaped248ConstructLinear (parent : List Int) (dims : List JInt64) : ArrayReshapeState :=
+  ⟨parent, dims, []⟩
+
+end JuliaLean.ArrayCov
+
+namespace JuliaLean.ReinterpretArrays
+
+open JuliaLean
+
+/-- Julia's `DimensionMismatch`, recorded as a distinct exception. -/
+def dimensionMismatch : JlError := .argumentError "DimensionMismatch"
+
+/-- The size check of `_reshape(parent::AbstractArray, dims::Dims)`, `base/reshapedarray.jl:221-225`,
+for a parent with `n = length(parent)` elements; on success `__reshape` wraps the parent. -/
+def reshapeCheck (n : JInt64) (dims : List JInt64) : Jl Unit := do
+  let p ← checkedDims dims
+  if p = n then pure () else throw dimensionMismatch
+
+/-- `_reshape_uncolon` and `_reshape_uncolon_computesize` for `Int` dimensions with one `Colon`,
+`base/reshapedarray.jl:143-162,172-177`: `pre` and `post` are the dimensions before and after
+the colon, `len = length(A)`. -/
+def reshapeUncolon (len : JInt64) (pre post : List JInt64) : Jl (List JInt64) := do
+  let sz ← if len.val = 0 then pure (JInt.lit .i64 0) else do
+    let pr ← checkedDims (pre ++ post)
+    if pr.val = 0 then throw dimensionMismatch
+    let quo ← JInt.div len pr
+    let rem ← JInt.remInt len pr
+    if rem.val ≠ 0 then throw dimensionMismatch
+    pure quo
+  pure (pre ++ [sz] ++ post)
+
+/-- `reshape(A, pre..., :, post...)` for a generic parent with `len` elements,
+`base/reshapedarray.jl:136,128,221-225`. -/
+def reshapeColon (len : JInt64) (pre post : List JInt64) : Jl (List JInt64) := do
+  let dims ← reshapeUncolon len pre post
+  reshapeCheck len dims
+  pure dims
+
+/-- `SignedMultiplicativeInverse.(max.(1, front(size(parent))))`, `base/reshapedarray.jl:235-241`.
+`SmiNewAll szs mis` holds when the constructor returns `mis` for the sizes `szs`. -/
+def SmiNewAll : List JInt64 → List (SignedMI .i64) → Prop
+  | [], [] => True
+  | s :: szs, m :: mis => SmiNew (if s.val < 1 then JInt.lit .i64 1 else s) m ∧ SmiNewAll szs mis
+  | _, _ => False
+
+/-- `_ind2sub_rs(ax, szs, ind)`, `base/reshapedarray.jl:272-276`, for a parent whose axes start at
+`firsts`: `divrem(ind, mi)` is `div(ind, mi)` and `ind - d * mi.divisor`
+(`base/multinverses.jl:151-154`). -/
+def ind2subRsAux : List JInt64 → List (SignedMI .i64) → JInt64 → List JInt64
+  | firsts, [], ind => [ind + firsts.getLastD (JInt.lit .i64 1)]
+  | f :: firsts, mi :: mis, ind =>
+    let d := smiDiv ind mi
+    let r := ind - d * mi.divisor
+    (r + f) :: ind2subRsAux firsts mis d
+  | [], _ :: _, ind => [ind]
+
+/-- `ind2sub_rs(ax, szs, i)`, `base/reshapedarray.jl:270-271`. -/
+def ind2subRs (firsts : List JInt64) (mis : List (SignedMI .i64)) (i : JInt64) : List JInt64 :=
+  match mis with
+  | [] => [i]
+  | _ => ind2subRsAux firsts mis (i - JInt.lit .i64 1)
+
+end JuliaLean.ReinterpretArrays

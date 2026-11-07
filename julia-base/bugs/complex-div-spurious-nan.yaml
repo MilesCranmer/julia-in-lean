@@ -60,5 +60,5 @@ duplicates:
     - {number: 22983, state: closed, relation: related}
   queries: ["complex division NaN", "complex division Inf", "Inf + NaN*im", "robust complex division", "cdiv", "complex division underflow"]
 lean:
-  property: JuliaLean.Complex.DivNoSpuriousNaN
-  theorem: JuliaLean.Complex.divNoSpuriousNaN_refuted
+  property: JuliaLean.Proofs.base.complex.DivNoSpuriousNaN
+  theorem: JuliaLean.Proofs.base.complex.divNoSpuriousNaN_refuted

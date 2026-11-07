@@ -2693,24 +2693,6 @@ the same size, and throws `InexactError` exactly when `x` exceeds that type's `t
 def NegateUnsigned : Prop := ∀ (t : IntTy), t.signed = false → ∀ x : JInt t,
   (∀ q, negate_Unsigned x = .ok q ↔ (x.val ≤ t.toSigned.max ∧ q.val = -x.val)) ∧
   (t.toSigned.max < x.val → negate_Unsigned x = .error (.inexactError t.toSigned.name))
-theorem negateUnsigned_proven : NegateUnsigned := by
-  intro t ht x
-  have hx0 := nonneg_of_unsigned ht x
-  have hmin : t.toSigned.min = -t.toSigned.max - 1 := by cases t <;> simp_all [IntTy.signed] <;> decide
-  have hmax : 0 ≤ t.toSigned.max := by cases t <;> decide
-  unfold negate_Unsigned Generic.negate_Unsigned convert JInt.convert
-  by_cases hf : t.toSigned.min ≤ x.val ∧ x.val ≤ t.toSigned.max
-  · rw [dif_pos hf]
-    have hv : (neg (⟨x.val, hf⟩ : JInt t.toSigned)).val = -x.val := by
-      rw [neg, neg_int_val]
-      show wrapInt _ (-x.val) = -x.val
-      exact wrapInt_of_inRange _ _ ⟨by omega, by omega⟩
-    refine ⟨fun q => ⟨fun h => ?_, fun h => ?_⟩, fun h => absurd hf.2 (by omega)⟩
-    · cases h; exact ⟨hf.2, hv⟩
-    · show Except.ok _ = Except.ok q
-      rw [jint_eq (show (neg (⟨x.val, hf⟩ : JInt t.toSigned)).val = q.val by rw [hv, h.2])]
-  · rw [dif_neg hf]
-    refine ⟨fun q => ⟨fun h => (by cases h), fun h => absurd ⟨by omega, h.1⟩ hf⟩, fun _ => rfl⟩
 
 /-! ## `widemul` (lines 920-930) -/
 
@@ -3018,16 +3000,6 @@ def NegateExact : Prop :=
   (∀ t : IntTy, t.signed = true → ∀ x : JInt t,
     (add x (negate neg x)).val = 0 ∧ (x.val ≠ t.min → (negate neg x).val = -x.val)) ∧
   NegateUnsigned
-theorem negateExact_proven : NegateExact := by
-  refine ⟨fun t ht x => ?_, negateUnsigned_proven⟩
-  have hx := x.property
-  have hn : (negate neg x).val = wrapInt t (-x.val) := negWraps_proven t x
-  refine ⟨?_, fun hm => ?_⟩
-  · rw [addWraps_proven t x (negate neg x), hn, wrapInt_add_right, Int.add_right_neg]
-    exact wrapInt_of_inRange t 0 (by cases t <;> decide)
-  · rw [hn]
-    apply wrapInt_of_inRange
-    cases t <;> simp_all [IntTy.signed, IntTy.min, IntTy.max, IntTy.bits] <;> omega
 
 /-! ## `isodd`, `iseven` on `Number` (lines 143-181) -/
 
@@ -4813,6 +4785,128 @@ def IntegerFloatingDivision : Prop := GenericIntegerReciprocal ∧
 theorem integerFloatingDivision_proven : IntegerFloatingDivision :=
   ⟨genericIntegerReciprocal_proven, genericIntegerTrueDivision_proven, bitIntegerTrueDivision_proven⟩
 
+end JuliaLean.Proofs.base.int
+
+namespace JuliaLean.Proofs.base.int
+
+open JuliaLean JuliaLean.base.int JuliaLean.Proofs.base.int
+
+/-- Independent representability specification for a widened integer type. -/
+def widenRangeContract (t w : IntTy) : Prop :=
+  w.signed = t.signed ∧ w.bits = 2 * t.bits ∧
+  ∀ x y : JInt t, fits w (x.val + y.val) ∧
+    fits w (x.val - y.val) ∧ fits w (x.val * y.val)
+
+end JuliaLean.Proofs.base.int
+
+namespace JuliaLean.Proofs.base.int.Archive20261101
+
+open JuliaLean JuliaLean.base.int JuliaLean.Proofs.base.int
+
+/-! Review-ready statements over installed definitions only. No proposed definitions are imported. -/
+
+/-- The BitInteger arithmetic operators form the ring of integers modulo 2^n, and typemax(T) + 1 == typemin(T).
+Julia source: base/int.jl:86-94 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+Julia documentation: doc/src/manual/integers-and-floating-point-numbers.md:231-265 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-/
+def PrimitiveRingLaws : Prop := ∀ (t : IntTy) (x y z : JInt t),
+  add (add x y) z = add x (add y z) ∧ add x y = add y x ∧
+  add (lit t 0) x = x ∧ add x (lit t 0) = x ∧
+  add (neg x) x = lit t 0 ∧ add x (neg x) = lit t 0 ∧
+  sub x y = add x (neg y) ∧ add (sub x y) y = x ∧
+  mul (mul x y) z = mul x (mul y z) ∧ mul x y = mul y x ∧
+  mul (lit t 1) x = x ∧ mul x (lit t 1) = x ∧
+  mul (lit t 0) x = lit t 0 ∧ mul x (lit t 0) = lit t 0 ∧
+  mul x (add y z) = add (mul x y) (mul x z) ∧
+  mul (add x y) z = add (mul x z) (mul y z) ∧
+  add (typemax t) (lit t 1) = typemin t
+
+/-- signed(T) is the signed type of the same size for Bool and every BitInteger type.
+Julia source: base/int.jl:73-79 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+Julia documentation: base/int.jl:61-71 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-/
+def SignedTypeSameSize : Prop :=
+  signed_Type_Bool.signed = true ∧ sizeofT signed_Type_Bool = 1 ∧
+  ∀ t : IntTy, (signedType t).signed = true ∧ sizeofT (signedType t) = sizeofT t
+
+/-- Each of the eight widen(T) methods doubles width with unchanged signedness, represents products by its range invariant, and retains the documented promise to represent every sum and difference, including unsigned differences.
+Julia source: base/int.jl:911-918 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+Julia documentation: base/operators.jl:954-977 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-/
+def WidenTypeRanges : Prop :=
+  widenRangeContract .i8 widen_Int8 ∧ widenRangeContract .i16 widen_Int16 ∧
+  widenRangeContract .i32 widen_Int32 ∧ widenRangeContract .i64 widen_Int64 ∧
+  widenRangeContract .u8 widen_UInt8 ∧ widenRangeContract .u16 widen_UInt16 ∧
+  widenRangeContract .u32 widen_UInt32 ∧ widenRangeContract .u64 widen_UInt64
+
+end JuliaLean.Proofs.base.int.Archive20261101
+
+namespace JuliaLean.Proofs.base.int
+
+open JuliaLean.Registry
+
+end JuliaLean.Proofs.base.int
+
+namespace JuliaLean.ChatGPT.Batch6.Group2
+
+/-- int-signed-bool-size-v2: signed(T) is the signed type of the same size for Bool and every BitInteger type. -/
+theorem IntSignedBoolSizeV2_refuted :
+    ¬ JuliaLean.Proofs.base.int.Archive20261101.SignedTypeSameSize := by
+  intro h
+  exact absurd h.2.1 (by decide)
+
+/-- floatintcov-int-widen-v2: Each of the eight widen(T) methods doubles width with unchanged signedness, represents products by its range invariant, and retains the documented promise to represent every sum and difference, including unsigned differences. -/
+theorem FloatintcovIntWidenV2_refuted :
+    ¬ JuliaLean.Proofs.base.int.Archive20261101.WidenTypeRanges := by
+  intro h
+  rcases h with ⟨_, _, _, _, hu8, _⟩
+  rcases hu8 with ⟨_, _, hfits⟩
+  let x : JuliaLean.JInt .u8 := JuliaLean.base.int.lit .u8 0
+  let y : JuliaLean.JInt .u8 := JuliaLean.base.int.lit .u8 255
+  have h := (hfits x y).2.1
+  have hbad : ¬ JuliaLean.Proofs.base.int.fits JuliaLean.base.int.widen_UInt8
+      ((JuliaLean.base.int.lit .u8 0).val - (JuliaLean.base.int.lit .u8 255).val) := by
+    decide
+  exact hbad (by simpa [x, y] using h)
+
+end JuliaLean.ChatGPT.Batch6.Group2
+
+/-! Primitive ring laws for the installed BitInteger operations. -/
+
+namespace JuliaLean.ChatGPT.Batch9.Group15
+open JuliaLean JuliaLean.base.int JuliaLean.Proofs.base.int
+
+/-- floatintcov-int-primitives-v2: Every arithmetic law holds after reduction modulo the type width. -/
+theorem FloatintcovIntPrimitivesV2_proven : JuliaLean.Proofs.base.int.Archive20261101.PrimitiveRingLaws := by
+  intro t x y z
+  refine ⟨jint_eq ?_, jint_eq ?_, jint_eq ?_, jint_eq ?_, jint_eq ?_,
+    jint_eq ?_, jint_eq ?_, jint_eq ?_, jint_eq ?_, jint_eq ?_, jint_eq ?_,
+    jint_eq ?_, jint_eq ?_, jint_eq ?_, jint_eq ?_, jint_eq ?_, ?_⟩
+  · simp only [add, add_int_val, wrapInt_add_left, wrapInt_add_right, Int.add_assoc]
+  · simp only [add, add_int_val, Int.add_comm]
+  · simp only [add, add_int_val, lit_val, wrapInt_add_left, Int.zero_add, wrapInt_val]
+  · simp only [add, add_int_val, lit_val, wrapInt_add_right, Int.add_zero, wrapInt_val]
+  · simp only [add, neg, add_int_val, neg_int_val, wrapInt_add_left, lit_val, Int.add_left_neg]
+  · simp only [add, neg, add_int_val, neg_int_val, wrapInt_add_right, lit_val, Int.add_right_neg]
+  · simp only [sub, add, neg, sub_int_val, add_int_val, neg_int_val, wrapInt_add_right,
+      Int.sub_eq_add_neg]
+  · simp only [add, sub, add_int_val, sub_int_val, wrapInt_add_left, Int.sub_add_cancel, wrapInt_val]
+  · simp only [mul, mul_int_val, wrapInt_mul_left, wrapInt_mul_right, Int.mul_assoc]
+  · simp only [mul, mul_int_val, Int.mul_comm]
+  · simp only [mul, mul_int_val, lit_val, wrapInt_mul_left, Int.one_mul, wrapInt_val]
+  · simp only [mul, mul_int_val, lit_val, wrapInt_mul_right, Int.mul_one, wrapInt_val]
+  · simp only [mul, mul_int_val, lit_val, wrapInt_mul_left, Int.zero_mul]
+  · simp only [mul, mul_int_val, lit_val, wrapInt_mul_right, Int.mul_zero]
+  · simp only [add, mul, add_int_val, mul_int_val, wrapInt_mul_right, wrapInt_add_left,
+      wrapInt_add_right, Int.mul_add]
+  · simp only [add, mul, add_int_val, mul_int_val, wrapInt_mul_left, wrapInt_add_left,
+      wrapInt_add_right, Int.add_mul]
+  · exact (primitiveRingLaws_proven t x y z).2.2.2.2
+
+end JuliaLean.ChatGPT.Batch9.Group15
+
+namespace JuliaLean.Proofs.base.int
+
 /-- Registry entries of `base/int.jl`. -/
 def entries : List JuliaLean.Registry.Entry := [
   { id := "int-neg-wraps", juliaFile := "base/int.jl", juliaFns := ["-(::BitInteger)"],
@@ -5049,10 +5143,6 @@ def entries : List JuliaLean.Registry.Entry := [
     statement := "trailing_ones(x) is the number of ones trailing the n-bit representation of x.",
     source := "docstring of trailing_ones; base/int.jl:532-543", status := .proven,
     prop := ``AllTrailingOnes, thm := some ``allTrailingOnes_proven },
-  { id := "int-top-set-bit", juliaFile := "base/int.jl", juliaFns := ["top_set_bit(::BitInteger)"],
-    statement := "top_set_bit(x) is the number of bits of x's binary representation excluding leading zeros.",
-    source := "docstring of top_set_bit; base/int.jl:545-569", status := .proven,
-    prop := ``TopSetBit, thm := some ``topSetBit_proven },
   { id := "floatintcov-int-bit-reversal", juliaFile := "base/int.jl", juliaFns := ["bswap"],
     statement := "bswap(x) reverses the byte order of x.",
     source := "docstring of bswap; base/int.jl:435-459", status := .proven,
@@ -5140,10 +5230,6 @@ def entries : List JuliaLean.Registry.Entry := [
     statement := "x % Bool is true exactly for odd x.",
     source := "docstring of rem(x::Integer, T::Type{<:Integer}), base/int.jl:667-676; base/int.jl:699",
     status := .proven, prop := ``RemBoolParity, thm := some ``remBoolParity_proven },
-  { id := "floatintcov-int-negate", juliaFile := "base/int.jl", juliaFns := ["negate", "negate(::Unsigned)"],
-    statement := "negate(x) of a signed BitInteger is its additive inverse, exactly -x unless x == typemin; of an unsigned x it is exactly -x in the signed type of the same size, or InexactError.",
-    source := "invariant (step negation in range.jl:1322,1445,1451); base/int.jl:95-98", status := .proven,
-    prop := ``NegateExact, thm := some ``negateExact_proven },
   { id := "floatintcov-int-widemul", juliaFile := "base/int.jl",
     juliaFns := ["widemul(::Signed, ::Unsigned)", "widemul(::Unsigned, ::Signed)", "widemul(::Bool, ::Bool)"],
     statement := "widemul of a signed and an unsigned BitInteger below 128 bits, in either order, is the exact product; widemul of two Bools is their product.",
@@ -5225,10 +5311,6 @@ def entries : List JuliaLean.Registry.Entry := [
     statement := "All signed integer types copy the stored IEEE sign bit from floating-point arguments.",
     source := "copysign contract; base/int.jl:197-199", status := .proven,
     prop := ``GenericFloatCopysign, thm := some ``genericFloatCopysign_proven },
-  { id := "int-generic-negate-unsigned", juliaFile := "base/int.jl", juliaFns := ["negate(::Unsigned)"],
-    statement := "Unsigned negation returns the exact negative after a successful Signed conversion, or propagates the conversion error.",
-    source := "negation invariant; base/int.jl:97", status := .proven,
-    prop := ``GenericNegateUnsigned, thm := some ``genericNegateUnsigned_proven },
   { id := "int-promoted-bitwise", juliaFile := "base/int.jl", juliaFns := ["&(::Integer, ::Integer)", "|(::Integer, ::Integer)", "xor(::Integer, ::Integer)"],
     statement := "For arbitrary Integer pairs, promoted bitwise operators apply their truth tables at every bit of the target representation, preserving conversion and checker errors.",
     source := "bitwise operator docstrings; base/int.jl:1092-1100", status := .proven,
@@ -5303,10 +5385,6 @@ def entries : List JuliaLean.Registry.Entry := [
     statement := "Every invalid Union{} call throws MethodError instead of returning a value; different supplied argument tuples and different functions remain distinguishable in the error metadata.",
     source := "MethodError invariant; base/int.jl:80,700,702,705,907-908", status := .proven,
     prop := ``InvalidTypeErrorsLossless, thm := some ``invalidTypeErrorsLossless_proven },
-  { id := "int-generic-signed-negation", juliaFile := "base/int.jl", juliaFns := ["negate(::Signed)"],
-    statement := "Generic signed negation returns the additive inverse of the integer's numerical value.",
-    source := "negation invariant; base/int.jl:96", status := .proven,
-    prop := ``GenericSignedNegation, thm := some ``genericSignedNegation_proven },
   { id := "int-generic-unsigned-modulo", juliaFile := "base/int.jl", juliaFns := ["mod(::T, ::T) where T<:Unsigned"],
     statement := "Modulo on arbitrary unsigned integer types returns the Euclidean remainder and preserves DivideError for a zero divisor.",
     source := "mod docstring; base/int.jl:351", status := .proven,
@@ -5315,7 +5393,26 @@ def entries : List JuliaLean.Registry.Entry := [
     juliaFns := ["inv(::Integer)", "/(::T, ::T) where T<:Integer", "/(::BitInteger, ::BitInteger)"],
     statement := "Integer reciprocal and true division round the floating operands and their numerical quotient in the selected floating format, including signed zero, infinity and NaN behavior.",
     source := "inv, / and float contracts; base/int.jl:100-103", status := .proven,
-    prop := ``IntegerFloatingDivision, thm := some ``integerFloatingDivision_proven }
+    prop := ``IntegerFloatingDivision, thm := some ``integerFloatingDivision_proven },
+  { id := "floatintcov-int-primitives-v2", juliaFile := "base/int.jl",
+    juliaFns := ["+", "-", "*", "typemin", "typemax"],
+    statement := "The BitInteger arithmetic operators form the ring of integers modulo 2^n, and typemax(T) + 1 == typemin(T).",
+    source := "base/int.jl:86-94", status := .proven,
+    prop := ``JuliaLean.Proofs.base.int.Archive20261101.PrimitiveRingLaws, thm := some ``JuliaLean.ChatGPT.Batch9.Group15.FloatintcovIntPrimitivesV2_proven },
+  { id := "int-signed-bool-size-v2", juliaFile := "base/int.jl",
+    juliaFns := ["signed(::Type)"],
+    statement := "signed(T) is the signed type of the same size for Bool and every BitInteger type.",
+    source := "base/int.jl:73-79", status := .refuted,
+    prop := ``JuliaLean.Proofs.base.int.Archive20261101.SignedTypeSameSize,
+    thm := some ``JuliaLean.ChatGPT.Batch6.Group2.IntSignedBoolSizeV2_refuted,
+    issue := "PR #35854 deliberately established signed(Bool) = Int; no exact issue duplicate found. Queries and evidence: bugs/int-signed-bool-size-v2.yaml" },
+  { id := "floatintcov-int-widen-v2", juliaFile := "base/int.jl",
+    juliaFns := ["widen(::Type{<:BitInteger})"],
+    statement := "Each of the eight widen(T) methods doubles width with unchanged signedness, represents products by its range invariant, and retains the documented promise to represent every sum and difference, including unsigned differences.",
+    source := "base/int.jl:911-918", status := .refuted,
+    prop := ``JuliaLean.Proofs.base.int.Archive20261101.WidenTypeRanges,
+    thm := some ``JuliaLean.ChatGPT.Batch6.Group2.FloatintcovIntWidenV2_refuted,
+    issue := "No exact issue duplicate found; duplicate repository finding hashops-widen-unsigned-sub has the same unsigned subtraction counterexample. Queries and evidence: bugs/floatintcov-int-widen-v2.yaml" }
 ]
 
 end JuliaLean.Proofs.base.int

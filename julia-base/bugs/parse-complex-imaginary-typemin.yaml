@@ -1,0 +1,90 @@
+id: parse-complex-imaginary-typemin
+title: "Complex parsing rejects a representable minimum signed imaginary component"
+priority: P2
+kind: wrong-exception
+area: ParsePrint
+files: [base/parse.jl]
+functions:
+  - "parse(::Type{Complex{T}}, ::AbstractString)"
+  - "tryparse(::Type{Complex{T}}, ::AbstractString)"
+summary: |
+  parse(Complex{Int8}, "0-128im") throws OverflowError, although both components
+  fit Int8 and parse(Complex{Int8}, "-128im") succeeds. tryparse returns nothing
+  for the mixed form. The same failure occurs for the minimum Int64 imaginary
+  component on both tested Julia versions.
+likelihood: |
+  Affects decimal complex data with an imaginary component equal to typemin(T)
+  for a fixed-width signed integer T. Int8 data reaches this boundary easily;
+  Int64 data requires its extreme negative value.
+maybe_intended: ""
+reproducer: |
+  T = Int8
+  parse(T, "-128")                    # -128
+  parse(Complex{T}, "-128im")          # 0 - 128im
+  tryparse(Complex{T}, "0-128im")       # nothing
+  parse(Complex{T}, "0-128im")          # OverflowError
+output:
+  release: |
+    JULIA 1.13.2 COMMIT 45b6d15e34bbd2003a31acce0b1847b63dad029c
+    Int8 scalar = -128
+    Int8 pure imaginary accepted = true
+    Int8 mixed string = "0-128im"
+    Int8 tryparse = nothing
+    Int8 parse = OverflowError: overflow parsing "128"
+    Int64 scalar = -9223372036854775808
+    Int64 pure imaginary accepted = true
+    Int64 mixed string = "0-9223372036854775808im"
+    Int64 tryparse = nothing
+    Int64 parse = OverflowError: overflow parsing "9223372036854775808"
+    REPRODUCED parse-complex-imaginary-typemin
+  nightly: |
+    JULIA 1.15.0-DEV.unknown COMMIT f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    Int8 scalar = -128
+    Int8 pure imaginary accepted = true
+    Int8 mixed string = "0-128im"
+    Int8 tryparse = nothing
+    Int8 parse = OverflowError: overflow parsing "128"
+    Int64 scalar = -9223372036854775808
+    Int64 pure imaginary accepted = true
+    Int64 mixed string = "0-9223372036854775808im"
+    Int64 tryparse = nothing
+    Int64 parse = OverflowError: overflow parsing "9223372036854775808"
+    REPRODUCED parse-complex-imaginary-typemin
+reproduced: {release: true, nightly: true}
+expected: |
+  Both parse and tryparse return Complex{Int8}(0, -128) for "0-128im", and
+  Complex{Int64}(0, typemin(Int64)) for "0-9223372036854775808im".
+promised_by: |
+  Julia f755f49a9e41380d7da126b3c1db9fe7f83dd027, base/parse.jl:10-12:
+  "Complex types are parsed from decimal strings of the form \"R±Iim\" as a
+  Complex(R,I) of the requested type"; "R" and "Iim" are also permitted.
+  Both signed components in these decimal examples are representable in the
+  requested type. The purely imaginary form confirms that the minimum signed
+  component is accepted by the same public parser.
+cause: |
+  base/parse.jl:334-339 parses the imaginary magnitude starting at i₊+1,
+  excluding its minus sign, and applies negation only after component parsing.
+  The positive magnitude of typemin(T) cannot fit T, so parsing rejects it
+  before the sign can be applied. In contrast, the purely imaginary branch at
+  base/parse.jl:313-323 passes the leading minus sign into the integer parser.
+  The installed tryparseComplexStr/tryparseComplex models in
+  JuliaLean/base/parse.lean and tryparseInternalInt10 instantiate this exact
+  path with fixed Int8 arithmetic and the installed integer parser.
+possible_fix: |
+  Include the imaginary minus sign in the signed component parser's input, or
+  parse the signed component into a sufficient intermediate representation
+  before converting it to T. Preserve the documented surrounding-whitespace
+  handling.
+duplicates:
+  issues:
+    - {number: 24713, state: closed, relation: related}
+  queries:
+    - "repo:JuliaLang/julia parse Complex typemin"
+    - 'repo:JuliaLang/julia parse "128im"'
+    - "repo:JuliaLang/julia complex parse in:title"
+    - "site:github.com/JuliaLang/julia/issues parse Complex Int8 typemin imaginary"
+    - 'site:github.com/JuliaLang/julia "parse" "Complex" "-128"'
+lean:
+  property: JuliaLean.Proofs.base.parse.complex_imaginary_minimum.DecimalComponentsAccepted
+  theorem: JuliaLean.Proofs.base.parse.complex_imaginary_minimum.decimalComponentsAccepted_refuted
+covers: []

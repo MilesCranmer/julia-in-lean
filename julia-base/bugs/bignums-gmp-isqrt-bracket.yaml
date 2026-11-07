@@ -1,0 +1,82 @@
+id: bignums-gmp-isqrt-bracket
+covers:
+  - gmp-square-root-bracket
+title: isqrt(BigInt(-1)) throws DivideError instead of DomainError
+priority: P2
+kind: wrong-exception
+area: BigNums
+files:
+  - base/gmp.jl
+  - base/intfuncs.jl
+  - base/math.jl
+functions:
+  - isqrt(::BigInt)
+summary: |
+  isqrt(BigInt(-1)) throws DivideError rather than DomainError. The BigInt
+  specialization forwards the negative argument to GMP without a sign check. The
+  reproducer shows the wrong exception for a negative input; it does not show an
+  incorrect square root for any nonnegative input.
+likelihood: |
+  Requires an already invalid negative BigInt argument. Generic integer code
+  that catches DomainError for invalid square-root inputs will miss this error.
+maybe_intended: |
+  The isqrt docstring defines the result but does not name an exception for
+  negative arguments. DomainError is a consistency expectation from sqrt and
+  the generic integer implementation, rather than an explicit isqrt promise.
+  Upstream PR 64288 has already merged a sign check for this exact defect;
+  the release and pinned nightly builds still exhibit the old behavior.
+reproducer: |
+  err = try
+      isqrt(BigInt(-1))
+  catch e
+      e
+  end
+  @assert err isa DivideError
+  println("REPRODUCED bignums-gmp-isqrt-bracket")
+output:
+  release: |
+    REPRODUCED bignums-gmp-isqrt-bracket
+  nightly: |
+    REPRODUCED bignums-gmp-isqrt-bracket
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  Reject negative BigInt arguments with DomainError, consistent with the
+  generic integer square-root path and the merged upstream fix.
+promised_by: |
+  Pinned source f755f49a9e41380d7da126b3c1db9fe7f83dd027.
+  base/intfuncs.jl:1286 (isqrt docstring):
+  "Integer square root: the largest integer `m` such that `m*m <= n`."
+  No such integer exists for a negative n. This sentence does not specify
+  the exception type. The related sqrt docstring at base/math.jl:639 says:
+  "Throw a [`DomainError`](@ref) for negative [`Real`](@ref) arguments."
+  The generic isqrt at base/intfuncs.jl:1293 delegates through sqrt.
+cause: |
+  base/gmp.jl:637 is isqrt(x::BigInt) = MPZ.sqrt(x). It bypasses the generic
+  sqrt path and performs no negative-input check. The GMP invalid square-root
+  signal reaches Julia as DivideError, as also described in upstream PR 64288.
+possible_fix: |
+  Apply the sign check already merged in PR 64288 before calling MPZ.sqrt,
+  throwing DomainError when the BigInt is negative.
+duplicates:
+  issues:
+    - number: 4884
+      state: closed
+      relation: related
+      detail: Discusses isqrt's mathematical contract and Int128 rounding errors, not this exception.
+      url: https://github.com/JuliaLang/julia/issues/4884
+  prs:
+    - number: 64288
+      state: merged
+      relation: related
+      note: "fixes"
+      detail: Adds a negative-BigInt check so isqrt throws DomainError; merged 2026-10-28.
+      url: https://github.com/JuliaLang/julia/pull/64288
+  queries:
+    - 'issues and PRs: BigInt isqrt negative'
+    - 'issues and PRs: isqrt DomainError'
+    - 'issues and PRs: isqrt'
+lean:
+  property: JuliaLean.Proofs.base.gmp.Round1.IntegerSquareRootBracket
+  theorem: JuliaLean.ChatGPT.Batch4.Group7.BignumsGmpIsqrtBracket_refuted

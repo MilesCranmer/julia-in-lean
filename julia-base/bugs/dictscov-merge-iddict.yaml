@@ -1,60 +1,57 @@
 id: dictscov-merge-iddict
-title: "merge/mergewith of IdDicts return a Dict and silently drop ===-distinct keys"
-priority: P2
-kind: wrong-result
-area: DictsCov
-files: [base/abstractdict.jl]
-functions: ["merge(d::AbstractDict, others::AbstractDict...)", "mergewith(combine, d::AbstractDict, others::AbstractDict...)", "_typeddict(d, others...)"]
+title: "merge of an IdDict collapses identity-distinct true and 1 keys"
+priority: "P2"
+kind: "wrong-result"
+area: "DictsCov"
+files:
+  - "base/abstractdict.jl"
+functions:
+  - "merge(d::AbstractDict, others::AbstractDict...)"
+  - "_typeddict(d::AbstractDict, others::AbstractDict...)"
 summary: |
-  merge and mergewith build their result with _typeddict, which is always
-  Dict{K,V}(d). For IdDict arguments the keys are then compared with isequal
-  instead of ===, so keys that the IdDicts keep apart (1 and 1.0, equal
-  arrays) collapse and entries are lost: merge(IdDict{Any,Any}(1 => :a,
-  1.0 => :b)) has one entry, and merge(IdDict(1 => :a), IdDict(1.0 => :b))
-  keeps only 1.0 => :b, while merge!(copy(a), b) keeps both.
+  A two-entry IdDict containing true and 1 becomes a one-entry ordinary Dict after merge(d). The input keys differ under === and agree under isequal. The merged result does not retain both identity-distinct keys.
 likelihood: |
-  Needs IdDicts with ===-distinct but isequal keys, which is the reason to
-  use an IdDict. WeakKeyDict arguments likewise turn into a strong Dict.
+  An IdDict holds keys distinguished by identity that compare equal by value. A single-argument merge already triggers the loss.
 maybe_intended: |
-  The behaviour is long-standing and #22738 ("Should merge always return a
-  Dict?") asks whether it is intended; the docstring only promises type
-  promotion. The lost entries are not discussed there.
+  Returning an ordinary Dict is longstanding and is discussed in open issue #22738. The merge documentation does not explicitly promise preservation of the input key relation, so the desired contract needs maintainer judgment.
 reproducer: |
-  merge(IdDict{Any,Any}(1 => :a, 1.0 => :b))              # Dict(1 => :a)
-  merge(IdDict{Any,Any}(1 => :a), IdDict{Any,Any}(1.0 => :b))   # Dict(1.0 => :b)
+  d = IdDict{Any,Int}(true => 1, 1 => 1)
+  m = merge(d)
+  @show length(d) length(m) typeof(m)
+  @show true === 1 isequal(true, 1)
 output:
   release: |
-    merge(a) = Dict{Any, Any}(1 => :a) (Dict{Any, Any}), length 1; length(a) = 2
-    merge(IdDict(1 => :a), IdDict(1.0 => :b)) = Dict{Any, Any}(1.0 => :b)
-    mergewith(+, IdDict(1 => 1), IdDict(1.0 => 2)) = Dict{Any, Int64}(1 => 3)
-    merge!(copy(IdDict(1 => :a)), IdDict(1.0 => :b)) = IdDict{Any, Any}(1.0 => :b, 1 => :a), length 2
     REPRODUCED dictscov-merge-iddict
   nightly: |
-    merge(a) = Dict{Any, Any}(1 => :a) (Dict{Any, Any}), length 1; length(a) = 2
-    merge(IdDict(1 => :a), IdDict(1.0 => :b)) = Dict{Any, Any}(1.0 => :b)
-    mergewith(+, IdDict(1 => 1), IdDict(1.0 => 2)) = Dict{Any, Int64}(1 => 3)
-    merge!(copy(IdDict(1 => :a)), IdDict(1.0 => :b)) = IdDict{Any, Any}(1.0 => :b, 1 => :a), length 2
     REPRODUCED dictscov-merge-iddict
-reproduced: {release: true, nightly: true}
+reproduced:
+  release: true
+  nightly: true
 expected: |
-  The merged collection holds every key of every argument under the
-  arguments' own key comparison (===), like merge!(copy(a), b): two entries.
+  A merge preserving IdDict identity semantics would keep both entries. If conversion to Dict is intended, document the possible loss of identity-distinct keys.
 promised_by: |
-  merge docstring, base/abstractdict.jl:330-333: "Construct a merged
-  collection from the given collections. ... If the same key is present in
-  another collection, the value for that key will be the value it has in the
-  last collection listed."
+  base/abstractdict.jl:328-334 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027:
+  "Construct a merged collection from the given collections. If necessary, the"
+  "types of the resulting collection will be promoted to accommodate the types of"
+  "the merged collections. If the same key is present in another collection, the"
+  "value for that key will be the value it has in the last collection listed."
+  This wording does not explicitly guarantee preservation of identity key semantics.
 cause: |
-  base/abstractdict.jl:413-417: _typeddict(d, others...) = Dict{K,V}(d),
-  used by merge (base/abstractdict.jl:361-362) and mergewith
-  (base/abstractdict.jl:404-405) whatever the type of d.
+  base/abstractdict.jl:361-362 calls _typeddict. Lines 413-417 always construct Dict{K,V}(d), changing the key relation from identity to isequal before merging.
 possible_fix: |
-  Build the result with empty(d, K, V) (IdDict for IdDict) and merge! d into
-  it.
+  Preserve the first dictionary key relation when constructing the result, or explicitly document conversion and possible key collapse.
 duplicates:
   issues:
-    - {number: 22738, state: open, relation: duplicate}
-  queries: ["merge IdDict Dict", "merge returns Dict", "merge WeakKeyDict", "merge in:title", "IdDict", "PR: merge IdDict"]
+    - number: 22738
+      state: open
+      relation: related
+  prs: []
+  queries:
+    - "merge IdDict"
+    - "merge identity dictionary"
+    - "_typeddict IdDict"
+  search_evidence: |
+    Issue 22738 discusses the same result-container design without this key-loss case. Merged PR 40893 improves mutating mergewith! performance and is related, not a fix for nonmutating merge.
 lean:
-  property: JuliaLean.DictsCov.MergeKeepsIdKeys
-  theorem: JuliaLean.DictsCov.mergeKeepsIdKeys_refuted
+  property: JuliaLean.Proofs.base.abstractdict.MergeKeepsIdKeysSpec
+  theorem: JuliaLean.ChatGPT.Batch4.Group15.DictscovMergeIddict_refuted

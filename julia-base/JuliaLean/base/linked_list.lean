@@ -1,12 +1,17 @@
+import JuliaLean.Proofs.base.linked_list.wellformed
 import JuliaLean.Core
+import JuliaLean.base.int
 
 /-!
 # Model of `base/linked_list.jl`
 
 List and node mutation is represented by threading an explicit heap through each call. Node
 identities are `Nat`; the heap stores each node's payload, `next` link, single-list `queue` owner,
-and owner-specific wait-entry slots. List handles retain Julia's object identity and mutable head
-and tail fields.
+and owner-specific wait-entry slots. List handles carry an identity and detached head/tail snapshots; shared mutable list
+object aliasing is not yet represented. This proposal exposes loop equations and divergence,
+not a completed generic runtime binding. `ExceptT ListFailure Option` retains the frozen
+coarse errors but still cannot return the heap/list state reached before an error. Native
+length counters now use the installed Int64 addition model, including wraparound.
 -/
 
 namespace JuliaLean.base.linked_list
@@ -181,14 +186,42 @@ def waitEntryWellFormed {α : Type} (ops : WaitEntryOps α) (h : Heap α)
       (∀ id node, (id, node) ∈ h.nodes → ops.findSlot h id owner ≠ 0 → id ∈ ids)
 
 
-private partial def setQueueAlong {α : Type} (h : Heap α) (head : Option NodeId)
-    (owner : OwnerId) : Except ListFailure (Heap α) := do
+/--
+Julia source: base/linked_list.jl:39-59 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+```julia
+function list_append!!(q::IntrusiveLinkedList{T}, q2::IntrusiveLinkedList{T}) where T
+    q === q2 && error("can't append list to itself")
+    head2 = q2.head
+    if head2 !== nothing
+        tail2 = q2.tail::T
+        q2.head = nothing
+        q2.tail = nothing
+        tail = q.tail
+        q.tail = tail2
+        if tail === nothing
+            q.head = head2
+        else
+            tail.next = head2
+        end
+        while head2 !== nothing
+            head2.queue = q
+            head2 = head2.next
+        end
+    end
+    return q
+end
+```
+Queue-owner traversal only. The outer option exposes divergence; the frozen error-state limitation remains.
+-/
+private def setQueueAlong {α : Type} (h : Heap α) (head : Option NodeId)
+    (owner : OwnerId) : ExceptT ListFailure Option (Heap α) := do
   match head with
   | none => pure h
   | some id =>
-      let node ← lookupNode h id
+      let node ← ExceptT.mk (some (lookupNode h id))
       let h := h.setNode id { node with queue := some owner }
       setQueueAlong h node.next owner
+partial_fixpoint
 
 /--
 Julia source: base/linked_list.jl:3-8 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -260,16 +293,35 @@ function length(q::IntrusiveLinkedList)
 end
 ```
 -/
-partial def lengthIntrusive {α : Type} (h : Heap α) (q : InvasiveLinkedList α) :
-    Except ListFailure Nat := do
-  let mut i := 0
-  let mut head := q.head
-  while head.isSome do
-    let id := head.get!
-    let node ← lookupNode h id
-    i := i + 1
-    head := node.next
-  pure i
+private def lengthIntrusiveLoop {α : Type} (h : Heap α)
+    (count : JuliaLean.JInt .i64) (head : Option NodeId) :
+    ExceptT ListFailure Option (JuliaLean.JInt .i64) := do
+  match head with
+  | none => pure count
+  | some id =>
+      let count := JuliaLean.base.int.add count (JuliaLean.JInt.wrap .i64 1)
+      let node ← ExceptT.mk (some (lookupNode h id))
+      lengthIntrusiveLoop h count node.next
+partial_fixpoint
+
+/--
+Julia source: base/linked_list.jl:29-37 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+```julia
+function length(q::IntrusiveLinkedList)
+    i = 0
+    head = q.head
+    while head !== nothing
+        i += 1
+        head = head.next
+    end
+    return i
+end
+```
+The source increments its native Int before reading head.next. No artificial bound or fuel is added.
+-/
+def lengthIntrusive {α : Type} (h : Heap α) (q : InvasiveLinkedList α) :
+    ExceptT ListFailure Option (JuliaLean.JInt .i64) :=
+  lengthIntrusiveLoop h (JuliaLean.JInt.wrap .i64 0) q.head
 
 /--
 Julia source: base/linked_list.jl:39-59 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -298,7 +350,7 @@ end
 ```
 -/
 def appendIntrusive {α : Type} (h : Heap α) (q q2 : InvasiveLinkedList α) :
-    Except ListFailure (Heap α × InvasiveLinkedList α × InvasiveLinkedList α) := do
+    ExceptT ListFailure Option (Heap α × InvasiveLinkedList α × InvasiveLinkedList α) := do
   if q.id == q2.id then throw .sameListAppend
   match q2.head with
   | none => pure (h, q, q2)
@@ -312,7 +364,7 @@ def appendIntrusive {α : Type} (h : Heap α) (q q2 : InvasiveLinkedList α) :
       let (h, q) ← match tail with
         | none => pure (h, { q with head := some head2 })
         | some tail => do
-            let h ← setNodeField h tail (fun node => { node with next := some head2 })
+            let h ← ExceptT.mk (some (setNodeField h tail (fun node => { node with next := some head2 })))
             pure (h, q)
       let h ← setQueueAlong h (some head2) q.id
       pure (h, q, q2)
@@ -331,7 +383,8 @@ Julia source: base/linked_list.jl:62-62 @ f755f49a9e41380d7da126b3c1db9fe7f83dd0
 length(qr::ILLRef) = length(qr.list)
 ```
 -/
-partial def lengthILLRef {α : Type} (h : Heap α) (qr : ILLRef α) : Except ListFailure Nat :=
+def lengthILLRef {α : Type} (h : Heap α) (qr : ILLRef α) :
+    ExceptT ListFailure Option (JuliaLean.JInt .i64) :=
   lengthIntrusive h qr.list
 
 /--
@@ -427,8 +480,52 @@ function _list_deletefirst!(q::IntrusiveLinkedList{T}, val::T) where T
 end
 ```
 -/
-partial def deleteFirstIntrusive {α : Type} (h : Heap α) (q : InvasiveLinkedList α)
-    (val : NodeId) : Except ListFailure (Heap α × InvasiveLinkedList α) := do
+private def deleteSearchLoop {α : Type} (h : Heap α) (val : NodeId)
+    (head headNext : NodeId) : ExceptT ListFailure Option NodeId := do
+  if headNext == val then pure head
+  else
+    let head := headNext
+    let node ← ExceptT.mk (some (lookupNode h head))
+    let next ← match node.next with
+      | none => throw .typeError
+      | some next => pure next
+    deleteSearchLoop h val head next
+partial_fixpoint
+
+/--
+Julia source: base/linked_list.jl:118-143 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+```julia
+# this function assumes `val` is found in `q`
+function _list_deletefirst!(q::IntrusiveLinkedList{T}, val::T) where T
+    head = q.head::T
+    if head === val
+        if q.tail::T === val
+            q.head = q.tail = nothing
+        else
+            q.head = val.next::T
+        end
+    else
+        head_next = head.next::T
+        while head_next !== val
+            head = head_next
+            head_next = head.next::T
+        end
+        if q.tail::T === val
+            head.next = nothing
+            q.tail = head
+        else
+            head.next = val.next::T
+        end
+    end
+    val.next = nothing
+    val.queue = nothing
+    return q
+end
+```
+The search loop is factored without changing endpoint tests, predecessor writes, or the final next/queue clearing order.
+-/
+def deleteFirstIntrusive {α : Type} (h : Heap α) (q : InvasiveLinkedList α)
+    (val : NodeId) : ExceptT ListFailure Option (Heap α × InvasiveLinkedList α) := do
   let mut heap := h
   let mut list := q
   let mut head ← match list.head with
@@ -441,39 +538,33 @@ partial def deleteFirstIntrusive {α : Type} (h : Heap α) (q : InvasiveLinkedLi
     if tail == val then
       list := { list with head := none, tail := none }
     else
-      let node ← lookupNode heap val
+      let node ← ExceptT.mk (some (lookupNode heap val))
       let next ← match node.next with
         | none => throw .typeError
         | some next => pure next
       list := { list with head := some next }
   else
-    let node ← lookupNode heap head
-    let mut headNext ← match node.next with
+    let node ← ExceptT.mk (some (lookupNode heap head))
+    let headNext ← match node.next with
       | none => throw .typeError
       | some next => pure next
-    while headNext != val do
-      head := headNext
-      let node ← lookupNode heap head
-      let next ← match node.next with
-        | none => throw .typeError
-        | some next => pure next
-      headNext := next
+    head ← deleteSearchLoop heap val head headNext
     let tail ← match list.tail with
       | none => throw .typeError
       | some tail => pure tail
     if tail == val then
-      let changed ← setNodeField heap head (fun node => { node with next := none })
+      let changed ← ExceptT.mk (some (setNodeField heap head (fun node => { node with next := none })))
       heap := changed
       list := { list with tail := some head }
     else
-      let node ← lookupNode heap val
+      let node ← ExceptT.mk (some (lookupNode heap val))
       let next ← match node.next with
         | none => throw .typeError
         | some next => pure next
-      let changed ← setNodeField heap head (fun node => { node with next := some next })
+      let changed ← ExceptT.mk (some (setNodeField heap head (fun node => { node with next := some next })))
       heap := changed
-  let heapAfterNext ← setNodeField heap val (fun node => { node with next := none })
-  let heapAfterQueue ← setNodeField heapAfterNext val (fun node => { node with queue := none })
+  let heapAfterNext ← ExceptT.mk (some (setNodeField heap val (fun node => { node with next := none })))
+  let heapAfterQueue ← ExceptT.mk (some (setNodeField heapAfterNext val (fun node => { node with queue := none })))
   pure (heapAfterQueue, list)
 
 /--
@@ -487,7 +578,7 @@ end
 ```
 -/
 def popILLRef {α : Type} (h : Heap α) (qr : ILLRef α) :
-    Except ListFailure (Heap α × InvasiveLinkedList α × NodeId) := do
+    ExceptT ListFailure Option (Heap α × InvasiveLinkedList α × NodeId) := do
   let val ← match qr.list.tail with
     | none => throw .typeError
     | some val => pure val
@@ -505,7 +596,7 @@ end
 ```
 -/
 def popfirstILLRef {α : Type} (h : Heap α) (qr : ILLRef α) :
-    Except ListFailure (Heap α × InvasiveLinkedList α × NodeId) := do
+    ExceptT ListFailure Option (Heap α × InvasiveLinkedList α × NodeId) := do
   let val ← match qr.list.head with
     | none => throw .typeError
     | some val => pure val
@@ -525,8 +616,8 @@ end
 ```
 -/
 def listDeleteFirstILLRef {α : Type} (h : Heap α) (qr : ILLRef α) (val : NodeId) :
-    Except ListFailure (Heap α × InvasiveLinkedList α) := do
-  let node ← lookupNode h val
+    ExceptT ListFailure Option (Heap α × InvasiveLinkedList α) := do
+  let node ← ExceptT.mk (some (lookupNode h val))
   if node.queue != some qr.waitee then pure (h, qr.list)
   else deleteFirstIntrusive h qr.list val
 
@@ -561,7 +652,7 @@ pop!(q::IntrusiveLinkedList{T}) where T = pop!(ILLRef(q, q))
 ```
 -/
 def popIntrusive {α : Type} (h : Heap α) (q : InvasiveLinkedList α) :
-    Except ListFailure (Heap α × InvasiveLinkedList α × NodeId) :=
+    ExceptT ListFailure Option (Heap α × InvasiveLinkedList α × NodeId) :=
   popILLRef h ⟨q, q.id⟩
 
 /--
@@ -571,7 +662,7 @@ popfirst!(q::IntrusiveLinkedList{T}) where T = popfirst!(ILLRef(q, q))
 ```
 -/
 def popfirstIntrusive {α : Type} (h : Heap α) (q : InvasiveLinkedList α) :
-    Except ListFailure (Heap α × InvasiveLinkedList α × NodeId) :=
+    ExceptT ListFailure Option (Heap α × InvasiveLinkedList α × NodeId) :=
   popfirstILLRef h ⟨q, q.id⟩
 
 /--
@@ -581,9 +672,8 @@ list_deletefirst!(q::IntrusiveLinkedList{T}, val::T) where T = list_deletefirst!
 ```
 -/
 def listDeleteFirstIntrusive {α : Type} (h : Heap α) (q : InvasiveLinkedList α) (val : NodeId) :
-    Except ListFailure (Heap α × InvasiveLinkedList α) :=
+    ExceptT ListFailure Option (Heap α × InvasiveLinkedList α) :=
   listDeleteFirstILLRef h ⟨q, q.id⟩ val
-
 
 /--
 Julia source: base/linked_list.jl:152-158 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -670,9 +760,9 @@ pop!(q::LinkedList) = invoke(pop!, Tuple{IntrusiveLinkedList,}, q).value
 ```
 -/
 def popLinked {α : Type} (h : Heap α) (q : LinkedList α) :
-    Except ListFailure (Heap α × LinkedList α × α) := do
+    ExceptT ListFailure Option (Heap α × LinkedList α × α) := do
   let (h, q, item) ← popIntrusive h q
-  let node ← lookupNode h item
+  let node ← ExceptT.mk (some (lookupNode h item))
   pure (h, q, node.value)
 
 /--
@@ -682,22 +772,41 @@ popfirst!(q::LinkedList) = invoke(popfirst!, Tuple{IntrusiveLinkedList,}, q).val
 ```
 -/
 def popfirstLinked {α : Type} (h : Heap α) (q : LinkedList α) :
-    Except ListFailure (Heap α × LinkedList α × α) := do
+    ExceptT ListFailure Option (Heap α × LinkedList α × α) := do
   let (h, q, item) ← popfirstIntrusive h q
-  let node ← lookupNode h item
+  let node ← ExceptT.mk (some (lookupNode h item))
   pure (h, q, node.value)
 
 private def removeFirstBy {α : Type} (same : α → α → Bool) (value : α) : List α → List α
   | [] => []
   | first :: rest => if same first value then rest else first :: removeFirstBy same value rest
 
-private partial def findValueNode {α : Type} (h : Heap α) (same : α → α → Bool)
-    (value : α) : Option NodeId → Except ListFailure (Option NodeId)
-  | none => .ok none
-  | some id => do
-      let node ← lookupNode h id
+/--
+Julia source: base/linked_list.jl:169-179 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+```julia
+function list_deletefirst!(q::LinkedList{T}, val::T) where T
+    h = q.head
+    while h !== nothing
+        if isequal(h.value, val)
+            list_deletefirst!(q, h)
+            break
+        end
+        h = h.next
+    end
+    return q
+end
+```
+This is the source search traversal; selected isequal remains the frozen pure interface, not an assumed correctness law or a completed dynamic binding.
+-/
+private def findValueNode {α : Type} (h : Heap α) (same : α → α → Bool)
+    (value : α) (head : Option NodeId) : ExceptT ListFailure Option (Option NodeId) := do
+  match head with
+  | none => pure none
+  | some id =>
+      let node ← ExceptT.mk (some (lookupNode h id))
       if same node.value value then pure (some id)
       else findValueNode h same value node.next
+partial_fixpoint
 
 /--
 Julia source: base/linked_list.jl:169-179 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -716,22 +825,49 @@ end
 ```
 -/
 def listDeleteFirstLinked {α : Type} (h : Heap α) (q : LinkedList α) (same : α → α → Bool)
-    (value : α) : Except ListFailure (Heap α × LinkedList α) := do
+    (value : α) : ExceptT ListFailure Option (Heap α × LinkedList α) := do
   match ← findValueNode h same value q.head with
   | none => pure (h, q)
   | some id => listDeleteFirstIntrusive h q id
 
-private partial def linkedValuesLoop {α : Type} (h : Heap α) : Option NodeId → Except ListFailure (List α)
-  | none => .ok []
-  | some id => do
-      let node ← lookupNode h id
-      let rest ← linkedValuesLoop h node.next
-      pure (node.value :: rest)
+/--
+Julia source: base/linked_list.jl:163-164 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+```julia
+iterate(q::LinkedList) = (h = q.head; h === nothing ? nothing : (h.value, h))
+iterate(q::IntrusiveLinkedList{LLT}, v::LLT) where {LLT<:LinkedListItem} = (h = v.next; h === nothing ? nothing : (h.value, h))
+```
+Logical value-chain collector used only by unapproved legacy specifications. An accumulator avoids inspecting a recursive result inside the fixed point; source order is restored at termination. This is not an additional Julia method.
+-/
+private def linkedValuesLoop {α : Type} (h : Heap α) (head : Option NodeId)
+    (reversed : List α) : ExceptT ListFailure Option (List α) := do
+  match head with
+  | none => pure reversed.reverse
+  | some id =>
+      let node ← ExceptT.mk (some (lookupNode h id))
+      linkedValuesLoop h node.next (node.value :: reversed)
+partial_fixpoint
 
-def linkedValues {α : Type} (h : Heap α) (q : LinkedList α) : Except ListFailure (List α) :=
-  linkedValuesLoop h q.head
+/--
+Julia source: base/linked_list.jl:163-164 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+```julia
+iterate(q::LinkedList) = (h = q.head; h === nothing ? nothing : (h.value, h))
+iterate(q::IntrusiveLinkedList{LLT}, v::LLT) where {LLT<:LinkedListItem} = (h = v.next; h === nothing ? nothing : (h.value, h))
+```
+Unbounded logical observation helper for legacy specifications, not a public source method or a runtime collection allocation model.
+-/
+def linkedValues {α : Type} (h : Heap α) (q : LinkedList α) :
+    ExceptT ListFailure Option (List α) :=
+  linkedValuesLoop h q.head []
 
-private partial def intrusiveIterationLoop {α : Type} (h : Heap α) (q : InvasiveLinkedList α)
+/--
+Julia source: base/linked_list.jl:24-25 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+```julia
+iterate(q::IntrusiveLinkedList) = (h = q.head; h === nothing ? nothing : (h, h))
+iterate(q::IntrusiveLinkedList{T}, v::T) where {T} = (h = v.next; h === nothing ? nothing : (h, h))
+```
+Bounded observation helper only: fuel limits the number of yielded items. Ordinary structural recursion exposes equations and preserves the existing Except result. It does not model a complete source traversal on cyclic lists.
+-/
+private def intrusiveIterationLoop {α : Type} (h : Heap α) (q : InvasiveLinkedList α)
     (fuel : Nat) (state : Option NodeId) : Except ListFailure (List NodeId) := do
   match fuel with
   | 0 => pure []
@@ -744,12 +880,29 @@ private partial def intrusiveIterationLoop {α : Type} (h : Heap α) (q : Invasi
       | some (value, nextState) =>
           let rest ← intrusiveIterationLoop h q fuel (some nextState)
           pure (value :: rest)
+termination_by fuel
 
+/--
+Julia source: base/linked_list.jl:24-25 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+```julia
+iterate(q::IntrusiveLinkedList) = (h = q.head; h === nothing ? nothing : (h, h))
+iterate(q::IntrusiveLinkedList{T}, v::T) where {T} = (h = v.next; h === nothing ? nothing : (h, h))
+```
+Legacy bounded observation wrapper: the heap-node bound is not a Julia termination precondition and is not used to claim full iteration behavior.
+-/
 def intrusiveIteration {α : Type} (h : Heap α) (q : InvasiveLinkedList α) :
     Except ListFailure (List NodeId) :=
   intrusiveIterationLoop h q (h.nodes.length + 1) none
 
-private partial def linkedIterationLoop {α : Type} (h : Heap α) (q : LinkedList α)
+/--
+Julia source: base/linked_list.jl:163-164 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+```julia
+iterate(q::LinkedList) = (h = q.head; h === nothing ? nothing : (h.value, h))
+iterate(q::IntrusiveLinkedList{LLT}, v::LLT) where {LLT<:LinkedListItem} = (h = v.next; h === nothing ? nothing : (h.value, h))
+```
+Bounded observation helper only: fuel limits the number of yielded items. Ordinary structural recursion exposes equations and preserves the existing Except result. It does not model a complete source traversal on cyclic lists.
+-/
+private def linkedIterationLoop {α : Type} (h : Heap α) (q : LinkedList α)
     (fuel : Nat) (state : Option NodeId) : Except ListFailure (List α) := do
   match fuel with
   | 0 => pure []
@@ -762,11 +915,19 @@ private partial def linkedIterationLoop {α : Type} (h : Heap α) (q : LinkedLis
       | some (value, nextState) =>
           let rest ← linkedIterationLoop h q fuel (some nextState)
           pure (value :: rest)
+termination_by fuel
 
+/--
+Julia source: base/linked_list.jl:163-164 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+```julia
+iterate(q::LinkedList) = (h = q.head; h === nothing ? nothing : (h.value, h))
+iterate(q::IntrusiveLinkedList{LLT}, v::LLT) where {LLT<:LinkedListItem} = (h = v.next; h === nothing ? nothing : (h.value, h))
+```
+Legacy bounded observation wrapper: the heap-node bound is not a Julia termination precondition and is not used to claim full iteration behavior.
+-/
 def linkedIteration {α : Type} (h : Heap α) (q : LinkedList α) :
     Except ListFailure (List α) :=
   linkedIterationLoop h q (h.nodes.length + 1) none
-
 
 /--
 Julia source: base/linked_list.jl:190-203 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -860,26 +1021,117 @@ def popfirstWaitEntry {α : Type} (ops : WaitEntryOps α) (h : Heap α) (qr : IL
   pure (h, q, val)
 
 
-private partial def waitDeleteLoop {α : Type} (ops : WaitEntryOps α) (h : Heap α)
+/--
+Julia source: base/linked_list.jl:236-270 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+```julia
+# Delete `val` from the list, but only if it is actually in it, as witnessed
+# by its slot for this list's identity. This makes deletion a no-op if `val`
+# was concurrently popped, which various cleanup paths rely upon.
+function list_deletefirst!(qr::ILLRef{WaitEntry}, val::WaitEntry)
+    vi = _find_slot(val, qr.waitee)
+    vi == 0 && return qr.list
+    q = qr.list
+    o = qr.waitee
+    head = q.head
+    if head === val
+        vnext = _slot_next(val, vi)
+        q.head = vnext
+        vnext === nothing && (q.tail = nothing)
+    else
+        head === nothing && return q
+        prev = head::WaitEntry
+        while true
+            previ = _find_slot(prev, o)
+            previ == 0 && return q
+            prevslot = slots(prev)[previ]
+            cur = prevslot.next
+            cur === nothing && return q
+            cur = cur::WaitEntry
+            if cur === val
+                vnext = _slot_next(val, vi)
+                prevslot.next = vnext
+                vnext === nothing && (q.tail = prev)
+                break
+            end
+            prev = cur
+        end
+    end
+    _release_slot!(val, vi)
+    return q
+end
+```
+One source loop step, with break/return distinguished from the next predecessor. All slot lookups and writes remain in source order; this helper is not a new Julia method.
+-/
+private def waitDeleteStep {α : Type} (ops : WaitEntryOps α) (h : Heap α)
     (q : InvasiveLinkedList α) (owner : OwnerId) (target targetIndex previous : NodeId) :
-    Except ListFailure (Heap α × InvasiveLinkedList α × Bool) := do
+    Except ListFailure (Sum (Heap α × InvasiveLinkedList α × Bool) NodeId) := do
   let index := ops.findSlot h previous owner
-  if index == 0 then pure (h, q, false)
+  if index == 0 then pure (.inl (h, q, false))
   else
     let node ← lookupNode h previous
     let slot ← match slotAt node.slots index with
       | none => throw .missingSlot
       | some slot => pure slot
     match slot.next with
-    | none => pure (h, q, false)
+    | none => pure (.inl (h, q, false))
     | some current =>
         let _ ← lookupNode h current
         if current == target then
           let next := ops.slotNext h target targetIndex
           let h := ops.setSlotNext h previous index next
           let q := if next.isNone then { q with tail := some previous } else q
-          pure (h, q, true)
-        else waitDeleteLoop ops h q owner target targetIndex current
+          pure (.inl (h, q, true))
+        else pure (.inr current)
+
+/--
+Julia source: base/linked_list.jl:236-270 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+```julia
+# Delete `val` from the list, but only if it is actually in it, as witnessed
+# by its slot for this list's identity. This makes deletion a no-op if `val`
+# was concurrently popped, which various cleanup paths rely upon.
+function list_deletefirst!(qr::ILLRef{WaitEntry}, val::WaitEntry)
+    vi = _find_slot(val, qr.waitee)
+    vi == 0 && return qr.list
+    q = qr.list
+    o = qr.waitee
+    head = q.head
+    if head === val
+        vnext = _slot_next(val, vi)
+        q.head = vnext
+        vnext === nothing && (q.tail = nothing)
+    else
+        head === nothing && return q
+        prev = head::WaitEntry
+        while true
+            previ = _find_slot(prev, o)
+            previ == 0 && return q
+            prevslot = slots(prev)[previ]
+            cur = prevslot.next
+            cur === nothing && return q
+            cur = cur::WaitEntry
+            if cur === val
+                vnext = _slot_next(val, vi)
+                prevslot.next = vnext
+                vnext === nothing && (q.tail = prev)
+                break
+            end
+            prev = cur
+        end
+    end
+    _release_slot!(val, vi)
+    return q
+end
+```
+Uncapped tail-recursive traversal of the complete source step. Factoring the nonrecursive nested matches avoids a Lean monotonicity-tactic failure; it does not add fuel or suppress an error.
+-/
+private def waitDeleteLoop {α : Type} (ops : WaitEntryOps α) (h : Heap α)
+    (q : InvasiveLinkedList α) (owner : OwnerId) (target targetIndex previous : NodeId) :
+    Option (Except ListFailure (Heap α × InvasiveLinkedList α × Bool)) :=
+  match waitDeleteStep ops h q owner target targetIndex previous with
+  | .error error => some (.error error)
+  | .ok (.inl result) => some (.ok result)
+  | .ok (.inr next) => waitDeleteLoop ops h q owner target targetIndex next
+partial_fixpoint
 
 /--
 Julia source: base/linked_list.jl:236-270 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -922,7 +1174,7 @@ end
 ```
 -/
 def deleteWaitEntry {α : Type} (ops : WaitEntryOps α) (h : Heap α) (qr : ILLRef α)
-    (val : NodeId) : Except ListFailure (Heap α × InvasiveLinkedList α) := do
+    (val : NodeId) : ExceptT ListFailure Option (Heap α × InvasiveLinkedList α) := do
   let vi := ops.findSlot h val qr.waitee
   if vi == 0 then pure (h, qr.list)
   else
@@ -937,11 +1189,12 @@ def deleteWaitEntry {α : Type} (ops : WaitEntryOps α) (h : Heap α) (qr : ILLR
           let h := ops.releaseSlot h val vi
           pure (h, q)
         else do
-          let _ ← lookupNode h head
+          let _ ← ExceptT.mk (some (lookupNode h head))
           let (h, q, found) ← waitDeleteLoop ops h q owner val vi head
           if !found then pure (h, q)
           else pure (ops.releaseSlot h val vi, q)
     | none => pure (h, q)
+
 /--
 Julia source: base/linked_list.jl:230-234 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 ```julia
@@ -953,11 +1206,11 @@ end
 ```
 -/
 def popWaitEntry {α : Type} (ops : WaitEntryOps α) (h : Heap α) (qr : ILLRef α) :
-    Except ListFailure (Heap α × InvasiveLinkedList α × NodeId) := do
+    ExceptT ListFailure Option (Heap α × InvasiveLinkedList α × NodeId) := do
   let val ← match qr.list.tail with
     | none => throw .typeError
     | some val => pure val
-  let _ ← lookupNode h val
+  let _ ← ExceptT.mk (some (lookupNode h val))
   let (h, q) ← deleteWaitEntry ops h qr val
   pure (h, q, val)
 
@@ -975,16 +1228,35 @@ function length(qr::ILLRef{WaitEntry})
 end
 ```
 -/
-partial def lengthWaitEntry {α : Type} (ops : WaitEntryOps α) (h : Heap α) (qr : ILLRef α) :
-    Except ListFailure Nat := do
-  let mut n := 0
-  let mut w := qr.list.head
-  while w.isSome do
-    n := n + 1
-    let id := w.get!
-    let _ ← lookupNode h id
-    w := ops.nextOn h id qr.waitee
-  pure n
+private def lengthWaitEntryLoop {α : Type} (ops : WaitEntryOps α) (h : Heap α)
+    (owner : OwnerId) (count : JuliaLean.JInt .i64) (head : Option NodeId) :
+    ExceptT ListFailure Option (JuliaLean.JInt .i64) := do
+  match head with
+  | none => pure count
+  | some id =>
+      let count := JuliaLean.base.int.add count (JuliaLean.JInt.wrap .i64 1)
+      let _ ← ExceptT.mk (some (lookupNode h id))
+      lengthWaitEntryLoop ops h owner count (ops.nextOn h id owner)
+partial_fixpoint
+
+/--
+Julia source: base/linked_list.jl:272-280 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+```julia
+function length(qr::ILLRef{WaitEntry})
+    n = 0
+    w = qr.list.head
+    while w !== nothing
+        n += 1
+        w = _next_on(w::WaitEntry, qr.waitee)
+    end
+    return n
+end
+```
+Native Int64 addition happens before the WaitEntry assertion/owner-link call, as in the source. No size precondition is invented.
+-/
+def lengthWaitEntry {α : Type} (ops : WaitEntryOps α) (h : Heap α) (qr : ILLRef α) :
+    ExceptT ListFailure Option (JuliaLean.JInt .i64) :=
+  lengthWaitEntryLoop ops h qr.waitee (JuliaLean.JInt.wrap .i64 0) qr.list.head
 
 -- In this sequential heap model, a monotonic load returns the field's current value.
 def atomicLoadMonotonic {α β : Type} (h : Heap α) (field : Heap α → β) : β := field h
@@ -1006,20 +1278,122 @@ function _waitq_isempty(qr::ILLRef{WaitEntry})
 end
 ```
 -/
-partial def waitQueueIsEmpty {α : Type} (ops : WaitEntryOps α) (h : Heap α) (qr : ILLRef α) :
-    Except ListFailure Bool := do
-  let mut w := qr.list.head
-  while w.isSome do
-    let id := w.get!
-    let _ ← lookupNode h id
-    let task := atomicLoadMonotonic h (fun state => ((state.node? id).map HeapNode.task).join)
-    match task with
-    | some task =>
-        if atomicLoadMonotonic h
-            (fun state => (Heap.lookupTask state.tasksWaitingOn task).join) == some id then
-          return false
-    | none => pure ()
-    w := ops.nextOn h id qr.waitee
-  return true
+private def waitEntryArmedNow {α : Type} (h : Heap α) (id : NodeId) : Bool :=
+  let task := atomicLoadMonotonic h (fun state => ((state.node? id).map HeapNode.task).join)
+  match task with
+  | none => false
+  | some task => atomicLoadMonotonic h
+      (fun state => (Heap.lookupTask state.tasksWaitingOn task).join) == some id
+
+/--
+Julia source: base/linked_list.jl:282-293 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+```julia
+# Whether any entry on the list is still armed (the emptiness that matters
+# to waiters-pending queries; claimed corpses linger until popped).
+function _waitq_isempty(qr::ILLRef{WaitEntry})
+    w = qr.list.head
+    while w !== nothing
+        w = w::WaitEntry
+        t = @atomic :monotonic w.task
+        t isa Task && (@atomic t.waiting_on) === w && return false
+        w = _next_on(w, qr.waitee)
+    end
+    return true
+end
+```
+The nonrecursive armed-entry test preserves short-circuiting of the second load and is separated from recursion to avoid the historical dependent-elimination failure. Sequential atomic-load and task-type abstractions remain unchanged.
+-/
+private def waitQueueIsEmptyLoop {α : Type} (ops : WaitEntryOps α) (h : Heap α)
+    (owner : OwnerId) (head : Option NodeId) : ExceptT ListFailure Option Bool := do
+  match head with
+  | none => pure true
+  | some id =>
+      let _ ← ExceptT.mk (some (lookupNode h id))
+      if waitEntryArmedNow h id then pure false
+      else waitQueueIsEmptyLoop ops h owner (ops.nextOn h id owner)
+partial_fixpoint
+
+/--
+Julia source: base/linked_list.jl:282-293 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+```julia
+# Whether any entry on the list is still armed (the emptiness that matters
+# to waiters-pending queries; claimed corpses linger until popped).
+function _waitq_isempty(qr::ILLRef{WaitEntry})
+    w = qr.list.head
+    while w !== nothing
+        w = w::WaitEntry
+        t = @atomic :monotonic w.task
+        t isa Task && (@atomic t.waiting_on) === w && return false
+        w = _next_on(w, qr.waitee)
+    end
+    return true
+end
+```
+No fuel or artificial heap-size cutoff is introduced into the source loop. Full concurrent atomics and source-selected cancellation bindings remain outside this local recursion repair.
+-/
+def waitQueueIsEmpty {α : Type} (ops : WaitEntryOps α) (h : Heap α) (qr : ILLRef α) :
+    ExceptT ListFailure Option Bool :=
+  waitQueueIsEmptyLoop ops h qr.waitee qr.list.head
 
 end JuliaLean.base.linked_list
+
+namespace JuliaLean.Tasks
+
+
+
+/-! ## base/linked_list.jl:3-143, generic intrusive lists -/
+
+def linkedAppend (left right : List Nat) : Except Unit (List Nat × List Nat) :=
+  if left = right && left ≠ [] then .error () else .ok (left ++ right, [])
+
+def linkedPushFirst (nodes : List Nat) (node : Nat) : Except Unit (List Nat) :=
+  if node ∈ nodes then .error () else .ok (node :: nodes)
+
+def linkedPopFirst : List Nat → Except Unit (Nat × List Nat)
+  | [] => .error ()
+  | node :: nodes => .ok (node, nodes)
+
+def linkedPopLast (nodes : List Nat) : Except Unit (Nat × List Nat) :=
+  match nodes.getLast? with
+  | none => .error ()
+  | some node => .ok (node, removeLast nodes)
+
+/-! ## base/linked_list.jl:152-179, boxed LinkedList wrappers -/
+
+structure BoxedNode where
+  id : Nat
+  value : Nat
+  deriving Repr, DecidableEq
+
+def boxedPush (nodes : List BoxedNode) (freshId value : Nat) : List BoxedNode :=
+  nodes ++ [⟨freshId, value⟩]
+
+def boxedValues (nodes : List BoxedNode) : List Nat := nodes.map (·.value)
+
+def boxedDeleteValue (nodes : List BoxedNode) (value : Nat) : List BoxedNode :=
+  match nodes.find? (fun node => node.value == value) with
+  | none => nodes
+  | some found => nodes.erase found
+
+/-! ## base/linked_list.jl:181-293, multi-owner WaitEntry lists -/
+
+structure MultiListEntry where
+  id : Nat
+  owners : List Nat
+  deriving Repr, DecidableEq
+
+def multiListPush (queue : List MultiListEntry) (owner : Nat) (entry : MultiListEntry) :
+    Except Unit (List MultiListEntry) :=
+  if owner ∈ entry.owners then .error ()
+  else .ok (queue ++ [{ entry with owners := owner :: entry.owners }])
+
+def multiListDelete (queue : List MultiListEntry) (owner id : Nat) : List MultiListEntry :=
+  queue.filterMap fun entry =>
+    if entry.id == id && owner ∈ entry.owners then
+      let owners := entry.owners.erase owner
+      if owners.isEmpty then none else some { entry with owners := owners }
+    else some entry
+
+def waitQueueHasArmed (queue : List (Nat × Bool)) : Bool := queue.any (·.2)
+
+end JuliaLean.Tasks

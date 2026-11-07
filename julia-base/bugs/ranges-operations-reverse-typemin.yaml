@@ -3,14 +3,14 @@ title: "Reversing a StepRange with a typemin step can return an empty range"
 priority: P2
 kind: wrong-result
 area: Ranges
-files: [base/range.jl]
-functions: ["reverse(::OrdinalRange)", "sort(::AbstractRange)"]
+files: [base/range.jl, base/multidimensional.jl]
+functions: ["reverse(::OrdinalRange)", "sort(::AbstractRange)", "reverse(::CartesianIndices)", "reverse(::CartesianIndices; dims)"]
 summary: |
   Reversing the two-element range Int8(0):typemin(Int8):typemin(Int8)
   produces an empty range. The returned step remains negative.
   Sorting Int8(127):typemin(Int8):Int8(-1) also returns empty, because the
-  descending-range sort at base/range.jl:1453 calls reverse. The concrete Lean
-  witness is JuliaLean.Ranges.reverseSortEmpty.
+  descending-range sort at base/range.jl:1453 calls reverse.
+  CartesianIndices inherits the same loss through all four reverse dispatch forms.
 likelihood: |
   Rare, but reachable when a fixed-width step equals typemin. The same failure
   occurs with Int64 and Int128 typemin steps, so this is not confined to byte types.
@@ -26,8 +26,24 @@ reproducer: |
 output:
   release: |
     REPRODUCED ranges-operations-reverse-typemin
+    multidimensional-reverse-region-all: source length = 2; reverse length = 0
+    REPRODUCED multidimensional-reverse-region-all
+    multidimensional-reverse-region-dimension: source length = 2; reverse length = 0
+    REPRODUCED multidimensional-reverse-region-dimension
+    multidimensional-reverse-region-single-tuple: source length = 2; reverse length = 0
+    REPRODUCED multidimensional-reverse-region-single-tuple
+    multidimensional-reverse-region-dimensions: source length = 2; reverse length = 0
+    REPRODUCED multidimensional-reverse-region-dimensions
   nightly: |
     REPRODUCED ranges-operations-reverse-typemin
+    multidimensional-reverse-region-all: source length = 2; reverse length = 0
+    REPRODUCED multidimensional-reverse-region-all
+    multidimensional-reverse-region-dimension: source length = 2; reverse length = 0
+    REPRODUCED multidimensional-reverse-region-dimension
+    multidimensional-reverse-region-single-tuple: source length = 2; reverse length = 0
+    REPRODUCED multidimensional-reverse-region-single-tuple
+    multidimensional-reverse-region-dimensions: source length = 2; reverse length = 0
+    REPRODUCED multidimensional-reverse-region-dimensions
 reproduced: {release: true, nightly: true}
 expected: "A reversed range has the same two elements, in order [-128, 0], or reports an unrepresentable step."
 promised_by: |
@@ -37,12 +53,29 @@ cause: |
   base/range.jl:1435 reconstructs last(r):negate(step(r)):first(r).
   Signed negate uses wrapping unary minus (base/int.jl:96), so -typemin
   remains negative and the constructor sees incompatible endpoint direction.
+  base/multidimensional.jl:547-570 delegates each CartesianIndices reversal to component-range reversal.
 possible_fix: |
   Detect an unrepresentable signed step negation and widen the step or throw
   rather than constructing a range with the wrong direction.
 duplicates:
   issues: []
   queries: ["issues: reverse range typemin", "issues: reverse StepRange overflow", "PRs: reverse range typemin"]
+  search_notes: |
+    No related issue or PR is known.
 lean:
   property: JuliaLean.Ranges.reverseCardinalityProp
   theorem: JuliaLean.Ranges.reverseCardinalityRefuted
+covers: [multidimensional-reverse-region-all, multidimensional-reverse-region-dimension, multidimensional-reverse-region-single-tuple, multidimensional-reverse-region-dimensions]
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: true
+  output: |
+    REPRODUCED ranges-operations-reverse-typemin
+    multidimensional-reverse-region-all: source length = 2; reverse length = 0
+    REPRODUCED multidimensional-reverse-region-all
+    multidimensional-reverse-region-dimension: source length = 2; reverse length = 0
+    REPRODUCED multidimensional-reverse-region-dimension
+    multidimensional-reverse-region-single-tuple: source length = 2; reverse length = 0
+    REPRODUCED multidimensional-reverse-region-single-tuple
+    multidimensional-reverse-region-dimensions: source length = 2; reverse length = 0
+    REPRODUCED multidimensional-reverse-region-dimensions

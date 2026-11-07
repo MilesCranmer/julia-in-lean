@@ -65,5 +65,5 @@ duplicates:
     - "pull requests: digits base"
     - "pull requests: digits typemin"
 lean:
-  property: JuliaLean.ParsePrint.IntPrint.DigitsValidBase
-  theorem: JuliaLean.ParsePrint.IntPrint.digitsValidBase_refuted
+  property: JuliaLean.Proofs.base.intfuncs.DigitsValidBase
+  theorem: JuliaLean.Proofs.base.intfuncs.digitsValidBase_refuted

@@ -1,60 +1,77 @@
 id: sort-partialsort-empty-range
-title: "partialsort(v, 4:3) throws \"range must be non-empty\" only when length(v) >= 260"
+title: "partialsort! rejects an empty index range on a 260-element input"
 priority: P2
 kind: wrong-exception
 area: Sort
-files: [base/sort.jl]
-functions: ["partialsort!(v, k::OrdinalRange)", "partialsort(v, k::OrdinalRange)"]
+files:
+  - base/sort.jl
+functions:
+  - "partialsort!(v, k::OrdinalRange)"
+  - "partialsort(v, k::OrdinalRange)"
 summary: |
-  partialsort with an empty index range returns an empty vector for inputs of
-  fewer than 260 elements, but throws ArgumentError("range must be non-empty")
-  for 260 or more, because BracketedSort evaluates minimum(k) on the empty range.
-  partialsortperm with the same k returns an empty result at every length.
+  partialsort!(fill(1, 260), 1:1:0) throws ArgumentError for an empty
+  selection. BracketedSort computes extrema of the empty range. Its
+  short-input branch bypasses those extrema, so the behavior depends on
+  an internal input-length threshold.
 likelihood: |
-  Plausible in generic code that computes k = lo:hi and may produce an empty
-  range (asking for zero order statistics). The behaviour depends on input
-  length, so tests with small inputs pass.
+  Generic code that computes an empty selection can fail only after the
+  input reaches the internal threshold, despite smaller examples succeeding.
 maybe_intended: |
-  Throwing for an empty k could be defended, but then it should not depend on
-  length(v), and the docstring does not mention it.
+  An explicit rejection of empty selections could be a contract choice,
+  but the docstring gives no such restriction and the length dependence
+  is inconsistent.
 reproducer: |
-  println(partialsort(collect(259:-1:1), 4:3))
-  err = try
-      partialsort(collect(260:-1:1), 4:3)
-      nothing
-  catch e
-      e
-  end
-  println(err)
-  if err isa ArgumentError
-      println("REPRODUCED sort-partialsort-empty-range")
+  # A 260-element input reaches BracketedSort's minimum/maximum of the empty target.
+  let
+      id = "sort-partialsort-empty-range"
+      reproduced = try
+          partialsort!(fill(1, 260), 1:1:0)
+          false
+      catch error
+          error isa ArgumentError
+      end
+      println((reproduced ? "REPRODUCED " : "NOT_REPRODUCED ") * id)
   end
 output:
   release: |
-    Int64[]
-    ArgumentError("range must be non-empty")
     REPRODUCED sort-partialsort-empty-range
   nightly: |
-    Int64[]
-    ArgumentError("range must be non-empty")
+    Julia 1.15.0-DEV.unknown, commit f755f49a9e41380d7da126b3c1db9fe7f83dd027:
     REPRODUCED sort-partialsort-empty-range
-reproduced: {release: true, nightly: true}
+reproduced:
+  release: true
+  nightly: true
 expected: |
-  Int64[] for both calls, as for shorter inputs and for partialsortperm.
+  Return an empty array for the empty requested range, consistently across
+  input lengths.
 promised_by: |
-  partialsort! docstring, base/sort.jl:116-120: "if k is a range, an array of
-  values at those indices is returned"; for an empty range that is an empty
-  array. Invariant: the result does not depend on which internal algorithm
-  BracketedSort dispatches to.
+  Pinned Julia commit f755f49a9e41380d7da126b3c1db9fe7f83dd027.
+  base/sort.jl:116-120: "Mutate the vector `v` so that the value at index `k` (or
+  range of adjacent values if `k` is a range) occurs
+  at the position where it would appear if the array were fully sorted. If `k` is a single
+  index, that value is returned; if `k` is a range, an array of values at those indices is
+  returned. Note that `partialsort!` may not fully sort the input array."
 cause: |
-  base/sort.jl:1277 sends inputs with ln < 260 to ScratchQuickSort, which
-  handles an empty target. Larger inputs reach base/sort.jl:1284-1286, where
-  minimum(target) throws ArgumentError for an empty range.
+  base/sort.jl:1277 forwards lengths below 260 without evaluating the extrema of
+  the requested range. At length 260 the path reaches the minimum and maximum of
+  that range at base/sort.jl:1284-1286, where the empty range throws.
 possible_fix: |
-  In BracketedSort (or partialsort!), return early when k is an empty range.
+  Handle the empty range before BracketedSort evaluates its extrema.
 duplicates:
-  issues: []
-  queries: ["issues: partialsort empty", "issues: partialsort non-empty", "issues/prs: partialsort range"]
+  issues:
+    - number: 64128
+      state: open
+      relation: duplicate
+    - number: 52006
+      state: merged
+      relation: related
+  queries:
+    - "issues: partialsort empty"
+    - "prs: partialsort empty"
+    - "issues: partialsort non-empty"
+    - "prs: partialsort non-empty"
+    - "issues: BracketedSort"
+    - "prs: BracketedSort"
 lean:
-  property: JuliaLean.Sort.PartialsortEmptyRange
-  theorem: JuliaLean.Sort.partialsortEmptyRange_refuted
+  property: JuliaLean.Proofs.base.sort.PartialSortEmptyRange
+  theorem: JuliaLean.ChatGPT.Batch4.Group20.SortPartialsortEmptyRange_refuted

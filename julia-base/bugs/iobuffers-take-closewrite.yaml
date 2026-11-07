@@ -45,5 +45,5 @@ duplicates:
   issues: []
   queries: ["Unreachable IOBuffer state", "Unreachable IOBuffer", "closewrite PipeBuffer take!", "closewrite PipeBuffer"]
 lean:
-  property: JuliaLean.IOBuffers.TakeReadOnly
-  theorem: JuliaLean.IOBuffers.takeReadOnly_refuted
+  property: JuliaLean.Proofs.base.iobuffer.TakeReadOnly
+  theorem: JuliaLean.Proofs.base.iobuffer.takeReadOnly_refuted

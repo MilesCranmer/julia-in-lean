@@ -1,0 +1,90 @@
+id: iterators-zip-shared-stateful-completion
+title: A nested zip of a shared Stateful input consumes an unrelated input without yielding a row
+priority: P2
+kind: wrong-result
+area: Iterators
+files:
+  - base/iterators.jl
+functions:
+  - iterate(::Zip)
+  - isdone(::Zip)
+  - _zip_iterate_all
+  - _zip_iterate_rest
+summary: |
+  A nested zip that uses the same Stateful object twice reports isdone == false
+  when only one shared element remains, although it cannot produce a complete
+  pair. An outer zip advances an independent Stateful input before discovering
+  that the nested zip yields nothing. The independent input loses its leading
+  value even though the outer zip produces no row.
+likelihood: |
+  Requires a shared Stateful object in a nested zip and an incomplete final pair.
+  Zipping a stateful input with itself is a known interleaving idiom, discussed
+  in issue #47790. The extra consumption affects a separate outer input.
+maybe_intended: |
+  The discussion in issue #47790 questions whether zip inputs must be unconnected
+  and notes that zip does not guarantee its subiterator call order. That issue
+  concerns length prediction, whereas this example loses a value from an
+  independent outer input. The current zip docstring does not exclude aliased
+  inputs from its explicit no-advance promise.
+reproducer: |
+  using Base.Iterators: Stateful
+  a = Stateful{<:Any,Any}([10, 20])
+  s = Stateful{<:Any,Any}([1])
+  iterate(zip(a, zip(s, s)))  # nothing
+  peek(a)                    # 20, although no row was produced
+  collect(a)                 # [20]
+output:
+  release: |
+    JULIA 1.13.2 COMMIT 45b6d15e34bbd2003a31acce0b1847b63dad029c
+    inner isdone before iteration = false
+    independent input before = 10
+    outer iterate = nothing
+    independent input after = 20
+    independent input remaining = [20]
+    independent empty-factor control = (nothing, [10, 20])
+    REPRODUCED iterators-zip-shared-stateful-completion
+  nightly: |
+    JULIA 1.15.0-DEV.unknown COMMIT f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    inner isdone before iteration = false
+    independent input before = 10
+    outer iterate = nothing
+    independent input after = 20
+    independent input remaining = [20]
+    independent empty-factor control = (nothing, [10, 20])
+    REPRODUCED iterators-zip-shared-stateful-completion
+reproduced: {release: true, nightly: true}
+expected: |
+  The outer iterate call returns nothing and a retains its leading value 10.
+  A control with distinct inner Stateful objects and an empty second factor
+  already preserves the independent input as [10, 20].
+promised_by: |
+  Pinned source f755f49a9e41380d7da126b3c1db9fe7f83dd027:
+  base/iterators.jl:347-348: "zip orders the calls to its subiterators in such
+  a way that stateful iterators will not advance when another iterator finishes
+  in the current iteration."
+  base/essentials.jl:1591-1597 documents isdone as returning true/false according
+  to whether the iterator is done, or missing when completion cannot be known.
+cause: |
+  base/iterators.jl:430-438 computes a nested zip's isdone from the individual
+  factors before either factor advances. Both references to the shared Stateful
+  object report false when its one element remains. The outer completion scan
+  at lines 496-501 therefore also sees false. The rest phase at lines 487-494
+  advances the independent a first, then calls the nested zip, whose first factor
+  consumes the shared element and whose second factor returns nothing.
+  Lines 448-460 return nothing without restoring a.
+possible_fix: |
+  Avoid treating individual nonterminal checks as a definite nonterminal result
+  for a zip whose factors can share mutable state. Returning missing for that
+  case lets an enclosing zip resolve the uncertain nested input before advancing
+  its independent Stateful inputs.
+duplicates:
+  issues:
+    - number: 47790
+      state: closed
+      relation: related
+  queries:
+    - 'site:github.com/JuliaLang/julia zip Stateful same iterator alias isdone'
+    - 'site:github.com/JuliaLang/julia "zip" "isdone" "same" "Stateful"'
+lean:
+  property: JuliaLean.Proofs.base.iterators.ZipSharedStatefulCompletion.NoAdvanceOnCompletion
+  theorem: JuliaLean.Proofs.base.iterators.ZipSharedStatefulCompletion.noAdvanceOnCompletion_refuted

@@ -1,29 +1,53 @@
 id: dicts-persistentdict-nothrow
-title: "KeyValue.set for PersistentDict is declared :nothrow but throws, so try/catch around it does not catch"
+title: PersistentDict insertion violates its nothrow effect annotation
 priority: P2
-kind: crash
+kind: wrong-exception
 area: Dicts
-files: [base/dict.jl, base/hamt.jl]
-functions: ["KeyValue.set(::PersistentDict{K,V}, ::K, ::V)", "PersistentDict(::PersistentDict, key, val)"]
+files:
+  - base/dict.jl
+  - base/hamt.jl
+  - base/expr.jl
+functions:
+  - KeyValue.set(::PersistentDict{K,V}, ::K, ::V)
+  - PersistentDict(::PersistentDict, key, val)
 summary: |
-  KeyValue.set(dict::PersistentDict{K,V}, key::K, val::V) carries
-  Base.@assume_effects :nothrow :effect_free, but its insert! throws
-  error("Perfect hash collision") for two !== keys with equal objectid.
-  Inference then marks PersistentDict(p, k, v) as nothrow (+n), and in
-  compiled code a try/catch around it is dropped: the exception escapes the
-  catch block. If the result is unused, the call is removed entirely.
-  Issue #54740 reports the collision error itself but not the uncatchable
-  exception caused by the :nothrow annotation.
+  Typed PersistentDict insertion is annotated :nothrow, yet a perfect objectid
+  collision reaches error("Perfect hash collision"). In the tested compiled
+  guarded function, the exception escapes its try/catch instead of returning
+  :caught. The runtime program's outer catch observes the escaped exception.
 likelihood: |
-  Needs an objectid collision (constructible for Int64/UInt64 keys, see
-  dicts-persistentdict-objectid-collision). The wrong effect annotation can
-  also justify other optimizations of code that relies on the error.
+  Requires two distinct keys with the same objectid. This is constructible for
+  mixed Int64 and UInt64 keys. Once such keys reach insertion, the incorrect
+  annotation permits optimization to discard necessary exception handling.
 maybe_intended: |
-  No: the annotation asserts the method cannot throw, and it can.
+  The collision error itself is a known limitation reported in issue #54740.
+  Even if that error is retained, the annotation cannot truthfully promise
+  that typed insertion does not throw. The catch-elimination consequence is
+  distinct from the underlying collision limitation.
 reproducer: |
-  p = Base.PersistentDict{Any,Int}(8722453200027809036 => 1)
-  guarded(p, k) = try; return Base.PersistentDict(p, k, 2); catch; return :caught; end
-  guarded(p, 0x0000000000000001)   # ErrorException escapes instead of :caught
+  function int64hash(k::UInt64)
+      k = ~k + (k << 21); k ⊻= k >> 24; k = k + (k << 3) + (k << 8)
+      k ⊻= k >> 14; k = k + (k << 2) + (k << 4); k ⊻= k >> 28; k + (k << 31)
+  end
+  unxorshift(k, s) = (r = k; t = k >> s; while t != 0; r ⊻= t; t >>= s; end; r)
+  inv64(a) = invmod(UInt128(a), UInt128(1) << 64) % UInt64
+  function int64hash_inv(k::UInt64)
+      k *= inv64(1 + (UInt128(1) << 31)); k = unxorshift(k, 28); k *= inv64(21)
+      k = unxorshift(k, 14); k *= inv64(265); k = unxorshift(k, 24)
+      (k + 1) * inv64((UInt128(1) << 21) - 1)
+  end
+  cI = objectid(0) ⊻ int64hash(UInt64(0))
+  y = UInt64(1)
+  x = reinterpret(Int64, int64hash_inv(objectid(y) ⊻ cI))
+  p = Base.PersistentDict{Any,Int}(x => 1)
+  function guarded(p, k)
+      try
+          return Base.PersistentDict(p, k, 2)
+      catch
+          return :caught
+      end
+  end
+  guarded(p, y)  # Error escapes the compiled catch on the tested runtimes.
 output:
   release: |
     Base.infer_effects(Base.PersistentDict, (typeof(p), Any, Int)) = (!c,+e,+n,+t,+s,!m,!u,+o,!r)
@@ -33,22 +57,43 @@ output:
     Base.infer_effects(Base.PersistentDict, (typeof(p), Any, Int)) = (!c,+e,!re,+n,+t,!s,!m,!u,!o,!r)
     guarded(p, y) = ErrorException("Perfect hash collision")
     REPRODUCED dicts-persistentdict-nothrow
-reproduced: {release: true, nightly: true}
+reproduced:
+  release: true
+  nightly: true
 expected: |
-  guarded(p, y) returns :caught (or the insertion succeeds).
+  Either insertion succeeds or guarded returns :caught. A throwing insertion
+  must not be advertised to inference as nothrow. The short snippet retains
+  the tested calculation deriving colliding Int64 and UInt64 keys from hash
+  arithmetic. The runtime program catches the escaped error at top level.
 promised_by: |
-  The method's own effect annotation, base/dict.jl:911-912
-  (`Base.@assume_effects :nothrow ... KeyValue.set(dict::PersistentDict{K,V},
-  key::K, val::V)`), and the try/catch semantics of the manual.
+  Pinned source f755f49a9e41380d7da126b3c1db9fe7f83dd027.
+  base/dict.jl:911-912:
+  "@noinline Base.@assume_effects :nothrow :effect_free :terminates_globally KeyValue.set(
+      dict::PersistentDict{K, V}, key::K, val::V) where {K, V} = @inline _keyvalueset(dict, key, val)"
+  base/expr.jl:707-708: "The `:nothrow` setting asserts that this method does not throw an exception
+  (i.e. will either always return a value or never return)."
+  The annotation excludes exceptions; it does not alone promise termination.
 cause: |
-  base/hamt.jl:205-208 can throw inside a method annotated :nothrow at
-  base/dict.jl:911.
+  _keyvalueset calls HAMT.insert! at base/dict.jl:917. The collision branch at
+  base/hamt.jl:205-207 throws when both key hashes coincide. That exception
+  contradicts the typed KeyValue.set effect annotation, which inference
+  propagates to the constructor used in guarded.
 possible_fix: |
-  Drop :nothrow from the KeyValue.set annotations, or make insert! total by
-  handling perfect collisions.
+  Remove :nothrow from the typed insertion method while collisions can throw.
+  Alternatively, implement collision handling that satisfies the annotation.
 duplicates:
-  issues: []
-  queries: ["assume_effects nothrow PersistentDict", "try catch not caught assume_effects", "Perfect hash collision"]
+  issues:
+    - number: 54740
+      state: open
+      relation: related
+  prs: []
+  queries:
+    - 'gh search issues --repo JuliaLang/julia "PersistentDict nothrow"'
+    - 'gh search issues --repo JuliaLang/julia "Perfect hash collision"'
+    - 'gh search issues --repo JuliaLang/julia "assume_effects catch"'
+    - 'gh search prs --repo JuliaLang/julia "PersistentDict nothrow"'
+    - 'gh search prs --repo JuliaLang/julia "Perfect hash collision"'
+    - 'gh search prs --repo JuliaLang/julia "assume_effects catch"'
 lean:
-  property: JuliaLean.Dicts.Persistent.PersistentSetNothrow
-  theorem: JuliaLean.Dicts.Persistent.persistentSetNothrow_refuted
+  property: JuliaLean.Proofs.base.dict.round2.PersistentSetNothrow
+  theorem: JuliaLean.ChatGPT.Batch4.Group1.DictsPersistentdictNothrow_refuted

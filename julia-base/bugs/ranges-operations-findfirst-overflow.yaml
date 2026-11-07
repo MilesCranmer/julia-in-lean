@@ -34,8 +34,7 @@ cause: |
   base/array.jl:2549 computes p.x - first(r) in Int8. The difference 200 wraps
   to -56 before division by 2, so lines 2550-2551 return -27 after adding 1.
   The unit method at lines 2540-2544 has the same wrapped subtraction before
-  conversion to the index type. Its additional witness is Lean theorem
-  JuliaLean.Ranges.findfirstUnitOverflow.
+  conversion to the index type.
 possible_fix: |
   Compute the difference and quotient in a widened or unsigned overflow-safe type,
   then convert the final index to keytype(r).

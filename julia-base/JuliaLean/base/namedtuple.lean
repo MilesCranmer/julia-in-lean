@@ -1276,3 +1276,509 @@ def split_rest (nfields : ModelNT → JInt .i64)
               | .ok lastTuple => .ok (frontTuple, lastTuple)
 
 end JuliaLean.base.namedtuple
+
+/-!
+Model of `NamedTuple` (`base/namedtuple.jl`). A named tuple is the list of its
+`(name, value)` fields; names are `Symbol`s, written as strings. A named tuple
+that Julia can build has distinct names.
+-/
+
+namespace JuliaLean.Tuples
+
+abbrev NT (α : Type) := List (String × α)
+
+variable {α : Type}
+
+def ntNames (nt : NT α) : List String := nt.map Prod.fst
+def ntValues (nt : NT α) : List α := nt.map Prod.snd
+
+/-- The field called `k`, if any. -/
+def lookup (nt : NT α) (k : String) : Option α := (nt.find? (·.1 == k)).map Prod.snd
+
+
+/-- `NamedTuple{names}(nt)`, `base/namedtuple.jl:136-146`: `fieldindex` of each
+requested name (`FieldError` for a missing one), then the type
+`NamedTuple{names, types}`, which rejects duplicate names (`ErrorException`). -/
+def selectNames (nt : NT α) (names : List String) : R (NT α) :=
+  match names.mapM (fun k => (lookup nt k).map (k, ·)) with
+  | none => .error .fieldError
+  | some fields => if names.Nodup then .ok fields else .error .errorException
+
+/-- `getindex(t::NamedTuple, idxs::Tuple{Vararg{Symbol}}) = NamedTuple{idxs}(t)`,
+`base/namedtuple.jl:168`. -/
+def getindexNames (nt : NT α) (idxs : List String) : R (NT α) := selectNames nt idxs
+
+/-- `merge_names`, `base/namedtuple.jl:268-278`. -/
+def mergeNames (an bn : List String) : List String :=
+  an ++ bn.filter (fun n => !symIn n an)
+
+/-- `merge(a::NamedTuple, b::NamedTuple)`, `base/namedtuple.jl:331-344`: each
+merged name takes its value from `b` when `sym_in(name, bn)`, else from `a`
+(`merge_fallback`, `base/namedtuple.jl:287-300`). -/
+def merge (a b : NT α) : NT α :=
+  if b = [] then a
+  else if a = [] then b
+  else (mergeNames (ntNames a) (ntNames b)).filterMap fun n =>
+    (if symIn n (ntNames b) then lookup b n else lookup a n).map (n, ·)
+
+/-- `diff_names`, `base/namedtuple.jl:391-401`. -/
+def diffNames (an bn : List String) : List String := an.filter (fun n => !symIn n bn)
+
+/-- `structdiff(a, b)`, `base/namedtuple.jl:448-461`. -/
+def structdiff (a : NT α) (bn : List String) : NT α :=
+  if ntNames a = bn then []
+  else (diffNames (ntNames a) bn).filterMap fun n => (lookup a n).map (n, ·)
+
+/-- `delete(a, field)`, `base/namedtuple.jl:437-440`. -/
+def delete (a : NT α) (field : String) : R (NT α) := selectNames a (diffNames (ntNames a) [field])
+
+/-- `setindex(nt, v, idx::Symbol) = merge(nt, (; idx => v))`, `base/namedtuple.jl:483-485`. -/
+def setindexNT (nt : NT α) (v : α) (k : String) : NT α := merge nt [(k, v)]
+
+/-- A `haskey`/`get` key: a `Symbol` or an `Integer`. -/
+inductive Key where
+  | sym (s : String)
+  | int (i : Idx)
+
+/-- The builtin `isdefined(nt, key)`: a `Symbol` names a field, an `Int` is a
+field position; any other key type is a `TypeError`. -/
+def isdefinedNT (nt : NT α) : Key → R Bool
+  | .sym s => .ok (symIn s (ntNames nt))
+  | .int (.int .i64 v) => .ok (decide (1 ≤ v.val ∧ v.val ≤ nt.length))
+  | .int _ => .error .typeError
+
+/-- `haskey(nt, key::Union{Integer, Symbol}) = isdefined(nt, key)`, `base/namedtuple.jl:384`. -/
+def haskeyNT (nt : NT α) (k : Key) : R Bool := isdefinedNT nt k
+
+/-- `getfield(nt, key)` for a defined key. -/
+def getfieldKey (nt : NT α) : Key → R α
+  | .sym s => match lookup nt s with
+    | some a => .ok a
+    | none => .error .fieldError
+  | .int i => getfield (ntValues nt) i.val
+
+/-- `get(nt, key, default)`, `base/namedtuple.jl:385`. -/
+def getNT (nt : NT α) (k : Key) (d : α) : R α := do
+  if ← isdefinedNT nt k then getfieldKey nt k else pure d
+
+/-- `isequal` on named tuples, `base/namedtuple.jl:244-245`. -/
+def isequalNT (o : Ops α) (a b : NT α) : Bool :=
+  ntNames a == ntNames b && isequal o (ntValues a) (ntValues b)
+
+/-- `hash(x::NamedTuple, h) = xor(objectid(_nt_names(x)), hash(Tuple(x), h))`,
+`base/namedtuple.jl:250`; `objectid` of the names tuple is `oid`. -/
+def hashNT (o : Ops α) (oid : List String → Nat) (x : NT α) (h : Nat) : Nat :=
+  oid (ntNames x) ^^^ hash o (ntValues x) h
+
+/-- `split_rest(t::NamedTuple, n, st...)`, `base/namedtuple.jl:585-589`. -/
+def splitRestNT (t : NT α) (n i : JInt .i64) : R (NT α × NT α) := do
+  checkLengthSplitRest t.length n
+  let (f, l) ← splitRestTuple (ntNames t) n i
+  let a ← selectNames t f
+  let b ← selectNames t l
+  pure (a, b)
+
+end JuliaLean.Tuples
+
+
+/-!
+Value-level methods of `base/namedtuple.jl` (master `bbfa0ce4150`) that the
+`Tuples` area does not register: constructors and conversions, indexing and
+iteration, comparisons, `map`/`filter`, the iterator forms of `merge`,
+`delete`, `show`, and the `@NamedTuple`/`@Kwargs` macros.
+
+A named tuple is the `Tuples.NT α` list of `(name, value)` fields. Field types
+are an opaque universe `T`; `conv T x` is `x isa T ? x : convert(T, x)` (which may
+throw). A `NamedTuple` type `NamedTuple{names, Tuple{types...}}` is the pair of
+its names and field types.
+-/
+
+namespace JuliaLean.SortTuplesCov
+
+open JuliaLean
+open JuliaLean.Tuples (R Err getfield bounds argErr liftJ Idx NT ntNames ntValues lookup
+  selectNames symIn mergeNames diffNames restTuple Ops)
+
+namespace NTup
+
+variable {α T : Type}
+
+/-- `NamedTuple{names,T}(args::Tuple)`, `base/namedtuple.jl:115-122`: a length
+mismatch throws `ArgumentError`; otherwise `T(args)` converts each argument to
+its field type. -/
+def ofTuple (conv : T → α → R α) (names : List String) (tys : List T) (args : List α) :
+    R (NT α) :=
+  if args.length ≠ names.length then argErr "Wrong number of arguments to named tuple constructor."
+  else do
+    let vs ← (tys.zip args).mapM fun p => conv p.1 p.2
+    pure (names.zip vs)
+
+/-- `NamedTuple{names,T}(nt::NamedTuple)`, `base/namedtuple.jl:124-134`
+(generated branch): for each name in order, `getfield(nt, name)` (`FieldError`
+when missing) converted to the field type. -/
+def ofNTField (conv : T → α → R α) (nt : NT α) (p : String × T) : R α := do
+  let x ← match lookup nt p.1 with
+    | some x => pure x
+    | none => .error .fieldError
+  conv p.2 x
+def ofNT (conv : T → α → R α) (names : List String) (tys : List T) (nt : NT α) : R (NT α) := do
+  let vs ← (names.zip tys).mapM (ofNTField conv nt)
+  pure (names.zip vs)
+
+/-- `NamedTuple{names}(t::Tuple)` (the builtin constructor of `boot.jl`): the
+lengths must agree (`ErrorException`) and the names must be distinct. -/
+def ofNamesTuple (names : List String) (vals : List α) : R (NT α) :=
+  if names.length ≠ vals.length then .error .errorException
+  else if names.Nodup then .ok (names.zip vals) else .error .errorException
+
+/-- `NamedTuple{names}(itr) = NT(Tuple(itr))`, `base/namedtuple.jl:149`, for the
+values `itr` produces. -/
+def ofNamesItr (names : List String) (itr : List α) : R (NT α) := ofNamesTuple names itr
+
+/-- `NamedTuple{names,T}(itr) = NT(T(itr))`, `base/namedtuple.jl:148`. -/
+def ofNamesTypesItr (conv : T → α → R α) (names : List String) (tys : List T) (itr : List α) :
+    R (NT α) := do
+  let t ← totupleFixed conv tys itr
+  ofTuple conv names tys t
+
+/-- `_new_NamedTuple(T, args)`, `base/namedtuple.jl:155-157`: the fields without conversion. -/
+def newNamedTuple (names : List String) (args : List α) : NT α := names.zip args
+
+/-- The pairs `k => v` of a `merge` iterator: the key, and whether it is a `Symbol`. -/
+structure KV (α : Type) where
+  key : String
+  isSym : Bool
+  val : α
+
+/-- The loop of `merge(a::NamedTuple, itr)`, `base/namedtuple.jl:365-378`: `k::Symbol`
+(`TypeError` otherwise); a repeated key overwrites the value at the position of
+its first occurrence (`IdDict` of indices). -/
+def mergeItrLoop : List (String × α) → List (KV α) → R (List (String × α))
+  | acc, [] => .ok acc
+  | acc, kv :: rest =>
+    if !kv.isSym then .error .typeError
+    else if acc.any (·.1 == kv.key) then
+      mergeItrLoop (acc.map fun p => if p.1 == kv.key then (p.1, kv.val) else p) rest
+    else mergeItrLoop (acc ++ [(kv.key, kv.val)]) rest
+
+/-- `merge(a::NamedTuple, itr)`, `base/namedtuple.jl:364-380`: collect the names
+and values, then `merge(a, NamedTuple{(names...,)}((vals...,)))`. -/
+def mergeItr (a : NT α) (itr : List (KV α)) : R (NT α) := do
+  let acc ← mergeItrLoop [] itr
+  let b ← ofNamesTuple (acc.map Prod.fst) (acc.map Prod.snd)
+  pure (JuliaLean.Tuples.merge a b)
+
+/-- `NamedTuple(itr) = (; itr...)`, `base/namedtuple.jl:151`: the lowering of
+`(; itr...)` is `merge(NamedTuple(), itr)`. -/
+def ofItr (itr : List (KV α)) : R (NT α) := mergeItr [] itr
+
+/-- `merge(a, b::Iterators.Pairs{<:Any,<:Any,Nothing,<:NamedTuple}) =
+merge(a, getfield(b, :data))`, `base/namedtuple.jl:346`: `b` wraps the named tuple `data`. -/
+def mergePairs (a data : NT α) : NT α := JuliaLean.Tuples.merge a data
+
+/-- `merge(a, b::Iterators.Zip{<:Tuple{Any,Any}}) = merge(a, NamedTuple{Tuple(b.is[1])}(b.is[2]))`,
+`base/namedtuple.jl:348`: all keys and all values of the two zipped collections. -/
+def mergeZip (a : NT α) (ks : List String) (vs : List α) : R (NT α) := do
+  let b ← ofNamesItr ks vs
+  pure (JuliaLean.Tuples.merge a b)
+
+/-- `merge(a, b, cs...) = merge(merge(a, b), cs...)` (`base/namedtuple.jl:350`)
+and `merge(a) = a` (`base/namedtuple.jl:352`). -/
+def mergeMany (a : NT α) : List (NT α) → NT α
+  | [] => a
+  | b :: cs => mergeMany (JuliaLean.Tuples.merge a b) cs
+
+/-- `length(t) = nfields(t)`, `firstindex(t) = 1`, `lastindex(t) = nfields(t)`,
+`base/namedtuple.jl:159,163-164`. -/
+def length (t : NT α) : Nat := t.length
+def firstindex (_ : NT α) : Int := 1
+def lastindex (t : NT α) : Int := t.length
+
+/-- `iterate(t::NamedTuple, iter=1) = iter > nfields(t) ? nothing : (getfield(t, iter), iter + 1)`,
+`base/namedtuple.jl:160`. -/
+def iterate (t : NT α) (i : Int := 1) : R (Option (α × Int)) :=
+  if i > t.length then .ok none else do
+    let x ← getfield (ntValues t) i
+    pure (some (x, i + 1))
+
+/-- `rest(t::NamedTuple) = t` (`base/namedtuple.jl:161`) and
+`rest(t::NamedTuple{names}, i) = NamedTuple{rest(names, i::Int)}(t)` (`:162`). -/
+def restAll (t : NT α) : NT α := t
+def rest (t : NT α) (i : JInt .i64) : R (NT α) := do
+  let names ← restTuple (ntNames t) i
+  selectNames t names
+
+/-- `getindex(t, i::Int) = getfield(t, i)`, `getindex(t, i::Symbol) = getfield(t, i)`,
+`getindex(t, ::Colon) = t`, `getindex(t, idxs::AbstractVector{Symbol}) =
+NamedTuple{Tuple(idxs)}(t)`, `base/namedtuple.jl:165-169`. -/
+def getindexInt (t : NT α) (i : Int) : R α := getfield (ntValues t) i
+def getindexSym (t : NT α) (s : String) : R α :=
+  match lookup t s with
+  | some x => .ok x
+  | none => .error .fieldError
+def getindexColon (t : NT α) : NT α := t
+def getindexSymVec (t : NT α) (idxs : List String) : R (NT α) := selectNames t idxs
+
+/-- `indexed_iterate(t::NamedTuple, i::Int, state=1) = (getfield(t, i), i+1)`,
+`base/namedtuple.jl:170`. -/
+def indexedIterate (t : NT α) (i : Int) : R (α × Int) := do
+  let x ← getfield (ntValues t) i
+  pure (x, i + 1)
+
+/-- `isempty(::NamedTuple{()}) = true`, `isempty(::NamedTuple) = false`,
+`empty(::NamedTuple) = NamedTuple()`, `base/namedtuple.jl:171-173`. -/
+def isempty : NT α → Bool
+  | [] => true
+  | _ :: _ => false
+def empty (_ : NT α) : NT α := []
+
+/-- `prevind(t, i::Integer) = Int(i)-1`, `nextind(t, i::Integer) = Int(i)+1`,
+`base/namedtuple.jl:175-176`. -/
+def prevind (_ : NT α) (i : Idx) : R (JInt .i64) := do
+  let j ← Tup.idxToInt i
+  pure (j - JInt.lit .i64 1)
+def nextind (_ : NT α) (i : Idx) : R (JInt .i64) := do
+  let j ← Tup.idxToInt i
+  pure (j + JInt.lit .i64 1)
+
+/-- `convert(::Type{NT}, nt::NT) = nt` for the same type (`base/namedtuple.jl:178-179`). -/
+def convertSame (nt : NT α) : NT α := nt
+
+/-- `convert(::Type{NT}, t::Tuple) = NT(t)`, `base/namedtuple.jl:180`, for
+`NT = NamedTuple{names, Tuple{tys...}}`. -/
+def convertTuple (conv : T → α → R α) (names : List String) (tys : List T) (t : List α) :
+    R (NT α) := ofTuple conv names tys t
+
+/-- `convert(::Type{NamedTuple{names,T}}, nt::NamedTuple{names}) = NT(nt)`
+(`base/namedtuple.jl:182-185`), and the abstract-target method
+`NT1(T1(nt))` with `T1 = Tuple{fieldtype(NT, i)...}` (`:187-193`): both convert
+each field of `nt` (whose names are `names`) to its field type. -/
+def convertNT (conv : T → α → R α) (tys : List T) (nt : NT α) : R (NT α) :=
+  ofNT conv (ntNames nt) tys nt
+def convertNTAbstract (conv : T → α → R α) (tys : List T) (nt : NT α) : R (NT α) := do
+  let t1 ← totupleFixed conv tys (ntValues nt)
+  ofTuple conv (ntNames nt) tys t1
+
+/-- `Tuple(nt) = (nt...,)` (`base/namedtuple.jl:195`) and
+`(::Type{T})(nt::NamedTuple) = (t = Tuple(nt); t isa T ? t : convert(T, t)::T)`
+(`:196`) for `T = Tuple{tys...}`: a length mismatch is a `MethodError`
+("Cannot convert"). -/
+def toTuple (nt : NT α) : List α := ntValues nt
+def toTupleType (conv : T → α → R α) (tys : List T) (nt : NT α) : R (List α) :=
+  if tys.length ≠ nt.length then .error (.jl (.methodError "convert"))
+  else (tys.zip (ntValues nt)).mapM fun p => conv p.1 p.2
+
+/-- `==(a::NamedTuple{n}, b::NamedTuple{n}) = Tuple(a) == Tuple(b)`,
+`==(a::NamedTuple, b::NamedTuple) = false`, `base/namedtuple.jl:241-242`. -/
+def eq (o : Ops α) (a b : NT α) : Option Bool :=
+  if ntNames a = ntNames b then JuliaLean.Tuples.eq o (ntValues a) (ntValues b) else some false
+
+/-- `isequal` on named tuples, `base/namedtuple.jl:244-245`. -/
+def isequal (o : Ops α) (a b : NT α) : Bool :=
+  if ntNames a = ntNames b then JuliaLean.Tuples.isequal o (ntValues a) (ntValues b) else false
+
+/-- `_nt_names(::NamedTuple{names}) = names` and the type method,
+`base/namedtuple.jl:247-248`. -/
+def ntNamesOf (nt : NT α) : List String := ntNames nt
+
+/-- `(<)(a::NamedTuple{n}, b::NamedTuple{n}) = Tuple(a) < Tuple(b)` and
+`isless(a::NamedTuple{n}, b::NamedTuple{n})`, `base/namedtuple.jl:252-253`;
+named tuples with different names have no method (`MethodError`). -/
+def lt (o : Ops α) (a b : NT α) : R (Option Bool) :=
+  if ntNames a = ntNames b then .ok (JuliaLean.Tuples.lt o (ntValues a) (ntValues b))
+  else .error (.jl (.methodError "isless"))
+def isless (o : Ops α) (a b : NT α) : R Bool :=
+  if ntNames a = ntNames b then .ok (JuliaLean.Tuples.isless o (ntValues a) (ntValues b))
+  else .error (.jl (.methodError "isless"))
+
+/-- `same_names(::NamedTuple{names}...) = true`, `same_names(::NamedTuple...) = false`,
+`base/namedtuple.jl:255-256`. -/
+def sameNames (nts : List (NT α)) : Bool :=
+  match nts with
+  | [] => true
+  | a :: rest => rest.all fun b => ntNames b == ntNames a
+
+/-- `map(f, nt::NamedTuple{names}, nts::NamedTuple...)`, `base/namedtuple.jl:259-264`:
+`ArgumentError` unless all names agree, then `NamedTuple{names}` of the tuple
+`map` of the values (elementwise). -/
+def map {β : Type} (f : List α → β) (nt : NT α) (nts : List (NT α)) : R (NT β) :=
+  if !sameNames (nt :: nts) then argErr "Named tuple names do not match."
+  else .ok ((ntNames nt).zip ((Tup.zipN ((nt :: nts).map ntValues) nt.length).map f))
+
+/-- `filter(f, xs::NamedTuple) = xs[filter(k -> f(xs[k]), keys(xs))]`,
+`base/namedtuple.jl:266`. -/
+def filter (f : α → Bool) (xs : NT α) : R (NT α) :=
+  selectNames xs ((ntNames xs).filter fun k => (lookup xs k).any f)
+
+/-- `keys(nt) = names`, `values(nt) = Tuple(nt)`, `base/namedtuple.jl:382-383`. -/
+def keys (nt : NT α) : List String := ntNames nt
+def values (nt : NT α) : List α := ntValues nt
+
+/-- `get(f::Callable, nt, key::Union{Integer, Symbol}) = isdefined(nt, key) ?
+getfield(nt, key) : f()`, `base/namedtuple.jl:386`. -/
+def getF (f : Unit → R α) (nt : NT α) (k : JuliaLean.Tuples.Key) : R α := do
+  if ← JuliaLean.Tuples.isdefinedNT nt k then JuliaLean.Tuples.getfieldKey nt k else f ()
+
+/-- `tail(t::NamedTuple{names}) = NamedTuple{tail(names)}(t)`,
+`front(t::NamedTuple{names}) = NamedTuple{front(names)}(t)`,
+`reverse(nt) = NamedTuple{reverse(keys(nt))}(reverse(values(nt)))`,
+`base/namedtuple.jl:387-389`. -/
+def tail (t : NT α) : R (NT α) := do
+  let names ← JuliaLean.Tuples.tail (ntNames t)
+  selectNames t names
+def front (t : NT α) : R (NT α) := do
+  let names ← JuliaLean.Tuples.front (ntNames t)
+  selectNames t names
+def reverse (nt : NT α) : R (NT α) :=
+  ofNamesTuple (JuliaLean.Tuples.revargs (ntNames nt)) (JuliaLean.Tuples.revargs (ntValues nt))
+
+/-- `delete(a::NamedTuple{an}, field::Symbol)`, `base/namedtuple.jl:437-440`:
+`NamedTuple{diff_names(an, (field,))}(a)`. -/
+def delete (a : NT α) (field : String) : R (NT α) := selectNames a (diffNames (ntNames a) [field])
+
+end NTup
+
+open NTup
+
+/-! ## Properties -/
+
+/-- The fields of a named tuple with the given names, in the given order. -/
+def fieldsAt {α : Type} (nt : NT α) (names : List String) : Option (List α) :=
+  names.mapM (lookup nt)
+
+/-- The step of `firstKeys`: append a key not yet seen. -/
+def keyStep {α : Type} (ks : List String) (kv : KV α) : List String :=
+  if kv.key ∈ ks then ks else ks ++ [kv.key]
+
+/-- The keys of `itr` in the order of their first occurrence. -/
+def firstKeys {α : Type} (itr : List (KV α)) : List String := itr.foldl keyStep []
+
+/-- The value of the last pair of `itr` with key `k`, if any. -/
+def lastVal {α : Type} (itr : List (KV α)) (k : String) : Option α :=
+  (itr.reverse.find? (·.key == k)).map KV.val
+
+end JuliaLean.SortTuplesCov
+
+
+/-! Faithful models for the remaining methods and macros in
+`base/namedtuple.jl` (master `bbfa0ce4150`). -/
+
+namespace JuliaLean.SortTuplesCov
+
+open JuliaLean
+open JuliaLean.Tuples (NT ntNames ntValues lookup)
+
+/-! ### Display -/
+
+structure ShowField (V : Type) where
+  name : String
+  value : V
+  concrete : Bool
+
+inductive NamedTupleShow where
+  | fullType
+  | empty
+  | fields (names : List String) (singleton : Bool)
+
+/-- `show(io, t::NamedTuple)`, `base/namedtuple.jl:198-229`.  The trace records
+the three output forms after the source's concrete-field scan. -/
+def showNamedTuple {V : Type} (fields : List (ShowField V)) : NamedTupleShow :=
+  if fields.any fun f => !f.concrete then .fullType
+  else if fields.isEmpty then .empty
+  else .fields (fields.map (fun f => f.name)) (fields.length = 1)
+
+/-! ### Type methods -/
+
+/-- `nteltype(::Type) = Any` and the parameterized method at
+`base/namedtuple.jl:231-233`. -/
+def ntEltypeFallback (_ : TupleTy) : TupleTy := .any
+def ntEltypeNamed (join : TupleTy → TupleTy → TupleTy) (tupleType : TupleTy) : TupleTy :=
+  computeTupleEltype join (fun _ => false) tupleType
+def namedTupleEltype (join : TupleTy → TupleTy → TupleTy) (tupleType : Option TupleTy) : TupleTy :=
+  match tupleType with
+  | none => ntEltypeFallback .any
+  | some t => ntEltypeNamed join t
+
+/-- `keytype` and `valtype`, `base/namedtuple.jl:235-239`. -/
+def namedTupleKeytypeValue {V : Type} (_ : NT V) : TupleTy := .atom "Symbol"
+def namedTupleKeytypeType (_ : List String) : TupleTy := .atom "Symbol"
+def namedTupleValtypeValue {V : Type} (join : TupleTy → TupleTy → TupleTy)
+    (fieldTypes : List TupleTy) (_ : NT V) : TupleTy :=
+  ntEltypeNamed join (.tuple (fieldTypes.map .type))
+def namedTupleValtypeType (join : TupleTy → TupleTy → TupleTy)
+    (fieldTypes : List TupleTy) : TupleTy := ntEltypeNamed join (.tuple (fieldTypes.map .type))
+
+/-- `_nt_names(::Type{T})`, `base/namedtuple.jl:248`. -/
+def ntNamesType (names : List String) : List String := names
+
+/-! ### Merge and structdiff type helpers -/
+
+def fieldType (fields : List (String × TupleTy)) (name : String) : Option TupleTy :=
+  (fields.find? fun p => p.1 = name).map Prod.snd
+
+/-- `merge_types`, `base/namedtuple.jl:280-285`: for every merged name choose
+the right field type when the name is present there, otherwise the left. -/
+def mergeTypes (names : List String) (a b : List (String × TupleTy)) : List TupleTy :=
+  names.filterMap fun n => (fieldType b n).or (fieldType a n)
+
+/-- `diff_types`, `base/namedtuple.jl:403-407`. -/
+def diffTypes (a : List (String × TupleTy)) (names : List String) : List TupleTy :=
+  names.filterMap (fieldType a)
+
+/-- `diff_fallback`, `base/namedtuple.jl:409-422`, with the Memory loop
+represented by the selected fields in name order. -/
+def diffFallback {V : Type} (a : NT V) (bn : List String) : NT V :=
+  a.filter fun p => !bn.contains p.1
+
+/-! ### Macros -/
+
+inductive NTDecl where
+  | name (name : String)
+  | typed (name : String) (ty : TupleTy)
+  | invalid
+
+inductive NTSyntax where
+  | braces (decls : List NTDecl)
+  | block (decls : List NTDecl)
+  | invalid
+
+structure NamedTupleMacroResult where
+  names : List String
+  types : List TupleTy
+
+def expandDeclarations : List NTDecl → Jl NamedTupleMacroResult
+  | [] => .ok ⟨[], []⟩
+  | .invalid :: _ => .error (.argumentError
+      "@NamedTuple must contain a sequence of name or name::type expressions")
+  | .name n :: ds => do
+      let r ← expandDeclarations ds
+      pure ⟨n :: r.names, .any :: r.types⟩
+  | .typed n t :: ds => do
+      let r ← expandDeclarations ds
+      pure ⟨n :: r.names, t :: r.types⟩
+
+/-- `@NamedTuple`, `base/namedtuple.jl:514-523`. -/
+def namedTupleMacro : NTSyntax → Jl NamedTupleMacroResult
+  | .braces ds | .block ds => expandDeclarations ds
+  | .invalid => .error (.argumentError "@NamedTuple expects {...} or begin...end")
+
+structure KwargsMacroResult where
+  keyType : TupleTy
+  valueType : TupleTy
+  namedTuple : NamedTupleMacroResult
+
+/-- `@Kwargs`, `base/namedtuple.jl:578-583`. -/
+def kwargsMacro (ex : NTSyntax) : Jl KwargsMacroResult := do
+  let nt ← namedTupleMacro ex
+  pure ⟨.atom "Symbol", tupleEltype (fun _ _ => .any) (fun _ => false)
+    (fun _ => false) (.tuple (nt.types.map .type)), nt⟩
+
+/-- `split_rest(t::NamedTuple, n, st...)`, `base/namedtuple.jl:585-589`. -/
+def namedTupleSplitRest {V : Type} (t : NT V) (n st : JInt .i64) :
+    JuliaLean.Tuples.R (NT V × NT V) := do
+  JuliaLean.Tuples.checkLengthSplitRest t.length n
+  let names ← JuliaLean.Tuples.splitRestTuple (ntNames t) n st
+  pure ((← JuliaLean.Tuples.selectNames t names.1),
+    (← JuliaLean.Tuples.selectNames t names.2))
+
+end JuliaLean.SortTuplesCov

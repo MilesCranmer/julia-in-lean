@@ -1,0 +1,76 @@
+id: char-overlong-encoding
+title: "isoverlong classifies a lone 0xc0 lead byte as an overlong sequence"
+priority: P3
+kind: wrong-result
+area: MissingChar
+files: [base/char.jl]
+functions:
+  - "is_overlong_enc(::UInt32)"
+  - "isoverlong(::Char)"
+  - "decode_overlong(::AbstractChar)"
+  - "codepoint(::Char)"
+covers: [char-overlong-decode]
+summary: |
+  A Char storing only the byte 0xc0 is malformed and does not contain a complete
+  UTF-8 sequence, but isoverlong returns true. decode_overlong then returns 0 on
+  Julia 1.13.2 and throws InvalidCharError on nightly for the same value.
+likelihood: |
+  Low: the counterexample needs a Char containing a lone UTF-8 lead byte, normally
+  constructed by reinterpretation or another raw-data path.
+maybe_intended: |
+  A lone 0xc0 byte has the prefix bits of an overlong encoding, but without continuation
+  bytes it is malformed data rather than an overlong UTF-8 sequence.
+reproducer: |
+  Stored at repro/char-overlong-encoding.jl and repro/char-overlong-decode.jl.
+output:
+  release: |
+    isoverlong=true ismalformed=true ncodeunits=1
+    REPRODUCED char-overlong-encoding
+    isoverlong=true decode_overlong=0x00000000
+  nightly: |
+    isoverlong=true ismalformed=true ncodeunits=1
+    REPRODUCED char-overlong-encoding
+    isoverlong=true decode_overlong=Base.InvalidCharError{Char}('\xc0')
+    REPRODUCED char-overlong-decode
+reproduced: {release: true, nightly: true}
+expected: |
+  isoverlong(c) should be false for a malformed Char with only one stored byte. The
+  predicate should return true only for a complete UTF-8 sequence that uses more bytes
+  than the shortest encoding of its codepoint.
+promised_by: |
+  base/char.jl:151-152 says "Return `true` if `c` represents an overlong UTF-8 sequence."
+  base/char.jl:197-198 says "When [`isoverlong(c)`](@ref) is `true`,
+  `decode_overlong(c)` returns the Unicode codepoint value of `c`."
+cause: |
+  base/char.jl:119-124 classifies the leading bits as overlong without requiring the
+  continuation bytes of a complete UTF-8 sequence. For 0xc0000000 this makes isoverlong
+  true despite the one-byte storage. decode_overlong forwards to codepoint at
+  base/char.jl:209; the release returns 0 while nightly detects malformed storage and
+  throws InvalidCharError.
+possible_fix: |
+  Require one complete UTF-8 sequence before classifying a Char as overlong, then compare
+  its encoded length with the shortest length for its decoded value.
+duplicates:
+  issues:
+    - {number: 25072, relation: related}
+  prs:
+    - {number: 55152, relation: related}
+    - {number: 25559, relation: related}
+    - {number: 54393, state: closed, relation: related}
+    - {number: 61625, relation: related}
+  queries:
+    - "issues: ismalformed"
+    - "issues: isoverlong"
+    - "issues: decode_overlong"
+    - 'issues: "malformed Char codepoint"'
+    - 'issues: "Char arithmetic malformed"'
+    - 'issues: "overlong char"'
+    - "PRs: ismalformed"
+    - "PRs: isoverlong"
+    - "PRs: decode_overlong"
+    - 'PRs: "malformed Char codepoint"'
+    - 'PRs: "Char arithmetic malformed"'
+    - 'PRs: "overlong char"'
+lean:
+  property: JuliaLean.Proofs.base.char.IsoverlongExactlyOverlong
+  theorem: JuliaLean.Proofs.base.char.refute_overlong_encoding

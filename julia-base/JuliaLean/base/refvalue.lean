@@ -190,3 +190,83 @@ def setindex! {T X E : Type} (convert : X → Except E T) (b : RefValue T) (x : 
   | .ok value => .ok { b with x := .assigned value }
 
 end JuliaLean.base.refvalue
+
+namespace JuliaLean.MiscCov.RefValue
+
+/-- How a field of type `T` is stored: inline (`allocatedinline(T)`), as a
+pointer to a concrete mutable object, or as a pointer to some other boxed value. -/
+inductive Layout where
+  | inline | mutableConcrete | boxed
+  deriving DecidableEq, Repr
+
+/-- The parts of a Julia type `T` the methods depend on. -/
+structure Ty (V : Type) where
+  layout : Layout
+  /-- The bits an uninitialized inline field holds (`new()` leaves them as they are). -/
+  zero : V
+  /-- `convert(T, x)`. -/
+  conv : V → M V
+
+/-- A `RefValue{T}` object: its address and its field `x` (`none` is `#undef`, which
+only a pointer field can be). -/
+structure Obj (V : Type) where
+  addr : Nat
+  x : Option V
+
+variable {V : Type}
+
+/-- `RefValue{T}() = new()`, `base/refvalue.jl:7`, allocated at address `a`. -/
+def newEmpty (T : Ty V) (a : Nat) : Obj V :=
+  { addr := a, x := if T.layout = .inline then some T.zero else none }
+
+/-- `RefValue{T}(x) = new(x)`, `base/refvalue.jl:8`: `new` converts to the field type. -/
+def newWith (T : Ty V) (a : Nat) (v : V) : M (Obj V) := do
+  let v ← T.conv v
+  pure { addr := a, x := some v }
+
+/-- `RefValue(x::T) = RefValue{T}(x)`, `base/refvalue.jl:10`; `typeT` is `typeof(x)`,
+whose `convert` returns `x` itself. -/
+def newInfer (typeT : Ty V) (a : Nat) (v : V) : M (Obj V) := newWith typeT a v
+
+/-- `isassigned(x::RefValue) = isdefined(x, :x)`, `base/refvalue.jl:36`. -/
+def isassigned (r : Obj V) : Bool := r.x.isSome
+
+/-- `getindex(b::RefValue) = b.x`, `base/refvalue.jl:59`. -/
+def getindex (r : Obj V) : M V :=
+  match r.x with
+  | some v => .ok v
+  | none => .error .undefRefError
+
+/-- `setindex!(b::RefValue, x) = (b.x = x; b)`, `base/refvalue.jl:60`. -/
+def setindex (T : Ty V) (r : Obj V) (v : V) : M (Obj V) := do
+  let v ← T.conv v
+  pure { r with x := some v }
+
+/-- Where pointers point: `pointer_from_objref` of a mutable object, and the pointer
+stored in a boxed (non-inline) field. -/
+structure Ptrs (V : Type) where
+  objref : V → Nat
+  boxed : V → Nat
+
+/-- `unsafe_convert(P::Union{Type{Ptr{T}},Type{Ptr{Cvoid}}}, b::RefValue{T})`,
+`base/refvalue.jl:38-54`: the address of the `RefValue` for an inline field; the
+object itself for a concrete mutable `T` (reading `b.x`, which throws
+`UndefRefError` when unassigned); otherwise the pointer loaded from the field,
+with `UndefRefError` for `C_NULL`, which is what an `#undef` field holds. -/
+def unsafeConvert (T : Ty V) (P : Ptrs V) (r : Obj V) : M Nat :=
+  match T.layout with
+  | .inline => .ok r.addr
+  | .mutableConcrete =>
+    match r.x with
+    | some v => .ok (P.objref v)
+    | none => .error .undefRefError
+  | .boxed =>
+    match r.x with
+    | none => .error .undefRefError
+    | some v => .ok (P.boxed v)
+
+/-- `unsafe_convert(::Type{Ptr{Any}}, b::RefValue{Any}) = pointer_from_objref(b)`,
+`base/refvalue.jl:55-57`. -/
+def unsafeConvertAny (r : Obj V) : Nat := r.addr
+
+end JuliaLean.MiscCov.RefValue

@@ -1,15 +1,17 @@
 id: mathfuncs-min-isless-nan
-title: "min/max docstrings say \"with respect to isless\" but Float64 min(NaN, 1.0) is NaN"
+title: "Floating-point min/max propagate NaN despite the generic isless-order docstrings"
 priority: P3
 kind: documentation
 area: MathFuncs
-files: [base/operators.jl, base/math.jl]
-functions: ["min(::Float64, ::Float64)", "max(::Float64, ::Float64)", "minmax(::Float64, ::Float64)"]
+files: [base/operators.jl, base/math.jl, base/mpfr.jl]
+functions: ["min(::Float64, ::Float64)", "max(::Float64, ::Float64)", "minmax(::Float64, ::Float64)", "min(::BigFloat, ::BigFloat)", "max(::BigFloat, ::BigFloat)", "minmax(::BigFloat, ::BigFloat)"]
 summary: |
   The generic min/max docstrings define the result "with respect to isless",
   under which NaN is the largest value, so min(NaN, 1.0) would be 1.0. The
   Float64 methods use IEEE minimum/maximum and return NaN whenever an argument
   is NaN. The docstrings never mention the different floating-point behaviour.
+  BigFloat minmax(BigFloat(1), BigFloat(NaN)) likewise returns two NaNs,
+  even though isless places the finite input below NaN.
 likelihood: |
   Anyone reading the docs to decide how min treats NaN (common in data
   cleaning) gets the wrong answer.
@@ -19,15 +21,23 @@ maybe_intended: |
 reproducer: |
   min(NaN, 1.0)              # NaN
   isless(1.0, NaN) ? 1.0 : NaN   # 1.0, "min with respect to isless"
+  setprecision(BigFloat, 64) do
+      x, y = BigFloat(1), BigFloat(NaN)
+      lo, hi = minmax(x, y)
+      @assert isnan(lo) && isnan(hi)
+      @assert isless(x, y) && isless(x, lo)
+  end
 output:
   release: |
     min(NaN, 1.0) = NaN; min with respect to isless = 1.0
     max(NaN, 1.0) = NaN; isless(1.0, NaN) = true
     REPRODUCED mathfuncs-min-isless-nan
+    REPRODUCED mathfuncs-bigfloat-extrema-order
   nightly: |
     min(NaN, 1.0) = NaN; min with respect to isless = 1.0
     max(NaN, 1.0) = NaN; isless(1.0, NaN) = true
     REPRODUCED mathfuncs-min-isless-nan
+    REPRODUCED mathfuncs-bigfloat-extrema-order
 reproduced: {release: true, nightly: true}
 expected: |
   The min/max docstrings should state that for floating-point arguments a
@@ -39,6 +49,8 @@ cause: |
   base/math.jl:838-839 define min/max for IEEEFloat via the min_float/max_float
   intrinsics (NaN-propagating), overriding the isless-based generic method at
   base/operators.jl:555,573 that the docstring describes.
+  The AbstractFloat methods at base/math.jl:833-835 apply the same NaN
+  propagation to BigFloat, whose comparisons are defined in base/mpfr.jl.
 possible_fix: |
   Add a sentence on NaN propagation for floating-point arguments to the min,
   max and minmax docstrings.
@@ -46,7 +58,16 @@ duplicates:
   issues:
     - {number: 48523, state: open, relation: related}
     - {number: 14621, state: closed, relation: related}
-  queries: ["min NaN isless", "min docstring NaN", "Document NaN policy", "min negative zero"]
+    - {number: 10729, state: closed, relation: related}
+  prs:
+    - {number: 12563, state: merged, relation: related}
+    - {number: 9416, state: merged, relation: related}
+  search_notes: |
+    Issue #10729 and PR #9416 are related. PR #12563 deliberately selected
+    NaN propagation. The BigFloat case extends this existing documentation
+    report.
+  queries: ["min NaN isless", "min docstring NaN", "Document NaN policy", "min negative zero", "gh search issues 'minmax NaN' --repo JuliaLang/julia --limit 100 --json number,title,state,url", "gh search prs 'minmax NaN' --repo JuliaLang/julia --limit 100 --json number,title,state,url"]
 lean:
-  property: JuliaLean.MathFuncs.minIslessAll
-  theorem: JuliaLean.MathFuncs.minIslessAll_refuted
+  property: JuliaLean.Proofs.base.math.Round6.minIslessIncludingNaN
+  theorem: JuliaLean.ChatGPT.Batch3.Group2.MathfuncsMinIslessNan_refuted
+covers: [mathfuncs-bigfloat-extrema-order]

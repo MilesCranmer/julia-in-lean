@@ -1,56 +1,53 @@
 id: iterators-nth-zip-empty
-title: Iterators.nth(zip(), n) returns () for n <= 0 instead of throwing BoundsError
-priority: P3
+title: "Iterators.nth(zip(), 0) returns () instead of throwing BoundsError"
+priority: P2
 kind: missing-error
 area: Iterators
-files:
-- base/iterators.jl
-functions:
-- nth(::Zip, n)
+files: [base/iterators.jl]
+functions: ["nth(::Zip, n)"]
 summary: |
-  nth on a Zip maps nth(n) over the zipped iterators and never checks n itself.
-  With no iterators, nth(zip(), 0) and nth(zip(), -3) return () instead of
-  throwing BoundsError. With at least one iterator the component throws.
+  With zero-argument zip(), Iterators.nth(zip(), 0) returns () instead of
+  throwing BoundsError. The specialized Zip method maps nth over its component
+  iterators; with no components, nothing rejects the invalid index.
 likelihood: |
-  Needs zip() with no arguments (e.g. zip(xs...) of an empty splat) and a
-  nonpositive index. Very rare.
+  Requires zero-argument zip() and a nonpositive index. Positive positions on
+  zip() remain valid because zip() yields empty tuples indefinitely.
 maybe_intended: |
-  zip() is documented as an infinite iterator of empty tuples, so any positive
-  n is valid; only n <= 0 is wrong.
+  Iterators.nth should throw BoundsError when n <= 0, including for zip() with no
+  components.
 reproducer: |
-  # nth(zip(), n) returns () for n <= 0 instead of throwing BoundsError
-  r0 = try Iterators.nth(zip(), 0) catch e; e end
-  rm = try Iterators.nth(zip(), -3) catch e; e end
-  println("nth(zip(), 0) = ", repr(r0), ", nth(zip(), -3) = ", repr(rm))
-  println("nth(zip([1]), 0) throws: ", try Iterators.nth(zip([1]), 0); false catch e; e isa BoundsError end)
-  r0 === () && rm === () && println("REPRODUCED iterators-nth-zip-empty")
+  Stored at repro/iterators-nth-zip-empty.jl. It calls
+  Iterators.nth(zip(), 0) and prints REPRODUCED iterators-nth-zip-empty when the
+  call returns () instead of BoundsError.
 output:
   release: |
-    nth(zip(), 0) = (), nth(zip(), -3) = ()
-    nth(zip([1]), 0) throws: true
     REPRODUCED iterators-nth-zip-empty
   nightly: |
-    nth(zip(), 0) = (), nth(zip(), -3) = ()
-    nth(zip([1]), 0) throws: true
     REPRODUCED iterators-nth-zip-empty
-reproduced:
-  release: true
-  nightly: true
+reproduced: {release: true, nightly: true}
 expected: |
-  BoundsError for n <= 0, as for every other iterator.
+  Throw BoundsError because n = 0 does not identify an element. The documented
+  method throws BoundsError when the requested element does not exist.
 promised_by: |
-  nth docstring, base/iterators.jl:1728-1731: "Throw a BoundsError if not
+  base/iterators.jl:1728-1730 documents `nth(itr, n::Integer)` and says: "Get the
+  `n`th element of an iterable collection. Throw a [`BoundsError`](@ref) if not
   existing."
 cause: |
-  base/iterators.jl:1789, _nth(::IteratorSize, z::Zip, n) = map(nth(n), z.is).
+  base/iterators.jl:1789 defines `_nth(::IteratorSize, z::Zip, n) =
+  Base.map(nth(n), z.is)`. Mapping over the empty component tuple returns ()
+  without validating n.
 possible_fix: |
-  Check n > 0 (throw BoundsError(z, n)) before mapping.
+  Reject nonpositive n with BoundsError before mapping nth over Zip components.
 duplicates:
-  issues: []
+  issues:
+    - {number: 46173, state: open, relation: related}
+    - {number: 43821, state: closed, relation: related}
+    - {number: 54454, state: closed, relation: related}
+  prs:
+    - {number: 56580, state: merged, relation: related}
   queries:
-  - nth zip
-  - Iterators.nth
-  - nth BoundsError
+    - "issues: Iterators.nth zip empty BoundsError"
+    - "PRs: Iterators.nth zip empty BoundsError"
 lean:
-  property: JuliaLean.Iterators.NthZipNonpositive
-  theorem: JuliaLean.Iterators.nthZipNonpositive_refuted
+  property: JuliaLean.Proofs.base.iterators.Round4.NthZipNonpositive
+  theorem: JuliaLean.Proofs.base.iterators.nthZipNonpositive_refuted

@@ -55,5 +55,5 @@ duplicates:
     - {number: 62005, state: open, relation: related}
   queries: ["complex muladd", "muladd complex", "PR complex muladd"]
 lean:
-  property: JuliaLean.Complex.MuladdExact
-  theorem: JuliaLean.Complex.muladdExact_refuted
+  property: JuliaLean.Proofs.base.complex.MuladdExact
+  theorem: JuliaLean.Proofs.base.complex.muladdExact_refuted

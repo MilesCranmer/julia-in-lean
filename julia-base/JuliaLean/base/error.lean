@@ -1,5 +1,5 @@
 import JuliaLean.Core
-import JuliaLean.Float.Basic
+import JuliaLean.Runtime.Float
 
 /-!
 # Typed model of `base/error.jl` at Julia `f755f49a9e41380d7da126b3c1db9fe7f83dd027`.
@@ -828,3 +828,336 @@ def retry {Args Delays State Exception Trace Result : Type}
   fun args => retryLoop f args delays iterate check sleep 0 (iterate delays rng none)
 
 end JuliaLean.base.error
+
+
+namespace JuliaLean.ErrorShow
+
+
+/-- `jl_get_excstack` supplies the current exception first; the loop at
+`base/error.jl:179-188` reverses it so the root cause is first. -/
+def currentExceptions (rawNewestFirst : List String) : List String := rawNewestFirst.reverse
+
+inductive ExceptionAction where
+  | rethrowCurrent
+  | rethrowOther (replacement : String)
+  | throwNew (exception : String)
+  deriving Repr, DecidableEq
+
+def applyExceptionAction (rootToCurrent : List String) : ExceptionAction → List String
+  | .rethrowCurrent => rootToCurrent
+  | .rethrowOther replacement => rootToCurrent.dropLast ++ [replacement]
+  | .throwNew exception => rootToCurrent ++ [exception]
+
+/-! ### Assertions -/
+
+inductive AssertMessage where
+  | default (conditionText : String)
+  | supplied (rendered : String)
+  deriving Repr, DecidableEq
+
+def AssertMessage.text : AssertMessage → String
+  | .default conditionText | .supplied conditionText => conditionText
+
+/-- Expansion of `@assert`, `base/error.jl:249-267`. Message expressions enter
+after their single evaluation and conversion with `string`. -/
+def assertResult (condition : Bool) (message : AssertMessage) : Option String :=
+  if condition then none else some ("AssertionError: " ++ message.text)
+
+end JuliaLean.ErrorShow
+
+namespace JuliaLean.ErrorShow.Coverage
+
+open JuliaLean.ErrorShow
+
+abbrev Result (α : Type) := Except String α
+
+/-! ### `base/error.jl` -/
+
+inductive BacktraceEntry where
+  | native (pointer : Nat)
+  | interpreter (code : Nat) (statement : Nat) (moduleId : Option Nat)
+  | unknownTag (tag : Nat)
+  deriving Repr, DecidableEq
+
+/-- `_reformat_bt`, lines 84-114, after the runtime metadata words and managed
+objects have been decoded into one entry. -/
+def reformatBacktrace : List BacktraceEntry → Result (List BacktraceEntry)
+  | [] => .ok []
+  | .unknownTag tag :: _ => .error s!"Unexpected extended backtrace entry tag {tag}"
+  | entry :: rest => do
+      let tail ← reformatBacktrace rest
+      .ok (entry :: tail)
+
+def errorFromParts (parts : List String) : String := String.intercalate "" parts
+
+def backtraceFromRuntime (entries : List BacktraceEntry) : Result (List BacktraceEntry) :=
+  reformatBacktrace entries
+
+def keywordMethodError (keywordType argumentTypes : String) : String :=
+  "MethodError(Core.kwcall," ++ keywordType ++ "," ++ argumentTypes ++ ")"
+
+inductive SystemErrorCall where
+  | skipped
+  | raised (name : String) (code : Int) (extra : Option String)
+  deriving Repr, DecidableEq
+
+/-- `systemerror` Boolean and errno overloads, lines 204-205. -/
+def systemError (name : String) (condition : Bool) (code : Int)
+    (extra : Option String) : SystemErrorCall :=
+  if condition then .raised name code extra else .skipped
+
+structure Backoff where
+  count : Int
+  firstDelay : Int
+  maxDelay : Int
+  factor : Int
+  jitter : Int
+  deriving Repr, DecidableEq
+
+def validBackoff (backoff : Backoff) : Bool :=
+  decide (0 ≤ backoff.count ∧ 0 ≤ backoff.firstDelay ∧ 0 ≤ backoff.maxDelay ∧
+    0 ≤ backoff.factor ∧ 0 ≤ backoff.jitter)
+
+def makeBackoff (backoff : Backoff) : Result Backoff :=
+  if validBackoff backoff then .ok backoff else .error "all inputs must be non-negative"
+
+/-- `iterate(::ExponentialBackOff)`, lines 292-298. `randomTerm` is the
+already-sampled multiplicative jitter term. -/
+def iterateBackoff (backoff : Backoff) (state : Int × Int) (randomTerm : Int) :
+    Option (Int × (Int × Int)) :=
+  if state.1 < 1 then none
+  else some (state.2, (state.1 - 1,
+    min backoff.maxDelay (state.2 * backoff.factor * randomTerm)))
+
+def backoffLength (backoff : Backoff) : Int := backoff.count
+
+def backoffElementType : String := "Float64"
+
+inductive RetryAttempt where
+  | success
+  | failure (retry : Bool)
+  deriving Repr, DecidableEq
+
+structure RetryTrace where
+  calls : Nat
+  sleeps : Nat
+  result : Bool
+  deriving Repr, DecidableEq
+
+/-- The loop in `retry`, lines 322-342. The final call after delays are
+exhausted is represented by the empty-list branch. -/
+def retryTrace : List RetryAttempt → RetryTrace
+  | [] => { calls := 1, sleeps := 0, result := false }
+  | .success :: _ => { calls := 1, sleeps := 0, result := true }
+  | .failure false :: _ => { calls := 1, sleeps := 0, result := false }
+  | .failure true :: rest =>
+      let tail := retryTrace rest
+      { calls := tail.calls + 1, sleeps := tail.sleeps + 1, result := tail.result }
+
+end JuliaLean.ErrorShow.Coverage
+
+
+namespace JuliaLean.ErrorShow.ErrorFaithful
+
+open JuliaLean.ErrorShow.Coverage
+
+abbrev R (α : Type) := Except String α
+
+/-! `error(s::Vararg{Any,N})`, lines 47-57. -/
+
+structure ErrorArgument where
+  isString : Bool
+  text : String
+  deriving Repr, DecidableEq
+
+def errorVararg : List ErrorArgument → R String
+  | [] => .error ""
+  | [argument] => if argument.isString then .error argument.text else .error "MethodError(ErrorException)"
+  | arguments => .error (String.intercalate "" (arguments.map (·.text)))
+
+/-! `rethrow()` and `rethrow(e)`, lines 73-74. -/
+
+inductive RethrowCall where
+  | current
+  | replacement (exception : String)
+  deriving Repr, DecidableEq
+
+def rethrowCurrent : RethrowCall := .current
+
+def rethrowReplacement (exception : String) : RethrowCall := .replacement exception
+
+/-! `_reformat_bt`, lines 84-114. The raw input type enforces the runtime's
+entry-size invariant while retaining every source branch. -/
+
+structure InterpreterData where
+  code : Nat
+  statement : Nat
+  moduleId : Option Nat
+  deriving Repr, DecidableEq
+
+inductive RawBacktraceEntry where
+  | native (pointer : Nat)
+  | extended (tag header managedCount uintCount : Nat) (code : Nat) (moduleId : Option Nat)
+  deriving Repr, DecidableEq
+
+inductive FormattedBacktraceEntry where
+  | native (pointer : Nat)
+  | interpreter (data : InterpreterData)
+  deriving Repr, DecidableEq
+
+def reformatBacktrace : List RawBacktraceEntry → R (List FormattedBacktraceEntry)
+  | [] => .ok []
+  | .native pointer :: rest => do
+      let tail ← reformatBacktrace rest
+      .ok (.native pointer :: tail)
+  | .extended tag header managedCount _ code moduleId :: rest =>
+      if tag = 1 then do
+        let moduleId := if managedCount = 2 then moduleId else none
+        let tail ← reformatBacktrace rest
+        .ok (.interpreter { code, statement := header, moduleId } :: tail)
+      else .error s!"Unexpected extended backtrace entry tag {tag}"
+
+/-! `backtrace()` and `catch_backtrace()`, lines 121-128 and 152-155. -/
+
+def backtrace (runtimeEntries : List RawBacktraceEntry) : R (List FormattedBacktraceEntry) :=
+  reformatBacktrace runtimeEntries
+
+def catchBacktrace (runtimeEntries : List RawBacktraceEntry) : R (List FormattedBacktraceEntry) :=
+  reformatBacktrace runtimeEntries
+
+/-! `current_exceptions`, lines 179-189. The runtime vector is represented as
+newest-first records, matching `jl_get_excstack`. -/
+
+structure RawExceptionRecord where
+  exception : String
+  rawBacktrace : List RawBacktraceEntry
+  deriving Repr, DecidableEq
+
+structure ExceptionRecord where
+  exception : String
+  backtrace : Option (R (List FormattedBacktraceEntry))
+  deriving Repr
+
+def currentExceptions (withBacktrace : Bool) (rawNewestFirst : List RawExceptionRecord) :
+    List ExceptionRecord :=
+  rawNewestFirst.reverse.map fun record =>
+    { exception := record.exception
+      backtrace := if withBacktrace then some (reformatBacktrace record.rawBacktrace) else none }
+
+/-! `kwerr`, lines 192-195. -/
+
+structure KeywordMethodError where
+  keywordTuple : String
+  arguments : List String
+  world : Nat
+  deriving Repr, DecidableEq
+
+def keywordError (keywordTuple : String) (arguments : List String) (world : Nat) :
+    R KeywordMethodError :=
+  .error s!"MethodError(Core.kwcall,{keywordTuple},{String.intercalate "," arguments},{world})"
+
+/-! `systemerror` overloads, lines 204-205. -/
+
+structure SystemErrorData where
+  functionName : String
+  code : Int
+  extra : Option String
+  deriving Repr, DecidableEq
+
+def systemErrorIf (functionName : String) (condition : Bool) (errno : Int)
+    (extra : Option String) : R (Option SystemErrorData) :=
+  if condition then .error s!"SystemError({functionName},{errno},{extra})" else .ok none
+
+def systemErrorNow (functionName : String) (errno : Int) (extra : Option String) :
+    R SystemErrorData :=
+  .error s!"SystemError({functionName},{errno},{extra})"
+
+/-! `@assert`, `_assert_tostring`, and `__assert_tostring`, lines 249-268. -/
+
+inductive AssertSourceMessage where
+  | absent (conditionText : String)
+  | literalString (text : String)
+  | expression (evaluatedText : String)
+  | literalValue (expandedText : String)
+  deriving Repr, DecidableEq
+
+def assertMessage : AssertSourceMessage → String
+  | .absent conditionText => conditionText
+  | .literalString text | .expression text | .literalValue text => text
+
+def assertExpansion (condition : Bool) (message : AssertSourceMessage) : R Unit :=
+  if condition then .ok () else .error ("AssertionError: " ++ assertMessage message)
+
+def assertToString (compilerBarrierResult : String) : String := compilerBarrierResult
+
+def bootstrapAssertToString (baseDefined : Bool) (baseString printed : String) :
+    String × List String :=
+  if baseDefined then (baseString, [])
+  else ("Error during bootstrap. See stdout.", [printed])
+
+/-! `ExponentialBackOff`, lines 277-300. Float arithmetic is represented by
+exact rationals supplied as integers with a common implicit scale. -/
+
+structure Backoff where
+  count : Int
+  firstDelay : Int
+  maxDelay : Int
+  factor : Int
+  jitter : Int
+  deriving Repr, DecidableEq
+
+def makeBackoff (count firstDelay maxDelay factor jitter : Int) : R Backoff :=
+  if 0 ≤ count && 0 ≤ firstDelay && 0 ≤ maxDelay && 0 ≤ factor && 0 ≤ jitter then
+    .ok { count, firstDelay, maxDelay, factor, jitter }
+  else .error "all inputs must be non-negative"
+
+def defaultBackoff (count firstDelay maxDelay factor jitter : Int) : R Backoff :=
+  makeBackoff count firstDelay maxDelay factor jitter
+
+def iterateBackoff (backoff : Backoff) (state : Int × Int) (randomSample : Int) :
+    Option (Int × (Int × Int)) :=
+  if state.1 < 1 then none
+  else
+    let nextCount := state.1 - 1
+    let currentDelay := state.2
+    let jitterFactor := 1 - backoff.jitter + randomSample * 2 * backoff.jitter
+    let nextDelay := min backoff.maxDelay (state.2 * backoff.factor * jitterFactor)
+    some (currentDelay, (nextCount, nextDelay))
+
+def backoffLength (backoff : Backoff) : Int := backoff.count
+
+def backoffElementType (_ : Backoff) : String := "Float64"
+
+/-! `retry`, lines 322-342. -/
+
+inductive Attempt where
+  | success (value : String)
+  | failure (exception : String) (checkAllowsRetry : Bool)
+  deriving Repr, DecidableEq
+
+structure RetryResult where
+  result : R String
+  calls : Nat
+  sleeps : Nat
+  sleptDelays : List Nat
+  deriving Repr
+
+def retry (delays : List Nat) : List Attempt → RetryResult
+  | [] => { result := .error "missing final attempt", calls := 0, sleeps := 0, sleptDelays := [] }
+  | attempts => loop delays attempts
+where
+  loop : List Nat → List Attempt → RetryResult
+    | [], .success value :: _ => { result := .ok value, calls := 1, sleeps := 0, sleptDelays := [] }
+    | [], .failure exception _ :: _ => { result := .error exception, calls := 1, sleeps := 0, sleptDelays := [] }
+    | _ :: _, [.success value] => { result := .ok value, calls := 1, sleeps := 0, sleptDelays := [] }
+    | _ :: _, [.failure exception _] => { result := .error exception, calls := 1, sleeps := 0, sleptDelays := [] }
+    | _delay :: _restDelays, .success value :: _ => { result := .ok value, calls := 1, sleeps := 0, sleptDelays := [] }
+    | _delay :: _restDelays, .failure exception false :: _ =>
+        { result := .error exception, calls := 1, sleeps := 0, sleptDelays := [] }
+    | delay :: restDelays, .failure _ true :: restAttempts =>
+        let tail := loop restDelays restAttempts
+        { result := tail.result, calls := tail.calls + 1, sleeps := tail.sleeps + 1,
+          sleptDelays := delay :: tail.sleptDelays }
+    | _, [] => { result := .error "missing final attempt", calls := 0, sleeps := 0, sleptDelays := [] }
+
+end JuliaLean.ErrorShow.ErrorFaithful

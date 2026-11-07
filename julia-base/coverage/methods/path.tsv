@@ -16,22 +16,22 @@ base/path.jl	255	260	isdirpath	isdirpath(path::String)::Bool	modelled	iocov-path
 base/path.jl	273	276	splitdir	splitdir(path::String)	modelled	iocov-path-faithful-core	
 base/path.jl	279	279	_splitdir_nodrive	_splitdir_nodrive(path::String)	modelled	iocov-path-faithful-core	
 base/path.jl	280	289	_splitdir_nodrive	_splitdir_nodrive(drive::String, path::String)::Tuple{String, String}	modelled	iocov-path-faithful-core	
-base/path.jl	308	308	dirname	dirname(path::AbstractString)	modelled	iocov-path-faithful-core	
-base/path.jl	330	330	basename	basename(path::AbstractString)	modelled	iocov-path-faithful-core	
+base/path.jl	308	308	dirname	dirname(path::AbstractString)	modelled	files-method-dirname-abstract	Preserves dynamically dispatched splitdir, its world changes and exceptions.
+base/path.jl	330	330	basename	basename(path::AbstractString)	modelled	files-method-basename-abstract	Preserves dynamically dispatched splitdir, its world changes and exceptions.
 base/path.jl	351	368	splitext	splitext(path::String)::Tuple{String, String}	modelled	iocov-path-faithful-core	
 base/path.jl	371	371	pathsep	pathsep()	modelled	files-method-path-core	
-base/path.jl	393	393	splitpath	splitpath(p::AbstractString)	modelled	iocov-path-faithful-split-join	
+base/path.jl	393	393	splitpath	splitpath(p::AbstractString)	modelled	files-method-splitpath-abstract	Preserves String conversion, its world changes and exceptions before splitting.
 base/path.jl	395	411	splitpath	splitpath(p::String)	modelled	iocov-path-faithful-split-join	
 base/path.jl	415	461	joinpath	joinpath(paths::Union{Tuple, AbstractVector})::String	excluded		platform: Windows-only separator, drive-letter, UNC, and splitdrive implementation.
-base/path.jl	416	416	assertstring	assertstring(x)	todo		
+base/path.jl	416	416	assertstring	assertstring(x)	modelled	path-component-assertion	Verified the shared assertion model includes the exact interpolated repr and propagates repr errors.
 base/path.jl	465	483	joinpath	joinpath(paths::Union{Tuple, AbstractVector})::String	modelled	iocov-path-faithful-split-join	
-base/path.jl	466	466	assertstring	assertstring(x)	todo		
-base/path.jl	487	487	joinpath	joinpath(paths::AbstractString...)::String	modelled	iocov-path-faithful-split-join	
+base/path.jl	466	466	assertstring	assertstring(x)	modelled	path-component-assertion	Verified the shared assertion model includes the exact interpolated repr and propagates repr errors.
+base/path.jl	487	487	joinpath	joinpath(paths::AbstractString...)::String	modelled	files-method-joinpath-varargs	Preserves selected collection dispatch, fixed String identity, effectful return conversion and the String type assertion.
 base/path.jl	516	538	_split_at_separators	_split_at_separators(path::AbstractString; keepempty = true)	modelled	iocov-path-faithful-split-separators	
 base/path.jl	555	587	normpath	normpath(path::String)	modelled	iocov-path-faithful-normalize	
-base/path.jl	595	595	normpath	normpath(a::AbstractString, b::AbstractString...)	modelled	iocov-path-faithful-normalize	
+base/path.jl	595	595	normpath	normpath(a::AbstractString, b::AbstractString...)	modelled	files-method-normpath-varargs	Preserves selected joinpath dispatch and errors before native normalization.
 base/path.jl	613	625	abspath	abspath(a::String)::String	modelled	iocov-path-faithful-normalize	
-base/path.jl	633	633	abspath	abspath(a::AbstractString, b::AbstractString...)	modelled	iocov-path-faithful-normalize	
+base/path.jl	633	633	abspath	abspath(a::AbstractString, b::AbstractString...)	modelled	files-method-abspath-varargs	Preserves selected joinpath dispatch, errors and state before native abspath.
 base/path.jl	637	649	longpath	longpath(path::AbstractString)	excluded		platform: Windows-only GetLongPathNameW canonical-case wrapper.
 base/path.jl	663	679	realpath	realpath(path::AbstractString)	modelled	iocov-path-faithful-realpath	
 base/path.jl	683	707	homedir	homedir(username::AbstractString)	excluded		platform: Windows-only user-profile lookup and contractuser implementation.
@@ -40,11 +40,11 @@ base/path.jl	756	777	contractuser	contractuser(path::Union{String, SubString{Str
 base/path.jl	781	808	homedir	homedir(username::AbstractString)	modelled	iocov-path-faithful-users	
 base/path.jl	809	850	contractuser	contractuser(path::Union{String, SubString{String}})::String	modelled	iocov-path-faithful-users	
 base/path.jl	854	883	expanduser	expanduser(path::Union{String, SubString{String}})::String	modelled	iocov-path-faithful-users	
-base/path.jl	896	896	expanduser	expanduser(path::AbstractString)	modelled	iocov-path-faithful-abstract	
+base/path.jl	896	896	expanduser	expanduser(path::AbstractString)	modelled	files-method-expanduser-abstract	Preserves String conversion and propagates conversion or native expansion errors.
 base/path.jl	908	908	contractuser	contractuser(path::AbstractString)	modelled	iocov-path-faithful-abstract	
 base/path.jl	921	957	relpath	"relpath(path::String, startpath::String = ""."")"	modelled	iocov-path-faithful-relpath	
-base/path.jl	958	959	relpath	relpath(path::AbstractString, startpath::AbstractString)	modelled	iocov-path-faithful-relpath	
-base/path.jl	962	962	$f	$f(path::AbstractString)	modelled	iocov-path-faithful-abstract	generated-loop: f in (:isdirpath, :splitdir, :splitdrive, :splitext, :normpath, :abspath, :isabspath)
+base/path.jl	958	959	relpath	relpath(path::AbstractString, startpath::AbstractString)	modelled	files-method-relpath-abstract	Converts both arguments in source order, preserving failures and world changes.
+base/path.jl	962	962	$f	$f(path::AbstractString)	modelled	files-method-path-abstract-wrappers	generated-loop: f in (:isdirpath, :splitdir, :splitdrive, :splitext, :normpath, :abspath, :isabspath); native wrappers preserve String conversion, its type check, effects and delegation.
 base/path.jl	965	982	encode_uri_component	encode_uri_component(s::AbstractString)	modelled	iocov-path-faithful-uri	
 base/path.jl	1002	1002	uripath	uripath	excluded		no-behaviour: declares the uripath generic function without a method body.
 base/path.jl	1005	1016	uripath	uripath(path::String)	excluded		platform: Windows-only UNC and drive-letter file URI implementation.

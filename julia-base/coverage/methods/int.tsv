@@ -5,7 +5,7 @@ base/int.jl	75	75	signed	signed(::Type{UInt16})	modelled	int-rem-unsigned-signed
 base/int.jl	76	76	signed	signed(::Type{UInt32})	modelled	int-rem-unsigned-signed	
 base/int.jl	77	77	signed	signed(::Type{UInt64})	modelled	int-rem-unsigned-signed	
 base/int.jl	78	78	signed	signed(::Type{UInt128})	modelled	int-rem-unsigned-signed	
-base/int.jl	79	79	signed	signed(::Type{T}) where {T<:Signed}	todo		trivial: restates body; returns its argument unchanged; no behaviour beyond the identity
+base/int.jl	79	79	signed	signed(::Type{T}) where {T<:Signed}	modelled	int-rem-unsigned-signed,floatintcov-int-signed-types,int-signed-bool-size	Reviewed line by line against pinned f755f49 source.
 base/int.jl	80	80	signed	signed(::Type{Union{}}, slurp...)	modelled	int-invalid-type-method-errors	
 base/int.jl	84	84	<	(<)(x::T, y::T) where {T<:BitSigned}	modelled	int-lt-signed	
 base/int.jl	86	86	-	(-)(x::BitInteger)	modelled	int-neg-wraps	
@@ -96,16 +96,16 @@ base/int.jl	607	607	>>>	>>>(x::BitInteger, y::BitUnsigned)	modelled	floatintcov-
 base/int.jl	611	612	>>	>>(x::BitInteger, y::Int)	modelled	int-shift-int-count	
 base/int.jl	613	614	<<	<<(x::BitInteger, y::Int)	modelled	int-shift-int-count	
 base/int.jl	615	616	>>>	>>>(x::BitInteger, y::Int)	modelled	int-shift-int-count	
-base/int.jl	621	621	rem	rem(x::($from), ::Type{$to})	todo		generated-loop: to in BitInteger_types, from in (BitInteger_types..., Bool)
-base/int.jl	623	623	rem	rem(x::($from), ::Type{$to})	todo		generated-loop: to in BitInteger_types, from in (BitInteger_types..., Bool)
-base/int.jl	626	626	rem	rem(x::($from), ::Type{$to})	todo		generated-loop: to in BitInteger_types, from in (BitInteger_types..., Bool)
-base/int.jl	628	628	rem	rem(x::($from), ::Type{$to})	todo		generated-loop: to in BitInteger_types, from in (BitInteger_types..., Bool)
-base/int.jl	631	631	rem	rem(x::($from), ::Type{$to})	todo		generated-loop: to in BitInteger_types, from in (BitInteger_types..., Bool)
+base/int.jl	621	621	rem	rem(x::($from), ::Type{$to})	modelled	floatintcov-int-primitives,int-lt-signed,int-lt-unsigned	Reviewed line by line against pinned f755f49 source.
+base/int.jl	623	623	rem	rem(x::($from), ::Type{$to})	modelled	floatintcov-int-primitives,int-lt-signed,int-lt-unsigned	Reviewed line by line against pinned f755f49 source.
+base/int.jl	626	626	rem	rem(x::($from), ::Type{$to})	modelled	floatintcov-int-primitives,int-lt-signed,int-lt-unsigned	Reviewed line by line against pinned f755f49 source.
+base/int.jl	628	628	rem	rem(x::($from), ::Type{$to})	modelled	floatintcov-int-primitives,int-lt-signed,int-lt-unsigned	Reviewed line by line against pinned f755f49 source.
+base/int.jl	631	631	rem	rem(x::($from), ::Type{$to})	modelled	floatintcov-int-primitives,int-lt-signed,int-lt-unsigned	Reviewed line by line against pinned f755f49 source.
 base/int.jl	664	665	bitrotate	bitrotate(x::T, k::Integer) where {T <: BitInteger}	modelled	floatintcov-int-bitrotate	
-base/int.jl	695	695	rem	rem(x::T, ::Type{T}) where {T<:Integer}	todo		trivial: restates body; returns its argument unchanged; no behaviour beyond the identity
+base/int.jl	695	695	rem	rem(x::T, ::Type{T}) where {T<:Integer}	modelled	floatintcov-int-primitives,int-lt-signed,int-lt-unsigned	Reviewed line by line against pinned f755f49 source.
 base/int.jl	696	696	rem	rem(x::Signed, ::Type{Unsigned})	modelled	int-rem-signed-unsigned	
 base/int.jl	697	697	rem	rem(x::Unsigned, ::Type{Signed})	modelled	int-rem-unsigned-signed	
-base/int.jl	698	698	rem	rem(x::Integer, T::Type{<:Integer})	todo		trivial: restates body; rem(x::Integer, T::Type{<:Integer}) (line 698, model rem_Integer_Type) has nothing to promise (Nothing to promise block of JuliaLean/Proofs/base/int.lean)
+base/int.jl	698	698	rem	rem(x::Integer, T::Type{<:Integer})	modelled	int-generic-type-residues	Reviewed line by line against pinned f755f49 source.
 base/int.jl	699	699	rem	rem(x::Integer, ::Type{Bool})	modelled	int-rem-bool-parity	
 base/int.jl	700	700	rem	rem(x, ::Type{Union{}}, slurp...)	modelled	int-invalid-type-method-errors	
 base/int.jl	701	701	mod	mod(x::Integer, ::Type{T}) where {T<:Integer}	modelled	int-mod-type	

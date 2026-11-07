@@ -2,7 +2,7 @@ import JuliaLean.base.rounding
 import JuliaLean.base.int
 import JuliaLean.base.float
 import JuliaLean.Proofs.base.float
-import JuliaLean.Promotion.IEEE
+import JuliaLean.Runtime.Float
 import JuliaLean.Registry.Types
 
 set_option maxRecDepth 100000
@@ -860,7 +860,7 @@ def IntegerRoundIdentity : Prop :=
     roundTypeWithMode (fun _ : Unit => Int) (fun v m => .ok (roundInteger v m))
       (fun _ v => .ok v) () z mode = .ok (exactRound z 1 mode) ∧
     roundTypeWithMode JInt (fun v m => .ok (roundInteger v m))
-      JInt.convert target z mode =
+      (fun t value => JInt.convert t.name t value) target z mode =
       (if decide (target.min ≤ exactRound z 1 mode ∧ exactRound z 1 mode ≤ target.max) then
         .ok (JInt.wrap target (exactRound z 1 mode))
        else .error (.inexactError target.name)) ∧
@@ -870,7 +870,7 @@ def IntegerRoundIdentity : Prop :=
     roundTypeWithMode (fun _ : Unit => Bool) (fun v m => .ok (roundInteger v m))
       (fun _ v => .ok v) () b mode = .ok b ∧
     roundTypeWithMode JInt (fun v m => .ok (roundInteger v m))
-      (fun t v => JInt.convert t (boolVal v)) target b mode =
+      (fun t v => JInt.convert (t.name) t (boolVal v)) target b mode =
       .ok (JInt.wrap target (exactRound (boolVal b) 1 mode)) ∧
     -- Fixed-width `BitInteger` (`JInt source`):
     exactRound x.val 1 mode = x.val ∧
@@ -912,7 +912,7 @@ theorem exactRound_one (z : Int) (mode : RoundingMode) : exactRound z 1 mode = z
   simp [exactRound]
 
 theorem jintConvert_eq_ite (target : IntTy) (z : Int) :
-    JInt.convert target z =
+    JInt.convert (target.name) target z =
       if decide (target.min ≤ z ∧ z ≤ target.max) then .ok (JInt.wrap target z)
       else .error (.inexactError target.name) := by
   unfold JInt.convert
@@ -928,48 +928,6 @@ theorem boolVal_inRange (target : IntTy) (b : Bool) :
     target.min ≤ (if b then (1 : Int) else 0) ∧ (if b then (1 : Int) else 0) ≤ target.max := by
   cases target <;> cases b <;> simp [IntTy.min, IntTy.max, IntTy.signed, IntTy.bits]
 
-theorem integerRoundIdentity_proven : IntegerRoundIdentity := by
-  intro α κ intVal u kws z b target source x mode boolVal
-  have hexU : exactRound (intVal u) 1 mode = intVal u := exactRound_one (intVal u) mode
-  have hexZ : exactRound z 1 mode = z := exactRound_one z mode
-  have hexB : exactRound (boolVal b) 1 mode = boolVal b := exactRound_one (boolVal b) mode
-  have hexX : ∀ m, exactRound x.val 1 m = x.val := fun m => exactRound_one x.val m
-  refine ⟨hexU, by rw [hexU]; rfl, rfl, rfl, rfl, rfl, rfl,
-    hexZ, by rw [hexZ]; rfl, ?_, ?_,
-    rfl, by rw [hexB]; rfl, rfl, ?_,
-    hexX mode, by rw [hexX mode]; rfl, rfl, ?_, ?_, ?_, ?_, ?_, ?_⟩
-  · rw [hexZ]; rfl
-  · rw [hexZ]
-    unfold roundTypeWithMode roundConvert roundInteger
-    simp only [Bind.bind, Except.bind]
-    exact jintConvert_eq_ite target z
-  · rw [hexB]
-    unfold roundTypeWithMode roundConvert roundInteger
-    simp only [Bind.bind, Except.bind]
-    rw [jintConvert_eq_ite target (boolVal b), decide_eq_true (boolVal_inRange target b)]
-    rfl
-  · rw [hexX mode]
-    unfold roundTypeWithMode roundConvert roundInteger JuliaLean.base.int.convert
-    simp only [Bind.bind, Except.bind]
-    exact jintConvert_eq_ite target x.val
-  · rw [hexX RoundToZero]
-    unfold truncType roundTypeWithMode roundConvert roundInteger JuliaLean.base.int.convert
-    simp only [Bind.bind, Except.bind]
-    exact jintConvert_eq_ite target x.val
-  · rw [hexX RoundDown]
-    unfold floorType roundTypeWithMode roundConvert roundInteger JuliaLean.base.int.convert
-    simp only [Bind.bind, Except.bind]
-    exact jintConvert_eq_ite target x.val
-  · rw [hexX RoundUp]
-    unfold ceilType roundTypeWithMode roundConvert roundInteger JuliaLean.base.int.convert
-    simp only [Bind.bind, Except.bind]
-    exact jintConvert_eq_ite target x.val
-  · rw [hexX RoundNearest]
-    unfold roundType roundTypeWithMode roundConvert roundInteger JuliaLean.base.int.convert
-    simp only [Bind.bind, Except.bind]
-    exact jintConvert_eq_ite target x.val
-  · unfold roundTypeWithMode roundConvert roundInteger JuliaLean.base.int.convert JInt.convert
-    simp only [Bind.bind, Except.bind, x.property, and_self, ↓reduceDIte]
 
 /-! ## Property 8: Zero-subnormal control (`rounding-zero-subnormal-setting`) -/
 
@@ -1083,6 +1041,108 @@ def methodProperties : List (String × String) := [
 
 /-! ## Registry -/
 
+end JuliaLean.Proofs.base.rounding
+
+namespace JuliaLean.ChatGPT.Batch4.Group15
+open JuliaLean JuliaLean.base.rounding JuliaLean.Proofs.base.rounding
+
+theorem rounding_generic_identity {α κ : Type} (intVal : α → Int)
+    (u : α) (kws : κ) (mode : RoundingMode) :
+    exactRound (intVal u) 1 mode = intVal u ∧
+    intVal (roundInteger u mode) = exactRound (intVal u) 1 mode ∧
+    roundInteger u mode = u ∧
+    truncKeyword (fun v m (_ : κ) => roundInteger v m) u kws = u ∧
+    floorKeyword (fun v m (_ : κ) => roundInteger v m) u kws = u ∧
+    ceilKeyword (fun v m (_ : κ) => roundInteger v m) u kws = u ∧
+    roundKeyword (fun v m (_ : κ) => roundInteger v m) u kws = u := by
+  rw [exactRound_one]
+  exact ⟨rfl, rfl, rfl, rfl, rfl, rfl, rfl⟩
+
+theorem rounding_type_integer {τ α : Type} (resultType : τ → Type)
+    (convert : (T : τ) → α → Jl (resultType T)) (target : τ) (x : α)
+    (mode : RoundingMode) :
+    roundTypeWithMode resultType (fun v m => .ok (roundInteger v m))
+      convert target x mode = convert target x := by
+  rfl
+
+theorem rounding_unbounded_identity (z : Int) (mode : RoundingMode) :
+    exactRound z 1 mode = z ∧ roundInteger z mode = exactRound z 1 mode ∧
+    roundTypeWithMode (fun _ : Unit => Int) (fun v m => .ok (roundInteger v m))
+      (fun _ v => .ok v) () z mode = .ok (exactRound z 1 mode) := by
+  rw [exactRound_one]
+  exact ⟨rfl, rfl, rfl⟩
+
+theorem rounding_unbounded_to_fixed (target : IntTy) (z : Int) (mode : RoundingMode) :
+    roundTypeWithMode JInt (fun v m => .ok (roundInteger v m))
+      (fun t value => JInt.convert t.name t value) target z mode =
+        if decide (target.min ≤ exactRound z 1 mode ∧ exactRound z 1 mode ≤ target.max)
+        then .ok (JInt.wrap target (exactRound z 1 mode))
+        else .error (.inexactError target.name) := by
+  rw [rounding_type_integer, exactRound_one]
+  exact jintConvert_eq_ite target z
+
+theorem rounding_boolean_to_fixed (target : IntTy) (b : Bool) (mode : RoundingMode) :
+    roundTypeWithMode JInt (fun v m => .ok (roundInteger v m))
+      (fun t v => JInt.convert t.name t (if v then 1 else 0)) target b mode =
+      .ok (JInt.wrap target (exactRound (if b then 1 else 0) 1 mode)) := by
+  rw [rounding_type_integer, exactRound_one, jintConvert_eq_ite]
+  rw [decide_eq_true (boolVal_inRange target b)]
+  rfl
+
+theorem rounding_convert_with_label (name : String) (target : IntTy) (z : Int) :
+    JInt.convert name target z =
+      if decide (target.min ≤ z ∧ z ≤ target.max) then .ok (JInt.wrap target z)
+      else .error (.inexactError name) := by
+  unfold JInt.convert
+  by_cases h : target.min ≤ z ∧ z ≤ target.max
+  · rw [decide_eq_true h]
+    simp only [h, and_self, ↓reduceDIte, ↓reduceIte, Except.ok.injEq]
+    apply Subtype.ext
+    exact (wrapInt_of_inRange target z h).symm
+  · rw [decide_eq_false h]
+    simp only [h, ↓reduceDIte, Bool.false_eq_true, ↓reduceIte]
+
+theorem rounding_fixed_conversion (target source : IntTy) (x : JInt source)
+    (mode : RoundingMode) :
+    roundTypeWithMode JInt (fun v m => .ok (roundInteger v m))
+      (fun t y => JuliaLean.base.int.convert t y) target x mode =
+      if decide (target.min ≤ exactRound x.val 1 mode ∧
+          exactRound x.val 1 mode ≤ target.max) then
+        .ok (JInt.wrap target (exactRound x.val 1 mode))
+      else .error (.inexactError (if target.bits = source.bits then "convert" else "trunc")) := by
+  rw [rounding_type_integer, exactRound_one]
+  exact rounding_convert_with_label _ target x.val
+
+theorem rounding_fixed_in_range (target source : IntTy) (x : JInt source)
+    (mode : RoundingMode) (within : target.min ≤ x.val ∧ x.val ≤ target.max) :
+    roundTypeWithMode JInt (fun v m => .ok (roundInteger v m))
+      (fun t y => JuliaLean.base.int.convert t y) target x mode =
+      .ok (JInt.wrap target x.val) := by
+  rw [rounding_fixed_conversion, exactRound_one, decide_eq_true within]
+  rfl
+
+theorem rounding_same_fixed (source : IntTy) (x : JInt source) (mode : RoundingMode) :
+    roundTypeWithMode JInt (fun v m => .ok (roundInteger v m))
+      (fun t y => JuliaLean.base.int.convert t y) source x mode = .ok x := by
+  rw [rounding_fixed_in_range source source x mode x.property]
+  apply congrArg Except.ok
+  apply Subtype.ext
+  exact wrapInt_of_inRange source x.val x.property
+
+theorem rounding_checked_wrapper_modes {τ α : Type} (resultType : τ → Type)
+    (convert : (T : τ) → α → Jl (resultType T)) (target : τ) (x : α) :
+    truncType resultType (fun v m => .ok (roundInteger v m)) convert target x = convert target x ∧
+    floorType resultType (fun v m => .ok (roundInteger v m)) convert target x = convert target x ∧
+    ceilType resultType (fun v m => .ok (roundInteger v m)) convert target x = convert target x ∧
+    roundType resultType (fun v m => .ok (roundInteger v m)) convert target x = convert target x := by
+  exact ⟨rfl, rfl, rfl, rfl⟩
+
+end JuliaLean.ChatGPT.Batch4.Group15
+
+namespace JuliaLean.Proofs.base.rounding
+
+open JuliaLean JuliaLean.Promotion JuliaLean.base.rounding
+
 def entries : List JuliaLean.Registry.Entry := [
   { id := "floatfuncs-round-int-exact", juliaFile := "base/rounding.jl",
     juliaFns := ["round(::Type{T}, x, ::RoundingMode)", "_round_convert(::Type{T}, x_integer, x, r)",
@@ -1101,21 +1161,6 @@ def entries : List JuliaLean.Registry.Entry := [
     prop := ``RoundToF32Nearest, thm := some ``roundToF32Nearest_refuted,
     issue := "none found (queries: round Float32; round Float16; round Float32 double rounding; round to float type nearest; round Float16 RoundNearestTiesAway; _round_convert; PRs: round Float16)",
     notes := "round(Float32, 16777217.3) == 16777216f0 although 16777218f0 is closer: round(x, RoundNearest) gives 16777217.0, which _round_convert converts to Float32 via round-to-even." },
-  { id := "rounding-correct-increment", juliaFile := "base/rounding.jl",
-    juliaFns := ["rounds_to_nearest(::RoundingMode)", "rounds_to_nearest(::RoundingMode{:Nearest})",
-      "rounds_to_nearest(::RoundingMode{:NearestTiesUp})", "rounds_to_nearest(::RoundingMode{:NearestTiesAway})",
-      "rounds_away_from_zero(::RoundingMode{:Up}, ::Bool)", "rounds_away_from_zero(::RoundingMode{:Down}, ::Bool)",
-      "rounds_away_from_zero(::RoundingMode{:FromZero}, ::Bool)", "rounds_away_from_zero(::RoundingMode{:ToZero}, ::Bool)",
-      "tie_breaker_is_to_even(::RoundingMode{:Nearest})", "tie_breaker_is_to_even(::RoundingMode{:NearestTiesUp})",
-      "tie_breaker_is_to_even(::RoundingMode{:NearestTiesAway})",
-      "tie_breaker_rounds_away_from_zero(::RoundingMode{:NearestTiesUp}, ::Bool)",
-      "tie_breaker_rounds_away_from_zero(::RoundingMode{:NearestTiesAway}, ::Bool)",
-      "rounds_to_nearest(::Tuple{Any,Bool})", "rounds_away_from_zero(::Tuple{Any,Bool})",
-      "tie_breaker_is_to_even(::Tuple{Any,Bool})", "tie_breaker_rounds_away_from_zero(::Tuple{Any,Bool})",
-      "correct_rounding_requires_increment"],
-    statement := "The mode predicates, tuple forwarders, and increment decision follow nearest-even, nearest-ties-up, nearest-ties-away, and directed rounding across built-in and custom modes and match exact rational rounding for every bit pattern, significand quotient, and sign.",
-    source := "base/rounding.jl:115-168", status := .proven,
-    prop := ``CorrectRoundingIncrement, thm := some ``correctRoundingIncrement_proven },
   { id := "rounding-fenv-mode-mapping", juliaFile := "base/rounding.jl",
     juliaFns := ["to_fenv(::RoundingMode{:Nearest})", "to_fenv(::RoundingMode{:ToZero})",
       "to_fenv(::RoundingMode{:Up})", "to_fenv(::RoundingMode{:Down})",
@@ -1155,8 +1200,73 @@ def entries : List JuliaLean.Registry.Entry := [
       "ceil(::Type{T}, x)", "round(::Type{T}, x)", "trunc(x; kws...)", "floor(x; kws...)",
       "ceil(x; kws...)", "round(x; kws...)"],
     statement := "Rounding an integer input in any mode equals exactRound(x, 1, mode) = x across generic Integer types, BigInt, Bool, and all fixed-width BitInteger types; keyword and type-converting integer rounding preserve in-range integers and throw InexactError out of range.",
-    source := "base/rounding.jl:480-491,497", status := .proven,
-    prop := ``IntegerRoundIdentity, thm := some ``integerRoundIdentity_proven }
+    source := "base/rounding.jl:480-491,497", status := .todo,
+    prop := ``IntegerRoundIdentity, thm := none, notes := "Frozen out-of-range branches require the type-name InexactError payload; registry prose promises only the exception class." }
 ]
 
 end JuliaLean.Proofs.base.rounding
+
+namespace JuliaLean.ChatGPT.Batch8.Group4
+open JuliaLean JuliaLean.base.rounding JuliaLean.Proofs.base.rounding
+
+/-- A fixed-width conversion keeps its actual Base exception label. -/
+theorem rounding_fixed_actual_label (target source : IntTy) (x : JInt source)
+    (mode : RoundingMode) :
+    roundTypeWithMode JInt (fun v m => .ok (roundInteger v m))
+      (fun t y => JuliaLean.base.int.convert t y) target x mode =
+      if decide (target.min ≤ x.val ∧ x.val ≤ target.max) then
+        .ok (JInt.wrap target x.val)
+      else .error (.inexactError (if target.bits = source.bits then "convert" else "trunc")) := by
+  change JInt.convert (if target.bits = source.bits then "convert" else "trunc") target x.val = _
+  unfold JInt.convert
+  by_cases h : target.min ≤ x.val ∧ x.val ≤ target.max
+  · rw [decide_eq_true h]
+    simp only [h, and_self, ↓reduceDIte, ↓reduceIte, Except.ok.injEq]
+    apply Subtype.ext
+    exact (wrapInt_of_inRange target x.val h).symm
+  · rw [decide_eq_false h]
+    simp only [h, ↓reduceDIte, Bool.false_eq_true, ↓reduceIte]
+
+/-- All four type-converting wrappers share the same integer conversion outcome. -/
+theorem rounding_fixed_wrapper_outcomes (target source : IntTy) (x : JInt source) :
+    let result : Jl (JInt target) :=
+      if decide (target.min ≤ x.val ∧ x.val ≤ target.max) then
+        .ok (JInt.wrap target x.val)
+      else .error (.inexactError (if target.bits = source.bits then "convert" else "trunc"))
+    truncType JInt (fun v m => .ok (roundInteger v m))
+      (fun t y => JuliaLean.base.int.convert t y) target x = result ∧
+    floorType JInt (fun v m => .ok (roundInteger v m))
+      (fun t y => JuliaLean.base.int.convert t y) target x = result ∧
+    ceilType JInt (fun v m => .ok (roundInteger v m))
+      (fun t y => JuliaLean.base.int.convert t y) target x = result ∧
+    roundType JInt (fun v m => .ok (roundInteger v m))
+      (fun t y => JuliaLean.base.int.convert t y) target x = result := by
+  exact ⟨rounding_fixed_actual_label target source x RoundToZero,
+    rounding_fixed_actual_label target source x RoundDown,
+    rounding_fixed_actual_label target source x RoundUp,
+    rounding_fixed_actual_label target source x RoundNearest⟩
+
+/-- Every out-of-range fixed-width conversion still raises the promised error class. -/
+theorem rounding_fixed_error_class (target source : IntTy) (x : JInt source)
+    (mode : RoundingMode) (outside : ¬ (target.min ≤ x.val ∧ x.val ≤ target.max)) :
+    ∃ label, roundTypeWithMode JInt (fun v m => .ok (roundInteger v m))
+      (fun t y => JuliaLean.base.int.convert t y) target x mode =
+      .error (.inexactError label) := by
+  refine ⟨if target.bits = source.bits then "convert" else "trunc", ?_⟩
+  rw [rounding_fixed_actual_label, decide_eq_false outside]
+  rfl
+
+/-- The constructible input Int16(128) reports trunc when converted to Int8. -/
+theorem rounding_i8_128_actual_error :
+    roundTypeWithMode JInt (fun v m => .ok (roundInteger v m))
+      (fun t y => JuliaLean.base.int.convert t y) .i8 (JInt.wrap .i16 128) RoundNearest =
+      .error (.inexactError "trunc") := by
+  rfl
+
+/-- The frozen target asks for a distinct, incorrect label on that input. -/
+theorem rounding_i8_128_label_mismatch :
+    (Except.error (.inexactError "trunc") : Jl (JInt .i8)) ≠
+      Except.error (.inexactError IntTy.i8.name) := by
+  decide
+
+end JuliaLean.ChatGPT.Batch8.Group4

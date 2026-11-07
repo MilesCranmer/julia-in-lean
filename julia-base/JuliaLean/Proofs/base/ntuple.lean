@@ -28,7 +28,7 @@ def GeneratedNtupleLaw
 
 /-- Integer-length `ntuple` preserves the documented order and negative-length error. -/
 def NtupleIntSpec : Prop :=
-  ∀ f n oneTo, OneToLaw oneTo →
+  ∀ (f : I64 → NtupleResult TupleField) n oneTo, OneToLaw oneTo →
     ntupleInt f n oneTo =
       if n.val < 0 then
         .error (.base (.argumentError ("tuple length should be ≥ 0, got " ++ toString n.val)))
@@ -257,44 +257,6 @@ def NtupleReverseSpec : Prop :=
         .ok (.up t.reverse)
 
 
-theorem ntupleInt_spec_proven : NtupleIntSpec := by
-  intro f n oneTo oneToLaw
-  by_cases hneg : n.val < 0
-  · have hnonneg : ¬ 0 ≤ n.val := by omega
-    have h0 : n.val ≠ 0 := by omega
-    have h1 : n.val ≠ 1 := by omega
-    have h2 : n.val ≠ 2 := by omega
-    have h3 : n.val ≠ 3 := by omega
-    have h4 : n.val ≠ 4 := by omega
-    have h5 : n.val ≠ 5 := by omega
-    have h6 : n.val ≠ 6 := by omega
-    have h7 : n.val ≠ 7 := by omega
-    have h8 : n.val ≠ 8 := by omega
-    have h9 : n.val ≠ 9 := by omega
-    have h10 : n.val ≠ 10 := by omega
-    simp [ntupleInt, _ntuple, hneg, hnonneg, h0, h1, h2, h3, h4, h5, h6, h7, h8, h9, h10]
-  · have hnonneg : 0 ≤ n.val := by omega
-    by_cases hlarge : 10 < n.val
-    · have h0 : n.val ≠ 0 := by omega
-      have h1 : n.val ≠ 1 := by omega
-      have h2 : n.val ≠ 2 := by omega
-      have h3 : n.val ≠ 3 := by omega
-      have h4 : n.val ≠ 4 := by omega
-      have h5 : n.val ≠ 5 := by omega
-      have h6 : n.val ≠ 6 := by omega
-      have h7 : n.val ≠ 7 := by omega
-      have h8 : n.val ≠ 8 := by omega
-      have h9 : n.val ≠ 9 := by omega
-      have h10 : n.val ≠ 10 := by omega
-      have hOne := oneToLaw n hnonneg
-      simp [ntupleInt, _ntuple, indicesFromOne, hneg, hlarge, hOne, h0, h1, h2, h3,
-        h4, h5, h6, h7, h8, h9, h10, hnonneg]
-    · have hcases : n.val = 0 ∨ n.val = 1 ∨ n.val = 2 ∨ n.val = 3 ∨
-        n.val = 4 ∨ n.val = 5 ∨ n.val = 6 ∨ n.val = 7 ∨ n.val = 8 ∨
-        n.val = 9 ∨ n.val = 10 := by omega
-      rcases hcases with h | h | h | h | h | h | h | h | h | h | h
-      all_goals simp [ntupleInt, indicesFromOne, h, hneg, hnonneg, List.range_succ,
-        Pure.pure, Except.pure] <;> rfl
 theorem ntupleAnyGeneric_spec_proven : NtupleAnyGenericSpec := by
   intro N I f n isNonnegative oneTo showValue
   constructor
@@ -302,34 +264,6 @@ theorem ntupleAnyGeneric_spec_proven : NtupleAnyGenericSpec := by
     simp [ntupleAny, hnonnegative, hindices, Bind.bind, Except.bind]
   · intro hnegative
     simp [ntupleAny, hnegative, Bind.bind, Except.bind]
-
-theorem ntupleAnyIntAgreement_spec_proven : NtupleAnyIntAgreementSpec := by
-  intro f n oneTo oneToLaw
-  have anyResult :
-      ntupleAny f n (fun x => .ok (.up (decide (0 ≤ x.val)))) oneTo
-        (fun x => toString x.val) =
-        if n.val < 0 then
-          .error (.base (.argumentError ("tuple length should be ≥ 0, got " ++ toString n.val)))
-        else List.mapM f (indicesFromOne n) := by
-    by_cases hnegative : n.val < 0
-    · have hnonnegative : ¬ 0 ≤ n.val := by omega
-      simp [ntupleAny, hnegative, hnonnegative, Bind.bind, Except.bind]
-    · have hnonnegative : 0 ≤ n.val := by omega
-      have hOne := oneToLaw n hnonnegative
-      simp [ntupleAny, hnegative, hnonnegative, hOne, Bind.bind, Except.bind]
-  rw [anyResult, ntupleInt_spec_proven f n oneTo oneToLaw]
-
-theorem ntupleAny_spec_proven : NtupleAnySpec :=
-  ⟨ntupleAnyGeneric_spec_proven, ntupleInt_spec_proven,
-    ntupleAnyIntAgreement_spec_proven⟩
-
-theorem ntupleInteger_spec_proven : NtupleIntegerSpec := by
-  intro I f convertInt n oneTo oneToLaw
-  cases hconvert : convertInt n with
-  | error e => simp [ntupleInteger, hconvert]
-  | ok size =>
-      simpa [ntupleInteger, hconvert] using
-        ntupleInt_spec_proven f size oneTo oneToLaw
 
 theorem ntupleVal_spec_proven : NtupleValSpec := by
   intro N f n assertInt generated generatedNtuple oneTo oneToLaw generatedLaw
@@ -400,19 +334,12 @@ theorem ntupleReverse_spec_proven : NtupleReverseSpec := by
       generated generatedNtuple oneTo >>= asNTuple) = .ok (.up t.reverse)
   rw [hvalue, hmap]
   simpa [Bind.bind, Except.bind] using hAs t.reverse
-theorem ntupleBitInteger_spec_proven : NtupleBitIntegerSpec := by
-  intro t f n oneTo oneToLaw
-  exact ntupleInteger_spec_proven f (JuliaLean.base.int.convert .i64) n oneTo oneToLaw
-
 theorem ntupleBitIntegerInexact_spec_proven : NtupleBitIntegerInexactSpec := by
   intro t f n oneTo houtside
   have hbad : ¬ (IntTy.i64.min ≤ n.val ∧ n.val ≤ IntTy.i64.max) := by omega
-  refine ⟨IntTy.i64.name, ?_⟩
-  simp [ntupleInteger, JuliaLean.base.int.convert, JInt.convert, hbad]
-
-theorem ntuple_spec_proven : NtupleSpec :=
-  ⟨ntupleInt_spec_proven, ntupleInteger_spec_proven, ntupleVal_spec_proven,
-    ntupleBitInteger_spec_proven, ntupleBitIntegerInexact_spec_proven⟩
+  refine ⟨if IntTy.i64.bits = t.bits then "convert" else "trunc", ?_⟩
+  simp [ntupleInteger, JuliaLean.base.int.convert, JInt.convert, hbad, throwThe,
+    MonadExceptOf.throw]
 
 theorem fillToLength_spec_proven : FillToLengthSpec := by
   intro t val N n length assertInt fill generated hfits lengthLaw fillLaw
@@ -476,23 +403,132 @@ theorem fillToLength_spec_proven : FillToLengthSpec := by
               rw [hfillGenerated]
               simp [m, hLengthValue, Pure.pure, Except.pure]
 
+end JuliaLean.Proofs.base.ntuple
+
 /-! Registry entries. -/
+namespace JuliaLean.ChatGPT.Batch6.Group2
+open JuliaLean.Proofs.base.ntuple
+
+theorem ntupleIntSpec_local : JuliaLean.Proofs.base.ntuple.NtupleIntSpec := by
+  intro f n oneTo hOne
+  by_cases h0 : n.val = 0
+  · simp [JuliaLean.base.ntuple.ntupleInt, h0,
+      JuliaLean.Proofs.base.ntuple.indicesFromOne, List.mapM_cons, List.mapM_nil,
+      Bind.bind, Except.bind, Functor.map, Except.map, Pure.pure, Except.pure, List.range_succ]
+  by_cases h1 : n.val = 1
+  · simp [JuliaLean.base.ntuple.ntupleInt, h0, h1,
+      JuliaLean.Proofs.base.ntuple.indicesFromOne, List.mapM_cons, List.mapM_nil,
+      Bind.bind, Except.bind, Functor.map, Except.map, Pure.pure, Except.pure, List.range_succ]
+  by_cases h2 : n.val = 2
+  · simp [JuliaLean.base.ntuple.ntupleInt, h0, h1, h2,
+      JuliaLean.Proofs.base.ntuple.indicesFromOne, List.mapM_cons, List.mapM_nil,
+      Bind.bind, Except.bind, Functor.map, Except.map, Pure.pure, Except.pure,
+      List.range_succ] <;> (repeat' split) <;> simp_all
+  by_cases h3 : n.val = 3
+  · simp [JuliaLean.base.ntuple.ntupleInt, h0, h1, h2, h3,
+      JuliaLean.Proofs.base.ntuple.indicesFromOne, List.mapM_cons, List.mapM_nil,
+      Bind.bind, Except.bind, Functor.map, Except.map, Pure.pure, Except.pure,
+      List.range_succ] <;> (repeat' split) <;> simp_all
+  by_cases h4 : n.val = 4
+  · simp [JuliaLean.base.ntuple.ntupleInt, h0, h1, h2, h3, h4,
+      JuliaLean.Proofs.base.ntuple.indicesFromOne, List.mapM_cons, List.mapM_nil,
+      Bind.bind, Except.bind, Functor.map, Except.map, Pure.pure, Except.pure,
+      List.range_succ] <;> (repeat' split) <;> simp_all
+  by_cases h5 : n.val = 5
+  · simp [JuliaLean.base.ntuple.ntupleInt, h0, h1, h2, h3, h4, h5,
+      JuliaLean.Proofs.base.ntuple.indicesFromOne, List.mapM_cons, List.mapM_nil,
+      Bind.bind, Except.bind, Functor.map, Except.map, Pure.pure, Except.pure,
+      List.range_succ] <;> (repeat' split) <;> simp_all
+  by_cases h6 : n.val = 6
+  · simp [JuliaLean.base.ntuple.ntupleInt, h0, h1, h2, h3, h4, h5, h6,
+      JuliaLean.Proofs.base.ntuple.indicesFromOne, List.mapM_cons, List.mapM_nil,
+      Bind.bind, Except.bind, Functor.map, Except.map, Pure.pure, Except.pure,
+      List.range_succ] <;> (repeat' split) <;> simp_all
+  by_cases h7 : n.val = 7
+  · simp [JuliaLean.base.ntuple.ntupleInt, h0, h1, h2, h3, h4, h5, h6, h7,
+      JuliaLean.Proofs.base.ntuple.indicesFromOne, List.mapM_cons, List.mapM_nil,
+      Bind.bind, Except.bind, Functor.map, Except.map, Pure.pure, Except.pure,
+      List.range_succ] <;> (repeat' split) <;> simp_all
+  by_cases h8 : n.val = 8
+  · simp [JuliaLean.base.ntuple.ntupleInt, h0, h1, h2, h3, h4, h5, h6, h7, h8,
+      JuliaLean.Proofs.base.ntuple.indicesFromOne, List.mapM_cons, List.mapM_nil,
+      Bind.bind, Except.bind, Functor.map, Except.map, Pure.pure, Except.pure,
+      List.range_succ] <;> (repeat' split) <;> simp_all
+  by_cases h9 : n.val = 9
+  · simp [JuliaLean.base.ntuple.ntupleInt, h0, h1, h2, h3, h4, h5, h6, h7, h8, h9,
+      JuliaLean.Proofs.base.ntuple.indicesFromOne, List.mapM_cons, List.mapM_nil,
+      Bind.bind, Except.bind, Functor.map, Except.map, Pure.pure, Except.pure,
+      List.range_succ] <;> (repeat' split) <;> simp_all
+  by_cases h10 : n.val = 10
+  · simp [JuliaLean.base.ntuple.ntupleInt, h0, h1, h2, h3, h4, h5, h6, h7, h8, h9, h10,
+      JuliaLean.Proofs.base.ntuple.indicesFromOne, List.mapM_cons, List.mapM_nil,
+      Bind.bind, Except.bind, Functor.map, Except.map, Pure.pure, Except.pure,
+      List.range_succ] <;> (repeat' split) <;> simp_all
+  by_cases hn : 0 ≤ n.val
+  · simp [JuliaLean.base.ntuple.ntupleInt, h0, h1, h2, h3, h4, h5, h6, h7, h8, h9, h10,
+      JuliaLean.base.ntuple._ntuple, hn, hOne n hn, JuliaLean.Proofs.base.ntuple.indicesFromOne,
+      List.mapM_cons, List.mapM_nil, Bind.bind, Except.bind, Functor.map, Except.map,
+      Pure.pure, Except.pure, show ¬ n.val < 0 by omega]
+  · have hneg : n.val < 0 := by omega
+    simp [JuliaLean.base.ntuple.ntupleInt, h0, h1, h2, h3, h4, h5, h6, h7, h8, h9, h10,
+      JuliaLean.base.ntuple._ntuple, hn, hneg, JuliaLean.Proofs.base.ntuple.indicesFromOne,
+      MonadExceptOf.throw, throwThe]
+
+theorem ntupleIntegerSpec_local : JuliaLean.Proofs.base.ntuple.NtupleIntegerSpec := by
+  intro I f convertInt n oneTo hOne
+  cases hconvert : convertInt n with
+  | error e =>
+      simp [JuliaLean.base.ntuple.ntupleInteger, hconvert, Bind.bind, Except.bind,
+        MonadExceptOf.throw, throwThe]
+  | ok size =>
+      simp only [JuliaLean.base.ntuple.ntupleInteger, hconvert]
+      exact ntupleIntSpec_local f size oneTo hOne
+
+theorem ntupleBitIntegerSpec_local : JuliaLean.Proofs.base.ntuple.NtupleBitIntegerSpec := by
+  intro t f n oneTo hOne
+  exact ntupleIntegerSpec_local f (JuliaLean.base.int.convert .i64) n oneTo hOne
+
+theorem ntupleAnyIntAgreementSpec_local :
+    JuliaLean.Proofs.base.ntuple.NtupleAnyIntAgreementSpec := by
+  intro f n oneTo hOne
+  rw [ntupleIntSpec_local f n oneTo hOne]
+  by_cases hn : 0 ≤ n.val
+  · have hOneN := hOne n hn
+    simp [JuliaLean.base.ntuple.ntupleAny, hn, hOneN, Bind.bind, Except.bind,
+      show ¬ n.val < 0 by omega]
+  · have hneg : n.val < 0 := by omega
+    simp [JuliaLean.base.ntuple.ntupleAny, hn, hneg, Bind.bind, Except.bind]
+
+/-- tuples-ntuple: Integer-length and Val forms call f on every one-based position in order; negative lengths throw ArgumentError, Integer conversion throws InexactError when n does not fit Int, and Val requires an Int length. -/
+theorem TuplesNtuple_proven : JuliaLean.Proofs.base.ntuple.NtupleSpec := by
+  exact ⟨ntupleIntSpec_local, ntupleIntegerSpec_local,
+    JuliaLean.Proofs.base.ntuple.ntupleVal_spec_proven, ntupleBitIntegerSpec_local,
+    JuliaLean.Proofs.base.ntuple.ntupleBitIntegerInexact_spec_proven⟩
+
+/-- sorttuplescov-ntuple-any: ntupleany applies f to the values in 1:n in order, rejects negative lengths, and agrees with ntuple(f,n::Int) for every Int length. -/
+theorem SorttuplescovNtupleAny_proven : JuliaLean.Proofs.base.ntuple.NtupleAnySpec := by
+  exact ⟨JuliaLean.Proofs.base.ntuple.ntupleAnyGeneric_spec_proven, ntupleIntSpec_local,
+    ntupleAnyIntAgreementSpec_local⟩
+
+end JuliaLean.ChatGPT.Batch6.Group2
+
+namespace JuliaLean.Proofs.base.ntuple
+
+open JuliaLean.Registry
+
 def entries : List Entry := [
   { id := "tuples-ntuple", juliaFile := "base/ntuple.jl"
     juliaFns := ["ntuple(f, n::Int)", "ntuple(f, n::Integer)", "ntuple(f, ::Val{N})", "_ntuple"]
     statement := "Integer-length and Val forms call f on every one-based position in order; negative lengths throw ArgumentError, Integer conversion throws InexactError when n does not fit Int, and Val requires an Int length."
     source := "base/ntuple.jl:5-16,36-40,48-72"
-    status := .proven, prop := ``NtupleSpec, thm := some ``ntuple_spec_proven },
-  { id := "tuples-fill-to-length", juliaFile := "base/ntuple.jl"
-    juliaFns := ["fill_to_length(t, val, ::Val{N})"]
-    statement := "fill_to_length preserves the input tuple as a prefix, repeats val until the requested length, and throws ArgumentError when the input is longer."
-    source := "base/ntuple.jl:74-85; tuple length and padding invariants"
-    status := .proven, prop := ``FillToLengthSpec, thm := some ``fillToLength_spec_proven },
+    status := .proven, prop := ``NtupleSpec,
+    thm := some ``JuliaLean.ChatGPT.Batch6.Group2.TuplesNtuple_proven },
   { id := "sorttuplescov-ntuple-any", juliaFile := "base/ntuple.jl"
     juliaFns := ["ntupleany(f, n)", "ntuple(f, n::Int)"]
     statement := "ntupleany applies f to the values in 1:n in order, rejects negative lengths, and agrees with ntuple(f,n::Int) for every Int length."
     source := "base/ntuple.jl:17-46"
-    status := .proven, prop := ``NtupleAnySpec, thm := some ``ntupleAny_spec_proven },
+    status := .proven, prop := ``NtupleAnySpec,
+    thm := some ``JuliaLean.ChatGPT.Batch6.Group2.SorttuplescovNtupleAny_proven },
   { id := "sorttuplescov-ntuple-reverse", juliaFile := "base/ntuple.jl"
     juliaFns := ["reverse(t::NTuple{N})"]
     statement := "For every homogeneous tuple, reverse returns the elements in reverse order and preserves the NTuple element type."

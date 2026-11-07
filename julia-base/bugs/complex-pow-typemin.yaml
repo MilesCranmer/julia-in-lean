@@ -51,5 +51,5 @@ duplicates:
     - {number: 57464, state: closed, relation: related}
   queries: ["complex power typemin", "power_by_squaring typemin", "complex typemin"]
 lean:
-  property: JuliaLean.Complex.PowIntTotal
-  theorem: JuliaLean.Complex.powIntTotal_refuted
+  property: JuliaLean.Proofs.base.complex.PowIntTotal
+  theorem: JuliaLean.Proofs.base.complex.powIntTotal_refuted

@@ -1,0 +1,71 @@
+id: rational-manual-float-identity
+title: "float(a//b) can differ from a/b despite the manual identity"
+priority: P3
+kind: wrong-result
+area: MathFuncs
+files: [base/rational.jl, base/int.jl]
+functions: ["AbstractFloat(x::Rational)"]
+summary: |
+  The manual promises `isequal(float(a//b), a/b)` for integer a and b, except
+  when a == 0 && b <= 0. For a = 9007199254740993 and b = 9007199254740996,
+  both Int64, `a//b` reduces by gcd 3, but `float(a//b)` is
+  0.9999999999999997 while `a/b` is 0.9999999999999996. The documented equality
+  therefore fails for a successful, nonzero rational.
+likelihood: |
+  The mismatch requires integer operands whose reduced and unreduced values
+  round differently as Float64. The reproducer uses one Int64 pair just above
+  the exact-integer range of Float64; ordinary small values do not expose it.
+maybe_intended: |
+  The manual states the equality for all inputs in its stated domain. If integer
+  division intentionally rounds its original operands before division, then the
+  promise needs a narrower domain; otherwise the two paths need matching
+  single-rounded quotient semantics.
+reproducer: |
+  Stored at repro/rational-manual-float-identity.jl. The script verifies that
+  gcd(a, b) == 3, constructs the reduced rational, and prints both Float64
+  results and `isequal`. Run with
+  `julia repro/rational-manual-float-identity.jl`.
+output:
+  release: |
+    JULIA 1.13.2 COMMIT 45b6d15e34bbd2003a31acce0b1847b63dad029c
+    == release
+    a=9007199254740993 b=9007199254740996 q=3002399751580331//3002399751580332
+    float(q)=0.9999999999999997 a/b=0.9999999999999996 isequal=false
+    REPRODUCED rational-manual-float-identity
+  nightly: |
+    JULIA 1.15.0-DEV.unknown COMMIT f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    == nightly
+    a=9007199254740993 b=9007199254740996 q=3002399751580331//3002399751580332
+    float(q)=0.9999999999999997 a/b=0.9999999999999996 isequal=false
+    REPRODUCED rational-manual-float-identity
+reproduced: {release: true, nightly: true}
+expected: |
+  The documented equality should hold for this input. If conversion of the
+  original integer operands before division is intentional, the manual should
+  exclude cases where reducing the rational changes Float64 rounding.
+promised_by: |
+  doc/src/manual/complex-and-rational-numbers.md:256-263 promises
+  `isequal(float(a//b), a/b)` for integer a and b, except when a == 0 && b <= 0.
+cause: |
+  Rational construction reduces a and b by their gcd, 3, before `float(::Rational)`
+  converts the reduced numerator and denominator to Float64 and divides them.
+  Integer division converts the original operands to Float64 before dividing
+  (base/rational.jl:49,91; base/int.jl:102-104). The two paths therefore round
+  different integers before the division and produce adjacent Float64 values.
+possible_fix: |
+  Clarify the manual's domain if separately rounding the original integer
+  operands is intended. Otherwise, make rational conversion and integer division
+  use matching single-rounded quotient semantics.
+duplicates:
+  issues: []
+  prs: []
+  queries:
+    - "issues: float(a//b) a/b identity"
+    - "PRs: float(a//b) a/b identity"
+    - "issues: rational float conversion isequal manual"
+    - "PRs: rational float conversion isequal manual"
+    - "issues: float rational double rounding"
+    - "PRs: float rational double rounding"
+lean:
+  property: JuliaLean.Statements.rational.Round11.manual_float_identity
+  theorem: JuliaLean.Proofs.base.rational.Round11.manual_float_identity_refuted

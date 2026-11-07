@@ -39,11 +39,11 @@ output:
     true
     7
     7
-    THROWS BoundsError
-    THROWS BoundsError
-    THROWS BoundsError
-    REPRODUCED abstractarrayspecs-zero-index-offset
-reproduced: {release: true, nightly: true}
+    7
+    7
+    8
+    NOT REPRODUCED
+reproduced: {release: true, nightly: false}
 expected: |
   A[] == 7, get(A, (), 0) == 7 and A[] = 8 stores 8, as for A[5, 5] and for a
   linear-style array with the same axes.

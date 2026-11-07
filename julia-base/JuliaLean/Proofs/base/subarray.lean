@@ -542,13 +542,14 @@ theorem subArrayStrideTotal_refuted : ¬ SubArrayStrideTotal := by
       (substridesDispatch strideCounterexampleOps.indexStep strideCounterexampleOps.indexTypeName) =
         .ok [] := by
     simp [stridesSubArray, view, strideCounterexampleOps, substridesDispatch,
+      substridesScalar, substridesScalarSource, JuliaLean.base.subarray.Models1Group17.tupleTail,
       substridesEmpty, List.drop, Bind.bind, Except.bind, Pure.pure, Except.pure]
   have hTotal := h strideCounterexampleOps view (int64 1)
     hSupported hAxes ⟨[], hStrides, by simp [view]⟩ (by decide)
   obtain ⟨stride, hStride⟩ := hTotal
   have hError : strideSubArrayConfigured strideCounterexampleOps view (int64 1) =
       .error .boundsError := by
-    simp [strideSubArrayConfigured, strideSubArray, view, hStrides,
+    simp [strideSubArrayConfigured, strideSubArray, strideSubArraySource, view, hStrides,
       getListI64OneBased, lastListI64, Bind.bind, Except.bind, Pure.pure,
       Except.pure, Functor.map, Except.map]
   rw [hError] at hStride
@@ -839,6 +840,7 @@ private theorem bug_initial_stride :
     computeStride1WithOps strideCounterexampleOps bugParent
       [.identity bugAxis, .scalar (int64 2)] = .ok (int64 1) := by
   simp [computeStride1WithOps, computeStride1, computeStride1Dispatch, computeStride1Range,
+    computeStride1RangeSource,
     strideCounterexampleOps, Index.isRange, bugParent, Bind.bind, Except.bind]
 
 private theorem bug_flattened_stride :
@@ -872,7 +874,7 @@ private theorem offset_identity_matrix {P : Type} (ops : ParentArrayOps P) (pare
       .ok (isub linear (imul stride first)) := by
   simp [computeOffset1WithOps, computeOffset1, findExtendedDimsDispatch,
     findExtendedIndicesDispatch, computeOffset1Dispatch, notVector, Index.isRange,
-    computeOffset1Range, lin, axisFirst, Bind.bind, Except.bind, Pure.pure, Except.pure]
+    computeOffset1Range, computeOffset1RangeSource, lin, axisFirst, Bind.bind, Except.bind, Pure.pure, Except.pure]
 
 private theorem offset_slice_matrix {P : Type} (ops : ParentArrayOps P) (parent : P)
     (axis : Axis) (column stride linear first : I64)
@@ -883,7 +885,7 @@ private theorem offset_slice_matrix {P : Type} (ops : ParentArrayOps P) (parent 
       .ok (isub linear (imul stride first)) := by
   simp [computeOffset1WithOps, computeOffset1, findExtendedDimsDispatch,
     findExtendedIndicesDispatch, computeOffset1Dispatch, notVector,
-    computeOffset1Slice, lin, axisFirst, Bind.bind, Except.bind, Pure.pure, Except.pure]
+    computeOffset1Slice, computeOffset1SliceSource, lin, axisFirst, Bind.bind, Except.bind, Pure.pure, Except.pure]
 
 private theorem bug_initial_offset :
     computeOffset1WithOps strideCounterexampleOps bugParent (int64 1)
@@ -1149,6 +1151,7 @@ theorem rangeViewAddress_proven : RangeViewAddress := by
     simp only [computeStride1WithOps, computeStride1]
     rw [fill]
     simp [indices, computeStride1Dispatch, Index.isRange, computeStride1Range,
+      computeStride1RangeSource,
       stepValue, imul_one_left, Bind.bind, Except.bind]
   have offset : computeOffset1WithOps ops parent step indices = .ok (isub origin step) := by
     simp only [computeOffset1WithOps, computeOffset1, indices, findExtendedDimsDispatch,
@@ -1157,6 +1160,7 @@ theorem rangeViewAddress_proven : RangeViewAddress := by
     | nil =>
         have isVector : ops.isVector parent = true := by simpa using vector
         simp [computeOffset1Dispatch, isVector, Index.isRange, computeOffset1VectorRange,
+          computeOffset1VectorRangeSource,
           rangeFirst, rangeAxisFirst, origin, block, columnMajorOffset, imul_zero,
           iadd_zero, imul_comm step (int64 1), imul_one_left,
           Bind.bind, Except.bind, Pure.pure, Except.pure]
@@ -1164,6 +1168,7 @@ theorem rangeViewAddress_proven : RangeViewAddress := by
         have notVector : ops.isVector parent = false := by simpa using vector
         simp only [indices, List.map_cons] at lin
         simp [computeOffset1Dispatch, notVector, Index.isRange, computeOffset1Range,
+          computeOffset1RangeSource,
           rangeAxisFirst, lin, imul_comm step (int64 1), imul_one_left,
           Bind.bind, Except.bind, Pure.pure, Except.pure]
   let view : SubArray P T :=
@@ -1700,7 +1705,7 @@ private theorem offset_second_slice_matrix {P : Type} (ops : ParentArrayOps P) (
       .ok (isub linear (imul stride first)) := by
   simp [computeOffset1WithOps, computeOffset1, findExtendedDimsDispatch,
     findExtendedIndicesDispatch, computeOffset1Dispatch, notVector,
-    computeOffset1Slice, lin, axisFirst, Bind.bind, Except.bind, Pure.pure, Except.pure]
+    computeOffset1Slice, computeOffset1SliceSource, lin, axisFirst, Bind.bind, Except.bind, Pure.pure, Except.pure]
 
 private theorem strided_offset :
     computeOffset1WithOps strideCounterexampleOps bugParent (int64 4)
@@ -1858,6 +1863,7 @@ private theorem reindex_array_dispatch (getVector : Index → Index → Jl Index
             pure (value :: rest)
         | _ => .error .boundsError
       | rank => do
+          if arguments.length < rank then return ← .error .boundsError
           let value ← getArray index (arguments.take rank)
           let rest ← reindexDispatch getVector getMatrix getArray indices (arguments.drop rank)
           pure (value :: rest)) := by
@@ -1896,6 +1902,8 @@ private theorem reindex_array_block (getVector : Index → Index → Jl Index)
               simp only [List.length_cons, List.map_cons, List.cons_append,
                 indexElementRead] at taken dropped ⊢
               rw [taken, dropped]
+              simp only [List.length_append, List.length_cons, List.length_map]
+              split <;> (first | omega | rfl)
 
 private theorem reindex_point_array (getVector : Index → Index → Jl Index)
     (getMatrix : Index → Index → Index → Jl Index)
@@ -2425,6 +2433,8 @@ private theorem reindex_raw_block (getVector : Index → Index → Jl Index)
           | cons third blockIndices =>
               simp only [List.length_cons, List.cons_append, indexArrayRead] at taken dropped ⊢
               rw [taken, dropped]
+              simp only [List.length_append, List.length_cons]
+              split <;> (first | omega | rfl)
 
 private theorem reindexRow_actual {getVector getMatrix getArray}
     {index arguments result}
@@ -3058,7 +3068,382 @@ theorem defaultParentIndicesContract_proven : DefaultParentIndicesContract := by
   intro P parent size oneto first last
   exact ⟨List.length_map oneto, oneBasedAxes_coordinates (size parent) oneto first last⟩
 
+def ShapeVolume (shape : List I64) : Int := (shape.map (fun size => size.val)).prod
+
+def TrimmedShapeStorageVolume : Prop :=
+  ∀ {A : Type} (index : A) (rest : List A) (tail : List A → List I64)
+    (empty : A → Bool) (zero maximum length : A → I64) (rank : Nat),
+    ShapeVolume (trimmedShapeScalar index rest tail) = ShapeVolume (tail rest) ∧
+    ShapeVolume (trimmedShapeAbstractRange index rest empty zero maximum tail) =
+      (if empty index then zero index else maximum index).val * ShapeVolume (tail rest) ∧
+    ShapeVolume (trimmedShapeDenseRange index rest length tail) =
+      (length index).val * ShapeVolume (tail rest) ∧
+    ShapeVolume (trimmedShapeScalarArray index rest length tail) =
+      (length index).val * ShapeVolume (tail rest) ∧
+    ShapeVolume (trimmedShapeCartesianZero index rest tail) = ShapeVolume (tail rest) ∧
+    ShapeVolume (trimmedShapeCartesian rank index rest length tail) =
+      (length index).val * ShapeVolume (tail rest)
+
+def SelectorRanks (indices : List Index) : Nat :=
+  (indices.map (fun index => if index.isScalar then 0
+    else if index = .colon then 1 else index.indexAxes.length)).sum
+
+def TrimmedSelectorRanks : Prop :=
+  (∀ {A : Type} (index : A) (rest : List A) (axes : A → List Axis)
+      (tail : List A → List Index) colon first,
+    SelectorRanks (trimmedParentIndices index rest axes colon tail) =
+      (axes index).length + SelectorRanks (tail rest) ∧
+    SelectorRanks (trimmedViewIndices index rest axes colon tail) =
+      (axes index).length + SelectorRanks (tail rest) ∧
+    SelectorRanks (trimmedViewCartesianZero index rest axes first tail) =
+      SelectorRanks (tail rest) ∧
+    SelectorRanks (trimmedParentDenseRange index rest tail) =
+      1 + SelectorRanks (tail rest) ∧
+    SelectorRanks (trimmedParentCartesianZero index rest tail) = SelectorRanks (tail rest)) ∧
+  (∀ index rest tail,
+    SelectorRanks (trimmedParentRange index rest tail) =
+      SelectorRanks [index] + SelectorRanks (tail rest))
+
+def DenseRangeTrimExtent : Prop :=
+  ∀ index length oftype oneto,
+    (∀ count, Index.indexAxes (oneto count) = [{first := int64 1, last := count}]) →
+    (∀ original dense, Index.indexAxes (oftype original dense) = Index.indexAxes dense) →
+    Index.indexAxes (trimmedIndexDenseRange index length oftype oneto) =
+      [{first := int64 1, last := length index}]
+
+def CartesianTrimEachindexFailure : Prop :=
+  ∀ {A AxisValue Axes Cartesian Shaped Result : Type} rank (index : A)
+    (eachindex : IndexStyle → A → Jl AxisValue)
+    (cartesian : AxisValue → List I64 → Jl Cartesian)
+    (reshape : Cartesian → Axes → Jl Shaped) (axes : A → Jl Axes)
+    (oftype : A → Shaped → Jl Result) error,
+    eachindex .linear index = .error error →
+      trimmedIndexCartesianSource rank index eachindex cartesian reshape axes oftype = .error error
+
+def ArrayCopyAllocationFailure : Prop :=
+  ∀ {P T S : Type} (view : SubArray P T) allocate trimShape trimParent colon
+    makeView copyTo (makeSource : SubArray P T → List Index → Jl S)
+    trimView trimIndex layout construct error,
+    allocate (trimShape view.indices) = .error error →
+      unaliascopyArraySubArray view allocate trimShape trimParent colon makeView copyTo
+        makeSource trimView trimIndex layout construct = .error error
+
+def ViewBoundsFailure : Prop :=
+  ∀ {A R : Type} (array : A) indices unalias toIndices checkBounds ndims remove
+    reshape indexNdims (unsafeView : A → List Index → Jl R) error,
+    checkBounds array ((toIndices array indices).map (unalias array)) = .error error →
+      viewArray array indices unalias toIndices checkBounds ndims remove reshape
+        indexNdims unsafeView = .error error
+
+def SubstridesEmptyErrors : Prop :=
+  ∀ index rest step recurse,
+    substridesScalar [] index rest recurse =
+      .error (.argumentError "Cannot call tail on an empty tuple.") ∧
+    substridesSlice [] index rest recurse =
+      .error (.argumentError "tuple must be non-empty") ∧
+    substridesRange [] index rest step recurse =
+      .error (.argumentError "tuple must be non-empty")
+
+def StrideComparisonFailure : Prop :=
+  ∀ {V D : Type} (view : V) (dimension : D) ndims le strides size get last rank error,
+    ndims view = .ok rank → le dimension rank = .error error →
+      strideSubArraySource view dimension ndims le strides size get last = .error error
+
+def StrideLastErrorPrecedence : Prop :=
+  ∀ {V D : Type} (view : V) (dimension : D) ndims le strides size get last rank values error,
+    ndims view = .ok rank → le dimension rank = .ok false →
+    strides view = .ok values → last values = .error error →
+      strideSubArraySource view dimension ndims le strides size get last = .error error
+
+def ColonNormalizationFailure : Prop :=
+  ∀ {V R X : Type} (view : V) (value : X) normalize
+    (get : V → List Index → Jl R) (set : V → X → List Index → Jl V) error,
+    normalize view [.colon] = .error error →
+      getindexFastContiguousColonSource view normalize get = .error error ∧
+      setindexFastColonSource view value normalize set = .error error
+
+def ContiguousRangeBoundsFailure : Prop :=
+  ∀ {P T I O Q : Type} (view : SubArray P T) (index : I) check reindex
+    (get : P → Q → Jl O) error,
+    check view index = .error error →
+      getindexFastContiguousRange view index check reindex get = .error error
+
+def SetRangeBoundsFailure : Prop :=
+  ∀ {P T R Q : Type} (view : SubArray P T) (value : R) (indices : Q) check reindex set error,
+    check view indices = .error error →
+      setindexFastUnitRange view value indices check reindex set = .error error
+
+def StridesParentFailure : Prop :=
+  ∀ {P T : Type} (view : SubArray P T) strides recurse error,
+    strides view.parent = .error error → stridesSubArray view strides recurse = .error error
+
+def PrintReindexFailure : Prop :=
+  ∀ {P T D : Type} (view : SubArray P T) (i j : D) text reindex normalize matrix vector error,
+    (reindex view.indices [i, j] = .error error →
+      replaceInPrintMatrixSource view i j text reindex normalize matrix = .error error) ∧
+    (reindex view.indices [i] = .error error →
+      replaceInPrintVectorSource view i j text reindex normalize vector = .error error)
+
+def UnsafeWrapPointerFailure : Prop :=
+  ∀ {V Pointer Result : Type} (view : V) (pointer : V → Jl Pointer) size
+    (wrap : Pointer → List I64 → Jl Result) error,
+    pointer view = .error error →
+      unsafeWrapContiguousSubArraySource view pointer size wrap = .error error
+
+def OffsetFirstError : Prop :=
+  (∀ index stride first axes error, first index = .error error →
+    computeOffset1VectorRange index stride first axes = .error error) ∧
+  (∀ {P : Type} (parent : P) stride dimension index indices linear parentAxis rangeAxis error,
+    linear parent indices = .error error →
+      computeOffset1Slice parent stride dimension indices linear parentAxis = .error error ∧
+      computeOffset1Range parent stride index indices linear rangeAxis = .error error ∧
+      computeOffset1Fallback parent stride indices linear = .error error)
+
+def ElsizeIgnoresViewMetadata : Prop :=
+  ∀ {P T U : Type} (left : SubArray P T) (right : SubArray P U) elsize,
+    elsizeSubArray left elsize = elsizeSubArray right elsize
+
+def HasOffsetIgnoresCachedLayout : Prop :=
+  ∀ {P Q T : Type} (view : SubArray P T) (parent : Q) offset stride hasOffset,
+    hasOffsetAxesSubArray (T := T)
+      ⟨parent, view.indices, offset, stride, view.linear, view.dimensions⟩ hasOffset =
+      hasOffsetAxesSubArray view hasOffset
+def RangeViewSelectionFailure : Prop :=
+  (∀ {A B R : Type} (parent : A) (selector : B) (get : A → B → Jl R) e,
+    get parent selector = .error e →
+      viewUnitRangeUnitRange parent selector get = .error e ∧
+      viewUnitRangeStepRange parent selector get = .error e ∧
+      viewStepRangeAbstractRange parent selector get = .error e ∧
+      viewStepRangeLenOrdinalRange parent selector get = .error e ∧
+      viewLinRangeOrdinalRange parent selector get = .error e) ∧
+  (∀ {A R : Type} (parent : A) (get : A → Index → Jl R) e,
+    get parent .colon = .error e →
+      viewAbstractRangeColon parent .colon get = .error e)
+
+def ReindexArrayMissingCoordinates : Prop :=
+  ∀ rank index rest subindices get recurse,
+    subindices.length < rank →
+      reindexArray rank index rest subindices get recurse = .error .boundsError
+
+def RangeBroadcastFailure : Prop :=
+  (∀ {V I M A R : Type} (view : V) (indices : I) offset stride
+      (multiply : I64 → I → Jl M) (add : I64 → M → Jl A)
+      (materialize : A → Jl R) error,
+    multiply (stride view) indices = .error error →
+      reindexLinearUnitRangeSource view indices offset stride multiply add materialize =
+        .error error) ∧
+  (∀ {V I A R : Type} (view : V) (indices : I) offset
+      (add : I64 → I → Jl A) (materialize : A → Jl R) error,
+    add (offset view) indices = .error error →
+      reindexLinearContiguousUnitRangeSource view indices offset add materialize = .error error)
+
+def ParentStridePaddingFailure : Prop :=
+  ∀ {P : Type} (parent : P) indices axes fill recurse error,
+    fill (axes parent) {first := int64 1, last := int64 1} indices.length = .error error →
+      computeStride1 parent indices axes fill recurse = .error error
+
+def CartesianPointerSetupFailure : Prop :=
+  ∀ {P T R : Type} (view : SubArray P T) indices first strides get
+    (pointer : P → I64 → Jl R) error,
+    first view = .error error →
+      pointerCartesianSubArray view indices first strides get pointer = .error error
+
+def FirstIndexCalleeFailure : Prop :=
+  (∀ {V I Product R : Type} (view : V) offset stride (first : V → Jl I)
+      (mul : I64 → I → Jl Product) (add : I64 → Product → Jl R) error,
+    first view = .error error →
+      firstIndexFastSubArraySource view offset stride first mul add = .error error) ∧
+  (∀ {P T : Type} (view : SubArray P T) linear error,
+    linear view.parent view.indices = .error error →
+      firstIndexSubArray view linear = .error error)
+
+def InvalidStrideExceptionClass : Prop :=
+  ∀ stride axes index typeName,
+    ∃ message, computeStride1Invalid stride axes index typeName =
+      .error (.argumentError message)
+
+def StrideStepConversionFailure : Prop :=
+  ∀ {S I Step R : Type} (stride : S) (index : I) (step : I → Jl Step)
+    (convert : Step → Jl I64) (mul : S → I64 → Jl R) increment error,
+    step index = .ok increment → convert increment = .error error →
+      computeStride1RangeSource stride index step convert mul = .error error
+
+theorem trimmedSelectorRanks_proven : TrimmedSelectorRanks := by
+  constructor
+  · intro A index rest axes tail colon first
+    simp [SelectorRanks, trimmedParentIndices, trimmedParentIndicesSource,
+      trimmedViewIndices, trimmedViewIndicesSource, trimmedViewCartesianZero,
+      trimmedViewCartesianZeroSource, trimmedParentDenseRange, trimmedParentCartesianZero,
+      List.map_append, List.map_map, Function.comp_def, Index.isScalar, Index.indexAxes]
+    constructor <;> induction axes index <;> simp_all [Nat.add_comm]
+  · intros
+    simp [SelectorRanks, trimmedParentRange]
+
+private theorem shapeVolume_padding (n : Nat) (tail : List I64) :
+    ShapeVolume (List.replicate n (int64 1) ++ tail) = ShapeVolume tail := by
+  induction n with
+  | zero => rfl
+  | succ n ih =>
+    simpa [ShapeVolume, List.replicate_succ, show (int64 1).val = 1 by decide] using ih
+
+theorem trimmedShapeStorageVolume_proven : TrimmedShapeStorageVolume := by
+  unfold TrimmedShapeStorageVolume
+  intros
+  simp [trimmedShapeScalar, trimmedShapeAbstractRange, trimmedShapeDenseRange,
+    trimmedShapeScalarArray, trimmedShapeCartesianZero, trimmedShapeCartesian,
+    show ∀ x xs, ShapeVolume (x :: xs) = x.val * ShapeVolume xs from fun _ _ => rfl,
+    shapeVolume_padding, show (int64 1).val = 1 by decide]
+
+theorem cartesianTrimEachindexFailure_proven : CartesianTrimEachindexFailure := by
+  intro A AxisValue Axes Cartesian Shaped Result rank index eachindex cartesian reshape axes oftype error h
+  simp [trimmedIndexCartesianSource, h, Bind.bind, Except.bind]
+
+theorem arrayCopyAllocationFailure_proven : ArrayCopyAllocationFailure := by
+  unfold ArrayCopyAllocationFailure
+  intros
+  simp_all [unaliascopyArraySubArray, Bind.bind, Except.bind]
+
+theorem viewBoundsFailure_proven : ViewBoundsFailure := by
+  unfold ViewBoundsFailure
+  intros
+  simp_all [viewArray, Bind.bind, Except.bind]
+
+theorem substridesEmptyErrors_proven : SubstridesEmptyErrors := by
+  unfold SubstridesEmptyErrors
+  intros
+  simp [substridesScalar, substridesScalarSource, substridesSlice, substridesSliceSource,
+    substridesRange, substridesRangeSource, Models1Group17.tupleTail,
+    Models1Group17.tupleFirst, Bind.bind, Except.bind]
+
+theorem strideComparisonFailure_proven : StrideComparisonFailure := by
+  unfold StrideComparisonFailure
+  intros
+  simp_all [strideSubArraySource, Bind.bind, Except.bind]
+
+theorem strideLastErrorPrecedence_proven : StrideLastErrorPrecedence := by
+  unfold StrideLastErrorPrecedence
+  intros
+  simp_all [strideSubArraySource, Bind.bind, Except.bind]
+
+theorem colonNormalizationFailure_proven : ColonNormalizationFailure := by
+  unfold ColonNormalizationFailure
+  intros
+  simp_all [getindexFastContiguousColonSource, setindexFastColonSource, Bind.bind, Except.bind]
+
+theorem contiguousRangeBoundsFailure_proven : ContiguousRangeBoundsFailure := by
+  unfold ContiguousRangeBoundsFailure
+  intros
+  simp_all [getindexFastContiguousRange, Bind.bind, Except.bind]
+
+theorem setRangeBoundsFailure_proven : SetRangeBoundsFailure := by
+  unfold SetRangeBoundsFailure
+  intros
+  simp_all [setindexFastUnitRange, Bind.bind, Except.bind]
+
+theorem stridesParentFailure_proven : StridesParentFailure := by
+  unfold StridesParentFailure
+  intros
+  simp_all [stridesSubArray, Bind.bind, Except.bind]
+
+theorem printReindexFailure_proven : PrintReindexFailure := by
+  unfold PrintReindexFailure
+  intros
+  constructor <;> intro h <;>
+    simp [replaceInPrintMatrixSource, replaceInPrintVectorSource, h, Bind.bind, Except.bind]
+
+theorem unsafeWrapPointerFailure_proven : UnsafeWrapPointerFailure := by
+  unfold UnsafeWrapPointerFailure
+  intros
+  simp_all [unsafeWrapContiguousSubArraySource, Bind.bind, Except.bind]
+
+theorem offsetFirstError_proven : OffsetFirstError := by
+  constructor
+  · intros
+    simp_all [computeOffset1VectorRange, computeOffset1VectorRangeSource, Bind.bind, Except.bind]
+  · intros
+    simp_all [computeOffset1Slice, computeOffset1SliceSource, computeOffset1Range,
+      computeOffset1RangeSource, computeOffset1Fallback, computeOffset1FallbackSource,
+      Bind.bind, Except.bind]
+
+theorem elsizeIgnoresViewMetadata_proven : ElsizeIgnoresViewMetadata := by
+  unfold ElsizeIgnoresViewMetadata
+  intros
+  rfl
+
+theorem hasOffsetIgnoresCachedLayout_proven : HasOffsetIgnoresCachedLayout := by
+  unfold HasOffsetIgnoresCachedLayout
+  intros
+  rfl
+
+theorem rangeViewSelectionFailure_proven : RangeViewSelectionFailure := by
+  constructor
+  · intros
+    simp_all [viewUnitRangeUnitRange, viewUnitRangeStepRange, viewStepRangeAbstractRange,
+      viewStepRangeLenOrdinalRange, viewLinRangeOrdinalRange]
+  · intros
+    simp_all [viewAbstractRangeColon]
+
+theorem reindexArrayMissingCoordinates_proven : ReindexArrayMissingCoordinates := by
+  unfold ReindexArrayMissingCoordinates
+  intros
+  simp_all [reindexArray, reindexArraySource]
+
+theorem rangeBroadcastFailure_proven : RangeBroadcastFailure := by
+  constructor <;> intros <;>
+    simp_all [reindexLinearUnitRangeSource, reindexLinearContiguousUnitRangeSource,
+      Bind.bind, Except.bind]
+
+theorem parentStridePaddingFailure_proven : ParentStridePaddingFailure := by
+  unfold ParentStridePaddingFailure
+  intros
+  simp_all [computeStride1, Bind.bind, Except.bind]
+
+theorem cartesianPointerSetupFailure_proven : CartesianPointerSetupFailure := by
+  unfold CartesianPointerSetupFailure
+  intros
+  simp_all [pointerCartesianSubArray, pointerCartesianSubArraySource, Bind.bind, Except.bind]
+
+theorem firstIndexCalleeFailure_proven : FirstIndexCalleeFailure := by
+  constructor <;> intros <;>
+    simp_all [firstIndexFastSubArraySource, firstIndexSubArray, parentSubArray,
+      Bind.bind, Except.bind]
+
+theorem invalidStrideExceptionClass_proven : InvalidStrideExceptionClass := by
+  unfold InvalidStrideExceptionClass
+  intros
+  exact ⟨_, rfl⟩
+
+theorem strideStepConversionFailure_proven : StrideStepConversionFailure := by
+  unfold StrideStepConversionFailure
+  intros
+  simp_all [computeStride1RangeSource, Bind.bind, Except.bind]
+
 def entries : List Entry := [
+  { id := "subarray-first-index-callee-failure", juliaFile := "base/subarray.jl"
+    juliaFns := ["first_index(::FastSubArray)", "first_index(::SubArray)"]
+    statement := "Failure of the first-coordinate or parent linear-address lookup propagates before a first parent address is returned."
+    source := "base/subarray.jl:464-465", status := .proven, prop := ``FirstIndexCalleeFailure, thm := some ``firstIndexCalleeFailure_proven },
+  { id := "subarray-invalid-compute-stride-exception", juliaFile := "base/subarray.jl"
+    juliaFns := ["compute_stride1(s, inds, I::Tuple{Any,Vararg{Any}})"]
+    statement := "An unsupported strided selector raises ArgumentError independently of the incoming stride and axis values."
+    source := "base/subarray.jl:456", status := .proven, prop := ``InvalidStrideExceptionClass, thm := some ``invalidStrideExceptionClass_proven },
+  { id := "subarray-stride-step-conversion-failure", juliaFile := "base/subarray.jl"
+    juliaFns := ["compute_stride1(s, inds, I::Tuple{AbstractRange,Vararg{Any}})"]
+    statement := "A failed range-step conversion to machine Int propagates before stride multiplication."
+    source := "base/subarray.jl:454", status := .proven, prop := ``StrideStepConversionFailure, thm := some ``strideStepConversionFailure_proven },
+  { id := "subarray-range-broadcast-failure", juliaFile := "base/subarray.jl"
+    juliaFns := ["_reindexlinear(::FastSubArray, ::AbstractUnitRange{Int})",
+      "_reindexlinear(::FastContiguousSubArray, ::AbstractUnitRange{Int})"]
+    statement := "A failed broadcast-expression construction propagates before materialization of the affine range selection."
+    source := "base/subarray.jl:328,352", status := .proven, prop := ``RangeBroadcastFailure, thm := some ``rangeBroadcastFailure_proven },
+  { id := "subarray-parent-stride-padding-failure", juliaFile := "base/subarray.jl"
+    juliaFns := ["compute_stride1(parent::AbstractArray, I::NTuple{N,Any})"]
+    statement := "Failure to extend parent axes stops stride computation before recursive selector processing."
+    source := "base/subarray.jl:448-449", status := .proven, prop := ``ParentStridePaddingFailure, thm := some ``parentStridePaddingFailure_proven },
+  { id := "subarray-cartesian-pointer-setup-failure", juliaFile := "base/subarray.jl"
+    juliaFns := ["pointer(::SubArray, ::AbstractCartesianIndex)"]
+    statement := "A failed initial-address computation propagates before stride lookup, coordinate reads and parent pointer access."
+    source := "base/subarray.jl:513-520", status := .proven, prop := ``CartesianPointerSetupFailure, thm := some ``cartesianPointerSetupFailure_proven },
   entry "subarray-default-parentindices-coordinate-domain"
     ["parentindices(a::AbstractArray)"]
     "Default parentindices has one axis per size dimension and contains exactly the coordinate tuples whose components lie between one and the corresponding dimension size."
@@ -3298,6 +3683,3233 @@ def entries : List Entry := [
     "axes1(V) is the first axis of axes(V), or OneTo(1) for a zero-dimensional view."
     "axes docstring; base/subarray.jl:533-541"
     ``Axes1ContractAll ``axes1ContractAll_proven,
+] ++ [
+  { id := "subarray-trimmed-shape-volume", juliaFile := "base/subarray.jl"
+    juliaFns := ["_trimmedshape"], statement := "Scalar and zero-rank selectors do not enlarge storage; dense selectors contribute their element count, and Cartesian singleton padding does not enlarge storage."
+    source := "base/subarray.jl:133-138", status := .proven, prop := ``TrimmedShapeStorageVolume, thm := some ``trimmedShapeStorageVolume_proven },
+  { id := "subarray-trimmed-selector-ranks", juliaFile := "base/subarray.jl"
+    juliaFns := ["_trimmedpind", "_trimmedvind"], statement := "Trimmed parent selectors retain one dimension per original axis, while scalar coordinates for Cartesian-zero selectors remove those dimensions from the trimmed view."
+    source := "base/subarray.jl:141-147", status := .proven, prop := ``TrimmedSelectorRanks, thm := some ``trimmedSelectorRanks_proven },
+  { id := "subarray-dense-range-trim-extent", juliaFile := "base/subarray.jl"
+    juliaFns := ["_trimmedindex(::Union{UnitRange,StepRange,OneTo})"], statement := "Dense range trimming has one-based axes with the original range length."
+    source := "base/subarray.jl:152", status := .todo, prop := ``DenseRangeTrimExtent },
+  { id := "subarray-cartesian-trim-index-failure", juliaFile := "base/subarray.jl"
+    juliaFns := ["_trimmedindex(::AbstractArray{<:AbstractCartesianIndex{N}})"], statement := "Failure of linear eachindex propagates before Cartesian-index construction, axes lookup, reshape and conversion."
+    source := "base/subarray.jl:155-159", status := .proven, prop := ``CartesianTrimEachindexFailure, thm := some ``cartesianTrimEachindexFailure_proven },
+  { id := "subarray-array-copy-allocation-failure", juliaFile := "base/subarray.jl"
+    juliaFns := ["unaliascopy(::SubArray)"], statement := "Failure to allocate trimmed parent storage stops unaliascopy before any view, copy, index conversion or layout computation."
+    source := "base/subarray.jl:119-131", status := .proven, prop := ``ArrayCopyAllocationFailure, thm := some ``arrayCopyAllocationFailure_proven },
+  { id := "subarray-view-bounds-failure", juliaFile := "base/subarray.jl"
+    juliaFns := ["view(::AbstractArray, ::Vararg)"], statement := "A failed view bounds check propagates before singleton removal, parent reshaping and unsafe construction."
+    source := "base/subarray.jl:221-227", status := .proven, prop := ``ViewBoundsFailure, thm := some ``viewBoundsFailure_proven },
+  { id := "subarray-empty-stride-tuple-errors", juliaFile := "base/subarray.jl"
+    juliaFns := ["substrides"], statement := "An empty parent stride tuple fails at the source tuple tail or first operation, before later range stepping and recursive calls."
+    source := "base/subarray.jl:440-442", status := .proven, prop := ``SubstridesEmptyErrors, thm := some ``substridesEmptyErrors_proven },
+  { id := "subarray-stride-comparison-failure", juliaFile := "base/subarray.jl"
+    juliaFns := ["stride"], statement := "Dimension comparison errors propagate before reading parent strides or view size."
+    source := "base/subarray.jl:446", status := .proven, prop := ``StrideComparisonFailure, thm := some ``strideComparisonFailure_proven },
+  { id := "subarray-stride-last-error-precedence", juliaFile := "base/subarray.jl"
+    juliaFns := ["stride"], statement := "A failed final-stride lookup in the past-rank branch propagates before the size lookup."
+    source := "base/subarray.jl:446", status := .proven, prop := ``StrideLastErrorPrecedence, thm := some ``strideLastErrorPrecedence_proven },
+  { id := "subarray-colon-normalization-failure", juliaFile := "base/subarray.jl"
+    juliaFns := ["getindex(::FastContiguousSubArray, ::Colon)", "setindex!(::FastSubArray, x, ::Colon)"], statement := "Colon normalization errors propagate before selecting or assigning parent data."
+    source := "base/subarray.jl:383,412", status := .proven, prop := ``ColonNormalizationFailure, thm := some ``colonNormalizationFailure_proven },
+  { id := "subarray-contiguous-range-bounds-failure", juliaFile := "base/subarray.jl"
+    juliaFns := ["getindex(::FastContiguousSubArray, ::_OneBasedRanges)"], statement := "A failed range bounds check stops contiguous selection before reindexing or parent access."
+    source := "base/subarray.jl:376-381", status := .proven, prop := ``ContiguousRangeBoundsFailure, thm := some ``contiguousRangeBoundsFailure_proven },
+  { id := "subarray-range-assignment-bounds-failure", juliaFile := "base/subarray.jl"
+    juliaFns := ["setindex!(::FastSubArray, x, ::AbstractUnitRange{Int})"], statement := "A failed range bounds check prevents parent assignment."
+    source := "base/subarray.jl:405-410", status := .proven, prop := ``SetRangeBoundsFailure, thm := some ``setRangeBoundsFailure_proven },
+  { id := "subarray-parent-strides-failure", juliaFile := "base/subarray.jl"
+    juliaFns := ["strides"], statement := "Failure to obtain parent strides propagates before processing stored selectors."
+    source := "base/subarray.jl:437", status := .proven, prop := ``StridesParentFailure, thm := some ``stridesParentFailure_proven },
+  { id := "subarray-print-reindex-failure", juliaFile := "base/subarray.jl"
+    juliaFns := ["replace_in_print_matrix"], statement := "Printing preserves a failed coordinate reindexing before normalization or parent formatting, without converting the input integers first."
+    source := "base/subarray.jl:545-550", status := .proven, prop := ``PrintReindexFailure, thm := some ``printReindexFailure_proven },
+  { id := "subarray-wrap-pointer-failure", juliaFile := "base/subarray.jl"
+    juliaFns := ["unsafe_wrap"], statement := "Pointer failures propagate before querying dimensions or creating a wrapping array."
+    source := "base/subarray.jl:553", status := .proven, prop := ``UnsafeWrapPointerFailure, thm := some ``unsafeWrapPointerFailure_proven },
+  { id := "subarray-offset-first-error", juliaFile := "base/subarray.jl"
+    juliaFns := ["compute_offset1"], statement := "The initial coordinate or linear-index error propagates before later axis-origin lookups."
+    source := "base/subarray.jl:471-485", status := .proven, prop := ``OffsetFirstError, thm := some ``offsetFirstError_proven },
+  { id := "subarray-elsize-metadata-independence", juliaFile := "base/subarray.jl"
+    juliaFns := ["elsize"], statement := "SubArray element storage size depends on the parent type, independently of stored view values and other type bindings."
+    source := "base/subarray.jl:458", status := .proven, prop := ``ElsizeIgnoresViewMetadata, thm := some ``elsizeIgnoresViewMetadata_proven },
+  { id := "subarray-offset-axis-layout-independence", juliaFile := "base/subarray.jl"
+    juliaFns := ["has_offset_axes"], statement := "Changing the parent, cached offset or cached stride cannot change offset-axis detection when the index tuple is unchanged."
+    source := "base/subarray.jl:543", status := .proven, prop := ``HasOffsetIgnoresCachedLayout, thm := some ``hasOffsetIgnoresCachedLayout_proven }
+,
+  { id := "subarray-range-view-selection-failure", juliaFile := "base/subarray.jl"
+    juliaFns := ["view(::AbstractUnitRange, ::AbstractUnitRange)", "view(::AbstractUnitRange, ::StepRange)",
+      "view(::StepRange, ::AbstractRange)", "view(::StepRangeLen, ::OrdinalRange)",
+      "view(::LinRange, ::OrdinalRange)", "view(::AbstractRange, ::Colon)"]
+    statement := "A failed immutable-range selection propagates unchanged through the matching view overload."
+    source := "base/subarray.jl:230-255", status := .proven, prop := ``RangeViewSelectionFailure, thm := some ``rangeViewSelectionFailure_proven },
+  { id := "subarray-reindex-missing-coordinates", juliaFile := "base/subarray.jl"
+    juliaFns := ["reindex(::Tuple{AbstractArray{<:Any,N},Vararg{Any}}, ::Tuple)"]
+    statement := "An array selector requiring more coordinates than the subindex tuple contains raises BoundsError before indexing that array."
+    source := "base/subarray.jl:311-312; base/tuple.jl tuple range indexing", status := .proven,
+    prop := ``ReindexArrayMissingCoordinates, thm := some ``reindexArrayMissingCoordinates_proven }
 ]
 
 end JuliaLean.Proofs.base.subarray
+
+namespace JuliaLean.Proofs.base.subarray
+
+open JuliaLean JuliaLean.Registry JuliaLean.base.subarray
+
+namespace Models1Group17
+
+/-!
+All declarations in this section are unproved specifications, not theorems.
+They do not assume callee correctness. The new internal models have complete
+input quantification over their explicit representations. Partial models are
+not presented as complete coverage of generic Julia methods.
+-/
+
+/-- Declarative type/representation domain of the finite public shape models.
+Built-in range metadata and concrete one-based Array payloads are admitted;
+opaque custom methods are not assumed to agree with stored fields.
+Source: base/subarray.jl:70,525-543; base/abstractarray.jl:100-118. -/
+def ShapeIndexSupported : Index → Prop
+  | .scalar _ | .slice _ | .identity _ | .unitRange _ | .oneTo _ |
+    .stepRange _ _ _ | .stepRangeLen _ _ _ | .linRange _ _ _ | .mask _ => True
+  | .values axes _ | .cartesianValues axes _ _ =>
+      ∀ axis ∈ axes, axis.first = int64 1
+  | _ => False
+
+/-- Independent retained rank of an index's type: a scalar removes a dimension,
+an array contributes its own rank, and a range/logical index contributes one.
+Cartesian element rank is deliberately different from array rank here.
+Source: base/subarray.jl:525-541; doc/src/devdocs/subarrays.md:33-40. -/
+def retainedRankSpec : Index → Nat
+  | .scalar _ => 0
+  | .values axes _ | .cartesianValues axes _ _ => axes.length
+  | .slice _ | .identity _ | .unitRange _ | .oneTo _ | .stepRange _ _ _ |
+    .stepRangeLen _ _ _ | .linRange _ _ _ | .mask _ => 1
+  | _ => 0
+
+/-- Axes preserve the total type-derived retained rank and every direct
+Slice/Identity origin at its global prefix-rank position. Any non-one-based
+output axis must come from one of those origin-preserving selectors. This
+specifies rank and placement globally rather than replaying _indices_sub's
+recursive tuple concatenation. All valid concrete range values, including
+negative unchecked-OneTo stops, are quantified.
+Source: base/subarray.jl:525-531; base/indices.jl:343-345,370-372;
+doc/src/devdocs/subarrays.md:33-40. -/
+def FiniteAxesRankAndOrigins : Prop :=
+  ∀ {P T : Type} (input : JuliaLean.base.subarray.Models1Group17.ShapeAxesViewInput P T),
+    (∀ index ∈ input.view.indices, ShapeIndexSupported index) →
+    ∃ axes : List Axis,
+      JuliaLean.base.subarray.Models1Group17.axesSubArrayFinite input = some (.ok axes) ∧
+      axes.length = (input.view.indices.map retainedRankSpec).sum ∧
+      (∀ (position : Nat) (axis : Axis),
+        (input.view.indices[position]? = some (.slice axis) ∨
+          input.view.indices[position]? = some (.identity axis)) →
+        axes[((input.view.indices.take position).map retainedRankSpec).sum]? = some axis) ∧
+      (∀ axis ∈ axes, axis.first.val ≠ 1 →
+        Index.slice axis ∈ input.view.indices ∨ Index.identity axis ∈ input.view.indices)
+
+/-- Each finite view size coordinate is the mathematical endpoint interval
+width represented modulo Int64, and the number of coordinates is the total
+retained type rank. The mathematical difference is independent of the source's
+machine-length dispatch and wrapping arithmetic; it preserves negative unchecked-OneTo
+stops and full-width wrapped counts instead of adding a no-overflow premise.
+The actual axes observation is also required to succeed, not assumed correct.
+Source: base/subarray.jl:70,525-531; base/range.jl:503,705-706,794-817. -/
+def FiniteSizeCoordinateCardinality : Prop :=
+  ∀ {P T : Type} (input : JuliaLean.base.subarray.Models1Group17.ShapeAxesViewInput P T),
+    (∀ index ∈ input.view.indices, ShapeIndexSupported index) →
+    ∃ (axes : List Axis) (sizes : List I64),
+      JuliaLean.base.subarray.Models1Group17.axesSubArrayFinite input = some (.ok axes) ∧
+      JuliaLean.base.subarray.Models1Group17.sizeSubArrayFinite input = some (.ok sizes) ∧
+      axes.length = (input.view.indices.map retainedRankSpec).sum ∧
+      sizes.length = axes.length ∧
+      (∀ (position : Nat) (axis : Axis), axes[position]? = some axis →
+        ∃ size : I64, sizes[position]? = some size ∧
+          size.val = (JInt.wrap .i64 (axis.last.val - axis.first.val + 1)).val)
+
+/-- The first-axis observation agrees with the retained coordinate domain of
+the whole view. A nonzero-dimensional view returns the first retained axis or
+the actual empty tuple when no axes remain. A zero-dimensional view has the
+singleton linear coordinate domain containing one. This compares independent
+public observations and mathematical domain properties, and does not assume
+an axes or axes1 correctness law.
+Source: base/subarray.jl:525-541; base/abstractarray.jl:140-142. -/
+def FiniteAxes1CoordinateDomain : Prop :=
+  ∀ {P T : Type} (input : JuliaLean.base.subarray.Models1Group17.ShapeAxesViewInput P T),
+    (∀ index ∈ input.view.indices, ShapeIndexSupported index) →
+    ∃ (axes : List Axis) (firstAxis : Option Axis),
+      JuliaLean.base.subarray.Models1Group17.axesSubArrayFinite input = some (.ok axes) ∧
+      JuliaLean.base.subarray.Models1Group17.axes1SubArrayFinite input = some (.ok firstAxis) ∧
+      axes.length = (input.view.indices.map retainedRankSpec).sum ∧
+      if input.view.dimensions.length = 0 then
+        ∃ axis : Axis, firstAxis = some axis ∧
+          axis.first.val ≤ 1 ∧ 1 ≤ axis.last.val ∧
+          axis.last.val - axis.first.val + 1 = 1
+      else firstAxis = axes.head?
+
+/-- Offset detection is exactly the presence of a non-one-based coordinate
+domain among the returned axes. The specification observes output axes rather
+than copying the implementation's short-circuit OR over stored indices.
+Source: base/subarray.jl:543; base/abstractarray.jl:114-122. -/
+def FiniteOffsetAxisCoherence : Prop :=
+  ∀ {P T : Type} (input : JuliaLean.base.subarray.Models1Group17.ShapeAxesViewInput P T),
+    (∀ index ∈ input.view.indices, ShapeIndexSupported index) →
+    ∃ (axes : List Axis) (offset : Bool),
+      JuliaLean.base.subarray.Models1Group17.axesSubArrayFinite input = some (.ok axes) ∧
+      JuliaLean.base.subarray.Models1Group17.hasOffsetAxesSubArrayFinite input = some (.ok offset) ∧
+      (offset = true ↔ ∃ axis ∈ axes, axis.first.val ≠ 1)
+
+/-- Inserting a scalar selector anywhere in a tuple does not change the view's
+shape, axes, first-axis observation, or offset-origin trait when the explicit
+N parameter is retained. This whole-input transformation includes unknown
+tails and checks that scalar insertion cannot force previously skipped custom
+semantics to be read. Both complete inputs carry actual representation proofs;
+neither function's result is assumed in the premises.
+Source: base/subarray.jl:70,525-543; doc/src/devdocs/subarrays.md:33-40. -/
+def ScalarInsertionPreservesShapeObservations : Prop :=
+  ∀ {P T : Type}
+      (original changed : JuliaLean.base.subarray.Models1Group17.ShapeAxesViewInput P T)
+      (before after : List Index) (value : I64),
+    original.view.indices = before ++ after →
+    changed.view.indices = before ++ (Index.scalar value :: after) →
+    original.view.dimensions.length = changed.view.dimensions.length →
+    JuliaLean.base.subarray.Models1Group17.axesSubArrayFinite changed =
+      JuliaLean.base.subarray.Models1Group17.axesSubArrayFinite original ∧
+    JuliaLean.base.subarray.Models1Group17.sizeSubArrayFinite changed =
+      JuliaLean.base.subarray.Models1Group17.sizeSubArrayFinite original ∧
+    JuliaLean.base.subarray.Models1Group17.axes1SubArrayFinite changed =
+      JuliaLean.base.subarray.Models1Group17.axes1SubArrayFinite original ∧
+    JuliaLean.base.subarray.Models1Group17.hasOffsetAxesSubArrayFinite changed =
+      JuliaLean.base.subarray.Models1Group17.hasOffsetAxesSubArrayFinite original
+
+
+/-- Mathematical effective parent rank of one represented index.
+This independent measure describes the index's type, not the removal algorithm.
+Source: base/multidimensional.jl:792-799; base/subarray.jl:163-172. -/
+def effectiveRank : Index → Nat
+  | .cartesian coordinates => coordinates.length
+  | .cartesianValues _ rank _ => rank
+  | _ => 1
+
+/-- Extensional retention criterion: a scalar survives precisely while its
+original prefix has not already consumed every parent dimension. A nonscalar
+always survives. This uses original-position prefix sums, not the recursive
+model's shrinking tuple of remaining dimensions.
+Source: base/subarray.jl:163-172 and multidimensional.jl:792-799. -/
+def retainedByPrefix (dimensions : List Bool) (indices : List Index) : List Index :=
+  indices.zipIdx.filterMap fun pair =>
+    if pair.1.isScalar = false ∨
+        ((indices.take pair.2).map effectiveRank).sum < dimensions.length then
+      some pair.1
+    else none
+
+/-- Singleton removal preserves exactly the original-position prefix-rank
+selection, including zero-dimensional and multi-dimensional Cartesian indices.
+No bounds-success or correctness-law premise is needed; this is an invariant
+of the helper even on inputs not reached after successful view bounds checks.
+Source: base/subarray.jl:170-172; multidimensional.jl:792-799. -/
+def SingletonPrefixSelection : Prop :=
+  ∀ (dimensions : List Bool) (indices : List Index),
+    JuliaLean.base.subarray.Models1Group17.removeSingletonIndices dimensions indices =
+      retainedByPrefix dimensions indices
+
+/-- Removing scalar dimensions never invents or reorders surviving indices,
+and leaves the complete nonscalar subsequence unchanged.
+Source: base/subarray.jl:169-172, obvious index-preservation invariant. -/
+def SingletonPreservesNonscalars : Prop :=
+  ∀ (dimensions : List Bool) (indices : List Index),
+    let result := JuliaLean.base.subarray.Models1Group17.removeSingletonIndices dimensions indices
+    result.Sublist indices ∧
+      result.filter (fun index => !index.isScalar) =
+        indices.filter (fun index => !index.isScalar)
+
+/-- Mathematical cardinality of an endpoint-normalized unit range. This
+specification does not use Julia's machine `length`, which can wrap.
+Source: base/range.jl:425-441; doc/src/manual/arrays.md:619-621. -/
+def unitCountSpec (range : Axis) : Nat :=
+  (range.last.val - range.first.val + 1).toNat
+
+/-- Mathematical cardinality of a normalized step range, including the full
+machine endpoint span. Division and absolute values here are specification
+arithmetic, not replacements for any model operation.
+Source: base/range.jl:339-398; doc/src/manual/arrays.md:619-621. -/
+def stepCountSpec (range : JuliaLean.base.subarray.Models1Group17.StepRangeFields) : Nat :=
+  if (0 < range.step.val ∧ range.start.val ≤ range.stop.val) ∨
+      (range.step.val < 0 ∧ range.stop.val ≤ range.start.val) then
+    (range.stop.val - range.start.val).natAbs / range.step.val.natAbs + 1
+  else 0
+
+/-- Independent mathematical size of either concrete selector sequence.
+Unlike a signed Int64 observation index, Nat positions also describe elements
+beyond typemax(Int64) in a constructible large range.
+Source: base/subarray.jl:230-241; base/range.jl:339-441. -/
+def selectorCountSpec : JuliaLean.base.subarray.Models1Group17.OrdinalSelector64 → Nat
+  | .unit range => unitCountSpec range.endpoints
+  | .step range => stepCountSpec range.val
+
+/-- The value at an original zero-based position in the selector's mathematical
+sequence. Its use is restricted by `selectorCountSpec` in the properties below;
+all real sequence elements are representable by the input endpoint invariant.
+Source: base/range.jl:339-441; doc/src/manual/arrays.md:619-621. -/
+def selectorValueSpec
+    (selector : JuliaLean.base.subarray.Models1Group17.OrdinalSelector64)
+    (position : Nat) : Int :=
+  match selector with
+  | .unit range => range.endpoints.first.val + Int.ofNat position
+  | .step range => range.val.start.val + Int.ofNat position * range.val.step.val
+
+/-- Every selected element lies in the parent's mathematical one-based index
+domain. This checks the whole selector, even when its length cannot fit Int64.
+Source: base/subarray.jl:177-188; doc/src/manual/arrays.md:619-621. -/
+def selectedPositionsValid (parentCount : Nat)
+    (selector : JuliaLean.base.subarray.Models1Group17.OrdinalSelector64) : Prop :=
+  ∀ position : Nat, position < selectorCountSpec selector →
+    1 ≤ selectorValueSpec selector position ∧
+      selectorValueSpec selector position ≤ Int.ofNat parentCount
+
+/-- A concrete invalid selected element, expressed without limiting the
+selector's position to signed-machine indexing. This is an independent bounds
+witness, not a restatement of the source's endpoint-check implementation.
+Source: base/subarray.jl:177-188; doc/src/manual/arrays.md:619-621. -/
+def badSelectedPosition (parentCount : Nat)
+    (selector : JuliaLean.base.subarray.Models1Group17.OrdinalSelector64) : Prop :=
+  ∃ position : Nat, position < selectorCountSpec selector ∧
+    (selectorValueSpec selector position < 1 ∨
+      Int.ofNat parentCount < selectorValueSpec selector position)
+
+/-- Public element-selection contract for the explicit UnitRange{Int64}
+specialization. A successful view supports exactly the selector's scalar
+positions and mathematical sequence, and each value agrees with the
+corresponding scalar parent access.
+A BoundsError must have an actual bad selected index as a witness; an
+OverflowError must come from an empty selector whose computed starting value
+cannot have a representable smaller empty stop. Other exception classes are
+not allowed for these concrete machine ranges.
+
+This quantifies the entire constructible two-endpoint input type, including
+empty ranges and wrapped lengths, with no no-overflow premise. It compares
+independent scalar indexing with range selection; it does not assume success
+or copy the range-selection body. A negative or zero wrapped length may expose
+a disagreement in the pinned source, so this is deliberately an unproved
+promise for review, not an assertion that the implementation is correct.
+Source: base/subarray.jl:177-188,230-233; base/range.jl:968-972,1002-1026. -/
+def UnitRangeViewElementsAndErrors : Prop :=
+  ∀ (parent selector : JuliaLean.base.subarray.Models1Group17.UnitRange64),
+    let selection := JuliaLean.base.subarray.Models1Group17.OrdinalSelector64.unit selector
+    match JuliaLean.base.subarray.Models1Group17.viewUnitRange64 parent selector with
+    | .ok result =>
+        (result.first.val ≤ result.last.val ∨
+          result.last.val = (JInt.wrap .i64 (result.first.val - 1)).val) ∧
+        unitCountSpec result = selectorCountSpec selection ∧
+        (∀ position : Nat, position < selectorCountSpec selection →
+          result.first.val + Int.ofNat position =
+            parent.endpoints.first.val + selectorValueSpec selection position - 1) ∧
+        selectedPositionsValid (unitCountSpec parent.endpoints) selection ∧
+        (∀ (position : I64),
+          JuliaLean.base.subarray.Models1Group17.readUnitRange64 result position =
+            match JuliaLean.base.subarray.Models1Group17.readUnitRange64 selector.endpoints position with
+            | .ok selected =>
+                JuliaLean.base.subarray.Models1Group17.readUnitRange64 parent.endpoints selected
+            | .error error => .error error)
+    | .error .boundsError =>
+        badSelectedPosition (unitCountSpec parent.endpoints) selection
+    | .error (.overflowError _) =>
+        selectorCountSpec selection = 0 ∧
+        (JInt.wrap .i64
+          (parent.endpoints.first.val + selector.endpoints.first.val - 1)).val = IntTy.i64.min
+    | .error _ => False
+
+/-- Public selection and error contract for the concrete Int64 UnitRange/
+StepRange view. Success preserves the entire selector cardinality and ordered
+sequence and agrees with independently modelled scalar indexing. A BoundsError
+requires a genuinely invalid mathematical selector element; OverflowError is
+limited to an empty selector whose affine start has no representable neighboring
+stop in the required direction. Every normalized endpoint/step combination is
+quantified, including typemin steps and wrapped lengths; no no-overflow or
+successful-callee premise is used.
+Source: base/subarray.jl:177-188,234-237; base/range.jl:1002-1011,1034-1049;
+doc/src/manual/arrays.md:619-621. -/
+def UnitStepViewElementsAndErrors : Prop :=
+  ∀ (parent : JuliaLean.base.subarray.Models1Group17.UnitRange64)
+      (selector : JuliaLean.base.subarray.Models1Group17.StepRange64),
+    let selection := JuliaLean.base.subarray.Models1Group17.OrdinalSelector64.step selector
+    match JuliaLean.base.subarray.Models1Group17.viewUnitRangeStep64 parent selector with
+    | .ok result =>
+        JuliaLean.base.subarray.Models1Group17.NormalizedStepRange result ∧
+        stepCountSpec result = selectorCountSpec selection ∧
+        (∀ position : Nat, position < selectorCountSpec selection →
+          result.start.val + Int.ofNat position * result.step.val =
+            parent.endpoints.first.val + selectorValueSpec selection position - 1) ∧
+        selectedPositionsValid (unitCountSpec parent.endpoints) selection ∧
+        (∀ position : I64,
+          JuliaLean.base.subarray.Models1Group17.readStepRange64 result position =
+            match JuliaLean.base.subarray.Models1Group17.readStepRange64 selector.val position with
+            | .ok selected =>
+                JuliaLean.base.subarray.Models1Group17.readUnitRange64 parent.endpoints selected
+            | .error error => .error error)
+    | .error .boundsError =>
+        badSelectedPosition (unitCountSpec parent.endpoints) selection
+    | .error (.overflowError _) =>
+        selectorCountSpec selection = 0 ∧
+        let start := (JInt.wrap .i64
+          (parent.endpoints.first.val + selector.val.start.val - 1)).val
+        if selector.val.step.val > 0 then start = IntTy.i64.min
+        else start = IntTy.i64.max
+    | .error _ => False
+
+/-- Public selection and error contract for the concrete Int64 StepRange view
+with either supported ordinal selector. Success preserves the complete ordered
+selector sequence and independent scalar reads, including when composed-step
+machine multiplication overflows. BoundsError needs an invalid selected element.
+The source's empty-stop OverflowError and zero-composed-step ArgumentError are
+classified separately, without excluding their inputs from the property.
+
+The mathematical sequence comparison can expose a sign-changing composed-step
+overflow even for a four-element parent. This is deliberately an unproved
+documented selection promise, not a claim of correctness or a confirmed bug.
+Source: base/subarray.jl:177-188,238-241; base/range.jl:353-387,1002-1011,1051-1073;
+doc/src/manual/arrays.md:619-621. -/
+def StepRangeViewElementsAndErrors : Prop :=
+  ∀ (parent : JuliaLean.base.subarray.Models1Group17.StepRange64)
+      (selector : JuliaLean.base.subarray.Models1Group17.OrdinalSelector64),
+    match JuliaLean.base.subarray.Models1Group17.viewStepRangeOrdinal64 parent selector with
+    | .ok result =>
+        JuliaLean.base.subarray.Models1Group17.NormalizedStepRange result ∧
+        stepCountSpec result = selectorCountSpec selector ∧
+        (∀ position : Nat, position < selectorCountSpec selector →
+          result.start.val + Int.ofNat position * result.step.val =
+            parent.val.start.val +
+              (selectorValueSpec selector position - 1) * parent.val.step.val) ∧
+        selectedPositionsValid (stepCountSpec parent.val) selector ∧
+        (∀ position : I64,
+          JuliaLean.base.subarray.Models1Group17.readStepRange64 result position =
+            match JuliaLean.base.subarray.Models1Group17.readSelector64 selector position with
+            | .ok selected =>
+                JuliaLean.base.subarray.Models1Group17.readStepRange64 parent.val selected
+            | .error error => .error error)
+    | .error .boundsError =>
+        badSelectedPosition (stepCountSpec parent.val) selector
+    | .error (.overflowError _) =>
+        selectorCountSpec selector = 0 ∧
+        let start := (JInt.wrap .i64 (parent.val.start.val +
+          (selectorValueSpec selector 0 - 1) * parent.val.step.val)).val
+        let step := (JInt.wrap .i64 (parent.val.step.val *
+          (JuliaLean.base.subarray.Models1Group17.selectorStep selector).val)).val
+        if step > 0 then start = IntTy.i64.min else start = IntTy.i64.max
+    | .error (.argumentError _) =>
+        selectedPositionsValid (stepCountSpec parent.val) selector ∧
+        (JInt.wrap .i64 (parent.val.step.val *
+          (JuliaLean.base.subarray.Models1Group17.selectorStep selector).val)).val = 0 ∧
+        (selectorCountSpec selector ≠ 0 ∨
+          (JInt.wrap .i64 (parent.val.start.val +
+            (selectorValueSpec selector 0 - 1) * parent.val.step.val)).val ≠ IntTy.i64.max)
+    | .error _ => False
+
+/-- Colon selection of an immutable built-in range succeeds and preserves its
+whole mathematical sequence, scalar observations, and actual machine length.
+The property observes the result rather than demanding the literal identity
+body or assuming a getindex/copy law. Both concrete range input domains include
+all constructor-normalized endpoint values and wrapped lengths.
+Source: base/subarray.jl:177-188,252-255; base/range.jl:923,1000. -/
+def ColonViewPreservesObservations : Prop :=
+  ∀ range : JuliaLean.base.subarray.Models1Group17.OrdinalSelector64,
+    match JuliaLean.base.subarray.Models1Group17.viewOrdinalColon64 range with
+    | .ok result =>
+        selectorCountSpec result = selectorCountSpec range ∧
+        (∀ position : Nat, position < selectorCountSpec range →
+          selectorValueSpec result position = selectorValueSpec range position) ∧
+        (∀ position : I64,
+          JuliaLean.base.subarray.Models1Group17.readSelector64 result position =
+            JuliaLean.base.subarray.Models1Group17.readSelector64 range position) ∧
+        JuliaLean.base.subarray.Models1Group17.selectorLength result =
+          JuliaLean.base.subarray.Models1Group17.selectorLength range
+    | .error _ => False
+
+/-!
+Standalone unproved properties for insertion inside
+`JuliaLean.Proofs.base.subarray.Models1Group17`.
+UNCHECKED: these statements have not been elaborated by Lean.
+-/
+
+/-- A tuple consisting entirely of Slice parents substitutes the complete
+subindex tuple unchanged whenever the two arities agree. This quantifies
+over all represented subindex values and types, including non-scalars and
+opaque tags, without any supplied getter or correctness law. It describes
+whole-sequence identity rather than the implementation's head/tail recurrence.
+The arity condition ensures every tuple access is in bounds, so this invariant
+does not depend on whether a caller propagates an inbounds context.
+Source: base/subarray.jl:292,299-300; doc/src/devdocs/subarrays.md:109-119,189-192. -/
+def ReindexAllSlicesIdentity : Prop :=
+  ∀ (parents subindices : JuliaLean.base.subarray.Models1Group17.Input),
+    (∀ parent ∈ parents.indices, ∃ axis : Axis, parent = Index.slice axis) →
+    parents.indices.length = subindices.indices.length →
+    JuliaLean.base.subarray.Models1Group17.reindexPartial parents subindices =
+      some (.ok subindices.indices)
+
+/-- If all stored parents are concrete Int64 scalars, reindexing with an
+empty subindex tuple preserves the entire parent tuple, including order,
+duplicates, typemin/typemax, and the empty tuple. It performs no scalar
+arithmetic and consumes no subindices. This is a whole-sequence invariant
+over the model's concrete scalar domain, not a claim about unrepresented Real
+subtypes. Every accessed tuple is nonempty; the invariant therefore also
+survives propagation of an inbounds context.
+Source: base/subarray.jl:292,295-296; doc/src/devdocs/subarrays.md:109-119. -/
+def ReindexAllScalarsPreserve : Prop :=
+  ∀ (parents subindices : JuliaLean.base.subarray.Models1Group17.Input),
+    (∀ parent ∈ parents.indices, ∃ value : I64, parent = Index.scalar value) →
+    subindices.indices = [] →
+    JuliaLean.base.subarray.Models1Group17.reindexPartial parents subindices =
+      some (.ok parents.indices)
+
+
+/-- Type-level contiguity cannot depend on the parent value or cached numeric
+layout. Changing these fields without changing the Julia index-type tags or L
+flag preserves the trait. This rejects accidental value/stride-based tests.
+Source: base/subarray.jl:348-349,460-462. -/
+def ContiguityIgnoresValues : Prop :=
+  ∀ {P Q T : Type} (view : SubArray P T) (parent : Q) (offset stride : I64),
+    let changed : SubArray Q T :=
+      ⟨parent, view.indices, offset, stride, view.linear, view.dimensions⟩
+    JuliaLean.base.subarray.Models1Group17.iscontiguous changed =
+      JuliaLean.base.subarray.Models1Group17.iscontiguous view
+
+/-- Slow views cannot have the fast-contiguous trait; all-scalar fast views do
+have it, including zero-dimensional views with an empty index tuple. The
+premise in the first clause is a dispatch condition, not a correctness law.
+Source: base/subarray.jl:348-349,460-462. -/
+def ContiguityDispatchExtremes : Prop :=
+  (∀ {P T : Type} (view : SubArray P T), view.linear = false →
+    JuliaLean.base.subarray.Models1Group17.iscontiguous view = false) ∧
+  (∀ {P T : Type} (view : SubArray P T) (scalars : List I64),
+    JuliaLean.base.subarray.Models1Group17.iscontiguous (T := T)
+      { view with indices := scalars.map Index.scalar, linear := true } = true)
+
+/-- Every represented leading AbstractUnitRange type selects the fast-contiguous
+alias when L is true, regardless of the remaining index tuple. This separately
+tests the nonscalar arm of the source type union; scalar-only tests miss it.
+Source: base/subarray.jl:348-349,460-462. -/
+def ContiguityLeadingUnitRanges : Prop :=
+  ∀ {P T : Type} (view : SubArray P T) (axis : Axis) (length : I64)
+      (tail : List Index),
+    JuliaLean.base.subarray.Models1Group17.iscontiguous (T := T)
+      { view with indices := .slice axis :: tail, linear := true } = true ∧
+    JuliaLean.base.subarray.Models1Group17.iscontiguous (T := T)
+      { view with indices := .identity axis :: tail, linear := true } = true ∧
+    JuliaLean.base.subarray.Models1Group17.iscontiguous (T := T)
+      { view with indices := .unitRange axis :: tail, linear := true } = true ∧
+    JuliaLean.base.subarray.Models1Group17.iscontiguous (T := T)
+      { view with indices := .oneTo length :: tail, linear := true } = true
+
+/-- A completely scalar selection drops every parent stride. Its only possible
+failures are determined by the two tuple arities: too few strides hits tail(()),
+and leftover strides reach an unmatched empty-index method. This describes
+the result by arity, rather than replaying the recursion.
+Source: base/subarray.jl:439-440; base/essentials.jl:541-542. -/
+def ScalarSubstridesArity : Prop :=
+  ∀ (strides values : List I64),
+    JuliaLean.base.subarray.Models1Group17.substrides strides (values.map Index.scalar) =
+      if strides.length = values.length then some (.ok [])
+      else if strides.length < values.length then
+        some (.error (.argumentError "Cannot call tail on an empty tuple."))
+      else some (.error (.methodError "substrides"))
+
+/-- Even if the range's step has no semantics in this partial model,
+first(()) throws before evaluating it. The independent expected exception is
+the tuple primitive's documented/source error, not the model's result.
+Source: base/subarray.jl:441-442; base/tuple.jl:270. -/
+def EmptyStrideFirstErrorPrecedence : Prop :=
+  ∀ (index : Index) (rest : List Index), index.isRange = true →
+    JuliaLean.base.subarray.Models1Group17.substrides [] (index :: rest) =
+      some (.error (.argumentError "tuple must be non-empty"))
+
+/-- The all-scalar specialization does not touch parent axes, so it succeeds
+even if no axes are supplied, and preserves every possible machine stride.
+Source: base/subarray.jl:450-451 (dispatch and cached-layout invariant). -/
+def ScalarStrideDoesNotReadAxes : Prop :=
+  ∀ (stride : I64) (axes : List Axis) (values : List I64),
+    JuliaLean.base.subarray.Models1Group17.computeStride1Rec stride axes
+      (values.map Index.scalar) = some (.ok stride)
+
+/-- Independent column-major coordinate displacement: the coordinate at original
+position k is weighted by the product of all preceding axis cardinalities.
+This global dot product does not use a recursive model intermediate.
+Source: doc/src/manual/arrays.md (column-major indexing);
+base/subarray.jl:486-501. Unbounded Int here is mathematical specification. -/
+def denseOffsetSpec (axes : List Axis) (coordinates : List I64) : Int :=
+  ((axes.zip coordinates).zipIdx.map fun pair =>
+    (pair.1.2.val - pair.1.1.first.val) *
+      ((axes.take pair.2).map (fun axis => axis.last.val - axis.first.val + 1)).prod).sum
+
+/-- Scalar-coordinate linearization equals the independent column-major dot
+product modulo the Int64 modulus. The only premises are actual array-shape
+constructibility and matching coordinate arity. Coordinates need not be in
+bounds because this internal helper has no bounds check.
+Source: base/subarray.jl:491-501; doc/src/manual/arrays.md (column-major order).
+The property quantifies all machine offsets/strides and all coordinates, and
+therefore includes wrapping arithmetic without assuming no overflow. -/
+def ScalarLinearizationCongruence : Prop :=
+  ∀ (first stride : I64) (axes : List Axis) (coordinates : List I64),
+    JuliaLean.base.subarray.Models1Group17.ArrayPayloadValid axes
+      (JuliaLean.base.subarray.Models1Group17.shapeCardinality axes) →
+    axes.length = coordinates.length →
+    ∃ result : I64,
+      JuliaLean.base.subarray.Models1Group17.computeLinindexRec first stride axes
+        (coordinates.map Index.scalar) = some (.ok result) ∧
+      (result.val - (first.val + stride.val * denseOffsetSpec axes coordinates)) %
+        (2 ^ 64 : Int) = 0
+
+/-- Terminal tuple helpers introduce no dimensions, selectors or strides.
+Source: base/subarray.jl:139,145,148,172,439,505. -/
+def EmptyLeafObservations : Prop :=
+  trimmedShapeEmpty.length = 0 ∧
+  trimmedParentEmpty.length = 0 ∧
+  trimmedViewEmpty.length = 0 ∧
+  (removeSingletonIndicesEmpty (A := Index)).length = 0 ∧
+  (∀ dimension : I64, (findExtendedDimsEmpty dimension).length = 0) ∧
+  (match substridesEmpty with
+    | .ok strides => strides.length = 0
+    | .error _ => False)
+
+/-- The fallback cannot advertise the empty tuple's fast linear indexing.
+Source: base/subarray.jl:52,65. -/
+def FallbackRejectsLinearIndexing : Prop :=
+  ∀ indices : List Index, viewIndexingFallback indices ≠ viewIndexingEmpty
+
+/-- Identity trimming of an abstract range preserves its coordinate domain
+and the distinction between scalar and nonscalar selectors.
+Source: base/subarray.jl:151. -/
+def RangeTrimmingPreservesObservations : Prop :=
+  ∀ index : Index,
+    Index.indexAxes (trimmedIndexRange index) = Index.indexAxes index ∧
+    Index.scalarValue (trimmedIndexRange index) = Index.scalarValue index ∧
+    Index.isRange (trimmedIndexRange index) = Index.isRange index
+
+/-- Cached scalar parent addresses agree with the mathematical affine address
+modulo the machine word size, including overflowing products and sums.
+Source: base/subarray.jl:327,351. -/
+def CachedAddressCongruence : Prop :=
+  ∀ {P T : Type} (view : SubArray P T) (index : I64),
+    ((reindexLinear view index).val -
+      (view.offset1.val + view.stride1.val * index.val)) % (2 ^ 64 : Int) = 0 ∧
+    ((reindexLinearContiguous view index).val -
+      (view.offset1.val + index.val)) % (2 ^ 64 : Int) = 0
+
+theorem CachedAddressCongruence_proven : CachedAddressCongruence := by
+  intro P T view index
+  constructor
+  · change ((JuliaLean.base.int.add view.offset1
+      (JuliaLean.base.int.mul view.stride1 index)).val -
+        (view.offset1.val + view.stride1.val * index.val)) % (2 ^ 64 : Int) = 0
+    rw [JuliaLean.Proofs.base.int.addWraps_proven,
+      JuliaLean.Proofs.base.int.mulWraps_proven, JuliaLean.Proofs.base.int.wrapInt_add_right]
+    simp only [wrapInt, IntTy.signed, IntTy.bits]
+    omega
+  · change ((JuliaLean.base.int.add view.offset1 index).val -
+      (view.offset1.val + index.val)) % (2 ^ 64 : Int) = 0
+    rw [JuliaLean.Proofs.base.int.addWraps_proven]
+    simp only [wrapInt, IntTy.signed, IntTy.bits]
+    omega
+
+/-- Fast views advertise linear indexing; the two contiguity type leaves
+distinguish an unrestricted view type from its fast-contiguous subtype.
+Source: base/subarray.jl:433,461-462. -/
+def FastTypeLeafClassification : Prop :=
+  indexStyleFastSubArray ≠ IndexStyle.cartesian ∧
+  iscontiguousSubArrayType = false ∧
+  iscontiguousFastContiguousSubArrayType = true
+
+/-- Invalid strided index types always fail with ArgumentError, independently
+of the parent stride tuple and diagnostic type-label contents.
+Source: base/subarray.jl:443-444. -/
+def InvalidStrideExceptionClass : Prop :=
+  ∀ (strides : List I64) (typeLabel : String),
+    match substridesInvalid strides typeLabel with
+    | .error (.argumentError _) => True
+    | _ => False
+
+end Models1Group17
+
+end JuliaLean.Proofs.base.subarray
+
+namespace JuliaLean.ChatGPT.Batch9.Group14
+
+open JuliaLean JuliaLean.base.subarray
+open JuliaLean.base.subarray.Models1Group17
+open JuliaLean.Proofs.base.subarray
+open JuliaLean.Proofs.base.subarray.Models1Group17
+
+/-- The finite-domain test agrees with the stated representation domain. -/
+theorem shape_supported_tag (index : Index) (h : ShapeIndexSupported index) :
+    finiteAxesTag index = true := by
+  cases index <;>
+    simp only [ShapeIndexSupported, finiteAxesTag, concreteArrayAxes,
+      List.all_eq_true, decide_eq_true_eq] at h ⊢ <;>
+    first | exact h | trivial | contradiction
+
+theorem shape_supported_all (indices : List Index)
+    (h : ∀ index ∈ indices, ShapeIndexSupported index) :
+    indices.all finiteAxesTag = true := by
+  apply List.all_eq_true.mpr
+  intro index member
+  exact shape_supported_tag index (h index member)
+
+theorem shape_axis_rank (index : Index) (supported : ShapeIndexSupported index) :
+    index.indexAxes.length = retainedRankSpec index := by
+  cases index <;> first | rfl | cases supported
+
+theorem shape_axes_rank : ∀ (indices : List Index),
+    (∀ index ∈ indices, ShapeIndexSupported index) →
+    (viewAxesManual indices).length = (indices.map retainedRankSpec).sum
+  | [], _ => rfl
+  | index :: rest, supported => by
+      have hi := supported index (List.mem_cons_self ..)
+      have hr : ∀ next ∈ rest, ShapeIndexSupported next :=
+        fun next member => supported next (List.mem_cons_of_mem index member)
+      simp only [viewAxesManual, List.flatMap_cons, List.length_append,
+        List.map_cons, List.sum_cons]
+      change index.indexAxes.length + (viewAxesManual rest).length =
+        retainedRankSpec index + (rest.map retainedRankSpec).sum
+      rw [shape_axis_rank index hi, shape_axes_rank rest hr]
+
+theorem shape_axes_success {P T : Type} (input : ShapeAxesViewInput P T)
+    (h : ∀ index ∈ input.view.indices, ShapeIndexSupported index) :
+    axesSubArrayFinite input = some (.ok (viewAxesManual input.view.indices)) := by
+  simp only [axesSubArrayFinite, shape_supported_all input.view.indices h,
+    ite_true, partialPure]
+  exact congrArg (fun axes => some (Except.ok axes)) (subArrayAxesContract_proven input.view)
+
+/-- A direct Slice/Identity selector contributes its own sole axis. -/
+theorem shape_origin_single (index : Index) (axis : Axis)
+    (h : index = .slice axis ∨ index = .identity axis) : index.indexAxes = [axis] := by
+  cases h with
+  | inl h => subst index; rfl
+  | inr h => subst index; rfl
+
+theorem shape_get_after_append {A : Type} (before after : List A) (position : Nat) :
+    (before ++ after)[before.length + position]? = after[position]? := by
+  induction before with
+  | nil => simp only [List.nil_append, List.length_nil, Nat.zero_add]
+  | cons head before ih =>
+      have h : (head :: before).length + position =
+          (before.length + position) + 1 := by simp only [List.length_cons]; omega
+      rw [h]
+      exact ih
+
+/-- Global positions are the sum of the retained ranks of the original prefix. -/
+theorem shape_origin_position (indices : List Index)
+    (supported : ∀ index ∈ indices, ShapeIndexSupported index) (position : Nat) (axis : Axis)
+    (h : indices[position]? = some (.slice axis) ∨
+      indices[position]? = some (.identity axis)) :
+    (viewAxesManual indices)[((indices.take position).map retainedRankSpec).sum]? =
+      some axis := by
+  induction indices generalizing position with
+  | nil =>
+      simp only [List.getElem?_nil, reduceCtorEq, or_self] at h
+  | cons index rest ih =>
+      have hi := supported index (List.mem_cons_self ..)
+      have hr : ∀ next ∈ rest, ShapeIndexSupported next :=
+        fun next member => supported next (List.mem_cons_of_mem index member)
+      cases position with
+      | zero =>
+          have hx : index = .slice axis ∨ index = .identity axis := by
+            simpa only [List.getElem?_cons_zero, Option.some.injEq] using h
+          rw [show (viewAxesManual (index :: rest)) =
+            index.indexAxes ++ viewAxesManual rest from rfl, shape_origin_single index axis hx]
+          rfl
+      | succ position =>
+          have ht : rest[position]? = some (.slice axis) ∨
+              rest[position]? = some (.identity axis) := h
+          have rank : ((index :: rest).take (position + 1) |>.map retainedRankSpec).sum =
+              index.indexAxes.length + ((rest.take position).map retainedRankSpec).sum := by
+            simp only [List.take_succ_cons, List.map_cons, List.sum_cons, shape_axis_rank index hi]
+          rw [rank]
+          change (index.indexAxes ++ viewAxesManual rest)[index.indexAxes.length +
+            ((rest.take position).map retainedRankSpec).sum]? = some axis
+          rw [shape_get_after_append]
+          exact ih hr position ht
+
+theorem shape_index_offset_origin (index : Index) (supported : ShapeIndexSupported index)
+    (axis : Axis) (member : axis ∈ index.indexAxes) (offset : axis.first.val ≠ 1) :
+    index = .slice axis ∨ index = .identity axis := by
+  cases index with
+  | scalar value => cases member
+  | colon => cases supported
+  | slice origin =>
+      have h : axis = origin := by simpa only [Index.indexAxes, List.mem_singleton] using member
+      subst axis
+      exact Or.inl rfl
+  | identity origin =>
+      have h : axis = origin := by simpa only [Index.indexAxes, List.mem_singleton] using member
+      subst axis
+      exact Or.inr rfl
+  | values axes values =>
+      have h := supported axis member
+      have eq : axis.first.val = 1 := by rw [h]; decide
+      exact (offset eq).elim
+  | cartesianValues axes rank values =>
+      have h := supported axis member
+      have eq : axis.first.val = 1 := by rw [h]; decide
+      exact (offset eq).elim
+  | unitRange range =>
+      have h : axis = {first := int64 1, last := int64 (range.last.val - range.first.val + 1)} := by
+        simpa only [Index.indexAxes, List.mem_singleton] using member
+      subst axis
+      exact (offset (by rfl)).elim
+  | oneTo count =>
+      have h : axis = {first := int64 1, last := count} := by
+        simpa only [Index.indexAxes, List.mem_singleton] using member
+      subst axis
+      exact (offset (by rfl)).elim
+  | stepRange first step count =>
+      have h : axis = {first := int64 1, last := count} := by
+        simpa only [Index.indexAxes, List.mem_singleton] using member
+      subst axis
+      exact (offset (by rfl)).elim
+  | stepRangeLen first step count =>
+      have h : axis = {first := int64 1, last := count} := by
+        simpa only [Index.indexAxes, List.mem_singleton] using member
+      subst axis
+      exact (offset (by rfl)).elim
+  | linRange first last count =>
+      have h : axis = {first := int64 1, last := count} := by
+        simpa only [Index.indexAxes, List.mem_singleton] using member
+      subst axis
+      exact (offset (by rfl)).elim
+  | mask bits =>
+      have h : axis = {first := int64 1, last := int64 (bits.filter id).length} := by
+        simpa only [Index.indexAxes, List.mem_singleton] using member
+      subst axis
+      exact (offset (by rfl)).elim
+  | ordinalRange first step count => cases supported
+  | other => cases supported
+  | cartesian coordinates => cases supported
+
+theorem shape_axes_offset_origin (indices : List Index)
+    (supported : ∀ index ∈ indices, ShapeIndexSupported index)
+    (axis : Axis) (member : axis ∈ viewAxesManual indices) (offset : axis.first.val ≠ 1) :
+    Index.slice axis ∈ indices ∨ Index.identity axis ∈ indices := by
+  obtain ⟨index, memberIndex, memberAxis⟩ := List.mem_flatMap.mp member
+  have origin := shape_index_offset_origin index (supported index memberIndex) axis memberAxis offset
+  cases origin with
+  | inl eq => exact Or.inl (eq ▸ memberIndex)
+  | inr eq => exact Or.inr (eq ▸ memberIndex)
+
+theorem Models1G17FiniteAxesRankOrigins_proven :
+    JuliaLean.Proofs.base.subarray.Models1Group17.FiniteAxesRankAndOrigins := by
+  intro P T input supported
+  refine ⟨viewAxesManual input.view.indices, shape_axes_success input supported,
+    shape_axes_rank input.view.indices supported, ?_, ?_⟩
+  · exact shape_origin_position input.view.indices supported
+  · exact shape_axes_offset_origin input.view.indices supported
+
+/-- Scalar insertion is invisible to the whole-axis domain check. -/
+theorem shape_all_insert (before after : List Index) (value : I64) :
+    (before ++ Index.scalar value :: after).all finiteAxesTag =
+      (before ++ after).all finiteAxesTag := by
+  simp only [List.all_append, List.all_cons, finiteAxesTag, Bool.true_and]
+
+theorem shape_axes_insert (before after : List Index) (value : I64) :
+    indicesSubDispatch (before ++ Index.scalar value :: after) =
+      indicesSubDispatch (before ++ after) := by
+  simp only [indicesSubDispatch_spec, viewAxesManual, List.flatMap_append,
+    List.flatMap_cons, Index.indexAxes, List.nil_append]
+
+theorem shape_prefix_insert (before after : List Index) (value : I64) :
+    axes1PrefixKnown (before ++ Index.scalar value :: after) =
+      axes1PrefixKnown (before ++ after) := by
+  induction before with
+  | nil => rfl
+  | cons index before ih =>
+      cases index with
+      | scalar x => exact ih
+      | values axes values => cases axes <;> first | exact ih | rfl
+      | cartesianValues axes rank values => cases axes <;> first | exact ih | rfl
+      | colon => rfl
+      | slice axis => rfl
+      | identity axis => rfl
+      | unitRange axis => rfl
+      | oneTo n => rfl
+      | stepRange first step count => rfl
+      | stepRangeLen first step count => rfl
+      | ordinalRange first step count => rfl
+      | linRange first last count => rfl
+      | mask bits => rfl
+      | other => rfl
+      | cartesian coords => rfl
+
+theorem shape_first_insert (before after : List Index) (value : I64) :
+    axes1SubDispatch (before ++ Index.scalar value :: after) =
+      axes1SubDispatch (before ++ after) := by
+  induction before with
+  | nil => rfl
+  | cons index before ih =>
+      cases index with
+      | scalar x => exact ih
+      | values axes values => cases axes <;> first | exact ih | rfl
+      | cartesianValues axes rank values => cases axes <;> first | exact ih | rfl
+      | colon => rfl
+      | slice axis => rfl
+      | identity axis => rfl
+      | unitRange axis => rfl
+      | oneTo n => rfl
+      | stepRange first step count => rfl
+      | stepRangeLen first step count => rfl
+      | ordinalRange first step count => rfl
+      | linRange first last count => rfl
+      | mask bits => rfl
+      | other => rfl
+      | cartesian coords => rfl
+
+theorem shape_offset_insert (before after : List Index) (value : I64) :
+    hasOffsetAxesFiniteCore (before ++ Index.scalar value :: after) =
+      hasOffsetAxesFiniteCore (before ++ after) := by
+  induction before with
+  | nil => rfl
+  | cons index before ih =>
+      simp only [List.cons_append, hasOffsetAxesFiniteCore, ih]
+
+theorem Models1G17ScalarInsertionShapeInvariance_proven :
+    JuliaLean.Proofs.base.subarray.Models1Group17.ScalarInsertionPreservesShapeObservations := by
+  intro P T original changed before after value hOriginal hChanged hRank
+  have hAxes : axesSubArrayFinite changed = axesSubArrayFinite original := by
+    simp only [axesSubArrayFinite, axesSubArrayModel, axesSubArray,
+      hOriginal, hChanged, shape_all_insert, shape_axes_insert]
+  refine ⟨hAxes, ?_, ?_, ?_⟩
+  · simp only [sizeSubArrayFinite, hAxes]
+  · simp only [axes1SubArrayFinite, axes1SubArrayModel, axes1SubArray,
+      hOriginal, hChanged, hRank, shape_prefix_insert, shape_first_insert]
+  · simp only [hasOffsetAxesSubArrayFinite, hOriginal, hChanged, shape_offset_insert]
+
+
+/-- Mathematical endpoint width, represented with the same machine wrap. -/
+def shape_axis_size (axis : Axis) : I64 :=
+  int64 (axis.last.val - axis.first.val + 1)
+
+theorem shape_axis_length (axis : Axis) :
+    axisLength axis = .ok (shape_axis_size axis) := by
+  unfold axisLength
+  split
+  next origin =>
+    unfold shape_axis_size
+    rw [origin]
+    simp only [Int.sub_add_cancel, int64_self]
+  next other =>
+    change Except.ok (iadd (int64 1) (isub axis.last axis.first)) =
+      Except.ok (shape_axis_size axis)
+    apply congrArg Except.ok
+    apply JuliaLean.Proofs.base.int.jint_eq
+    simp only [iadd, isub, JuliaLean.base.int.add, JuliaLean.base.int.sub,
+      JuliaLean.Proofs.base.int.add_int_val, JuliaLean.Proofs.base.int.sub_int_val,
+      shape_axis_size, int64, JuliaLean.Proofs.base.int.lit_val]
+    rw [show wrapInt .i64 1 = 1 from rfl,
+      JuliaLean.Proofs.base.int.wrapInt_add_right, Int.add_comm]
+
+theorem shape_map_lengths (axes : List Axis) :
+    mapAxisLengths axes = .ok (axes.map shape_axis_size) := by
+  induction axes with
+  | nil => rfl
+  | cons axis rest ih =>
+      simp only [mapAxisLengths, shape_axis_length, ih, Bind.bind, Except.bind,
+        Pure.pure, Except.pure, List.map_cons]
+
+theorem Models1G17FiniteSizeCardinality_proven :
+    JuliaLean.Proofs.base.subarray.Models1Group17.FiniteSizeCoordinateCardinality := by
+  intro P T input supported
+  let axes := viewAxesManual input.view.indices
+  refine ⟨axes, axes.map shape_axis_size, shape_axes_success input supported, ?_,
+    shape_axes_rank input.view.indices supported, ?_, ?_⟩
+  · simp only [sizeSubArrayFinite, shape_axes_success input supported,
+      partialBind, shape_map_lengths, axes]
+  · exact List.length_map shape_axis_size
+  · intro position axis member
+    refine ⟨shape_axis_size axis, ?_, rfl⟩
+    rw [List.getElem?_map, member]
+    rfl
+
+theorem shape_supported_stored (indices : List Index)
+    (supported : ∀ index ∈ indices, ShapeIndexSupported index) : StoredIndices indices := by
+  induction indices with
+  | nil => trivial
+  | cons index rest ih =>
+      have hi := supported index (List.mem_cons_self ..)
+      have hr : ∀ next ∈ rest, ShapeIndexSupported next :=
+        fun next member => supported next (List.mem_cons_of_mem index member)
+      refine ⟨?_, ih hr⟩
+      cases index <;> first | trivial | cases hi
+
+theorem shape_supported_prefix (indices : List Index)
+    (supported : ∀ index ∈ indices, ShapeIndexSupported index) :
+    axes1PrefixKnown indices = true := by
+  induction indices with
+  | nil => rfl
+  | cons index rest ih =>
+      have hi := supported index (List.mem_cons_self ..)
+      have ht := shape_supported_tag index hi
+      have hr : ∀ next ∈ rest, ShapeIndexSupported next :=
+        fun next member => supported next (List.mem_cons_of_mem index member)
+      cases index with
+      | scalar x => exact ih hr
+      | values axes values => cases axes <;> first | exact ih hr | exact ht
+      | cartesianValues axes rank values => cases axes <;> first | exact ih hr | exact ht
+      | colon => exact ht
+      | slice axis => exact ht
+      | identity axis => exact ht
+      | unitRange axis => exact ht
+      | oneTo n => exact ht
+      | stepRange first step count => exact ht
+      | stepRangeLen first step count => exact ht
+      | ordinalRange first step count => exact ht
+      | linRange first last count => exact ht
+      | mask bits => exact ht
+      | other => exact ht
+      | cartesian coords => exact ht
+
+theorem Models1G17FiniteAxes1Domain_proven :
+    JuliaLean.Proofs.base.subarray.Models1Group17.FiniteAxes1CoordinateDomain := by
+  intro P T input supported
+  refine ⟨viewAxesManual input.view.indices, axes1SubArrayModel input.view,
+    shape_axes_success input supported, ?_, shape_axes_rank input.view.indices supported, ?_⟩
+  · unfold axes1SubArrayFinite
+    split
+    next zero =>
+      simp only [axes1SubArrayModel, zero, ite_true, partialPure]
+    next nonzero =>
+      simp only [shape_supported_prefix input.view.indices supported, ite_true, partialPure]
+  · split
+    next zero =>
+      refine ⟨axes1ZeroDimSubArray, ?_, ?_, ?_, ?_⟩
+      · simp only [axes1SubArrayModel, zero, ite_true]
+      · decide
+      · decide
+      · decide
+    next nonzero =>
+      simp only [axes1SubArrayModel, nonzero, ite_false, axes1SubArray]
+      exact axes1SubDispatch_spec input.view.indices
+        (shape_supported_stored input.view.indices supported)
+
+
+theorem shape_onebased_no_offset (axes : List Axis)
+    (onebased : ∀ axis ∈ axes, axis.first = int64 1) :
+    axes.any (fun axis => decide (axis.first.val ≠ 1)) = false := by
+  induction axes with
+  | nil => rfl
+  | cons axis rest ih =>
+      have first := onebased axis (List.mem_cons_self ..)
+      have remaining : ∀ next ∈ rest, next.first = int64 1 :=
+        fun next member => onebased next (List.mem_cons_of_mem axis member)
+      simp only [List.any_cons, first, ih remaining]
+      rfl
+
+theorem shape_index_offset (index : Index) (supported : ShapeIndexSupported index) :
+    hasOffsetAxesFiniteIndex index =
+      partialPure (index.indexAxes.any (fun axis => decide (axis.first.val ≠ 1))) := by
+  cases index with
+  | scalar value => rfl
+  | colon => cases supported
+  | slice axis =>
+      simp only [hasOffsetAxesFiniteIndex, Index.indexAxes, List.any_cons, List.any_nil,
+        Bool.or_false]
+  | identity axis =>
+      simp only [hasOffsetAxesFiniteIndex, Index.indexAxes, List.any_cons, List.any_nil,
+        Bool.or_false]
+  | values axes values =>
+      have concrete : concreteArrayAxes axes = true := shape_supported_tag (.values axes values) supported
+      simp only [hasOffsetAxesFiniteIndex, concrete, ite_true, Index.indexAxes,
+        shape_onebased_no_offset axes supported]
+  | cartesianValues axes rank values =>
+      have concrete : concreteArrayAxes axes = true :=
+        shape_supported_tag (.cartesianValues axes rank values) supported
+      simp only [hasOffsetAxesFiniteIndex, concrete, ite_true, Index.indexAxes,
+        shape_onebased_no_offset axes supported]
+  | unitRange axis => rfl
+  | oneTo n => rfl
+  | stepRange first step count => rfl
+  | stepRangeLen first step count => rfl
+  | linRange first last count => rfl
+  | mask bits => rfl
+  | ordinalRange first step count => cases supported
+  | other => cases supported
+  | cartesian coords => cases supported
+
+theorem shape_offset_result (indices : List Index)
+    (supported : ∀ index ∈ indices, ShapeIndexSupported index) :
+    hasOffsetAxesFiniteCore indices =
+      partialPure ((viewAxesManual indices).any (fun axis => decide (axis.first.val ≠ 1))) := by
+  induction indices with
+  | nil => rfl
+  | cons index rest ih =>
+      have hi := supported index (List.mem_cons_self ..)
+      have hr : ∀ next ∈ rest, ShapeIndexSupported next :=
+        fun next member => supported next (List.mem_cons_of_mem index member)
+      simp only [hasOffsetAxesFiniteCore, shape_index_offset index hi, partialPure, partialBind]
+      rw [ih hr]
+      simp only [viewAxesManual, List.flatMap_cons, List.any_append]
+      cases index.indexAxes.any (fun axis => decide (axis.first.val ≠ 1)) <;> rfl
+
+theorem Models1G17FiniteOffsetAxisCoherence_proven :
+    JuliaLean.Proofs.base.subarray.Models1Group17.FiniteOffsetAxisCoherence := by
+  intro P T input supported
+  let axes := viewAxesManual input.view.indices
+  refine ⟨axes, axes.any (fun axis => decide (axis.first.val ≠ 1)),
+    shape_axes_success input supported, shape_offset_result input.view.indices supported, ?_⟩
+  simp only [List.any_eq_true, decide_eq_true_eq]
+
+end JuliaLean.ChatGPT.Batch9.Group14
+
+namespace JuliaLean.ChatGPT.Batch9.Group14
+
+open JuliaLean JuliaLean.base.subarray
+open JuliaLean.Proofs.base.subarray.Models1Group17
+
+/-- One removal step retains exactly the nonscalar or in-rank head. -/
+theorem singleton_remove_cons (dimensions : List Bool) (index : Index) (rest : List Index) :
+    JuliaLean.base.subarray.Models1Group17.removeSingletonIndices dimensions (index :: rest) =
+      if index.isScalar = false ∨ 0 < dimensions.length then
+        index :: JuliaLean.base.subarray.Models1Group17.removeSingletonIndices (JuliaLean.base.subarray.Models1Group17.splitRest dimensions (JuliaLean.base.subarray.Models1Group17.indexNdims [index])) rest
+      else JuliaLean.base.subarray.Models1Group17.removeSingletonIndices (JuliaLean.base.subarray.Models1Group17.splitRest dimensions (JuliaLean.base.subarray.Models1Group17.indexNdims [index])) rest := by
+  cases dimensions <;> cases index <;> rfl
+
+/-- Removal neither introduces values nor changes the nonscalar subsequence. -/
+theorem Models1G17SingletonPreservesNonscalars_proven :
+    JuliaLean.Proofs.base.subarray.Models1Group17.SingletonPreservesNonscalars := by
+  intro dimensions indices
+  induction indices generalizing dimensions with
+  | nil => exact ⟨.slnil, rfl⟩
+  | cons index rest ih =>
+      dsimp only
+      rw [singleton_remove_cons]
+      have ht := ih (JuliaLean.base.subarray.Models1Group17.splitRest dimensions (JuliaLean.base.subarray.Models1Group17.indexNdims [index]))
+      split
+      · exact ⟨ht.1.cons_cons index, by simp only [List.filter_cons, ht.2]⟩
+      · rename_i h
+        have hscalar : index.isScalar = true := by
+          cases hs : index.isScalar with
+          | false => exact False.elim (h (Or.inl hs))
+          | true => rfl
+        refine ⟨ht.1.cons index, ?_⟩
+        simp only [List.filter_cons, hscalar, Bool.not_true, Bool.false_eq_true,
+          ite_false, ht.2]
+
+/-- The tuple-tail helper removes the reference tuple's arity. -/
+theorem singleton_split_length {A B : Type} (dimensions : List A) (reference : List B) :
+    (JuliaLean.base.subarray.Models1Group17.splitRest dimensions reference).length = dimensions.length - reference.length := by
+  induction reference generalizing dimensions with
+  | nil => simp only [JuliaLean.base.subarray.Models1Group17.splitRest, List.length_nil, Nat.sub_zero]
+  | cons b reference ih =>
+      cases dimensions with
+      | nil => simp only [JuliaLean.base.subarray.Models1Group17.splitRest, List.length_nil, Nat.zero_sub]
+      | cons a dimensions =>
+          change (JuliaLean.base.subarray.Models1Group17.splitRest dimensions reference).length =
+            (dimensions.length + 1) - (reference.length + 1)
+          rw [ih]
+          omega
+
+/-- The model's concrete dimension tuple has the independently specified rank. -/
+theorem singleton_dims_length (index : Index) :
+    (JuliaLean.base.subarray.Models1Group17.indexNdims [index]).length = effectiveRank index := by
+  cases index <;> simp only [JuliaLean.base.subarray.Models1Group17.indexNdims,
+    JuliaLean.base.subarray.Models1Group17.indexNdims, effectiveRank,
+    List.length_cons, List.length_nil, List.length_map, List.length_append,
+    List.length_replicate, Nat.add_zero]
+
+/-- The prefix-rank specification obeys the same independent head/tail rule. -/
+theorem singleton_retained_cons (dimensions : List Bool) (index : Index) (rest : List Index) :
+    retainedByPrefix dimensions (index :: rest) =
+      if index.isScalar = false ∨ 0 < dimensions.length then
+        index :: retainedByPrefix (JuliaLean.base.subarray.Models1Group17.splitRest dimensions (JuliaLean.base.subarray.Models1Group17.indexNdims [index])) rest
+      else retainedByPrefix (JuliaLean.base.subarray.Models1Group17.splitRest dimensions (JuliaLean.base.subarray.Models1Group17.indexNdims [index])) rest := by
+  have hlength :
+      (JuliaLean.base.subarray.Models1Group17.splitRest dimensions (JuliaLean.base.subarray.Models1Group17.indexNdims [index])).length =
+        dimensions.length - effectiveRank index := by
+    rw [singleton_split_length, singleton_dims_length]
+  have htail :
+      (rest.zipIdx.map (Prod.map id (· + 1))).filterMap (fun pair =>
+        if pair.1.isScalar = false ∨
+          (((index :: rest).take pair.2).map effectiveRank).sum < dimensions.length then
+          some pair.1 else none) =
+      retainedByPrefix (JuliaLean.base.subarray.Models1Group17.splitRest dimensions (JuliaLean.base.subarray.Models1Group17.indexNdims [index])) rest := by
+    rw [List.filterMap_map]
+    unfold retainedByPrefix
+    apply congrArg (fun f : Index × Nat → Option Index => rest.zipIdx.filterMap f)
+    funext pair
+    rcases pair with ⟨entry, position⟩
+    simp only [Function.comp_apply, Prod.map, id_eq,
+      List.take_succ_cons, List.map_cons, List.sum_cons]
+    have hc :
+        (entry.isScalar = false ∨
+          effectiveRank index + ((rest.take position).map effectiveRank).sum < dimensions.length) ↔
+        (entry.isScalar = false ∨
+          ((rest.take position).map effectiveRank).sum <
+            (JuliaLean.base.subarray.Models1Group17.splitRest dimensions (JuliaLean.base.subarray.Models1Group17.indexNdims [index])).length) := by
+      rw [hlength, Nat.lt_sub_iff_add_lt']
+    simp only [hc]
+  unfold retainedByPrefix
+  rw [List.zipIdx_cons']
+  simp only [List.filterMap_cons, List.take_zero, List.map_nil, List.sum_nil]
+  rw [htail]
+  by_cases hkeep : index.isScalar = false ∨ 0 < dimensions.length
+  · simp only [hkeep, ite_true]
+    rfl
+  · simp only [hkeep, ite_false]
+    rfl
+
+/-- Removal equals the original-position prefix-rank selection exactly. -/
+theorem Models1G17SingletonPrefixSelection_proven :
+    JuliaLean.Proofs.base.subarray.Models1Group17.SingletonPrefixSelection := by
+  intro dimensions indices
+  induction indices generalizing dimensions with
+  | nil => rfl
+  | cons index rest ih =>
+      rw [singleton_remove_cons, singleton_retained_cons,
+        ih (JuliaLean.base.subarray.Models1Group17.splitRest dimensions (JuliaLean.base.subarray.Models1Group17.indexNdims [index]))]
+
+end JuliaLean.ChatGPT.Batch9.Group14
+
+namespace JuliaLean.ChatGPT.Batch9.Group14
+
+open JuliaLean JuliaLean.base.subarray JuliaLean.Proofs.base.subarray
+
+theorem Models1G17ColonViewObservations_proven :
+    JuliaLean.Proofs.base.subarray.Models1Group17.ColonViewPreservesObservations := by
+  intro range
+  exact ⟨rfl, fun _ _ => rfl, fun _ => rfl, rfl⟩
+
+theorem core_reindex_slices (parents subindices : List Index)
+    (hs : ∀ parent ∈ parents, ∃ axis : Axis, parent = Index.slice axis)
+    (hl : parents.length = subindices.length) :
+    JuliaLean.base.subarray.Models1Group17.reindexPartialCore parents subindices =
+      some (.ok subindices) := by
+  induction parents generalizing subindices with
+  | nil =>
+      cases subindices with
+      | nil => rfl
+      | cons _ _ => simp only [List.length_nil, List.length_cons] at hl; omega
+  | cons parent parents ih =>
+      obtain ⟨axis, rfl⟩ := hs parent (List.mem_cons_self ..)
+      have ht : ∀ parent ∈ parents, ∃ axis : Axis, parent = Index.slice axis := by
+        intro parent hp
+        exact hs parent (List.mem_cons_of_mem _ hp)
+      cases subindices with
+      | nil => simp only [List.length_nil, List.length_cons] at hl; omega
+      | cons subindex subindices =>
+          have hl' : parents.length = subindices.length := by
+            simpa only [List.length_cons, Nat.add_right_cancel_iff] using hl
+          change JuliaLean.base.subarray.Models1Group17.partialMap
+            (fun indices => subindex :: indices)
+            (JuliaLean.base.subarray.Models1Group17.reindexPartialCore parents subindices) = _
+          rw [ih subindices ht hl']
+          rfl
+
+theorem Models1G17ReindexAllSlicesIdentity_proven :
+    JuliaLean.Proofs.base.subarray.Models1Group17.ReindexAllSlicesIdentity := by
+  intro parents subindices hs hl
+  exact core_reindex_slices parents.indices subindices.indices hs hl
+
+theorem core_reindex_scalars (parents : List Index)
+    (hs : ∀ parent ∈ parents, ∃ value : I64, parent = Index.scalar value) :
+    JuliaLean.base.subarray.Models1Group17.reindexPartialCore parents [] =
+      some (.ok parents) := by
+  induction parents with
+  | nil => rfl
+  | cons parent parents ih =>
+      obtain ⟨value, rfl⟩ := hs parent (List.mem_cons_self ..)
+      have ht : ∀ parent ∈ parents, ∃ value : I64, parent = Index.scalar value := by
+        intro parent hp
+        exact hs parent (List.mem_cons_of_mem _ hp)
+      change JuliaLean.base.subarray.Models1Group17.partialMap
+        (fun indices => Index.scalar value :: indices)
+        (JuliaLean.base.subarray.Models1Group17.reindexPartialCore parents []) = _
+      rw [ih ht]
+      rfl
+
+theorem Models1G17ReindexAllScalarsPreserve_proven :
+    JuliaLean.Proofs.base.subarray.Models1Group17.ReindexAllScalarsPreserve := by
+  intro parents subindices hs he
+  unfold JuliaLean.base.subarray.Models1Group17.reindexPartial
+  rw [he]
+  exact core_reindex_scalars parents.indices hs
+
+theorem Models1G17ContiguityValueIndependence_proven :
+    JuliaLean.Proofs.base.subarray.Models1Group17.ContiguityIgnoresValues := by
+  intro P Q T view parent offset stride
+  rfl
+
+theorem core_allScalar_map (values : List I64) :
+    Index.allScalar (values.map Index.scalar) = true := by
+  induction values with
+  | nil => rfl
+  | cons value values ih =>
+      change (true && Index.allScalar (values.map Index.scalar)) = true
+      rw [ih]
+      rfl
+
+theorem Models1G17ContiguityDispatchExtremes_proven :
+    JuliaLean.Proofs.base.subarray.Models1Group17.ContiguityDispatchExtremes := by
+  constructor
+  · intro P T view h
+    unfold JuliaLean.base.subarray.Models1Group17.iscontiguous
+    rw [h]
+    rfl
+  · intro P T view scalars
+    cases scalars with
+    | nil => rfl
+    | cons value values =>
+        change (if Index.allScalar ((value :: values).map Index.scalar) then true else false) = true
+        rw [core_allScalar_map]
+        rfl
+
+theorem Models1G17ContiguityLeadingUnitranges_proven :
+    JuliaLean.Proofs.base.subarray.Models1Group17.ContiguityLeadingUnitRanges := by
+  intro P T view axis length tail
+  exact ⟨rfl, rfl, rfl, rfl⟩
+
+theorem Models1G17ScalarSubstridesArity_proven :
+    JuliaLean.Proofs.base.subarray.Models1Group17.ScalarSubstridesArity := by
+  intro strides values
+  induction values generalizing strides with
+  | nil =>
+      cases strides with
+      | nil => rfl
+      | cons stride strides =>
+          simp only [List.map_nil, JuliaLean.base.subarray.Models1Group17.substrides,
+            List.length_cons, List.length_nil, Nat.add_one_ne_zero, ite_false,
+            Nat.not_lt_zero]
+  | cons value values ih =>
+      cases strides with
+      | nil =>
+          simp only [List.map_cons, JuliaLean.base.subarray.Models1Group17.substrides,
+            JuliaLean.base.subarray.Models1Group17.tupleTail,
+            JuliaLean.base.subarray.Models1Group17.partialBind,
+            List.length_nil, List.length_cons, Nat.zero_ne_add_one,
+            Nat.zero_lt_succ, ite_false, ite_true]
+      | cons stride strides =>
+          change JuliaLean.base.subarray.Models1Group17.substrides strides
+            (values.map Index.scalar) = _
+          rw [ih]
+          simp only [List.length_cons, Nat.add_right_cancel_iff, Nat.add_lt_add_iff_right]
+
+theorem Models1G17EmptyStrideErrorPrecedence_proven :
+    JuliaLean.Proofs.base.subarray.Models1Group17.EmptyStrideFirstErrorPrecedence := by
+  intro index rest h
+  cases index <;>
+    simp only [Index.isRange, Bool.false_eq_true] at h <;>
+    simp only [JuliaLean.base.subarray.Models1Group17.substrides,
+      Index.isRange, ite_true,
+      JuliaLean.base.subarray.Models1Group17.partialBind,
+      JuliaLean.base.subarray.Models1Group17.tupleFirst]
+
+theorem Models1G17ScalarStrideNoAxisRead_proven :
+    JuliaLean.Proofs.base.subarray.Models1Group17.ScalarStrideDoesNotReadAxes := by
+  intro stride axes values
+  cases values with
+  | nil => rfl
+  | cons value values =>
+      simp only [List.map_cons, JuliaLean.base.subarray.Models1Group17.computeStride1Rec,
+        core_allScalar_map, ite_true, computeStride1Scalars]
+
+theorem Models1G17EmptyLeafObservations_proven :
+    JuliaLean.Proofs.base.subarray.Models1Group17.EmptyLeafObservations := by
+  exact ⟨rfl, rfl, rfl, rfl, fun _ => rfl, rfl⟩
+
+theorem Models1G17FallbackRejectsLinearIndexing_proven :
+    JuliaLean.Proofs.base.subarray.Models1Group17.FallbackRejectsLinearIndexing := by
+  intro indices h
+  cases h
+
+theorem Models1G17RangeTrimmingObservations_proven :
+    JuliaLean.Proofs.base.subarray.Models1Group17.RangeTrimmingPreservesObservations := by
+  intro index
+  exact ⟨rfl, rfl, rfl⟩
+
+theorem Models1G17FastTypeLeafClassification_proven :
+    JuliaLean.Proofs.base.subarray.Models1Group17.FastTypeLeafClassification := by
+  constructor
+  · intro h
+    cases h
+  · exact ⟨rfl, rfl⟩
+
+theorem Models1G17InvalidStrideExceptionClass_proven :
+    JuliaLean.Proofs.base.subarray.Models1Group17.InvalidStrideExceptionClass := by
+  intro strides typeLabel
+  trivial
+
+end JuliaLean.ChatGPT.Batch9.Group14
+
+namespace JuliaLean.ChatGPT.Batch9.Group14
+
+open JuliaLean JuliaLean.base.subarray JuliaLean.Proofs.base.subarray
+
+namespace Lin
+
+open JuliaLean.Proofs.base.subarray.Models1Group17
+
+/-- Taking a constant multiple commutes with summation. -/
+theorem sum_mul_left (factor : Int) (terms : List Int) :
+    (terms.map (fun term => factor * term)).sum = factor * terms.sum := by
+  induction terms with
+  | nil => simp only [List.map_nil, List.sum_nil, Int.mul_zero]
+  | cons head tail ih =>
+      simp only [List.map_cons, List.sum_cons, ih, Int.mul_add]
+
+/-- The global prefix-product definition has the usual column-major recurrence. -/
+theorem denseOffset_cons (axis : Axis) (axes : List Axis)
+    (coordinate : I64) (coordinates : List I64) :
+    denseOffsetSpec (axis :: axes) (coordinate :: coordinates) =
+      coordinate.val - axis.first.val +
+        (axis.last.val - axis.first.val + 1) * denseOffsetSpec axes coordinates := by
+  unfold denseOffsetSpec
+  rw [List.zip_cons_cons, List.zipIdx_cons']
+  simp only [List.map_cons, List.sum_cons, List.take_zero, List.map_nil,
+    List.prod_nil, Int.mul_one, List.map_map, Function.comp_def,
+    Prod.map, id_eq, List.take_succ_cons, List.prod_cons]
+  rw [← sum_mul_left]
+  congr 1
+  rw [List.map_map]
+  congr 1
+  apply congrArg (fun f => List.map f ((axes.zip coordinates).zipIdx))
+  funext pair
+  simp only [Function.comp_def]
+  exact Int.mul_left_comm _ _ _
+
+/-- Scalar differences reduce the exact displacement to the machine type. -/
+theorem difference_as_int64 (x y : I64) :
+    isub x y = int64 (x.val - y.val) := by
+  calc
+    _ = isub (int64 x.val) (int64 y.val) := by
+      rw [int64_self, int64_self]
+    _ = _ := isub_lit _ _
+
+/-- Every represented axis length is its endpoint width reduced to Int64. -/
+theorem axisLength_as_int64 (axis : Axis) :
+    JuliaLean.base.subarray.Models1Group17.axisLength axis =
+      .ok (int64 (axis.last.val - axis.first.val + 1)) := by
+  unfold JuliaLean.base.subarray.Models1Group17.axisLength
+  split
+  · rename_i hfirst
+    rw [hfirst]
+    have h : axis.last.val - 1 + 1 = axis.last.val := by omega
+    rw [h, int64_self]
+  · unfold JuliaLean.base.subarray.Models1Group17.unitLength
+    change Except.ok (iadd (int64 1) (isub axis.last axis.first)) = _
+    rw [difference_as_int64, iadd_lit]
+    congr 2
+    omega
+
+/-- Scalar linearization is the independently specified global offset,
+with exactly one final Int64 reduction in the statement. -/
+theorem compute_as_int64 (axes : List Axis) (coordinates : List I64)
+    (rank : axes.length = coordinates.length) (first stride : Int) :
+    JuliaLean.base.subarray.Models1Group17.computeLinindexRec
+      (int64 first) (int64 stride) axes (coordinates.map Index.scalar) =
+      some (.ok (int64 (first + stride * denseOffsetSpec axes coordinates))) := by
+  induction coordinates generalizing axes first stride with
+  | nil =>
+      simp only [List.map_nil,
+        JuliaLean.base.subarray.Models1Group17.computeLinindexRec,
+        computeLinindexEmpty, denseOffsetSpec, List.zip_nil_right,
+        List.zipIdx_nil, List.sum_nil, Int.mul_zero, Int.add_zero]
+  | cons coordinate coordinates ih =>
+      cases axes with
+      | nil => simp only [List.length_nil, List.length_cons] at rank; omega
+      | cons axis axes =>
+          have rankTail : axes.length = coordinates.length := by
+            simpa only [List.length_cons, Nat.add_right_cancel_iff] using rank
+          cases coordinates with
+          | nil =>
+              rw [denseOffset_cons]
+              simp only [denseOffsetSpec, List.zip_nil_right, List.zipIdx_nil,
+                List.map_nil, List.sum_nil, Int.mul_zero, Int.add_zero,
+                List.map_cons,
+                JuliaLean.base.subarray.Models1Group17.computeLinindexRec,
+                JuliaLean.base.subarray.Models1Group17.firstAsInt,
+                JuliaLean.base.subarray.Models1Group17.partialPure,
+                JuliaLean.base.subarray.Models1Group17.partialBind]
+              rw [difference_as_int64, imul_lit, iadd_lit]
+              rw [Int.mul_comm (coordinate.val - axis.first.val) stride]
+          | cons next rest =>
+              simp only [List.map_cons,
+                JuliaLean.base.subarray.Models1Group17.computeLinindexRec,
+                JuliaLean.base.subarray.Models1Group17.firstAsInt,
+                JuliaLean.base.subarray.Models1Group17.partialPure,
+                JuliaLean.base.subarray.Models1Group17.partialBind]
+              rw [axisLength_as_int64]
+              simp only
+              rw [difference_as_int64, imul_lit, iadd_lit, imul_lit]
+              have ih' := ih axes rankTail
+                (first + (coordinate.val - axis.first.val) * stride)
+                (stride * (axis.last.val - axis.first.val + 1))
+              simp only [List.map_cons] at ih'
+              rw [ih']
+              rw [denseOffset_cons]
+              congr 3
+              rw [Int.mul_comm (coordinate.val - axis.first.val) stride,
+                Int.mul_add stride (coordinate.val - axis.first.val)
+                  ((axis.last.val - axis.first.val + 1) *
+                    denseOffsetSpec axes (next :: rest))]
+              simp only [Int.mul_assoc, Int.add_assoc]
+
+end Lin
+
+/-- The machine result agrees with the global column-major offset modulo 2^64. -/
+theorem Models1G17ScalarLinearizationCongruence_proven :
+    JuliaLean.Proofs.base.subarray.Models1Group17.ScalarLinearizationCongruence := by
+  intro first stride axes coordinates _valid rank
+  let exactValue := first.val + stride.val *
+    JuliaLean.Proofs.base.subarray.Models1Group17.denseOffsetSpec axes coordinates
+  refine ⟨int64 exactValue, ?_, ?_⟩
+  · have h := Lin.compute_as_int64 axes coordinates rank first.val stride.val
+    simpa only [int64_self] using h
+  · change (wrapInt .i64 exactValue - exactValue) % (2 ^ 64 : Int) = 0
+    have h := JuliaLean.Proofs.base.int.wrapInt_emod_self IntTy.i64 exactValue
+    change wrapInt .i64 exactValue % (2 ^ 64 : Int) =
+      exactValue % (2 ^ 64 : Int) at h
+    rw [Int.sub_emod, h, Int.sub_self, Int.zero_emod]
+
+
+end JuliaLean.ChatGPT.Batch9.Group14
+
+namespace JuliaLean.Proofs.base.subarray.Models1Group17
+open JuliaLean JuliaLean.base.subarray JuliaLean.base.subarray.Models1Group17
+set_option maxRecDepth 4096
+set_option maxHeartbeats 1600000
+
+private def fullUnit : UnitRange64 :=
+  ⟨⟨int64 (-(2^63)), int64 (2^63-1)⟩, Or.inl (by decide)⟩
+private def oneUnit : UnitRange64 :=
+  ⟨⟨int64 1, int64 1⟩, Or.inl (by decide)⟩
+private def oneStep : StepRange64 :=
+  ⟨⟨int64 1, int64 1, int64 1⟩, by unfold NormalizedStepRange; decide⟩
+private def wideStep : StepRange64 :=
+  ⟨⟨int64 (-(2^63)), int64 (2^62), int64 (2^62)⟩, by unfold NormalizedStepRange; decide⟩
+private def everyOther : StepRange64 :=
+  ⟨⟨int64 1, int64 2, int64 3⟩, by unfold NormalizedStepRange; decide⟩
+
+theorem unitRangeViewElementsAndErrors_refuted : ¬ UnitRangeViewElementsAndErrors := by
+  intro h
+  have bad := h fullUnit oneUnit
+  have computed : viewUnitRange64 fullUnit oneUnit = .error .boundsError := by decide
+  simp only [computed] at bad
+  obtain ⟨position, hp, hb⟩ := bad
+  have hcount : selectorCountSpec (.unit oneUnit) = 1 := by decide
+  rw [hcount] at hp
+  have hp0 : position = 0 := by omega
+  subst position
+  exact (by decide : ¬ (selectorValueSpec (.unit oneUnit) 0 < 1 ∨
+    Int.ofNat (unitCountSpec fullUnit.endpoints) < selectorValueSpec (.unit oneUnit) 0)) hb
+
+theorem unitStepViewElementsAndErrors_refuted : ¬ UnitStepViewElementsAndErrors := by
+  intro h
+  have bad := h fullUnit oneStep
+  have computed : viewUnitRangeStep64 fullUnit oneStep = .error .boundsError := by decide
+  simp only [computed] at bad
+  obtain ⟨position, hp, hb⟩ := bad
+  have hcount : selectorCountSpec (.step oneStep) = 1 := by decide
+  rw [hcount] at hp
+  have hp0 : position = 0 := by omega
+  subst position
+  exact (by decide : ¬ (selectorValueSpec (.step oneStep) 0 < 1 ∨
+    Int.ofNat (unitCountSpec fullUnit.endpoints) < selectorValueSpec (.step oneStep) 0)) hb
+
+theorem stepRangeViewElementsAndErrors_refuted : ¬ StepRangeViewElementsAndErrors := by
+  intro h
+  have bad := h wideStep (.step everyOther)
+  have computed : viewStepRangeOrdinal64 wideStep (.step everyOther) =
+      .ok ⟨int64 (-(2^63)), int64 (-(2^63)), int64 (-(2^63)+1)⟩ := by decide
+  simp only [computed] at bad
+  exact (by decide : stepCountSpec
+    ⟨int64 (-(2^63)), int64 (-(2^63)), int64 (-(2^63)+1)⟩ ≠
+      selectorCountSpec (.step everyOther)) bad.2.1
+
+end JuliaLean.Proofs.base.subarray.Models1Group17
+
+namespace JuliaLean.Proofs.base.subarray
+
+open JuliaLean.Registry
+
+def entriesModels1Group17 : List Entry := [
+  { id := "subarray-empty-leaf-observations",
+    juliaFile := "base/subarray.jl",
+    juliaFns := ["_trimmedshape()", "_trimmedpind()", "_trimmedvind()", "rm_singleton_indices(::Tuple)", "substrides(::Tuple{}, ::Tuple{})", "find_extended_dims(dim)"],
+    statement := "Terminal tuple helpers introduce no dimensions, selectors or strides.",
+    source := "base/subarray.jl:139,145,148,172,439,505 (empty coordinate-domain invariant)",
+    status := .proven, prop := ``JuliaLean.Proofs.base.subarray.Models1Group17.EmptyLeafObservations, thm := some ``JuliaLean.ChatGPT.Batch9.Group14.Models1G17EmptyLeafObservations_proven },
+  { id := "subarray-fallback-rejects-linear-indexing",
+    juliaFile := "base/subarray.jl", juliaFns := ["viewindexing(I::Tuple{Vararg{Any}})"],
+    statement := "The fallback indexing style cannot advertise the empty tuple's fast linear indexing.",
+    source := "base/subarray.jl:52,65 (indexing-style classification invariant)",
+    status := .proven, prop := ``JuliaLean.Proofs.base.subarray.Models1Group17.FallbackRejectsLinearIndexing, thm := some ``JuliaLean.ChatGPT.Batch9.Group14.Models1G17FallbackRejectsLinearIndexing_proven },
+  { id := "subarray-range-trimming-observations",
+    juliaFile := "base/subarray.jl", juliaFns := ["_trimmedindex(i::AbstractRange)"],
+    statement := "Identity range trimming preserves coordinate domains and scalar-versus-range classification.",
+    source := "base/subarray.jl:151 (range observation invariant)",
+    status := .proven, prop := ``JuliaLean.Proofs.base.subarray.Models1Group17.RangeTrimmingPreservesObservations, thm := some ``JuliaLean.ChatGPT.Batch9.Group14.Models1G17RangeTrimmingObservations_proven },
+  { id := "subarray-cached-address-congruence",
+    juliaFile := "base/subarray.jl", juliaFns := ["_reindexlinear(V::FastSubArray, i::Int)", "_reindexlinear(V::FastContiguousSubArray, i::Int)"],
+    statement := "Both cached scalar parent-address computations equal their mathematical affine addresses modulo the machine word size, including overflowing products and sums.",
+    source := "base/subarray.jl:327,351 (machine-address invariant)",
+    status := .proven, prop := ``JuliaLean.Proofs.base.subarray.Models1Group17.CachedAddressCongruence, thm := some ``JuliaLean.Proofs.base.subarray.Models1Group17.CachedAddressCongruence_proven },
+  { id := "subarray-fast-type-leaf-classification",
+    juliaFile := "base/subarray.jl", juliaFns := ["IndexStyle(::Type{<:FastSubArray})", "iscontiguous(::Type{<:SubArray})", "iscontiguous(::Type{<:FastContiguousSubArray})"],
+    statement := "Fast view types advertise linear indexing, and the contiguity type leaves distinguish unrestricted from fast-contiguous view types.",
+    source := "base/subarray.jl:433,461-462 (type-classification invariant)",
+    status := .proven, prop := ``JuliaLean.Proofs.base.subarray.Models1Group17.FastTypeLeafClassification, thm := some ``JuliaLean.ChatGPT.Batch9.Group14.Models1G17FastTypeLeafClassification_proven },
+  { id := "subarray-invalid-stride-exception-class",
+    juliaFile := "base/subarray.jl", juliaFns := ["substrides(strds, I::Tuple{Any, Vararg{Any}})"],
+    statement := "Invalid strided index types always raise ArgumentError, independently of the parent stride tuple and diagnostic type-label contents.",
+    source := "base/subarray.jl:443-444 (exception-class invariant)",
+    status := .proven, prop := ``JuliaLean.Proofs.base.subarray.Models1Group17.InvalidStrideExceptionClass, thm := some ``JuliaLean.ChatGPT.Batch9.Group14.Models1G17InvalidStrideExceptionClass_proven },
+  { id := "subarray-finite-axes-rank-origins",
+    juliaFile := "base/subarray.jl", juliaFns := ["axes(::SubArray)"],
+    statement := "On the concrete finite representation domain, axes succeeds, has the total retained index-type rank, and preserves Slice/Identity endpoints at their global prefix-rank positions; every non-one-based result axis comes from such a selector.",
+    source := "base/subarray.jl:525-531; base/indices.jl:343-345,370-372; doc/src/devdocs/subarrays.md:33-40 (rank and origin preservation)",
+    status := .proven, prop := ``JuliaLean.Proofs.base.subarray.Models1Group17.FiniteAxesRankAndOrigins, thm := some ``JuliaLean.ChatGPT.Batch9.Group14.Models1G17FiniteAxesRankOrigins_proven,
+    notes := "Constructor and payload invariants are explicit. Concrete one-based Array metadata, direct range wrappers, and immutable logical-index construction snapshots only; generic row remains blocked." },
+  { id := "subarray-finite-size-cardinality",
+    juliaFile := "base/subarray.jl", juliaFns := ["size(::SubArray)"],
+    statement := "On the concrete finite shape domain, size succeeds with the retained rank and each coordinate equals its observed axis's mathematical endpoint width modulo Int64, including wrapped and negative unchecked-OneTo lengths.",
+    source := "base/subarray.jl:70,525-531; base/range.jl:503,705-706,794-817 (shape cardinality invariant)",
+    status := .proven, prop := ``JuliaLean.Proofs.base.subarray.Models1Group17.FiniteSizeCoordinateCardinality, thm := some ``JuliaLean.ChatGPT.Batch9.Group14.Models1G17FiniteSizeCardinality_proven,
+    notes := "Mathematical interval-width specification is independent of source machine-length dispatch and wrapping arithmetic. No no-overflow or supplied axes law. Generic row remains blocked." },
+  { id := "subarray-finite-axes1-domain",
+    juliaFile := "base/subarray.jl", juliaFns := ["axes1(::SubArray)"],
+    statement := "On the finite domain, axes1 agrees with the first retained coordinate domain for nonzero-dimensional views, distinguishes an actual empty tuple, and gives zero-dimensional views the singleton linear coordinate domain containing one.",
+    source := "base/subarray.jl:525-541; base/abstractarray.jl:140-142 (first-axis coordinate-domain coherence)",
+    status := .proven, prop := ``JuliaLean.Proofs.base.subarray.Models1Group17.FiniteAxes1CoordinateDomain, thm := some ``JuliaLean.ChatGPT.Batch9.Group14.Models1G17FiniteAxes1Domain_proven,
+    notes := "Does not assume N equals the number of retained axes; direct SubArray N dispatch is preserved. The partial outer none is distinct from an empty-tuple result. Generic row remains blocked." },
+  { id := "subarray-finite-offset-axis-coherence",
+    juliaFile := "base/subarray.jl", juliaFns := ["has_offset_axes(::SubArray)"],
+    statement := "On the finite domain, has_offset_axes succeeds and is true exactly when an observed output axis begins somewhere other than one.",
+    source := "base/subarray.jl:543; base/abstractarray.jl:114-122 (offset-coordinate invariant)",
+    status := .proven, prop := ``JuliaLean.Proofs.base.subarray.Models1Group17.FiniteOffsetAxisCoherence, thm := some ``JuliaLean.ChatGPT.Batch9.Group14.Models1G17FiniteOffsetAxisCoherence_proven,
+    notes := "Observes output coordinate domains rather than copying the source OR over inputs; direct Slice/Identity origins are retained. Generic row remains blocked." },
+  { id := "subarray-scalar-insertion-shape-invariance",
+    juliaFile := "base/subarray.jl", juliaFns := ["size(::SubArray)", "axes(::SubArray)", "axes1(::SubArray)", "has_offset_axes(::SubArray)"],
+    statement := "Inserting an arbitrary Int64 scalar selector at any tuple position while retaining the explicit N parameter preserves all four partial shape observations, including cases with unsupported tails.",
+    source := "base/subarray.jl:70,525-543; doc/src/devdocs/subarrays.md:33-40 (scalar-dimension removal invariant)",
+    status := .proven, prop := ``JuliaLean.Proofs.base.subarray.Models1Group17.ScalarInsertionPreservesShapeObservations, thm := some ``JuliaLean.ChatGPT.Batch9.Group14.Models1G17ScalarInsertionShapeInvariance_proven,
+    notes := "Whole-input metamorphic specification; no model result is a premise and both input records carry representation proofs. Tests dispatch and short circuit across all represented inputs." },
+  { id := "subarray-singleton-prefix-selection",
+    juliaFile := "base/subarray.jl", juliaFns := ["rm_singleton_indices"],
+    statement := "Singleton removal retains every nonscalar and exactly those scalar positions whose preceding original indices consume fewer dimensions than the parent rank, preserving their order and values.",
+    source := "base/subarray.jl:163-172; base/multidimensional.jl:792-799 (index-rank and preservation invariant)",
+    status := .proven, prop := ``JuliaLean.Proofs.base.subarray.Models1Group17.SingletonPrefixSelection, thm := some ``JuliaLean.ChatGPT.Batch9.Group14.Models1G17SingletonPrefixSelection_proven,
+    notes := "Closed index_ndims and splitrest dependencies; complete represented input domain, including CartesianIndex{0}. Unchecked because the exact toolchain cannot start in this environment." },
+  { id := "subarray-singleton-preserves-nonscalars",
+    juliaFile := "base/subarray.jl", juliaFns := ["rm_singleton_indices"],
+    statement := "Singleton removal produces a subsequence of the original indices and leaves its complete nonscalar subsequence unchanged.",
+    source := "base/subarray.jl:169-172 (index-preservation invariant)",
+    status := .proven, prop := ``JuliaLean.Proofs.base.subarray.Models1Group17.SingletonPreservesNonscalars, thm := some ``JuliaLean.ChatGPT.Batch9.Group14.Models1G17SingletonPreservesNonscalars_proven,
+    notes := "No assumed bounds or callee correctness." },
+  { id := "subarray-unitrange-view-elements-errors",
+    juliaFile := "base/subarray.jl", juliaFns := ["view(::AbstractUnitRange, ::AbstractUnitRange{<:Integer})"],
+    statement := "For the explicit UnitRange{Int64} specialization, a successful range view preserves the entire mathematical selector sequence and scalar observations; BoundsError needs a bad selected-element witness and OverflowError needs an unrepresentable empty stop.",
+    source := "base/subarray.jl:177-188,230-233; base/range.jl:968-972,1002-1026 (documented view selection and concrete error behavior)",
+    status := .refuted, refutationEvidence := .runtime, prop := ``JuliaLean.Proofs.base.subarray.Models1Group17.UnitRangeViewElementsAndErrors, thm := some ``JuliaLean.Proofs.base.subarray.Models1Group17.unitRangeViewElementsAndErrors_refuted,
+    issue := "bugs/subarray-range-view-length-overflow.yaml",
+    notes := "Concrete model counterexample confirmed on Julia 1.13.2 and the pinned source commit; see the bug report and reproducer." },
+  { id := "subarray-unit-step-view-elements-errors",
+    juliaFile := "base/subarray.jl", juliaFns := ["view(::AbstractUnitRange, ::StepRange{<:Integer})"],
+    statement := "The concrete Int64 UnitRange/StepRange view preserves the full selector cardinality and element order and agrees with scalar parent indexing; BoundsError requires an invalid selected element and OverflowError requires an impossible empty stop.",
+    source := "base/subarray.jl:177-188,234-237; base/range.jl:1002-1011,1034-1049; doc/src/manual/arrays.md:619-621 (view selection and error behavior)",
+    status := .refuted, refutationEvidence := .runtime, prop := ``JuliaLean.Proofs.base.subarray.Models1Group17.UnitStepViewElementsAndErrors, thm := some ``JuliaLean.Proofs.base.subarray.Models1Group17.unitStepViewElementsAndErrors_refuted,
+    issue := "bugs/subarray-range-view-length-overflow.yaml",
+    notes := "Concrete model counterexample confirmed on Julia 1.13.2 and the pinned source commit; see the bug report and reproducer." },
+  { id := "subarray-step-range-view-elements-errors",
+    juliaFile := "base/subarray.jl", juliaFns := ["view(::StepRange, ::AbstractRange{<:Integer})"],
+    statement := "The concrete Int64 StepRange view with a UnitRange/StepRange selector preserves the full mathematical selected sequence and scalar observations; bounds, empty-stop overflow, and zero-composed-step errors have independent necessary conditions.",
+    source := "base/subarray.jl:177-188,238-241; base/range.jl:353-387,1002-1011,1051-1073; doc/src/manual/arrays.md:619-621 (view selection and error behavior)",
+    status := .refuted, refutationEvidence := .runtime, prop := ``JuliaLean.Proofs.base.subarray.Models1Group17.StepRangeViewElementsAndErrors, thm := some ``JuliaLean.Proofs.base.subarray.Models1Group17.stepRangeViewElementsAndErrors_refuted,
+    issue := "bugs/subarray-step-view-step-overflow.yaml",
+    notes := "Concrete model counterexample confirmed on Julia 1.13.2 and the pinned source commit; see the bug report and reproducer." },
+  { id := "subarray-colon-view-observations",
+    juliaFile := "base/subarray.jl", juliaFns := ["view(::AbstractRange, ::Colon)"],
+    statement := "Colon view of either supported immutable Int64 ordinal range succeeds and preserves the full mathematical sequence, scalar reads, and machine length.",
+    source := "base/subarray.jl:177-188,252-255; base/range.jl:923,1000 (immutable range view contract)",
+    status := .proven, prop := ``JuliaLean.Proofs.base.subarray.Models1Group17.ColonViewPreservesObservations, thm := some ``JuliaLean.ChatGPT.Batch9.Group14.Models1G17ColonViewObservations_proven,
+    notes := "Uses concrete closed copy/getindex dependencies and the existing source wrapper; no identity body or supplied copy law appears as the expected answer. Generic custom range dispatch remains blocked." },
+  { id := "subarray-reindex-all-slices-identity",
+    juliaFile := "base/subarray.jl", juliaFns := ["reindex"],
+    statement := "A parent tuple consisting entirely of Slice indices passes the entire subindex tuple through unchanged when the tuple arities match, for every represented subindex value and type.",
+    source := "base/subarray.jl:292,299-300; doc/src/devdocs/subarrays.md:109-119,189-192 (whole-sequence substitution invariant)",
+    status := .proven, prop := ``JuliaLean.Proofs.base.subarray.Models1Group17.ReindexAllSlicesIdentity, thm := some ``JuliaLean.ChatGPT.Batch9.Group14.Models1G17ReindexAllSlicesIdentity_proven,
+    notes := "Valid tuple accesses make this structural property independent of propagated inbounds context. Concrete partial reindex body, no getter callback. Generic rows remain blocked." },
+  { id := "subarray-reindex-all-scalars-preserve",
+    juliaFile := "base/subarray.jl", juliaFns := ["reindex"],
+    statement := "Reindexing an all-Int64-scalar parent tuple with an empty subindex tuple preserves the entire original parent sequence, including order, duplicates, machine extremes, and the empty tuple.",
+    source := "base/subarray.jl:292,295-296; doc/src/devdocs/subarrays.md:109-119 (whole-sequence substitution invariant)",
+    status := .proven, prop := ``JuliaLean.Proofs.base.subarray.Models1Group17.ReindexAllScalarsPreserve, thm := some ``JuliaLean.ChatGPT.Batch9.Group14.Models1G17ReindexAllScalarsPreserve_proven,
+    notes := "No scalar arithmetic or supplied correctness law; no invalid tuple access occurs. Unrepresented Real subtypes and generic array reads remain blocked." },
+  { id := "subarray-contiguity-value-independence",
+    juliaFile := "base/subarray.jl", juliaFns := ["iscontiguous(::SubArray)"],
+    statement := "Changing parent value, cached offset, or cached stride without changing the index-type tags and linear-indexability flag cannot change the contiguity trait.",
+    source := "base/subarray.jl:348-349,460-462 (type-trait invariant)",
+    status := .proven, prop := ``JuliaLean.Proofs.base.subarray.Models1Group17.ContiguityIgnoresValues, thm := some ``JuliaLean.ChatGPT.Batch9.Group14.Models1G17ContiguityValueIndependence_proven,
+    notes := "Uses concrete source type dispatch, not the old erased-Type callback." },
+  { id := "subarray-contiguity-dispatch-extremes",
+    juliaFile := "base/subarray.jl", juliaFns := ["iscontiguous(::SubArray)"],
+    statement := "A slow SubArray is not fast-contiguous; a fast SubArray with an all-scalar stored index tuple, including the empty tuple, is fast-contiguous.",
+    source := "base/subarray.jl:348-349,460-462 (source alias and type-trait invariant)",
+    status := .proven, prop := ``JuliaLean.Proofs.base.subarray.Models1Group17.ContiguityDispatchExtremes, thm := some ``JuliaLean.ChatGPT.Batch9.Group14.Models1G17ContiguityDispatchExtremes_proven,
+    notes := "All represented scalar values and cached layouts quantified." },
+  { id := "subarray-contiguity-leading-unitranges",
+    juliaFile := "base/subarray.jl", juliaFns := ["iscontiguous(::SubArray)"],
+    statement := "A fast view with a leading Slice, IdentityUnitRange, UnitRange, or OneTo index has the fast-contiguous trait for every remaining index tuple.",
+    source := "base/subarray.jl:348-349,460-462 (source alias and type-trait invariant)",
+    status := .proven, prop := ``JuliaLean.Proofs.base.subarray.Models1Group17.ContiguityLeadingUnitRanges, thm := some ``JuliaLean.ChatGPT.Batch9.Group14.Models1G17ContiguityLeadingUnitranges_proven,
+    notes := "Covers the non-scalar arm of the source type union; no callee or correctness-law inputs." },
+  { id := "subarray-scalar-substrides-arity",
+    juliaFile := "base/subarray.jl", juliaFns := ["substrides"],
+    statement := "For all-scalar selections, equal tuple arities produce no strides; too few strides throw the empty-tail ArgumentError and excess strides reach a MethodError.",
+    source := "base/subarray.jl:439-440; base/essentials.jl:541-542 (tuple/selection invariant)",
+    status := .proven, prop := ``JuliaLean.Proofs.base.subarray.Models1Group17.ScalarSubstridesArity, thm := some ``JuliaLean.ChatGPT.Batch9.Group14.Models1G17ScalarSubstridesArity_proven,
+    notes := "Complete all-scalar domain of a partial internal model, not completion of generic substrides." },
+  { id := "subarray-empty-stride-error-precedence",
+    juliaFile := "base/subarray.jl", juliaFns := ["substrides"],
+    statement := "A range index with an empty parent-stride tuple raises the empty-first ArgumentError before any step conversion or recursion, including ranges whose later step semantics remain unmodelled.",
+    source := "base/subarray.jl:441-442; base/tuple.jl:270 (exception-order invariant)",
+    status := .proven, prop := ``JuliaLean.Proofs.base.subarray.Models1Group17.EmptyStrideFirstErrorPrecedence, thm := some ``JuliaLean.ChatGPT.Batch9.Group14.Models1G17EmptyStrideErrorPrecedence_proven,
+    notes := "Explicit partial result preserves this known error before an unsupported callee. Generic method remains blocked." },
+  { id := "subarray-scalar-stride-no-axis-read",
+    juliaFile := "base/subarray.jl", juliaFns := ["compute_stride1"],
+    statement := "An all-scalar index tuple returns the incoming machine stride without inspecting parent axes, including an empty parent-axis tuple.",
+    source := "base/subarray.jl:450-451 (specialized dispatch invariant)",
+    status := .proven, prop := ``JuliaLean.Proofs.base.subarray.Models1Group17.ScalarStrideDoesNotReadAxes, thm := some ``JuliaLean.ChatGPT.Batch9.Group14.Models1G17ScalarStrideNoAxisRead_proven,
+    notes := "Tests recursive dispatch rather than a supplied callback. Generic non-scalar helper remains partial." },
+  { id := "subarray-scalar-linearization-congruence",
+    juliaFile := "base/subarray.jl", juliaFns := ["compute_linindex"],
+    statement := "For every constructible represented parent shape and matching scalar-coordinate tuple, linearization equals the column-major weighted displacement plus the initial offset modulo 2^64, for all initial strides and coordinates.",
+    source := "base/subarray.jl:491-501; doc/src/manual/arrays.md (column-major indexing invariant)",
+    status := .proven, prop := ``JuliaLean.Proofs.base.subarray.Models1Group17.ScalarLinearizationCongruence, thm := some ``JuliaLean.ChatGPT.Batch9.Group14.Models1G17ScalarLinearizationCongruence_proven,
+    notes := "Actual machine-size/shape invariants only; no bounds-success, no-overflow, or callee-correctness assumptions. Generic method remains partial." }
+]
+
+end JuliaLean.Proofs.base.subarray
+
+
+namespace JuliaLean.Proofs.base.subarray.Models2Group14
+
+open JuliaLean JuliaLean.Registry JuliaLean.base.subarray
+open JuliaLean.base.subarray.Models2Group14
+
+/-!
+Unproved specifications for the full-domain inner-constructor model.
+Static review only: these declarations are UNCHECKED. EStateM retains the
+post-error world. No operation is assumed pure, correct, or an identity.
+-/
+
+
+/-- Recovered additive declaration; UNCHECKED. Source base/subarray.jl:19-23. -/
+-- Source: base/subarray.jl:19-23 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+--     function SubArray{T,N,P,I,L}(parent, indices, offset1, stride1) where {T,N,P,I,L}
+--         @inline
+--         check_parent_index_match(parent, indices)
+--         new(parent, indices, offset1, stride1)
+--     end
+-- /Source
+abbrev ConstructorStateOps (E W P I PI II OI SI C B : Type) :=
+  InnerOps (EStateM (Error E) W) P I PI II OI SI C B
+
+
+/-- Recovered additive declaration; UNCHECKED. Source base/subarray.jl:19-23. -/
+-- Source: base/subarray.jl:19-23 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+--     function SubArray{T,N,P,I,L}(parent, indices, offset1, stride1) where {T,N,P,I,L}
+--         @inline
+--         check_parent_index_match(parent, indices)
+--         new(parent, indices, offset1, stride1)
+--     end
+-- /Source
+def FieldPreparationObserved {E W A Input B : Type}
+    (convert : Input → EStateM (Error E) W (FieldInput A B))
+    (input : FieldInput A Input) (before : W)
+    (value : FieldInput A B) (after : W) : Prop :=
+  match input with
+  | .typed original => value = .typed original ∧ after = before
+  | .needsConversion original => convert original before = .ok value after
+
+
+/-- Recovered additive declaration; UNCHECKED. Source base/subarray.jl:19-23. -/
+-- Source: base/subarray.jl:19-23 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+--     function SubArray{T,N,P,I,L}(parent, indices, offset1, stride1) where {T,N,P,I,L}
+--         @inline
+--         check_parent_index_match(parent, indices)
+--         new(parent, indices, offset1, stride1)
+--     end
+-- /Source
+def FieldPreparationFailed {E W A Input B : Type}
+    (convert : Input → EStateM (Error E) W (FieldInput A B))
+    (input : FieldInput A Input) (before : W)
+    (error : Error E) (after : W) : Prop :=
+  match input with
+  | .typed _ => False
+  | .needsConversion original => convert original before = .error error after
+
+
+/-- Recovered additive declaration; UNCHECKED. Source base/subarray.jl:19-23. -/
+-- Source: base/subarray.jl:19-23 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+--     function SubArray{T,N,P,I,L}(parent, indices, offset1, stride1) where {T,N,P,I,L}
+--         @inline
+--         check_parent_index_match(parent, indices)
+--         new(parent, indices, offset1, stride1)
+--     end
+-- /Source
+def InnerValidationFailureIsolation : Prop :=
+  ∀ {E W Tag P I PI II OI SI C B : Type}
+    (ops : ConstructorStateOps E W P I PI II OI SI C B)
+    (target : ConstructorTarget Tag) (parent : FieldInput P PI) (indices : FieldInput I II)
+    (offset : FieldInput I64 OI) (stride : FieldInput I64 SI)
+    (before after : W) (error : Error E),
+    ops.checkParentIndexMatch parent indices before = .error error after →
+      inner (External := E) ops target parent indices offset stride before =
+        .error error after
+
+
+/-- Recovered additive declaration; UNCHECKED. Source base/subarray.jl:19-23. -/
+-- Source: base/subarray.jl:19-23 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+--     function SubArray{T,N,P,I,L}(parent, indices, offset1, stride1) where {T,N,P,I,L}
+--         @inline
+--         check_parent_index_match(parent, indices)
+--         new(parent, indices, offset1, stride1)
+--     end
+-- /Source
+def InnerTypedFieldConservation : Prop :=
+  ∀ {E W Tag P I PI II OI SI C B : Type}
+    (ops replacements : ConstructorStateOps E W P I PI II OI SI C B)
+    (target : ConstructorTarget Tag) (parent : P) (indices : I) (offset stride : I64) (before : W),
+    target.parentFieldIsType = true →
+    target.indicesFieldIsType = true →
+    target.newEligible = true →
+    let original := inner (External := E) ops target (.typed parent) (.typed indices)
+      (.typed offset) (.typed stride) before
+    let replaced := inner (External := E)
+      { replacements with checkParentIndexMatch := ops.checkParentIndexMatch }
+      target (.typed parent) (.typed indices) (.typed offset) (.typed stride) before
+    original = replaced ∧
+      match ops.checkParentIndexMatch (.typed parent) (.typed indices) before with
+      | .error _ _ => True
+      | .ok _ after =>
+          ∃ view : View Tag P I,
+            original = .ok view after ∧
+            view.parent = parent ∧ view.indices = indices ∧
+            view.offset1 = offset ∧ view.stride1 = stride ∧ view.typeTag = target.typeTag
+
+
+/-- Recovered additive declaration; UNCHECKED. Source base/subarray.jl:19-23. -/
+-- Source: base/subarray.jl:19-23 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+--     function SubArray{T,N,P,I,L}(parent, indices, offset1, stride1) where {T,N,P,I,L}
+--         @inline
+--         check_parent_index_match(parent, indices)
+--         new(parent, indices, offset1, stride1)
+--     end
+-- /Source
+def InnerTypedTargetGateErrors : Prop :=
+  ∀ {E W Tag P I PI II OI SI C B : Type}
+    (ops : ConstructorStateOps E W P I PI II OI SI C B)
+    (target : ConstructorTarget Tag) (parent : P) (indices : I)
+    (offset stride : I64) (before after : W) (checked : C),
+    ops.checkParentIndexMatch (.typed parent) (.typed indices) before =
+      .ok checked after →
+    let result := inner (External := E) ops target (.typed parent) (.typed indices)
+      (.typed offset) (.typed stride) before
+    (target.parentFieldIsType = false →
+      result = .error (.isaTypeError .parent) after) ∧
+    (target.parentFieldIsType = true → target.indicesFieldIsType = false →
+      result = .error (.isaTypeError .indices) after) ∧
+    (target.parentFieldIsType = true → target.indicesFieldIsType = true →
+      target.newEligible = false → result = .error .newTargetTypeError after)
+
+
+/-- Recovered additive declaration; UNCHECKED. Source base/subarray.jl:19-23. -/
+-- Source: base/subarray.jl:19-23 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+--     function SubArray{T,N,P,I,L}(parent, indices, offset1, stride1) where {T,N,P,I,L}
+--         @inline
+--         check_parent_index_match(parent, indices)
+--         new(parent, indices, offset1, stride1)
+--     end
+-- /Source
+def InnerConversionFailureIsolation : Prop :=
+  ∀ {E W Tag P I PI II OI SI C B : Type}
+    (ops : ConstructorStateOps E W P I PI II OI SI C B)
+    (target : ConstructorTarget Tag) (parent : FieldInput P PI) (indices : FieldInput I II)
+    (offset : FieldInput I64 OI) (stride : FieldInput I64 SI)
+    (before afterCheck afterParent afterIndices afterOffset failedWorld : W)
+    (checked : C) (preparedParent : FieldInput P B)
+    (preparedIndices : FieldInput I B) (preparedOffset : FieldInput I64 B)
+    (error : Error E),
+    target.parentFieldIsType = true →
+    target.indicesFieldIsType = true →
+    ops.checkParentIndexMatch parent indices before = .ok checked afterCheck →
+    let result := inner (External := E) ops target parent indices offset stride before
+    (FieldPreparationFailed ops.convertParent parent afterCheck error failedWorld →
+      result = .error error failedWorld) ∧
+    (FieldPreparationObserved ops.convertParent parent afterCheck
+        preparedParent afterParent →
+      FieldPreparationFailed ops.convertIndices indices afterParent error failedWorld →
+      result = .error error failedWorld) ∧
+    (FieldPreparationObserved ops.convertParent parent afterCheck
+        preparedParent afterParent →
+      FieldPreparationObserved ops.convertIndices indices afterParent
+        preparedIndices afterIndices →
+      FieldPreparationFailed ops.convertOffset offset afterIndices error failedWorld →
+      result = .error error failedWorld) ∧
+    (FieldPreparationObserved ops.convertParent parent afterCheck
+        preparedParent afterParent →
+      FieldPreparationObserved ops.convertIndices indices afterParent
+        preparedIndices afterIndices →
+      FieldPreparationObserved ops.convertOffset offset afterIndices
+        preparedOffset afterOffset →
+      FieldPreparationFailed ops.convertStride stride afterOffset error failedWorld →
+      result = .error error failedWorld)
+
+
+/-- Recovered additive declaration; UNCHECKED. Source base/subarray.jl:19-23. -/
+-- Source: base/subarray.jl:19-23 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+--     function SubArray{T,N,P,I,L}(parent, indices, offset1, stride1) where {T,N,P,I,L}
+--         @inline
+--         check_parent_index_match(parent, indices)
+--         new(parent, indices, offset1, stride1)
+--     end
+-- /Source
+theorem innerValidationFailureIsolation_proven : InnerValidationFailureIsolation := by
+  intro E W Tag P I PI II OI SI C B ops target parent indices offset stride before after error h
+  simp [inner, bind, EStateM.bind, h]
+
+theorem innerTypedFieldConservation_proven : InnerTypedFieldConservation := by
+  intro E W Tag P I PI II OI SI C B ops replacements target parent indices offset stride before hp hi hn
+  cases h : ops.checkParentIndexMatch (.typed parent) (.typed indices) before with
+  | error error after => simp [inner, bind, EStateM.bind, h]
+  | ok checked after =>
+    simp [inner, prepareField, hp, hi, hn, bind, pure, EStateM.bind, EStateM.pure, h]
+
+theorem innerTypedTargetGateErrors_proven : InnerTypedTargetGateErrors := by
+  intro E W Tag P I PI II OI SI C B ops target parent indices offset stride before after checked h
+  refine ⟨?_, ?_, ?_⟩
+  · intro hp
+    simp [inner, h, hp, bind, EStateM.bind]
+    rfl
+  · intro hp hi
+    simp [inner, prepareField, h, hp, hi, bind, pure, EStateM.bind, EStateM.pure]
+    rfl
+  · intro hp hi hn
+    simp [inner, prepareField, h, hp, hi, hn, bind, pure, EStateM.bind, EStateM.pure]
+    rfl
+
+private theorem prepareFieldObserved {E W A Input B : Type}
+    (convert : Input → EStateM (Error E) W (FieldInput A B))
+    (input : FieldInput A Input) (before : W) (value : FieldInput A B) (after : W)
+    (h : FieldPreparationObserved convert input before value after) :
+    prepareField convert input before = .ok value after := by
+  cases input with
+  | typed original =>
+    obtain ⟨rfl, rfl⟩ := h
+    rfl
+  | needsConversion original => exact h
+
+private theorem prepareFieldFailed {E W A Input B : Type}
+    (convert : Input → EStateM (Error E) W (FieldInput A B))
+    (input : FieldInput A Input) (before : W) (error : Error E) (after : W)
+    (h : FieldPreparationFailed convert input before error after) :
+    prepareField convert input before = .error error after := by
+  cases input with
+  | typed original => exact False.elim h
+  | needsConversion original => exact h
+
+theorem innerConversionFailureIsolation_proven : InnerConversionFailureIsolation := by
+  intro E W Tag P I PI II OI SI C B ops target parent indices offset stride
+    before afterCheck afterParent afterIndices afterOffset failedWorld checked
+    preparedParent preparedIndices preparedOffset error hp hi hc
+  refine ⟨?_, ?_, ?_, ?_⟩
+  · intro hf
+    have hf' := prepareFieldFailed _ _ _ _ _ hf
+    simp [inner, bind, EStateM.bind, hp, hc, hf']
+  · intro ho hf
+    have ho' := prepareFieldObserved _ _ _ _ _ ho
+    have hf' := prepareFieldFailed _ _ _ _ _ hf
+    simp [inner, bind, EStateM.bind, hp, hi, hc, ho', hf']
+  · intro hpo hio hf
+    have hpo' := prepareFieldObserved _ _ _ _ _ hpo
+    have hio' := prepareFieldObserved _ _ _ _ _ hio
+    have hf' := prepareFieldFailed _ _ _ _ _ hf
+    simp [inner, bind, EStateM.bind, hp, hi, hc, hpo', hio', hf']
+  · intro hpo hio hoo hf
+    have hpo' := prepareFieldObserved _ _ _ _ _ hpo
+    have hio' := prepareFieldObserved _ _ _ _ _ hio
+    have hoo' := prepareFieldObserved _ _ _ _ _ hoo
+    have hf' := prepareFieldFailed _ _ _ _ _ hf
+    simp [inner, bind, EStateM.bind, hp, hi, hc, hpo', hio', hoo', hf']
+
+def constructorEntries : List Entry := [
+  { id := "subarray-inner-validation-failure-isolation",
+    juliaFile := "base/subarray.jl",
+    juliaFns := ["SubArray{T,N,P,I,L}(parent, indices, offset1, stride1)"],
+    statement := "If validation of the original parent and indices throws, construction returns its exact exception and post-error world independently of layout arguments and converters.",
+    source := "base/subarray.jl:19-23; invariant: validation failure isolates all field preparation",
+    status := .proven, thm := some ``JuliaLean.Proofs.base.subarray.Models2Group14.innerValidationFailureIsolation_proven, prop := ``JuliaLean.Proofs.base.subarray.Models2Group14.InnerValidationFailureIsolation,
+    notes := "Arbitrary callbacks and mutable states; no callee correctness laws. Covers inner and its prepareField dependency. Kernel-checked proof registered." },
+  { id := "subarray-inner-typed-field-conservation",
+    juliaFile := "base/subarray.jl",
+    juliaFns := ["SubArray{T,N,P,I,L}(parent, indices, offset1, stride1)"],
+    statement := "When actual fieldtypes and raw-new eligibility permit storage, already typed fields retain every reference, native layout value, and type tag after validation, with no further effects; changing converters cannot change outcomes.",
+    source := "base/subarray.jl:14-23; base/essentials.jl:1468-1488; doc/src/manual/constructors.md:136-137; doc/src/manual/arrays.md:1225-1234",
+    status := .proven, thm := some ``JuliaLean.Proofs.base.subarray.Models2Group14.innerTypedFieldConservation_proven, prop := ``JuliaLean.Proofs.base.subarray.Models2Group14.InnerTypedFieldConservation,
+    notes := "Actual field-type membership and target eligibility are representation conditions; validation remains arbitrary and effectful. Covers inner and prepareField. Kernel-checked proof registered." },
+  { id := "subarray-inner-typed-target-gates",
+    juliaFile := "base/subarray.jl",
+    juliaFns := ["SubArray{T,N,P,I,L}(parent, indices, offset1, stride1)"],
+    statement := "After validation of already typed inputs, non-type actual fieldtype results raise the first isa TypeError; with both fieldtypes valid, an ineligible raw-new target raises its TypeError without additional effects.",
+    source := "base/subarray.jl:19-23; src/builtins.c:703-707,1365-1371,1432-1445; src/jltypes.c:2949-2958; src/datatype.c:1709-1720",
+    status := .proven, thm := some ``JuliaLean.Proofs.base.subarray.Models2Group14.innerTypedTargetGateErrors_proven, prop := ``JuliaLean.Proofs.base.subarray.Models2Group14.InnerTypedTargetGateErrors,
+    notes := "Flags represent actual Core metadata, not nominal P/I. Arbitrary validation and converter dispatch; post-validation world retained. Covers inner and typed prepareField branches. Kernel-checked proof registered." },
+  { id := "subarray-inner-conversion-failure-isolation",
+    juliaFile := "base/subarray.jl",
+    juliaFns := ["SubArray{T,N,P,I,L}(parent, indices, offset1, stride1)"],
+    statement := "A throwing conversion preserves its exact exception and post-error world and prevents later work, even when an earlier successful converter returned a value of the wrong field type or the raw-new target is ineligible.",
+    source := "base/subarray.jl:19-23; base/essentials.jl:1468-1488; doc/src/manual/constructors.md:136-137",
+    status := .proven, thm := some ``JuliaLean.Proofs.base.subarray.Models2Group14.innerConversionFailureIsolation_proven, prop := ``JuliaLean.Proofs.base.subarray.Models2Group14.InnerConversionFailureIsolation,
+    notes := "Actual fieldtype results are types; raw-new eligibility is unrestricted. Every argument tag, conversion outcome and mutable world is quantified. Detects premature target/field checks and lost errors/effects. Covers inner and prepareField. Kernel-checked proof registered." }
+]
+
+end JuliaLean.Proofs.base.subarray.Models2Group14
+
+
+namespace JuliaLean.Proofs.base.subarray.Models2Group14
+
+open JuliaLean JuliaLean.Registry JuliaLean.base.subarray
+open JuliaLean.base.subarray.Models2Group14
+
+/-!
+Unproved, UNCHECKED invariants of the source mismatch wrapper at line 48.
+EStateM is a concrete terminating state/exception interpretation; neither
+purity nor any correctness law is imposed on its open-dispatch operations.
+-/
+
+
+/-- Recovered additive declaration; UNCHECKED. Source base/subarray.jl:48-49. -/
+-- Source: base/subarray.jl:48-49 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- check_parent_index_match(parent, ::NTuple{N, Bool}) where {N} =
+--     throw(ArgumentError("number of indices ($N) must match the parent dimensionality ($(ndims(parent)))"))
+-- /Source
+def MismatchTupleContentsIrrelevant : Prop :=
+  ∀ {E W P Dim OtherMessage : Type}
+    (ops : MismatchOps (EStateM (Error E) W) P Dim OtherMessage E)
+    (parent : P)
+    (left right : JuliaLean.base.subarray.Models2Group14.Tuple Bool),
+    left.values.length = right.values.length →
+      checkParentIndexMismatch (External := E) ops parent left =
+        checkParentIndexMismatch (External := E) ops parent right
+
+
+/-- Recovered additive declaration; UNCHECKED. Source base/subarray.jl:48-49. -/
+-- Source: base/subarray.jl:48-49 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- check_parent_index_match(parent, ::NTuple{N, Bool}) where {N} =
+--     throw(ArgumentError("number of indices ($N) must match the parent dimensionality ($(ndims(parent)))"))
+-- /Source
+def MismatchCannotReturnSuccess : Prop :=
+  ∀ {E W P Dim OtherMessage : Type}
+    (ops : MismatchOps (EStateM (Error E) W) P Dim OtherMessage E)
+    (parent : P) (dimensions : JuliaLean.base.subarray.Models2Group14.Tuple Bool)
+    (before after : W),
+    checkParentIndexMismatch (External := E) ops parent dimensions before ≠
+      .ok () after
+
+
+/-- Recovered additive declaration; UNCHECKED. Source base/subarray.jl:48-49. -/
+-- Source: base/subarray.jl:48-49 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- check_parent_index_match(parent, ::NTuple{N, Bool}) where {N} =
+--     throw(ArgumentError("number of indices ($N) must match the parent dimensionality ($(ndims(parent)))"))
+-- /Source
+def MismatchNdimsFailureIsolation : Prop :=
+  ∀ {E W P Dim OtherMessage : Type}
+    (ops : MismatchOps (EStateM (Error E) W) P Dim OtherMessage E)
+    (parent : P) (dimensions : JuliaLean.base.subarray.Models2Group14.Tuple Bool)
+    (before after : W) (error : Error E),
+    ops.ndims parent before = .error error after →
+      checkParentIndexMismatch (External := E) ops parent dimensions before =
+        .error error after
+
+
+/-- Recovered additive declaration; UNCHECKED. Source base/subarray.jl:48-49. -/
+-- Source: base/subarray.jl:48-49 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- check_parent_index_match(parent, ::NTuple{N, Bool}) where {N} =
+--     throw(ArgumentError("number of indices ($N) must match the parent dimensionality ($(ndims(parent)))"))
+-- /Source
+theorem mismatchTupleContentsIrrelevant_proven : MismatchTupleContentsIrrelevant := by
+  intro E W P Dim OtherMessage ops parent left right h
+  simp only [checkParentIndexMismatch, h]
+
+theorem mismatchNdimsFailureIsolation_proven : MismatchNdimsFailureIsolation := by
+  intro E W P Dim OtherMessage ops parent dimensions before after error h
+  simp [checkParentIndexMismatch, bind, EStateM.bind, h]
+
+theorem mismatchCannotReturnSuccess_proven : MismatchCannotReturnSuccess := by
+  intro E W P Dim OtherMessage ops parent dimensions before after
+  cases hd : ops.ndims parent before with
+  | error error final => simp [checkParentIndexMismatch, bind, EStateM.bind, hd]
+  | ok dim middle =>
+    cases hs : ops.string "number of indices (" (int64 (Int.ofNat dimensions.values.length))
+        ") must match the parent dimensionality (" dim ")" middle with
+    | error error final =>
+      simp only [checkParentIndexMismatch, bind, EStateM.bind, hd, hs]
+      intro hbad
+      cases hbad
+    | ok message final =>
+      cases message with
+      | typed text =>
+        simp only [checkParentIndexMismatch, bind, EStateM.bind, hd, hs]
+        intro hbad
+        cases hbad
+      | needsConversion other =>
+        cases he : ops.argumentErrorOther other final <;>
+          simp only [checkParentIndexMismatch, bind, EStateM.bind, hd, hs, he] <;>
+          intro hbad <;> cases hbad
+
+def wrapperEntries : List Entry := [
+  { id := "subarray-mismatch-tuple-content-independence",
+    juliaFile := "base/subarray.jl",
+    juliaFns := ["check_parent_index_match(parent, ::NTuple{N, Bool}) where {N}"],
+    statement := "Changing Bool tuple contents while preserving its arity cannot change the selected mismatch method's result, exception, or state effects.",
+    source := "base/subarray.jl:48-49; invariant: only tuple arity is observed",
+    status := .proven, thm := some ``JuliaLean.Proofs.base.subarray.Models2Group14.mismatchTupleContentsIrrelevant_proven, prop := ``JuliaLean.Proofs.base.subarray.Models2Group14.MismatchTupleContentsIrrelevant,
+    notes := "Tuple arity is machine-representable. Parent, ndims result, interpolation and non-String constructor dispatch are unrestricted. Kernel-checked proof registered." },
+  { id := "subarray-mismatch-no-success",
+    juliaFile := "base/subarray.jl",
+    juliaFns := ["check_parent_index_match(parent, ::NTuple{N, Bool}) where {N}"],
+    statement := "Every completed invocation of the selected mismatch method throws, including all errors and nonstandard return types of its dispatch-selected callees.",
+    source := "base/subarray.jl:48-49; invariant: the mismatch branch cannot return success",
+    status := .proven, thm := some ``JuliaLean.Proofs.base.subarray.Models2Group14.mismatchCannotReturnSuccess_proven, prop := ``JuliaLean.Proofs.base.subarray.Models2Group14.MismatchCannotReturnSuccess,
+    notes := "Does not assume interpolation returns String or that every thrown value is ArgumentError. No callee correctness laws. Kernel-checked proof registered." },
+  { id := "subarray-mismatch-ndims-failure-isolation",
+    juliaFile := "base/subarray.jl",
+    juliaFns := ["check_parent_index_match(parent, ::NTuple{N, Bool}) where {N}"],
+    statement := "If ndims(parent) throws, the mismatch method preserves that exact exception and post-error world before any interpolation or exception construction.",
+    source := "base/subarray.jl:48-49; invariant: dimensionality-observation failure isolation",
+    status := .proven, thm := some ``JuliaLean.Proofs.base.subarray.Models2Group14.mismatchNdimsFailureIsolation_proven, prop := ``JuliaLean.Proofs.base.subarray.Models2Group14.MismatchNdimsFailureIsolation,
+    notes := "All tuple contents and arities, result types, worlds and downstream dispatch are quantified. Kernel-checked proof registered." }
+]
+
+end JuliaLean.Proofs.base.subarray.Models2Group14
+
+
+namespace JuliaLean.Proofs.base.subarray.Models2Group14
+
+open JuliaLean JuliaLean.Registry JuliaLean.base.subarray
+open JuliaLean.base.subarray.Models2Group14
+
+/-!
+Unproved, UNCHECKED specifications for the two similar wrappers. Every Dims
+value is admitted, including negative entries. The observation helpers below
+are ghost instrumentation for arbitrary selected allocators, not models of
+Base allocation and not assumptions that the allocators satisfy any law.
+-/
+
+
+/-- Recovered additive declaration; UNCHECKED. Source base/subarray.jl:72-73. -/
+-- Source: base/subarray.jl:72-73 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- similar(V::SubArray, T::Type, dims::Dims) = similar(V.parent, T, dims)
+-- similar(::Type{TA}, dims::Dims) where {T,N,P,TA<:SubArray{T,N,P}} = similar(P, dims)
+-- /Source
+def SimilarValueMetadataNoninterference : Prop :=
+  ∀ {m : Type → Type} {TagLeft TagRight P ILeft IRight ElementType Result : Type}
+    (ops : SimilarValueOps m P ElementType Result)
+    (left : View TagLeft P ILeft) (right : View TagRight P IRight)
+    (elementType : ElementType)
+    (dims : JuliaLean.base.subarray.Models2Group14.Dims),
+    left.parent = right.parent →
+      similarValue ops left elementType dims = similarValue ops right elementType dims
+
+
+/-- Recovered additive declaration; UNCHECKED. Source base/subarray.jl:72-73. -/
+-- Source: base/subarray.jl:72-73 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- similar(V::SubArray, T::Type, dims::Dims) = similar(V.parent, T, dims)
+-- similar(::Type{TA}, dims::Dims) where {T,N,P,TA<:SubArray{T,N,P}} = similar(P, dims)
+-- /Source
+def SimilarTypeMetadataNoninterference : Prop :=
+  ∀ {m : Type → Type} {ParentType BindingsLeft BindingsRight Result : Type}
+    (ops : SimilarTypeOps m ParentType Result)
+    (left : ViewType ParentType BindingsLeft)
+    (right : ViewType ParentType BindingsRight)
+    (dims : JuliaLean.base.subarray.Models2Group14.Dims),
+    left.parentType = right.parentType →
+      similarType ops left dims = similarType ops right dims
+
+
+/-- Recovered additive declaration; UNCHECKED. Source base/subarray.jl:72-73. -/
+-- Source: base/subarray.jl:72-73 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- similar(V::SubArray, T::Type, dims::Dims) = similar(V.parent, T, dims)
+-- similar(::Type{TA}, dims::Dims) where {T,N,P,TA<:SubArray{T,N,P}} = similar(P, dims)
+-- /Source
+structure SimilarValueRequest (Parent ElementType : Type) where
+  parent : Parent
+  elementType : ElementType
+  dims : JuliaLean.base.subarray.Models2Group14.Dims
+
+
+/-- Recovered additive declaration; UNCHECKED. Source base/subarray.jl:72-73. -/
+-- Source: base/subarray.jl:72-73 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- similar(V::SubArray, T::Type, dims::Dims) = similar(V.parent, T, dims)
+-- similar(::Type{TA}, dims::Dims) where {T,N,P,TA<:SubArray{T,N,P}} = similar(P, dims)
+-- /Source
+structure SimilarTypeRequest (ParentType : Type) where
+  parentType : ParentType
+  dims : JuliaLean.base.subarray.Models2Group14.Dims
+
+
+/-- Recovered additive declaration; UNCHECKED. Source base/subarray.jl:72-73. -/
+-- Source: base/subarray.jl:72-73 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- similar(V::SubArray, T::Type, dims::Dims) = similar(V.parent, T, dims)
+-- similar(::Type{TA}, dims::Dims) where {T,N,P,TA<:SubArray{T,N,P}} = similar(P, dims)
+-- /Source
+structure AllocationObservation (Request E W Result : Type) where
+  request : Request
+  outcome : Except E Result
+  world : W
+
+
+/-- Recovered additive declaration; UNCHECKED. Source base/subarray.jl:72-73. -/
+-- Source: base/subarray.jl:72-73 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- similar(V::SubArray, T::Type, dims::Dims) = similar(V.parent, T, dims)
+-- similar(::Type{TA}, dims::Dims) where {T,N,P,TA<:SubArray{T,N,P}} = similar(P, dims)
+-- /Source
+def recordAllocation {Request E W Result : Type}
+    (request : Request) (action : EStateM E W Result) :
+    EStateM E (W × List (AllocationObservation Request E W Result)) Result :=
+  fun (world, history) =>
+    match action world with
+    | .ok value after =>
+        .ok value (after, history ++ [⟨request, .ok value, after⟩])
+    | .error error after =>
+        .error error (after, history ++ [⟨request, .error error, after⟩])
+
+
+/-- Recovered additive declaration; UNCHECKED. Source base/subarray.jl:72-73. -/
+-- Source: base/subarray.jl:72-73 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- similar(V::SubArray, T::Type, dims::Dims) = similar(V.parent, T, dims)
+-- similar(::Type{TA}, dims::Dims) where {T,N,P,TA<:SubArray{T,N,P}} = similar(P, dims)
+-- /Source
+def observeSimilarValueOps {E W Parent ElementType Result : Type}
+    (ops : SimilarValueOps (EStateM E W) Parent ElementType Result) :
+    SimilarValueOps
+      (EStateM E (W × List
+        (AllocationObservation (SimilarValueRequest Parent ElementType) E W Result)))
+      Parent ElementType Result where
+  similar := fun parent elementType dims =>
+    recordAllocation (⟨parent, elementType, dims⟩ : SimilarValueRequest Parent ElementType)
+      (ops.similar parent elementType dims)
+
+
+/-- Recovered additive declaration; UNCHECKED. Source base/subarray.jl:72-73. -/
+-- Source: base/subarray.jl:72-73 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- similar(V::SubArray, T::Type, dims::Dims) = similar(V.parent, T, dims)
+-- similar(::Type{TA}, dims::Dims) where {T,N,P,TA<:SubArray{T,N,P}} = similar(P, dims)
+-- /Source
+def observeSimilarTypeOps {E W ParentType Result : Type}
+    (ops : SimilarTypeOps (EStateM E W) ParentType Result) :
+    SimilarTypeOps
+      (EStateM E (W × List
+        (AllocationObservation (SimilarTypeRequest ParentType) E W Result)))
+      ParentType Result where
+  similar := fun parentType dims =>
+    recordAllocation (⟨parentType, dims⟩ : SimilarTypeRequest ParentType)
+      (ops.similar parentType dims)
+
+
+/-- Recovered additive declaration; UNCHECKED. Source base/subarray.jl:72-73. -/
+-- Source: base/subarray.jl:72-73 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- similar(V::SubArray, T::Type, dims::Dims) = similar(V.parent, T, dims)
+-- similar(::Type{TA}, dims::Dims) where {T,N,P,TA<:SubArray{T,N,P}} = similar(P, dims)
+-- /Source
+def SingleAllocationObserved {Request E W Result : Type}
+    (before after : List (AllocationObservation Request E W Result))
+    (request : Request) (outcome : Except E Result) (world : W) : Prop :=
+  after.length = before.length + 1 ∧
+  after.take before.length = before ∧
+  ∃ observation,
+    after.getLast? = some observation ∧
+    observation.request = request ∧
+    observation.outcome = outcome ∧
+    observation.world = world
+
+
+/-- Recovered additive declaration; UNCHECKED. Source base/subarray.jl:72-73. -/
+-- Source: base/subarray.jl:72-73 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- similar(V::SubArray, T::Type, dims::Dims) = similar(V.parent, T, dims)
+-- similar(::Type{TA}, dims::Dims) where {T,N,P,TA<:SubArray{T,N,P}} = similar(P, dims)
+-- /Source
+def SimilarValueRequestIntegrity : Prop :=
+  ∀ {E W Tag Parent Indices ElementType Result : Type}
+    (ops : SimilarValueOps (EStateM E W) Parent ElementType Result)
+    (view : View Tag Parent Indices) (elementType : ElementType)
+    (dims : JuliaLean.base.subarray.Models2Group14.Dims) (world : W)
+    (history : List
+      (AllocationObservation (SimilarValueRequest Parent ElementType) E W Result)),
+    match similarValue (observeSimilarValueOps ops) view elementType dims
+        (world, history) with
+    | .ok value (afterWorld, afterHistory) =>
+        SingleAllocationObserved history afterHistory
+          (⟨view.parent, elementType, dims⟩ : SimilarValueRequest Parent ElementType)
+          (.ok value) afterWorld
+    | .error error (afterWorld, afterHistory) =>
+        SingleAllocationObserved history afterHistory
+          (⟨view.parent, elementType, dims⟩ : SimilarValueRequest Parent ElementType)
+          (.error error) afterWorld
+
+
+/-- Recovered additive declaration; UNCHECKED. Source base/subarray.jl:72-73. -/
+-- Source: base/subarray.jl:72-73 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- similar(V::SubArray, T::Type, dims::Dims) = similar(V.parent, T, dims)
+-- similar(::Type{TA}, dims::Dims) where {T,N,P,TA<:SubArray{T,N,P}} = similar(P, dims)
+-- /Source
+def SimilarTypeRequestIntegrity : Prop :=
+  ∀ {E W ParentType OtherBindings Result : Type}
+    (ops : SimilarTypeOps (EStateM E W) ParentType Result)
+    (viewType : ViewType ParentType OtherBindings)
+    (dims : JuliaLean.base.subarray.Models2Group14.Dims) (world : W)
+    (history : List
+      (AllocationObservation (SimilarTypeRequest ParentType) E W Result)),
+    match similarType (observeSimilarTypeOps ops) viewType dims (world, history) with
+    | .ok value (afterWorld, afterHistory) =>
+        SingleAllocationObserved history afterHistory
+          (⟨viewType.parentType, dims⟩ : SimilarTypeRequest ParentType)
+          (.ok value) afterWorld
+    | .error error (afterWorld, afterHistory) =>
+        SingleAllocationObserved history afterHistory
+          (⟨viewType.parentType, dims⟩ : SimilarTypeRequest ParentType)
+          (.error error) afterWorld
+
+
+/-- Recovered additive declaration; UNCHECKED. Source base/subarray.jl:72-73. -/
+-- Source: base/subarray.jl:72-73 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- similar(V::SubArray, T::Type, dims::Dims) = similar(V.parent, T, dims)
+-- similar(::Type{TA}, dims::Dims) where {T,N,P,TA<:SubArray{T,N,P}} = similar(P, dims)
+-- /Source
+theorem similarValueMetadataNoninterference_proven : SimilarValueMetadataNoninterference := by
+  intro m TagLeft TagRight P ILeft IRight ElementType Result ops left right elementType dims h
+  simp only [similarValue, h]
+
+theorem similarTypeMetadataNoninterference_proven : SimilarTypeMetadataNoninterference := by
+  intro m ParentType BindingsLeft BindingsRight Result ops left right dims h
+  simp only [similarType, h]
+
+private theorem singleAllocationAppend {Request E W Result : Type}
+    (history : List (AllocationObservation Request E W Result))
+    (request : Request) (outcome : Except E Result) (world : W) :
+    SingleAllocationObserved history (history ++ [⟨request, outcome, world⟩])
+      request outcome world := by
+  refine ⟨by simp, by simp, ⟨request, outcome, world⟩, ?_, rfl, rfl, rfl⟩
+  simp
+
+theorem similarValueRequestIntegrity_proven : SimilarValueRequestIntegrity := by
+  intro E W Tag Parent Indices ElementType Result ops view elementType dims world history
+  cases h : ops.similar view.parent elementType dims world <;>
+    simpa [similarValue, observeSimilarValueOps, recordAllocation, h] using
+      singleAllocationAppend history
+        (⟨view.parent, elementType, dims⟩ : SimilarValueRequest Parent ElementType) _ _
+
+theorem similarTypeRequestIntegrity_proven : SimilarTypeRequestIntegrity := by
+  intro E W ParentType OtherBindings Result ops viewType dims world history
+  cases h : ops.similar viewType.parentType dims world <;>
+    simpa [similarType, observeSimilarTypeOps, recordAllocation, h] using
+      singleAllocationAppend history
+        (⟨viewType.parentType, dims⟩ : SimilarTypeRequest ParentType) _ _
+
+def similarEntries : List Entry := [
+  { id := "subarray-similar-value-metadata-independence",
+    juliaFile := "base/subarray.jl", juliaFns := ["similar(V::SubArray, T::Type, dims::Dims)"],
+    statement := "Views sharing the same parent produce identical explicit-type, explicit-dimensions allocation effects and results, independently of every other view field.",
+    source := "base/subarray.jl:72; doc/src/manual/interfaces.md:229,320,364",
+    status := .proven, thm := some ``JuliaLean.Proofs.base.subarray.Models2Group14.similarValueMetadataNoninterference_proven, prop := ``JuliaLean.Proofs.base.subarray.Models2Group14.SimilarValueMetadataNoninterference,
+    notes := "All effect carriers and allocators are quantified without laws; explicit element-type selector and allocated result have separate types. All native Dims tuples admitted. Kernel-checked proof registered." },
+  { id := "subarray-similar-value-request-integrity",
+    juliaFile := "base/subarray.jl", juliaFns := ["similar(V::SubArray, T::Type, dims::Dims)"],
+    statement := "Each call issues exactly one allocator request with the exact parent identity, element-type selector and dimensions, preserving its observed returned value or exception and post-call world.",
+    source := "base/subarray.jl:72; doc/src/manual/interfaces.md:229,320,364",
+    status := .proven, thm := some ``JuliaLean.Proofs.base.subarray.Models2Group14.similarValueRequestIntegrity_proven, prop := ``JuliaLean.Proofs.base.subarray.Models2Group14.SimilarValueRequestIntegrity,
+    notes := "Ghost observation wraps arbitrary allocators, not a callee-correctness premise. Negative dimensions remain in the domain. Kernel-checked proof registered." },
+  { id := "subarray-similar-type-metadata-independence",
+    juliaFile := "base/subarray.jl", juliaFns := ["similar(::Type{TA}, dims::Dims) where {T,N,P,TA<:SubArray{T,N,P}}"],
+    statement := "SubArray types with the same selected parent-type binding produce identical allocation effects and results regardless of all unused type bindings.",
+    source := "base/subarray.jl:73; doc/src/manual/interfaces.md:233",
+    status := .proven, thm := some ``JuliaLean.Proofs.base.subarray.Models2Group14.similarTypeMetadataNoninterference_proven, prop := ``JuliaLean.Proofs.base.subarray.Models2Group14.SimilarTypeMetadataNoninterference,
+    notes := "All effect carriers and selected parent allocators are quantified without correctness laws. Result is an allocated value, not a Lean Type. Kernel-checked proof registered." },
+  { id := "subarray-similar-type-request-integrity",
+    juliaFile := "base/subarray.jl", juliaFns := ["similar(::Type{TA}, dims::Dims) where {T,N,P,TA<:SubArray{T,N,P}}"],
+    statement := "Each call issues exactly one request with the selected parent type and unchanged dimensions, retaining the observed allocator's value or exception and post-call world.",
+    source := "base/subarray.jl:73; doc/src/manual/interfaces.md:233",
+    status := .proven, thm := some ``JuliaLean.Proofs.base.subarray.Models2Group14.similarTypeRequestIntegrity_proven, prop := ``JuliaLean.Proofs.base.subarray.Models2Group14.SimilarTypeRequestIntegrity,
+    notes := "Ghost recording wraps every arbitrary effectful allocator. Full Dims domain includes zero and negative entries. Kernel-checked proof registered." }
+]
+
+end JuliaLean.Proofs.base.subarray.Models2Group14
+
+
+namespace JuliaLean.Proofs.base.subarray.Models2Group14
+
+open JuliaLean JuliaLean.Registry JuliaLean.base.subarray
+open JuliaLean.base.subarray.Models2Group14
+
+/-!
+Unproved, UNCHECKED internal invariants for source lines 150,153,154,165,166,168.
+This fragment follows similar-statements.lean in StatementsGroup14.lean and
+reuses its specification-only AllocationObservation, recordAllocation, and
+SingleAllocationObserved helpers. Ghost histories are not Julia arrays.
+-/
+
+
+/-- Recovered additive declaration; UNCHECKED. Source base/subarray.jl:150-168. -/
+-- Source: base/subarray.jl:150-168 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- _trimmedindex(i::ScalarIndex) = oftype(i, 1)
+-- _trimmedindex(i::AbstractRange) = i
+-- _trimmedindex(i::Union{UnitRange,StepRange,OneTo}) = oftype(i, oneto(length(i)))
+-- _trimmedindex(i::AbstractArray{<:ScalarIndex}) = oftype(i, reshape(eachindex(IndexLinear(), i), axes(i)))
+-- _trimmedindex(i::AbstractArray{<:AbstractCartesianIndex{0}}) = oftype(i, copy(i))
+-- function _trimmedindex(i::AbstractArray{<:AbstractCartesianIndex{N}}) where {N}
+--     padding = ntuple(Returns(1), Val(N - 1))
+--     ax1 = eachindex(IndexLinear(), i)
+--     return oftype(i, reshape(CartesianIndices((ax1, padding...)), axes(i)))
+-- end
+-- ## SubArray creation
+-- # We always assume that the dimensionality of the parent matches the number of
+-- # indices that end up getting passed to it, so we store the parent as a
+-- # ReshapedArray view if necessary. The trouble is that arrays of `CartesianIndex`
+-- # can make the number of effective indices not equal to length(I).
+-- _maybe_reshape_parent(A::AbstractArray, ::NTuple{1, Bool}) = reshape(A, Val(1))
+-- _maybe_reshape_parent(A::AbstractArray{<:Any,1}, ::NTuple{1, Bool}) = reshape(A, Val(1))
+-- _maybe_reshape_parent(A::AbstractArray{<:Any,N}, ::NTuple{N, Bool}) where {N} = A
+-- _maybe_reshape_parent(A::AbstractArray, ::NTuple{N, Bool}) where {N} = reshape(A, Val(N))
+-- /Source
+def liftTrimHistory {E W History Result : Type} (action : EStateM E W Result) :
+    EStateM E (W × History) Result :=
+  fun (world, history) =>
+    match action world with
+    | .ok value after => .ok value (after, history)
+    | .error error after => .error error (after, history)
+
+
+/-- Recovered additive declaration; UNCHECKED. Source base/subarray.jl:150-168. -/
+-- Source: base/subarray.jl:150-168 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- _trimmedindex(i::ScalarIndex) = oftype(i, 1)
+-- _trimmedindex(i::AbstractRange) = i
+-- _trimmedindex(i::Union{UnitRange,StepRange,OneTo}) = oftype(i, oneto(length(i)))
+-- _trimmedindex(i::AbstractArray{<:ScalarIndex}) = oftype(i, reshape(eachindex(IndexLinear(), i), axes(i)))
+-- _trimmedindex(i::AbstractArray{<:AbstractCartesianIndex{0}}) = oftype(i, copy(i))
+-- function _trimmedindex(i::AbstractArray{<:AbstractCartesianIndex{N}}) where {N}
+--     padding = ntuple(Returns(1), Val(N - 1))
+--     ax1 = eachindex(IndexLinear(), i)
+--     return oftype(i, reshape(CartesianIndices((ax1, padding...)), axes(i)))
+-- end
+-- ## SubArray creation
+-- # We always assume that the dimensionality of the parent matches the number of
+-- # indices that end up getting passed to it, so we store the parent as a
+-- # ReshapedArray view if necessary. The trouble is that arrays of `CartesianIndex`
+-- # can make the number of effective indices not equal to length(I).
+-- _maybe_reshape_parent(A::AbstractArray, ::NTuple{1, Bool}) = reshape(A, Val(1))
+-- _maybe_reshape_parent(A::AbstractArray{<:Any,1}, ::NTuple{1, Bool}) = reshape(A, Val(1))
+-- _maybe_reshape_parent(A::AbstractArray{<:Any,N}, ::NTuple{N, Bool}) where {N} = A
+-- _maybe_reshape_parent(A::AbstractArray, ::NTuple{N, Bool}) where {N} = reshape(A, Val(N))
+-- /Source
+def observeTrimScalarOps {E W Scalar Result : Type}
+    (ops : TrimScalarOps (EStateM E W) Scalar Result) :
+    TrimScalarOps
+      (EStateM E (W × List (AllocationObservation (Scalar × I64) E W Result)))
+      Scalar Result where
+  oftype := fun index value => recordAllocation (index, value) (ops.oftype index value)
+
+
+/-- Recovered additive declaration; UNCHECKED. Source base/subarray.jl:150-168. -/
+-- Source: base/subarray.jl:150-168 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- _trimmedindex(i::ScalarIndex) = oftype(i, 1)
+-- _trimmedindex(i::AbstractRange) = i
+-- _trimmedindex(i::Union{UnitRange,StepRange,OneTo}) = oftype(i, oneto(length(i)))
+-- _trimmedindex(i::AbstractArray{<:ScalarIndex}) = oftype(i, reshape(eachindex(IndexLinear(), i), axes(i)))
+-- _trimmedindex(i::AbstractArray{<:AbstractCartesianIndex{0}}) = oftype(i, copy(i))
+-- function _trimmedindex(i::AbstractArray{<:AbstractCartesianIndex{N}}) where {N}
+--     padding = ntuple(Returns(1), Val(N - 1))
+--     ax1 = eachindex(IndexLinear(), i)
+--     return oftype(i, reshape(CartesianIndices((ax1, padding...)), axes(i)))
+-- end
+-- ## SubArray creation
+-- # We always assume that the dimensionality of the parent matches the number of
+-- # indices that end up getting passed to it, so we store the parent as a
+-- # ReshapedArray view if necessary. The trouble is that arrays of `CartesianIndex`
+-- # can make the number of effective indices not equal to length(I).
+-- _maybe_reshape_parent(A::AbstractArray, ::NTuple{1, Bool}) = reshape(A, Val(1))
+-- _maybe_reshape_parent(A::AbstractArray{<:Any,1}, ::NTuple{1, Bool}) = reshape(A, Val(1))
+-- _maybe_reshape_parent(A::AbstractArray{<:Any,N}, ::NTuple{N, Bool}) where {N} = A
+-- _maybe_reshape_parent(A::AbstractArray, ::NTuple{N, Bool}) where {N} = reshape(A, Val(N))
+-- /Source
+def TrimScalarRequestIntegrity : Prop :=
+  ∀ {E W Scalar Result : Type}
+    (ops : TrimScalarOps (EStateM E W) Scalar Result) (index : Scalar) (world : W)
+    (history : List (AllocationObservation (Scalar × I64) E W Result)),
+    match trimmedScalar (observeTrimScalarOps ops) index (world, history) with
+    | .ok result (afterWorld, afterHistory) =>
+        ∃ nativeOne : I64, nativeOne.val = 1 ∧
+          SingleAllocationObserved history afterHistory (index, nativeOne)
+            (.ok result) afterWorld
+    | .error error (afterWorld, afterHistory) =>
+        ∃ nativeOne : I64, nativeOne.val = 1 ∧
+          SingleAllocationObserved history afterHistory (index, nativeOne)
+            (.error error) afterWorld
+
+
+/-- Recovered additive declaration; UNCHECKED. Source base/subarray.jl:150-168. -/
+-- Source: base/subarray.jl:150-168 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- _trimmedindex(i::ScalarIndex) = oftype(i, 1)
+-- _trimmedindex(i::AbstractRange) = i
+-- _trimmedindex(i::Union{UnitRange,StepRange,OneTo}) = oftype(i, oneto(length(i)))
+-- _trimmedindex(i::AbstractArray{<:ScalarIndex}) = oftype(i, reshape(eachindex(IndexLinear(), i), axes(i)))
+-- _trimmedindex(i::AbstractArray{<:AbstractCartesianIndex{0}}) = oftype(i, copy(i))
+-- function _trimmedindex(i::AbstractArray{<:AbstractCartesianIndex{N}}) where {N}
+--     padding = ntuple(Returns(1), Val(N - 1))
+--     ax1 = eachindex(IndexLinear(), i)
+--     return oftype(i, reshape(CartesianIndices((ax1, padding...)), axes(i)))
+-- end
+-- ## SubArray creation
+-- # We always assume that the dimensionality of the parent matches the number of
+-- # indices that end up getting passed to it, so we store the parent as a
+-- # ReshapedArray view if necessary. The trouble is that arrays of `CartesianIndex`
+-- # can make the number of effective indices not equal to length(I).
+-- _maybe_reshape_parent(A::AbstractArray, ::NTuple{1, Bool}) = reshape(A, Val(1))
+-- _maybe_reshape_parent(A::AbstractArray{<:Any,1}, ::NTuple{1, Bool}) = reshape(A, Val(1))
+-- _maybe_reshape_parent(A::AbstractArray{<:Any,N}, ::NTuple{N, Bool}) where {N} = A
+-- _maybe_reshape_parent(A::AbstractArray, ::NTuple{N, Bool}) where {N} = reshape(A, Val(N))
+-- /Source
+def TrimScalarArrayFailureIsolation : Prop :=
+  ∀ {E W A Indices Axes Shaped Result : Type}
+    (ops : TrimScalarArrayOps (EStateM E W) A Indices Axes Shaped Result)
+    (index : A) (before afterIndices afterAxes failedWorld : W)
+    (indices : Indices) (axes : Axes) (error : E),
+    let result := trimmedScalarArray ops index before
+    (ops.eachindex .linear index before = .error error failedWorld →
+      result = .error error failedWorld) ∧
+    (ops.eachindex .linear index before = .ok indices afterIndices →
+      ops.axes index afterIndices = .error error failedWorld →
+      result = .error error failedWorld) ∧
+    (ops.eachindex .linear index before = .ok indices afterIndices →
+      ops.axes index afterIndices = .ok axes afterAxes →
+      ops.reshape indices axes afterAxes = .error error failedWorld →
+      result = .error error failedWorld)
+
+
+/-- Recovered additive declaration; UNCHECKED. Source base/subarray.jl:150-168. -/
+-- Source: base/subarray.jl:150-168 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- _trimmedindex(i::ScalarIndex) = oftype(i, 1)
+-- _trimmedindex(i::AbstractRange) = i
+-- _trimmedindex(i::Union{UnitRange,StepRange,OneTo}) = oftype(i, oneto(length(i)))
+-- _trimmedindex(i::AbstractArray{<:ScalarIndex}) = oftype(i, reshape(eachindex(IndexLinear(), i), axes(i)))
+-- _trimmedindex(i::AbstractArray{<:AbstractCartesianIndex{0}}) = oftype(i, copy(i))
+-- function _trimmedindex(i::AbstractArray{<:AbstractCartesianIndex{N}}) where {N}
+--     padding = ntuple(Returns(1), Val(N - 1))
+--     ax1 = eachindex(IndexLinear(), i)
+--     return oftype(i, reshape(CartesianIndices((ax1, padding...)), axes(i)))
+-- end
+-- ## SubArray creation
+-- # We always assume that the dimensionality of the parent matches the number of
+-- # indices that end up getting passed to it, so we store the parent as a
+-- # ReshapedArray view if necessary. The trouble is that arrays of `CartesianIndex`
+-- # can make the number of effective indices not equal to length(I).
+-- _maybe_reshape_parent(A::AbstractArray, ::NTuple{1, Bool}) = reshape(A, Val(1))
+-- _maybe_reshape_parent(A::AbstractArray{<:Any,1}, ::NTuple{1, Bool}) = reshape(A, Val(1))
+-- _maybe_reshape_parent(A::AbstractArray{<:Any,N}, ::NTuple{N, Bool}) where {N} = A
+-- _maybe_reshape_parent(A::AbstractArray, ::NTuple{N, Bool}) where {N} = reshape(A, Val(N))
+-- /Source
+def observeTrimScalarArrayFinalOps {E W A Indices Axes Shaped Result : Type}
+    (ops : TrimScalarArrayOps (EStateM E W) A Indices Axes Shaped Result) :
+    TrimScalarArrayOps
+      (EStateM E (W × List (AllocationObservation (A × Shaped) E W Result)))
+      A Indices Axes Shaped Result where
+  eachindex := fun style index => liftTrimHistory (ops.eachindex style index)
+  axes := fun index => liftTrimHistory (ops.axes index)
+  reshape := fun indices axes => liftTrimHistory (ops.reshape indices axes)
+  oftype := fun index shaped => recordAllocation (index, shaped) (ops.oftype index shaped)
+
+
+/-- Recovered additive declaration; UNCHECKED. Source base/subarray.jl:150-168. -/
+-- Source: base/subarray.jl:150-168 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- _trimmedindex(i::ScalarIndex) = oftype(i, 1)
+-- _trimmedindex(i::AbstractRange) = i
+-- _trimmedindex(i::Union{UnitRange,StepRange,OneTo}) = oftype(i, oneto(length(i)))
+-- _trimmedindex(i::AbstractArray{<:ScalarIndex}) = oftype(i, reshape(eachindex(IndexLinear(), i), axes(i)))
+-- _trimmedindex(i::AbstractArray{<:AbstractCartesianIndex{0}}) = oftype(i, copy(i))
+-- function _trimmedindex(i::AbstractArray{<:AbstractCartesianIndex{N}}) where {N}
+--     padding = ntuple(Returns(1), Val(N - 1))
+--     ax1 = eachindex(IndexLinear(), i)
+--     return oftype(i, reshape(CartesianIndices((ax1, padding...)), axes(i)))
+-- end
+-- ## SubArray creation
+-- # We always assume that the dimensionality of the parent matches the number of
+-- # indices that end up getting passed to it, so we store the parent as a
+-- # ReshapedArray view if necessary. The trouble is that arrays of `CartesianIndex`
+-- # can make the number of effective indices not equal to length(I).
+-- _maybe_reshape_parent(A::AbstractArray, ::NTuple{1, Bool}) = reshape(A, Val(1))
+-- _maybe_reshape_parent(A::AbstractArray{<:Any,1}, ::NTuple{1, Bool}) = reshape(A, Val(1))
+-- _maybe_reshape_parent(A::AbstractArray{<:Any,N}, ::NTuple{N, Bool}) where {N} = A
+-- _maybe_reshape_parent(A::AbstractArray, ::NTuple{N, Bool}) where {N} = reshape(A, Val(N))
+-- /Source
+def TrimScalarArrayFinalRequestIntegrity : Prop :=
+  ∀ {E W A Indices Axes Shaped Result : Type}
+    (ops : TrimScalarArrayOps (EStateM E W) A Indices Axes Shaped Result)
+    (index : A) (before afterIndices afterAxes afterShape : W)
+    (indices : Indices) (axes : Axes) (shaped : Shaped)
+    (history : List (AllocationObservation (A × Shaped) E W Result)),
+    ops.eachindex .linear index before = .ok indices afterIndices →
+    ops.axes index afterIndices = .ok axes afterAxes →
+    ops.reshape indices axes afterAxes = .ok shaped afterShape →
+    match trimmedScalarArray (observeTrimScalarArrayFinalOps ops) index
+        (before, history) with
+    | .ok result (afterWorld, afterHistory) =>
+        SingleAllocationObserved history afterHistory (index, shaped)
+          (.ok result) afterWorld
+    | .error error (afterWorld, afterHistory) =>
+        SingleAllocationObserved history afterHistory (index, shaped)
+          (.error error) afterWorld
+
+
+/-- Recovered additive declaration; UNCHECKED. Source base/subarray.jl:150-168. -/
+-- Source: base/subarray.jl:150-168 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- _trimmedindex(i::ScalarIndex) = oftype(i, 1)
+-- _trimmedindex(i::AbstractRange) = i
+-- _trimmedindex(i::Union{UnitRange,StepRange,OneTo}) = oftype(i, oneto(length(i)))
+-- _trimmedindex(i::AbstractArray{<:ScalarIndex}) = oftype(i, reshape(eachindex(IndexLinear(), i), axes(i)))
+-- _trimmedindex(i::AbstractArray{<:AbstractCartesianIndex{0}}) = oftype(i, copy(i))
+-- function _trimmedindex(i::AbstractArray{<:AbstractCartesianIndex{N}}) where {N}
+--     padding = ntuple(Returns(1), Val(N - 1))
+--     ax1 = eachindex(IndexLinear(), i)
+--     return oftype(i, reshape(CartesianIndices((ax1, padding...)), axes(i)))
+-- end
+-- ## SubArray creation
+-- # We always assume that the dimensionality of the parent matches the number of
+-- # indices that end up getting passed to it, so we store the parent as a
+-- # ReshapedArray view if necessary. The trouble is that arrays of `CartesianIndex`
+-- # can make the number of effective indices not equal to length(I).
+-- _maybe_reshape_parent(A::AbstractArray, ::NTuple{1, Bool}) = reshape(A, Val(1))
+-- _maybe_reshape_parent(A::AbstractArray{<:Any,1}, ::NTuple{1, Bool}) = reshape(A, Val(1))
+-- _maybe_reshape_parent(A::AbstractArray{<:Any,N}, ::NTuple{N, Bool}) where {N} = A
+-- _maybe_reshape_parent(A::AbstractArray, ::NTuple{N, Bool}) where {N} = reshape(A, Val(N))
+-- /Source
+def TrimCartesianZeroCopyFailureIsolation : Prop :=
+  ∀ {E W A Copied Result : Type}
+    (ops : TrimCartesianZeroOps (EStateM E W) A Copied Result)
+    (index : A) (before after : W) (error : E),
+    ops.copy index before = .error error after →
+      trimmedCartesianZero ops index before = .error error after
+
+
+/-- Recovered additive declaration; UNCHECKED. Source base/subarray.jl:150-168. -/
+-- Source: base/subarray.jl:150-168 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- _trimmedindex(i::ScalarIndex) = oftype(i, 1)
+-- _trimmedindex(i::AbstractRange) = i
+-- _trimmedindex(i::Union{UnitRange,StepRange,OneTo}) = oftype(i, oneto(length(i)))
+-- _trimmedindex(i::AbstractArray{<:ScalarIndex}) = oftype(i, reshape(eachindex(IndexLinear(), i), axes(i)))
+-- _trimmedindex(i::AbstractArray{<:AbstractCartesianIndex{0}}) = oftype(i, copy(i))
+-- function _trimmedindex(i::AbstractArray{<:AbstractCartesianIndex{N}}) where {N}
+--     padding = ntuple(Returns(1), Val(N - 1))
+--     ax1 = eachindex(IndexLinear(), i)
+--     return oftype(i, reshape(CartesianIndices((ax1, padding...)), axes(i)))
+-- end
+-- ## SubArray creation
+-- # We always assume that the dimensionality of the parent matches the number of
+-- # indices that end up getting passed to it, so we store the parent as a
+-- # ReshapedArray view if necessary. The trouble is that arrays of `CartesianIndex`
+-- # can make the number of effective indices not equal to length(I).
+-- _maybe_reshape_parent(A::AbstractArray, ::NTuple{1, Bool}) = reshape(A, Val(1))
+-- _maybe_reshape_parent(A::AbstractArray{<:Any,1}, ::NTuple{1, Bool}) = reshape(A, Val(1))
+-- _maybe_reshape_parent(A::AbstractArray{<:Any,N}, ::NTuple{N, Bool}) where {N} = A
+-- _maybe_reshape_parent(A::AbstractArray, ::NTuple{N, Bool}) where {N} = reshape(A, Val(N))
+-- /Source
+def observeTrimCartesianZeroFinalOps {E W A Copied Result : Type}
+    (ops : TrimCartesianZeroOps (EStateM E W) A Copied Result) :
+    TrimCartesianZeroOps
+      (EStateM E (W × List (AllocationObservation (A × Copied) E W Result)))
+      A Copied Result where
+  copy := fun index => liftTrimHistory (ops.copy index)
+  oftype := fun index copied => recordAllocation (index, copied) (ops.oftype index copied)
+
+
+/-- Recovered additive declaration; UNCHECKED. Source base/subarray.jl:150-168. -/
+-- Source: base/subarray.jl:150-168 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- _trimmedindex(i::ScalarIndex) = oftype(i, 1)
+-- _trimmedindex(i::AbstractRange) = i
+-- _trimmedindex(i::Union{UnitRange,StepRange,OneTo}) = oftype(i, oneto(length(i)))
+-- _trimmedindex(i::AbstractArray{<:ScalarIndex}) = oftype(i, reshape(eachindex(IndexLinear(), i), axes(i)))
+-- _trimmedindex(i::AbstractArray{<:AbstractCartesianIndex{0}}) = oftype(i, copy(i))
+-- function _trimmedindex(i::AbstractArray{<:AbstractCartesianIndex{N}}) where {N}
+--     padding = ntuple(Returns(1), Val(N - 1))
+--     ax1 = eachindex(IndexLinear(), i)
+--     return oftype(i, reshape(CartesianIndices((ax1, padding...)), axes(i)))
+-- end
+-- ## SubArray creation
+-- # We always assume that the dimensionality of the parent matches the number of
+-- # indices that end up getting passed to it, so we store the parent as a
+-- # ReshapedArray view if necessary. The trouble is that arrays of `CartesianIndex`
+-- # can make the number of effective indices not equal to length(I).
+-- _maybe_reshape_parent(A::AbstractArray, ::NTuple{1, Bool}) = reshape(A, Val(1))
+-- _maybe_reshape_parent(A::AbstractArray{<:Any,1}, ::NTuple{1, Bool}) = reshape(A, Val(1))
+-- _maybe_reshape_parent(A::AbstractArray{<:Any,N}, ::NTuple{N, Bool}) where {N} = A
+-- _maybe_reshape_parent(A::AbstractArray, ::NTuple{N, Bool}) where {N} = reshape(A, Val(N))
+-- /Source
+def TrimCartesianZeroFinalRequestIntegrity : Prop :=
+  ∀ {E W A Copied Result : Type}
+    (ops : TrimCartesianZeroOps (EStateM E W) A Copied Result)
+    (index : A) (before afterCopy : W) (copied : Copied)
+    (history : List (AllocationObservation (A × Copied) E W Result)),
+    ops.copy index before = .ok copied afterCopy →
+    match trimmedCartesianZero (observeTrimCartesianZeroFinalOps ops) index
+        (before, history) with
+    | .ok result (afterWorld, afterHistory) =>
+        SingleAllocationObserved history afterHistory (index, copied)
+          (.ok result) afterWorld
+    | .error error (afterWorld, afterHistory) =>
+        SingleAllocationObserved history afterHistory (index, copied)
+          (.error error) afterWorld
+
+
+/-- Recovered additive declaration; UNCHECKED. Source base/subarray.jl:150-168. -/
+-- Source: base/subarray.jl:150-168 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- _trimmedindex(i::ScalarIndex) = oftype(i, 1)
+-- _trimmedindex(i::AbstractRange) = i
+-- _trimmedindex(i::Union{UnitRange,StepRange,OneTo}) = oftype(i, oneto(length(i)))
+-- _trimmedindex(i::AbstractArray{<:ScalarIndex}) = oftype(i, reshape(eachindex(IndexLinear(), i), axes(i)))
+-- _trimmedindex(i::AbstractArray{<:AbstractCartesianIndex{0}}) = oftype(i, copy(i))
+-- function _trimmedindex(i::AbstractArray{<:AbstractCartesianIndex{N}}) where {N}
+--     padding = ntuple(Returns(1), Val(N - 1))
+--     ax1 = eachindex(IndexLinear(), i)
+--     return oftype(i, reshape(CartesianIndices((ax1, padding...)), axes(i)))
+-- end
+-- ## SubArray creation
+-- # We always assume that the dimensionality of the parent matches the number of
+-- # indices that end up getting passed to it, so we store the parent as a
+-- # ReshapedArray view if necessary. The trouble is that arrays of `CartesianIndex`
+-- # can make the number of effective indices not equal to length(I).
+-- _maybe_reshape_parent(A::AbstractArray, ::NTuple{1, Bool}) = reshape(A, Val(1))
+-- _maybe_reshape_parent(A::AbstractArray{<:Any,1}, ::NTuple{1, Bool}) = reshape(A, Val(1))
+-- _maybe_reshape_parent(A::AbstractArray{<:Any,N}, ::NTuple{N, Bool}) where {N} = A
+-- _maybe_reshape_parent(A::AbstractArray, ::NTuple{N, Bool}) where {N} = reshape(A, Val(N))
+-- /Source
+def ReshapeParentBooleanContentIndependence : Prop :=
+  ∀ {m : Type → Type} {A Result : Type}
+    (ops : ReshapeParentOps m A Result) (array : A) (leftBit rightBit : Bool)
+    (left right : JuliaLean.base.subarray.Models2Group14.Tuple Bool),
+    reshapeParentOne ops array leftBit = reshapeParentOne ops array rightBit ∧
+    (left.values.length = right.values.length →
+      reshapeParentRank ops array left = reshapeParentRank ops array right)
+
+
+/-- Recovered additive declaration; UNCHECKED. Source base/subarray.jl:150-168. -/
+-- Source: base/subarray.jl:150-168 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- _trimmedindex(i::ScalarIndex) = oftype(i, 1)
+-- _trimmedindex(i::AbstractRange) = i
+-- _trimmedindex(i::Union{UnitRange,StepRange,OneTo}) = oftype(i, oneto(length(i)))
+-- _trimmedindex(i::AbstractArray{<:ScalarIndex}) = oftype(i, reshape(eachindex(IndexLinear(), i), axes(i)))
+-- _trimmedindex(i::AbstractArray{<:AbstractCartesianIndex{0}}) = oftype(i, copy(i))
+-- function _trimmedindex(i::AbstractArray{<:AbstractCartesianIndex{N}}) where {N}
+--     padding = ntuple(Returns(1), Val(N - 1))
+--     ax1 = eachindex(IndexLinear(), i)
+--     return oftype(i, reshape(CartesianIndices((ax1, padding...)), axes(i)))
+-- end
+-- ## SubArray creation
+-- # We always assume that the dimensionality of the parent matches the number of
+-- # indices that end up getting passed to it, so we store the parent as a
+-- # ReshapedArray view if necessary. The trouble is that arrays of `CartesianIndex`
+-- # can make the number of effective indices not equal to length(I).
+-- _maybe_reshape_parent(A::AbstractArray, ::NTuple{1, Bool}) = reshape(A, Val(1))
+-- _maybe_reshape_parent(A::AbstractArray{<:Any,1}, ::NTuple{1, Bool}) = reshape(A, Val(1))
+-- _maybe_reshape_parent(A::AbstractArray{<:Any,N}, ::NTuple{N, Bool}) where {N} = A
+-- _maybe_reshape_parent(A::AbstractArray, ::NTuple{N, Bool}) where {N} = reshape(A, Val(N))
+-- /Source
+def observeReshapeParentOps {E W A Result : Type}
+    (ops : ReshapeParentOps (EStateM E W) A Result) :
+    ReshapeParentOps
+      (EStateM E (W × List (AllocationObservation (A × ValRank) E W Result)))
+      A Result where
+  reshape := fun array rank => recordAllocation (array, rank) (ops.reshape array rank)
+
+
+/-- Recovered additive declaration; UNCHECKED. Source base/subarray.jl:150-168. -/
+-- Source: base/subarray.jl:150-168 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- _trimmedindex(i::ScalarIndex) = oftype(i, 1)
+-- _trimmedindex(i::AbstractRange) = i
+-- _trimmedindex(i::Union{UnitRange,StepRange,OneTo}) = oftype(i, oneto(length(i)))
+-- _trimmedindex(i::AbstractArray{<:ScalarIndex}) = oftype(i, reshape(eachindex(IndexLinear(), i), axes(i)))
+-- _trimmedindex(i::AbstractArray{<:AbstractCartesianIndex{0}}) = oftype(i, copy(i))
+-- function _trimmedindex(i::AbstractArray{<:AbstractCartesianIndex{N}}) where {N}
+--     padding = ntuple(Returns(1), Val(N - 1))
+--     ax1 = eachindex(IndexLinear(), i)
+--     return oftype(i, reshape(CartesianIndices((ax1, padding...)), axes(i)))
+-- end
+-- ## SubArray creation
+-- # We always assume that the dimensionality of the parent matches the number of
+-- # indices that end up getting passed to it, so we store the parent as a
+-- # ReshapedArray view if necessary. The trouble is that arrays of `CartesianIndex`
+-- # can make the number of effective indices not equal to length(I).
+-- _maybe_reshape_parent(A::AbstractArray, ::NTuple{1, Bool}) = reshape(A, Val(1))
+-- _maybe_reshape_parent(A::AbstractArray{<:Any,1}, ::NTuple{1, Bool}) = reshape(A, Val(1))
+-- _maybe_reshape_parent(A::AbstractArray{<:Any,N}, ::NTuple{N, Bool}) where {N} = A
+-- _maybe_reshape_parent(A::AbstractArray, ::NTuple{N, Bool}) where {N} = reshape(A, Val(N))
+-- /Source
+def ReshapeParentOneRequestIntegrity : Prop :=
+  ∀ {E W A Result : Type}
+    (ops : ReshapeParentOps (EStateM E W) A Result) (array : A)
+    (dimension : Bool) (world : W)
+    (history : List (AllocationObservation (A × ValRank) E W Result)),
+    match reshapeParentOne (observeReshapeParentOps ops) array dimension
+        (world, history) with
+    | .ok result (afterWorld, afterHistory) =>
+        ∃ rank : ValRank, rank.value.val = 1 ∧
+          SingleAllocationObserved history afterHistory (array, rank) (.ok result) afterWorld
+    | .error error (afterWorld, afterHistory) =>
+        ∃ rank : ValRank, rank.value.val = 1 ∧
+          SingleAllocationObserved history afterHistory (array, rank) (.error error) afterWorld
+
+
+/-- Recovered additive declaration; UNCHECKED. Source base/subarray.jl:150-168. -/
+-- Source: base/subarray.jl:150-168 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- _trimmedindex(i::ScalarIndex) = oftype(i, 1)
+-- _trimmedindex(i::AbstractRange) = i
+-- _trimmedindex(i::Union{UnitRange,StepRange,OneTo}) = oftype(i, oneto(length(i)))
+-- _trimmedindex(i::AbstractArray{<:ScalarIndex}) = oftype(i, reshape(eachindex(IndexLinear(), i), axes(i)))
+-- _trimmedindex(i::AbstractArray{<:AbstractCartesianIndex{0}}) = oftype(i, copy(i))
+-- function _trimmedindex(i::AbstractArray{<:AbstractCartesianIndex{N}}) where {N}
+--     padding = ntuple(Returns(1), Val(N - 1))
+--     ax1 = eachindex(IndexLinear(), i)
+--     return oftype(i, reshape(CartesianIndices((ax1, padding...)), axes(i)))
+-- end
+-- ## SubArray creation
+-- # We always assume that the dimensionality of the parent matches the number of
+-- # indices that end up getting passed to it, so we store the parent as a
+-- # ReshapedArray view if necessary. The trouble is that arrays of `CartesianIndex`
+-- # can make the number of effective indices not equal to length(I).
+-- _maybe_reshape_parent(A::AbstractArray, ::NTuple{1, Bool}) = reshape(A, Val(1))
+-- _maybe_reshape_parent(A::AbstractArray{<:Any,1}, ::NTuple{1, Bool}) = reshape(A, Val(1))
+-- _maybe_reshape_parent(A::AbstractArray{<:Any,N}, ::NTuple{N, Bool}) where {N} = A
+-- _maybe_reshape_parent(A::AbstractArray, ::NTuple{N, Bool}) where {N} = reshape(A, Val(N))
+-- /Source
+def ReshapeParentRankRequestIntegrity : Prop :=
+  ∀ {E W A Result : Type}
+    (ops : ReshapeParentOps (EStateM E W) A Result) (array : A)
+    (dimensions : JuliaLean.base.subarray.Models2Group14.Tuple Bool) (world : W)
+    (history : List (AllocationObservation (A × ValRank) E W Result)),
+    match reshapeParentRank (observeReshapeParentOps ops) array dimensions
+        (world, history) with
+    | .ok result (afterWorld, afterHistory) =>
+        ∃ rank : ValRank, rank.value.val = Int.ofNat dimensions.values.length ∧
+          SingleAllocationObserved history afterHistory (array, rank) (.ok result) afterWorld
+    | .error error (afterWorld, afterHistory) =>
+        ∃ rank : ValRank, rank.value.val = Int.ofNat dimensions.values.length ∧
+          SingleAllocationObserved history afterHistory (array, rank) (.error error) afterWorld
+
+
+/-- Recovered additive declaration; UNCHECKED. Source base/subarray.jl:150-168. -/
+-- Source: base/subarray.jl:150-168 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- _trimmedindex(i::ScalarIndex) = oftype(i, 1)
+-- _trimmedindex(i::AbstractRange) = i
+-- _trimmedindex(i::Union{UnitRange,StepRange,OneTo}) = oftype(i, oneto(length(i)))
+-- _trimmedindex(i::AbstractArray{<:ScalarIndex}) = oftype(i, reshape(eachindex(IndexLinear(), i), axes(i)))
+-- _trimmedindex(i::AbstractArray{<:AbstractCartesianIndex{0}}) = oftype(i, copy(i))
+-- function _trimmedindex(i::AbstractArray{<:AbstractCartesianIndex{N}}) where {N}
+--     padding = ntuple(Returns(1), Val(N - 1))
+--     ax1 = eachindex(IndexLinear(), i)
+--     return oftype(i, reshape(CartesianIndices((ax1, padding...)), axes(i)))
+-- end
+-- ## SubArray creation
+-- # We always assume that the dimensionality of the parent matches the number of
+-- # indices that end up getting passed to it, so we store the parent as a
+-- # ReshapedArray view if necessary. The trouble is that arrays of `CartesianIndex`
+-- # can make the number of effective indices not equal to length(I).
+-- _maybe_reshape_parent(A::AbstractArray, ::NTuple{1, Bool}) = reshape(A, Val(1))
+-- _maybe_reshape_parent(A::AbstractArray{<:Any,1}, ::NTuple{1, Bool}) = reshape(A, Val(1))
+-- _maybe_reshape_parent(A::AbstractArray{<:Any,N}, ::NTuple{N, Bool}) where {N} = A
+-- _maybe_reshape_parent(A::AbstractArray, ::NTuple{N, Bool}) where {N} = reshape(A, Val(N))
+-- /Source
+theorem trimScalarArrayFailureIsolation_proven : TrimScalarArrayFailureIsolation := by
+  intro E W A Indices Axes Shaped Result ops index before afterIndices afterAxes failedWorld indices axes error
+  refine ⟨?_, ?_, ?_⟩
+  · intro h
+    simp [trimmedScalarArray, bind, EStateM.bind, h]
+  · intro h1 h2
+    simp [trimmedScalarArray, bind, EStateM.bind, h1, h2]
+  · intro h1 h2 h3
+    simp [trimmedScalarArray, bind, EStateM.bind, h1, h2, h3]
+
+theorem trimCartesianZeroCopyFailureIsolation_proven : TrimCartesianZeroCopyFailureIsolation := by
+  intro E W A Copied Result ops index before after error h
+  simp [trimmedCartesianZero, bind, EStateM.bind, h]
+
+theorem reshapeParentBooleanContentIndependence_proven : ReshapeParentBooleanContentIndependence := by
+  intro m A Result ops array leftBit rightBit left right
+  exact ⟨rfl, fun h => by simp only [reshapeParentRank, h]⟩
+
+theorem trimScalarRequestIntegrity_proven : TrimScalarRequestIntegrity := by
+  intro E W Scalar Result ops index world history
+  cases h : ops.oftype index (int64 1) world <;>
+    simp only [trimmedScalar, observeTrimScalarOps, recordAllocation, h] <;>
+    exact ⟨int64 1, by decide, singleAllocationAppend history _ _ _⟩
+
+theorem trimScalarArrayFinalRequestIntegrity_proven : TrimScalarArrayFinalRequestIntegrity := by
+  intro E W A Indices Axes Shaped Result ops index before afterIndices afterAxes afterShape
+    indices axes shaped history hi ha hs
+  cases h : ops.oftype index shaped afterShape <;>
+    simpa [trimmedScalarArray, observeTrimScalarArrayFinalOps, liftTrimHistory,
+      recordAllocation, bind, EStateM.bind, hi, ha, hs, h] using
+      singleAllocationAppend history (index, shaped) _ _
+
+theorem trimCartesianZeroFinalRequestIntegrity_proven : TrimCartesianZeroFinalRequestIntegrity := by
+  intro E W A Copied Result ops index before afterCopy copied history hc
+  cases h : ops.oftype index copied afterCopy <;>
+    simpa [trimmedCartesianZero, observeTrimCartesianZeroFinalOps, liftTrimHistory,
+      recordAllocation, bind, EStateM.bind, hc, h] using
+      singleAllocationAppend history (index, copied) _ _
+
+theorem reshapeParentOneRequestIntegrity_proven : ReshapeParentOneRequestIntegrity := by
+  intro E W A Result ops array dimension world history
+  cases h : ops.reshape array ⟨int64 1⟩ world <;>
+    simp only [reshapeParentOne, observeReshapeParentOps, recordAllocation, h] <;>
+    exact ⟨⟨int64 1⟩, by decide, singleAllocationAppend history _ _ _⟩
+
+theorem reshapeParentRankRequestIntegrity_proven : ReshapeParentRankRequestIntegrity := by
+  intro E W A Result ops array dimensions world history
+  have hval : (int64 dimensions.values.length).val = dimensions.values.length := by
+    change wrapInt .i64 dimensions.values.length = dimensions.values.length
+    apply wrapInt_of_inRange
+    have := dimensions.nativeArity
+    constructor <;> simp only [IntTy.min, IntTy.max, IntTy.bits, IntTy.signed] <;> omega
+  cases h : ops.reshape array ⟨int64 dimensions.values.length⟩ world <;>
+    simp only [reshapeParentRank, observeReshapeParentOps, recordAllocation, h] <;>
+    exact ⟨⟨int64 dimensions.values.length⟩, hval, singleAllocationAppend history _ _ _⟩
+
+def trimReshapeEntries : List Entry := [
+  { id := "subarray-trim-scalar-request-integrity",
+    juliaFile := "base/subarray.jl", juliaFns := ["_trimmedindex(i::ScalarIndex)"],
+    statement := "Scalar trimming issues exactly one oftype request using the original scalar and native one, retaining that request's value or exception and effects.",
+    source := "base/subarray.jl:150; invariant: scalar normalization request and outcome provenance",
+    status := .proven, thm := some ``JuliaLean.Proofs.base.subarray.Models2Group14.trimScalarRequestIntegrity_proven, prop := ``JuliaLean.Proofs.base.subarray.Models2Group14.TrimScalarRequestIntegrity,
+    notes := "All custom/nonnative Real payloads and arbitrary effectful oftype implementations are quantified without laws. Kernel-checked proof registered." },
+  { id := "subarray-trim-scalar-array-failure-isolation",
+    juliaFile := "base/subarray.jl", juliaFns := ["_trimmedindex(i::AbstractArray{<:ScalarIndex})"],
+    statement := "Errors from linear eachindex, axes, or reshape stop scalar-array trimming at that stage and retain the exact post-error world.",
+    source := "base/subarray.jl:153; invariant: sequential failure isolation",
+    status := .proven, thm := some ``JuliaLean.Proofs.base.subarray.Models2Group14.trimScalarArrayFailureIsolation_proven, prop := ``JuliaLean.Proofs.base.subarray.Models2Group14.TrimScalarArrayFailureIsolation,
+    notes := "All index/axis/result carriers and mutable effects remain unrestricted. Observations impose no callee-correctness laws. Kernel-checked proof registered." },
+  { id := "subarray-trim-scalar-array-final-request",
+    juliaFile := "base/subarray.jl", juliaFns := ["_trimmedindex(i::AbstractArray{<:ScalarIndex})"],
+    statement := "After observed successful index, axes and reshape operations, the sole final conversion receives the original array and actual shaped value and preserves its observed outcome and effects.",
+    source := "base/subarray.jl:153; doc/src/manual/interfaces.md:219-233; invariant: conversion argument/result provenance",
+    status := .proven, thm := some ``JuliaLean.Proofs.base.subarray.Models2Group14.trimScalarArrayFinalRequestIntegrity_proven, prop := ``JuliaLean.Proofs.base.subarray.Models2Group14.TrimScalarArrayFinalRequestIntegrity,
+    notes := "Arbitrary custom operations are instrumented, not assumed correct. Nonstandard indexing is unrestricted. Kernel-checked proof registered." },
+  { id := "subarray-trim-cartesian-zero-copy-failure",
+    juliaFile := "base/subarray.jl", juliaFns := ["_trimmedindex(i::AbstractArray{<:AbstractCartesianIndex{0}})"],
+    statement := "A copy exception is retained with its exact post-error world before any oftype request in Cartesian-zero index trimming.",
+    source := "base/subarray.jl:154; invariant: copy-failure isolation",
+    status := .proven, thm := some ``JuliaLean.Proofs.base.subarray.Models2Group14.trimCartesianZeroCopyFailureIsolation_proven, prop := ``JuliaLean.Proofs.base.subarray.Models2Group14.TrimCartesianZeroCopyFailureIsolation,
+    notes := "Custom copy may allocate, mutate or throw; no freshness/correctness law is imposed. Kernel-checked proof registered." },
+  { id := "subarray-trim-cartesian-zero-final-request",
+    juliaFile := "base/subarray.jl", juliaFns := ["_trimmedindex(i::AbstractArray{<:AbstractCartesianIndex{0}})"],
+    statement := "The actual copy result is passed unchanged to one oftype request with the original array as witness, preserving the conversion's observed outcome and effects.",
+    source := "base/subarray.jl:154; invariant: copy and conversion identity provenance",
+    status := .proven, thm := some ``JuliaLean.Proofs.base.subarray.Models2Group14.trimCartesianZeroFinalRequestIntegrity_proven, prop := ``JuliaLean.Proofs.base.subarray.Models2Group14.TrimCartesianZeroFinalRequestIntegrity,
+    notes := "All copied and returned object identities, mutation and errors are admitted; no callee correctness laws. Kernel-checked proof registered." },
+  { id := "subarray-reshape-parent-bool-content-independence",
+    juliaFile := "base/subarray.jl",
+    juliaFns := ["_maybe_reshape_parent(A::AbstractArray, ::NTuple{1, Bool})", "_maybe_reshape_parent(A::AbstractArray{<:Any,1}, ::NTuple{1, Bool})", "_maybe_reshape_parent(A::AbstractArray, ::NTuple{N, Bool}) where {N}"],
+    statement := "Changing Bool values without changing tuple arity cannot change parent reshape requests, returned values, errors, or effects.",
+    source := "base/subarray.jl:165-166,168; invariant: type-arity-only Bool tuple use",
+    status := .proven, thm := some ``JuliaLean.Proofs.base.subarray.Models2Group14.reshapeParentBooleanContentIndependence_proven, prop := ``JuliaLean.Proofs.base.subarray.Models2Group14.ReshapeParentBooleanContentIndependence,
+    notes := "Generic effect carriers and arbitrary selected reshape methods, including custom vector behavior. Kernel-checked proof registered." },
+  { id := "subarray-reshape-parent-one-request-integrity",
+    juliaFile := "base/subarray.jl",
+    juliaFns := ["_maybe_reshape_parent(A::AbstractArray, ::NTuple{1, Bool})", "_maybe_reshape_parent(A::AbstractArray{<:Any,1}, ::NTuple{1, Bool})"],
+    statement := "Both rank-one methods make one request using the original parent and Val parameter one, retaining the selected reshape's observed result or exception and world.",
+    source := "base/subarray.jl:165-166; base/essentials.jl:1199-1203; invariant: reshape request/rank provenance",
+    status := .proven, thm := some ``JuliaLean.Proofs.base.subarray.Models2Group14.reshapeParentOneRequestIntegrity_proven, prop := ``JuliaLean.Proofs.base.subarray.Models2Group14.ReshapeParentOneRequestIntegrity,
+    notes := "Covers concrete ValRank metadata and both shared-body source methods; no identity shortcut for vector parents. Kernel-checked proof registered." },
+  { id := "subarray-reshape-parent-rank-request-integrity",
+    juliaFile := "base/subarray.jl", juliaFns := ["_maybe_reshape_parent(A::AbstractArray, ::NTuple{N, Bool}) where {N}"],
+    statement := "The generic fallback makes one request with the original parent and a native Val parameter exactly equal to tuple arity, retaining the observed reshape outcome and world.",
+    source := "base/subarray.jl:168; base/essentials.jl:1199-1203; invariant: exact native rank/request provenance",
+    status := .proven, thm := some ``JuliaLean.Proofs.base.subarray.Models2Group14.reshapeParentRankRequestIntegrity_proven, prop := ``JuliaLean.Proofs.base.subarray.Models2Group14.ReshapeParentRankRequestIntegrity,
+    notes := "Existing Tuple native-arity bound ensures constructibility. Covers ValRank; no reshape correctness law is assumed. Kernel-checked proof registered." }
+]
+
+end JuliaLean.Proofs.base.subarray.Models2Group14
+
+namespace JuliaLean.Proofs.base.subarray
+/-- Recovered additive declaration; UNCHECKED. Source base/subarray.jl:19-168. -/
+-- Source: base/subarray.jl:19-168 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+--     function SubArray{T,N,P,I,L}(parent, indices, offset1, stride1) where {T,N,P,I,L}
+--         @inline
+--         check_parent_index_match(parent, indices)
+--         new(parent, indices, offset1, stride1)
+--     end
+-- end
+-- # Compute the linear indexability of the indices, and combine it with the linear indexing of the parent
+-- function SubArray(parent::AbstractArray, indices::Tuple)
+--     @inline
+--     SubArray(IndexStyle(viewindexing(indices), IndexStyle(parent)), parent, ensure_indexable(indices), index_dimsum(indices...))
+-- end
+-- function SubArray(::IndexCartesian, parent::P, indices::I, ::NTuple{N,Any}) where {P,I,N}
+--     @inline
+--     SubArray{eltype(P), N, P, I, false}(parent, indices, 0, 0)
+-- end
+-- function SubArray(::IndexLinear, parent::P, indices::I, ::NTuple{N,Any}) where {P,I,N}
+--     @inline
+--     offset1, stride1 = _compute_linear_layout(parent, indices)
+--     SubArray{eltype(P), N, P, I, true}(parent, indices, offset1, stride1)
+-- end
+-- 
+-- function _compute_linear_layout(parent, indices)
+--     @inline
+--     stride1 = Int(compute_stride1(parent, indices))
+--     return Int(compute_offset1(parent, stride1, indices)), stride1
+-- end
+-- 
+-- check_parent_index_match(parent, indices) = check_parent_index_match(parent, index_ndims(indices...))
+-- check_parent_index_match(parent::AbstractArray{T,N}, ::NTuple{N, Bool}) where {T,N} = nothing
+-- check_parent_index_match(parent, ::NTuple{N, Bool}) where {N} =
+--     throw(ArgumentError("number of indices ($N) must match the parent dimensionality ($(ndims(parent)))"))
+-- 
+-- # This computes the linear indexing compatibility for a given tuple of indices
+-- viewindexing(I::Tuple{}) = IndexLinear()
+-- # Leading scalar indices simply increase the stride
+-- viewindexing(I::Tuple{ScalarIndex, Vararg{Any}}) = (@inline; viewindexing(tail(I)))
+-- # Slices may begin a section which may be followed by any number of Slices
+-- viewindexing(I::Tuple{Slice, Slice, Vararg{Any}}) = (@inline; viewindexing(tail(I)))
+-- # A UnitRange can follow Slices, but only if all other indices are scalar
+-- viewindexing(I::Tuple{Slice, AbstractUnitRange, Vararg{ScalarIndex}}) = IndexLinear()
+-- viewindexing(I::Tuple{Slice, Slice, Vararg{ScalarIndex}}) = IndexLinear() # disambiguate
+-- # In general, scalar ranges are only fast if all other indices are scalar
+-- # Other ranges, such as those of `CartesianIndex`es, are not fast even if these
+-- # are followed by `ScalarIndex`es
+-- viewindexing(I::Tuple{AbstractRange{<:ScalarIndex}, Vararg{ScalarIndex}}) = IndexLinear()
+-- # All other index combinations are slow
+-- viewindexing(I::Tuple{Vararg{Any}}) = IndexCartesian()
+-- # Of course, all other array types are slow
+-- viewindexing(I::Tuple{AbstractArray, Vararg{Any}}) = IndexCartesian()
+-- 
+-- # Simple utilities
+-- size(V::SubArray) = (@inline; map(length, axes(V)))
+-- 
+-- similar(V::SubArray, T::Type, dims::Dims) = similar(V.parent, T, dims)
+-- similar(::Type{TA}, dims::Dims) where {T,N,P,TA<:SubArray{T,N,P}} = similar(P, dims)
+-- 
+-- sizeof(V::SubArray) = length(V) * sizeof(eltype(V))
+-- sizeof(V::SubArray{<:Any,<:Any,<:Array}) = length(V) * elsize(V.parent)
+-- 
+-- function Base.copy(V::SubArray)
+--     v = V.parent[V.indices...]
+--     ndims(V) == 0 || return v
+--     x = similar(V) # ensure proper type of x
+--     x[] = v
+--     return x
+-- end
+-- 
+-- parent(V::SubArray) = V.parent
+-- parentindices(V::SubArray) = V.indices
+-- 
+-- """
+--     parentindices(A)
+-- 
+-- Return the indices in the [`parent`](@ref) which correspond to the view `A`.
+-- 
+-- # Examples
+-- ```jldoctest
+-- julia> A = [1 2; 3 4];
+-- 
+-- julia> V = view(A, 1, :)
+-- 2-element view(::Matrix{Int64}, 1, :) with eltype Int64:
+--  1
+--  2
+-- 
+-- julia> parentindices(V)
+-- (1, Base.Slice(Base.OneTo(2)))
+-- ```
+-- """
+-- function parentindices end
+-- 
+-- parentindices(a::AbstractArray) = map(oneto, size(a))
+-- 
+-- ## Aliasing detection
+-- dataids(A::SubArray) = (dataids(A.parent)..., _splatmap(dataids, A.indices)...)
+-- _splatmap(f, ::Tuple{}) = ()
+-- _splatmap(f, t::Tuple) = (f(t[1])..., _splatmap(f, tail(t))...)
+-- unaliascopy(A::SubArray) = typeof(A)(unaliascopy(A.parent), map(unaliascopy, A.indices), A.offset1, A.stride1)
+-- 
+-- # When the parent is an Array we can trim the size down a bit. In the future this
+-- # could possibly be extended to any mutable array.
+-- function unaliascopy(V::SubArray{T,N,A,I,LD}) where {T,N,A<:Array,I<:Tuple{Vararg{Union{ScalarIndex,AbstractRange{<:ScalarIndex},Array{<:Union{ScalarIndex,AbstractCartesianIndex}}}}},LD}
+--     dest = Array{T}(undef, _trimmedshape(V.indices...))
+--     trimmedpind = _trimmedpind(V.indices...)
+--     vdest = trimmedpind isa Tuple{Vararg{Union{Slice,Colon}}} ? dest : view(dest, trimmedpind...)
+--     copyto!(vdest, view(V, _trimmedvind(V.indices...)...))
+--     indices = map(_trimmedindex, V.indices)
+--     if LD
+--         offset1, stride1 = _compute_linear_layout(dest, indices)
+--     else
+--         offset1, stride1 = 0, 0
+--     end
+--     SubArray{T,N,A,I,LD}(dest, indices, offset1, stride1)
+-- end
+-- # Get the proper trimmed shape
+-- _trimmedshape(::ScalarIndex, rest...) = (1, _trimmedshape(rest...)...)
+-- _trimmedshape(i::AbstractRange, rest...) = (isempty(i) ? zero(eltype(i)) : maximum(i), _trimmedshape(rest...)...)
+-- _trimmedshape(i::Union{UnitRange,StepRange,OneTo}, rest...) = (length(i), _trimmedshape(rest...)...)
+-- _trimmedshape(i::AbstractArray{<:ScalarIndex}, rest...) = (length(i), _trimmedshape(rest...)...)
+-- _trimmedshape(i::AbstractArray{<:AbstractCartesianIndex{0}}, rest...) = _trimmedshape(rest...)
+-- _trimmedshape(i::AbstractArray{<:AbstractCartesianIndex{N}}, rest...) where {N} = (length(i), ntuple(Returns(1), Val(N - 1))..., _trimmedshape(rest...)...)
+-- _trimmedshape() = ()
+-- # We can avoid the repetition from `AbstractArray{CartesianIndex{0}}`
+-- _trimmedpind(i, rest...) = (map(Returns(:), axes(i))..., _trimmedpind(rest...)...)
+-- _trimmedpind(i::AbstractRange, rest...) = (i, _trimmedpind(rest...)...)
+-- _trimmedpind(i::Union{UnitRange,StepRange,OneTo}, rest...) = ((:), _trimmedpind(rest...)...)
+-- _trimmedpind(i::AbstractArray{<:AbstractCartesianIndex{0}}, rest...) = _trimmedpind(rest...)
+-- _trimmedpind() = ()
+-- _trimmedvind(i, rest...) = (map(Returns(:), axes(i))..., _trimmedvind(rest...)...)
+-- _trimmedvind(i::AbstractArray{<:AbstractCartesianIndex{0}}, rest...) = (map(first, axes(i))..., _trimmedvind(rest...)...)
+-- _trimmedvind() = ()
+-- # Transform indices to be "dense"
+-- _trimmedindex(i::ScalarIndex) = oftype(i, 1)
+-- _trimmedindex(i::AbstractRange) = i
+-- _trimmedindex(i::Union{UnitRange,StepRange,OneTo}) = oftype(i, oneto(length(i)))
+-- _trimmedindex(i::AbstractArray{<:ScalarIndex}) = oftype(i, reshape(eachindex(IndexLinear(), i), axes(i)))
+-- _trimmedindex(i::AbstractArray{<:AbstractCartesianIndex{0}}) = oftype(i, copy(i))
+-- function _trimmedindex(i::AbstractArray{<:AbstractCartesianIndex{N}}) where {N}
+--     padding = ntuple(Returns(1), Val(N - 1))
+--     ax1 = eachindex(IndexLinear(), i)
+--     return oftype(i, reshape(CartesianIndices((ax1, padding...)), axes(i)))
+-- end
+-- ## SubArray creation
+-- # We always assume that the dimensionality of the parent matches the number of
+-- # indices that end up getting passed to it, so we store the parent as a
+-- # ReshapedArray view if necessary. The trouble is that arrays of `CartesianIndex`
+-- # can make the number of effective indices not equal to length(I).
+-- _maybe_reshape_parent(A::AbstractArray, ::NTuple{1, Bool}) = reshape(A, Val(1))
+-- _maybe_reshape_parent(A::AbstractArray{<:Any,1}, ::NTuple{1, Bool}) = reshape(A, Val(1))
+-- _maybe_reshape_parent(A::AbstractArray{<:Any,N}, ::NTuple{N, Bool}) where {N} = A
+-- _maybe_reshape_parent(A::AbstractArray, ::NTuple{N, Bool}) where {N} = reshape(A, Val(N))
+-- /Source
+def entriesModels2Group14 : List JuliaLean.Registry.Entry :=
+  Models2Group14.constructorEntries ++ Models2Group14.wrapperEntries ++
+  Models2Group14.similarEntries ++ Models2Group14.trimReshapeEntries
+end JuliaLean.Proofs.base.subarray
+
+namespace JuliaLean.Proofs.base.subarray.LegacyRetired
+
+open JuliaLean JuliaLean.base.subarray JuliaLean.Registry
+
+def WholeSlices (axes : List Axis) (indices : List Index) : Prop :=
+  ∀ pair ∈ axes.zip indices, ∀ selected,
+    pair.2 = .slice selected → selected = pair.1
+
+def WholeAxisLinearConstruction : Prop :=
+  ∀ {P T : Type} (ops : ParentArrayOps P) (parent : P) (indices : List Index),
+    WholeSlices (ops.axes parent) indices → FastViewInputs ops parent indices →
+    ∃ view : SubArray P T,
+      subarrayLinear parent indices (List.replicate (viewAxesManual indices).length true)
+        (checkParentIndexMatchWithOps ops) (computeLinearLayoutWithOps ops) = .ok view ∧
+      view.parent = parent ∧ view.indices = indices ∧ view.linear = true ∧
+      view.dimensions = List.replicate (viewAxesManual indices).length true ∧
+      ViewAddressCorrect ops parent indices view
+
+def WholeAxisAssignedInBounds : Prop :=
+  ∀ {P T : Type} (ops : ParentArrayOps P) (parent : P) (indices : List Index),
+    WholeSlices (ops.axes parent) indices → FastViewInputs ops parent indices → (viewAxesManual indices).length = 1 →
+    ∃ view : SubArray P T, constructSubArrayConfigured ops parent indices = .ok view ∧
+      ∀ coordinates selected, TupleSelection indices coordinates selected →
+        coordinatesInAxes (viewAxesManual indices) coordinates →
+        coordinatesInAxes (ops.axes parent) selected →
+        ∀ (check : SubArray P T → I64 → Bool) (assigned : P → I64 → Jl Bool),
+          check view (linearPosition (viewAxesManual indices) coordinates) = true →
+          isassignedFastVectorSubArray view (linearPosition (viewAxesManual indices) coordinates)
+            check assigned = assigned parent (linearPosition (ops.axes parent) selected)
+
+def WholeAxisWriteInBounds : Prop :=
+  ∀ {P T R : Type} (ops : ParentArrayOps P) (parent : P) (indices : List Index),
+    WholeSlices (ops.axes parent) indices → FastViewInputs ops parent indices → (viewAxesManual indices).length = 1 →
+    ∃ view : SubArray P T, constructSubArrayConfigured ops parent indices = .ok view ∧
+      ∀ coordinates selected, TupleSelection indices coordinates selected →
+        coordinatesInAxes (viewAxesManual indices) coordinates →
+        coordinatesInAxes (ops.axes parent) selected →
+        ∀ (value : R) (check : SubArray P T → I64 → Jl Unit) (set : P → I64 → R → Jl P),
+          check view (linearPosition (viewAxesManual indices) coordinates) = .ok () →
+          setindexFastVectorSubArray view value
+            (linearPosition (viewAxesManual indices) coordinates) check set =
+            (set parent (linearPosition (ops.axes parent) selected) value).map
+              (fun parent' => {view with parent := parent'})
+
+def WholeAxisContiguousPointer : Prop :=
+  ∀ {P T R : Type} (ops : ParentArrayOps P) (parent : P) (indices : List Index),
+    WholeSlices (ops.axes parent) indices → FastViewInputs ops parent indices →
+    (match indices with | [] => true | index :: _ => index.isUnitRange || Index.allScalar indices) = true →
+    ∃ view : SubArray P T, constructSubArrayConfigured ops parent indices = .ok view ∧
+      ∀ coordinates selected, TupleSelection indices coordinates selected →
+        coordinatesInAxes (viewAxesManual indices) coordinates →
+        coordinatesInAxes (ops.axes parent) selected →
+        ∀ pointer : P → I64 → Jl R,
+          pointerFastContiguousSubArray view (linearPosition (viewAxesManual indices) coordinates) pointer =
+            pointer parent (linearPosition (ops.axes parent) selected)
+
+def WholeAxisPointer : Prop :=
+  ∀ {P T R : Type} (ops : ParentArrayOps P) (parent : P) (indices : List Index),
+    WholeSlices (ops.axes parent) indices → FastViewInputs ops parent indices →
+    (match indices with | [] => true | index :: _ => index.isUnitRange || Index.allScalar indices) = false →
+    ∃ view : SubArray P T, constructSubArrayConfigured ops parent indices = .ok view ∧
+      ∀ coordinates selected, TupleSelection indices coordinates selected →
+        coordinatesInAxes (viewAxesManual indices) coordinates →
+        coordinatesInAxes (ops.axes parent) selected →
+        ∀ pointer : P → I64 → Jl R,
+          pointerFastSubArray view (linearPosition (viewAxesManual indices) coordinates) pointer =
+            pointer parent (linearPosition (ops.axes parent) selected)
+
+def WholeAxisReadContract
+    (read : {P T R : Type} → SubArray P T → I64 →
+      (SubArray P T → I64 → Jl Unit) → (P → I64 → Jl R) → Jl R)
+    (vectorOnly : Bool) : Prop :=
+  ∀ {P T R : Type} (ops : ParentArrayOps P) (parent : P) (indices : List Index),
+    WholeSlices (ops.axes parent) indices → FastViewInputs ops parent indices →
+    (vectorOnly = true → (viewAxesManual indices).length = 1) →
+    ∃ view : SubArray P T, constructSubArrayConfigured ops parent indices = .ok view ∧
+      view.linear = true ∧ view.dimensions.length = (viewAxesManual indices).length ∧
+      ∀ coordinates selected, TupleSelection indices coordinates selected →
+        coordinatesInAxes (viewAxesManual indices) coordinates →
+        coordinatesInAxes (ops.axes parent) selected →
+        ∀ (check : SubArray P T → I64 → Jl Unit) (get : P → I64 → Jl R),
+          check view (linearPosition (viewAxesManual indices) coordinates) = .ok () →
+          read view (linearPosition (viewAxesManual indices) coordinates) check get =
+            get parent (linearPosition (ops.axes parent) selected)
+
+def WholeAxisRead : Prop := WholeAxisReadContract (@getindexFastSubArray) false ∧ FastViewBoundsErrors
+def WholeAxisVectorRead : Prop := WholeAxisReadContract (@getindexFastVectorSubArray) true ∧ FastViewBoundsErrors
+def WholeAxisVectorWrite : Prop := WholeAxisWriteInBounds ∧ FastViewBoundsErrors
+def WholeAxisAssigned : Prop := WholeAxisAssignedInBounds ∧ IsassignedOutsideView
+
+private def pending (id : String) (fns : List String) (statement source : String)
+    (prop : Lean.Name) : Entry :=
+  { id := "multidimcov-subarray-v2-" ++ id, juliaFile := "base/subarray.jl", juliaFns := fns,
+    statement, source, status := .todo, prop,
+    notes := "The legacy certificate depends on its private view/layout carrier. The installed constructor and native-Int layout need an independent whole-axis layout/address correspondence; no carrier bridge is retained." }
+
+def entries : List Entry := [
+  pending "construct-linear-whole-axis" ["SubArray(::IndexLinear, parent::P, indices::I, ::NTuple{N,Any}) where {P,I,N}"]
+    "When every Slice spans its parent axis, the fast constructor's offset and stride map each view element to its parent position."
+    "invariant: linear indexing of a FastSubArray, base/subarray.jl:17-18, 323-344" ``WholeAxisLinearConstruction,
+  pending "getindex-fast-whole-axis" ["getindex(V::FastSubArray, i::Int)"]
+    "When every Slice spans its parent axis, fast-view reads agree with their parent positions and out-of-bounds indices throw."
+    "view docstring; linear indexing manual" ``WholeAxisRead,
+  pending "getindex-fast-vector-whole-axis" ["getindex(V::FastSubArray{<:Any, 1}, i::Int)"]
+    "When every Slice spans its parent axis, one-dimensional fast-view reads agree with their parent positions and out-of-bounds indices throw."
+    "view docstring; linear indexing manual" ``WholeAxisVectorRead,
+  pending "setindex-fast-vector-whole-axis" ["setindex!(V::FastSubArray{<:Any, 1}, x, i::Int)"]
+    "When every Slice spans its parent axis, fast-vector writes modify exactly the selected element."
+    "view docstring (writes through views modify the parent)" ``WholeAxisVectorWrite,
+  pending "isassigned-fast-vector-whole-axis" ["isassigned(V::FastSubArray{<:Any, 1}, i::Int)"]
+    "When every Slice spans its parent axis, isassigned checks the selected parent element."
+    "isassigned docstring base/multidimensional.jl" ``WholeAxisAssigned,
+  pending "pointer-fast-whole-axis" ["pointer(V::FastSubArray, i::Int)"]
+    "When every Slice spans its parent axis, a non-contiguous fast-view pointer selects the corresponding parent element."
+    "pointer docstring; linear indexing invariant" ``WholeAxisPointer,
+  pending "pointer-contiguous-whole-axis" ["pointer(V::FastContiguousSubArray, i::Int)"]
+    "When every Slice spans its parent axis, a contiguous fast-view pointer selects the corresponding parent element."
+    "pointer docstring; linear indexing invariant" ``WholeAxisContiguousPointer
+]
+
+end JuliaLean.Proofs.base.subarray.LegacyRetired

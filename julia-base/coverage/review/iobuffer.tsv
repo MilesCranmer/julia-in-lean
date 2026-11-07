@@ -1,7 +1,5 @@
 line	name	verdict	mirror	property	settled	reason
 96	_new_generic_iobuffer	HOLLOW	yes	no	yes	The constructor model mirrors the field initialization, but NewGenericFields only equates newGeneric with its own newBuf helper and states no promised constructor behavior.
-110	GenericIOBuffer{T}	HOLLOW	no	no	yes	genericTyped delegates to genericIOBuffer, which omits require_one_based_indexing and routes Vector data through the different specialized constructor, while GenericConstructors only equates these helpers.
-134	GenericIOBuffer	HOLLOW	no	no	yes	genericUntyped delegates to the incomplete genericTyped model, and GenericConstructors only states equality between the two Lean wrappers.
 141	GenericIOBuffer	HOLLOW	yes	no	yes	genericVector mirrors the offset and size branches, but VectorConstructor only equates it with the same genericIOBuffer model and states no constructor invariant.
 163	get_offset	FAITHFUL	yes	yes	yes	getOffsetMethod mirrors max(0, offset_or_compacted), and OffsetAccessors states that behavior for every buffer.
 164	get_compacted	FAITHFUL	yes	yes	yes	getCompactedMethod mirrors max(0, -offset_or_compacted), and OffsetAccessors states that behavior for every buffer.
@@ -14,7 +12,6 @@ line	name	verdict	mirror	property	settled	reason
 289	_truncated_pipebuffer	HOLLOW	no	no	yes	truncatedPipeBuffer delegates to the incomplete pipeBuffer model for arbitrary AbstractVector data, and TruncatedPipeCorrect merely unfolds that same model.
 296	_similar_data	HOLLOW	no	no	yes	similarData replaces the call to similar(b.data, len) with an unconditional MethodError for every non-Memory buffer, while WriteNoMethodError is restricted to Reachable states under an undocumented size bound.
 297	_similar_data	HOLLOW	no	yes	yes	similarDataMethod delegates to a StringMemory model that omits _string_n and unsafe_wrap, although SimilarDataCorrect states the requested StringMemory result for every input.
-302	copy	HOLLOW	no	no	yes	copyBuffer depends on similarData, which rejects all non-Memory buffers instead of modelling successful similar calls, and CopyReadonlyFields covers only the read-only branch.
 334	show	HOLLOW	no	yes	yes	The Lean show model includes only the size and pointer arithmetic and omits the ordered print calls and all other displayed fields, although both registered propositions state observable claims about the printed pointer and size.
 344	_throw_not_readable	FAITHFUL	yes	yes	yes	throwNotReadableMethod mirrors the ArgumentError, and ThrowNotReadable states that result for every return type.
 349	unsafe_read	HOLLOW	no	no	yes	unsafeRead replaces the destination pointer mutation and unsafe_read! call with returned bytes, while NoOutOfBounds covers only Reachable operation traces under an undocumented 2^60 weight limit.

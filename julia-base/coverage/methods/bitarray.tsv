@@ -1,182 +1,182 @@
 file	line	endline	name	signature	status	entry	note
-base/bitarray.jl	28	41	BitArray{N}	BitArray{N}(::UndefInitializer, dims::Vararg{Int,N}) where N	todo		
+base/bitarray.jl	28	41	BitArray{N}	BitArray{N}(::UndefInitializer, dims::Vararg{Int,N}) where N	modelled	bitarray-undef-shape-storage;bitarray-undef-negative-order	Native Int dimensions retain ordered negative checks, concrete Core size checks, raw UInt64 allocation and final-chunk zeroing.
 base/bitarray.jl	68	68	BitArray	BitArray(::UndefInitializer, dims::Integer...)	todo		
 base/bitarray.jl	69	69	BitArray{N}	BitArray{N}(::UndefInitializer, dims::Integer...) where {N}	todo		
 base/bitarray.jl	70	70	BitArray	BitArray(::UndefInitializer, dims::NTuple{N,Integer}) where {N}	todo		
 base/bitarray.jl	71	71	BitArray{N}	BitArray{N}(::UndefInitializer, dims::NTuple{N,Integer}) where {N}	todo		
-base/bitarray.jl	76	76	BitVector	BitVector()	todo		
-base/bitarray.jl	95	98	BitVector	BitVector(nt::Tuple{Vararg{Bool}})	todo		
-base/bitarray.jl	102	102	length	length(B::BitArray)	todo		
-base/bitarray.jl	103	103	size	size(B::BitVector)	todo		
-base/bitarray.jl	104	104	size	size(B::BitArray)	todo		
-base/bitarray.jl	106	106	isassigned	isassigned(B::BitArray, i::Int)	todo		
-base/bitarray.jl	108	108	IndexStyle	IndexStyle(::Type{<:BitArray})	todo		
-base/bitarray.jl	110	110	dataids	dataids(B::BitArray)	todo		
-base/bitarray.jl	115	115	_div64	_div64(l)	todo		
-base/bitarray.jl	116	116	_mod64	_mod64(l)	todo		
-base/bitarray.jl	117	117	_blsr	_blsr(x)	todo		
-base/bitarray.jl	118	118	_msk_end	_msk_end(l::Int)	todo		
-base/bitarray.jl	119	119	_msk_end	_msk_end(B::BitArray)	todo		
-base/bitarray.jl	120	120	num_bit_chunks	num_bit_chunks(n::Int)	todo		
-base/bitarray.jl	122	122	get_chunks_id	get_chunks_id(i::Int)	todo		
-base/bitarray.jl	124	133	glue_src_bitchunks	glue_src_bitchunks(src::Vector{UInt64}, k::Int, ks1::Int, msk_s0::UInt64, ls0::Int)	todo		
-base/bitarray.jl	135	187	copy_chunks!	copy_chunks!(dest::Vector{UInt64}, pos_d::Int, src::Vector{UInt64}, pos_s::Int, numbits::Int)	todo		
-base/bitarray.jl	189	233	copy_chunks_rtol!	copy_chunks_rtol!(chunks::Vector{UInt64}, pos_d::Int, pos_s::Int, numbits::Int)	todo		
-base/bitarray.jl	235	259	fill_chunks!	fill_chunks!(Bc::Array{UInt64}, x::Bool, pos::Int, numbits::Int)	todo		
-base/bitarray.jl	261	262	copy_to_bitarray_chunks!	copy_to_bitarray_chunks!(dest::Vector{UInt64}, pos_d::Int, src::BitArray, pos_s::Int, numbits::Int)	todo		
-base/bitarray.jl	266	272	pack8bools	pack8bools(z::UInt64)	todo		
-base/bitarray.jl	274	337	copy_to_bitarray_chunks!	copy_to_bitarray_chunks!(Bc::Vector{UInt64}, pos_d::Int, C::Array{Bool}, pos_s::Int, numbits::Int)	todo		
-base/bitarray.jl	347	348	dumpbitcache	dumpbitcache(Bc::Vector{UInt64}, bind::Int, C::Vector{Bool})	todo		
-base/bitarray.jl	352	355	iterate	iterate(B::BitArray, i::Int=0)	todo		
-base/bitarray.jl	359	359	similar	similar(B::BitArray)	todo		
-base/bitarray.jl	360	360	similar	similar(B::BitArray, dims::Int...)	todo		
-base/bitarray.jl	361	361	similar	similar(B::BitArray, dims::Dims)	todo		
-base/bitarray.jl	363	363	similar	similar(B::BitArray, T::Type{Bool}, dims::Dims)	todo		
-base/bitarray.jl	366	366	similar	similar(B::BitArray, T::Type, dims::Dims)	todo		
-base/bitarray.jl	368	379	fill!	fill!(B::BitArray, x)	todo		
-base/bitarray.jl	394	394	falses	falses(dims::DimOrInd...)	todo		
+base/bitarray.jl	76	76	BitVector	BitVector()	modelled	bitarray-empty-vector	Creates an empty vector with a fresh chunk-array header referencing shared empty UInt64 memory.
+base/bitarray.jl	95	98	BitVector	BitVector(nt::Tuple{Vararg{Bool}})	modelled	bitarray-tuple-constructor-values	Constructs from every machine-sized Boolean tuple through concrete identity broadcast, axis checks and register packing.
+base/bitarray.jl	102	102	length	length(B::BitArray)	modelled	bitarray-bit-array-metadata-agrees	Returns the stored native logical length.
+base/bitarray.jl	103	103	size	size(B::BitVector)	modelled	bitarray-bit-array-metadata-agrees	Vector size is the singleton native logical length, independent of unused stored dimensions.
+base/bitarray.jl	104	104	size	size(B::BitArray)	modelled	bitarray-bit-array-metadata-agrees	Generic array size returns stored dimension metadata; rank-one dispatch selects vector size.
+base/bitarray.jl	106	106	isassigned	isassigned(B::BitArray, i::Int)	modelled	bitarray-assigned-logical-extent-full	Assignment query recognizes the one-based logical extent without accessing physical chunks.
+base/bitarray.jl	108	108	IndexStyle	IndexStyle(::Type{<:BitArray})	modelled	bitarray-bit-array-metadata-agrees	Every BitArray type selects linear indexing.
+base/bitarray.jl	110	110	dataids	dataids(B::BitArray)	modelled	bitarray-dataids-stored-pointer;bitarray-dataids-alias-pointer	Source-mirrored model JuliaLean.base.bitarray.Models2Group11.dataIds; reviewed against Julia f755f49.
+base/bitarray.jl	115	115	_div64	_div64(l)	modelled	bitarray-div64-native-quotient	Source-mirrored model JuliaLean.base.bitarray.Models2Group11.div64Generic; reviewed against Julia f755f49.
+base/bitarray.jl	116	116	_mod64	_mod64(l)	modelled	bitarray-mod64-native-remainder	Source-mirrored model JuliaLean.base.bitarray.Models2Group11.mod64Generic; reviewed against Julia f755f49.
+base/bitarray.jl	117	117	_blsr	_blsr(x)	modelled	bitarray-blsr-native-lowest-bit;bitarray-blsr-subtraction-fault	Source-mirrored model JuliaLean.base.bitarray.Models2Group11.blsrGeneric; reviewed against Julia f755f49.
+base/bitarray.jl	118	118	_msk_end	_msk_end(l::Int)	modelled	bitarray-reused-mask-low-bits	Produces the mathematical low-bit mask for every signed native length, with a full word for multiples of 64.
+base/bitarray.jl	119	119	_msk_end	_msk_end(B::BitArray)	modelled	bitarray-reused-mask-low-bits	Computes the low-bit mask from the stored native logical length.
+base/bitarray.jl	120	120	num_bit_chunks	num_bit_chunks(n::Int)	modelled	bitarray-bit-array-chunk-count	Counts packed words using native arithmetic-shift quotient and nonzero remainder.
+base/bitarray.jl	122	122	get_chunks_id	get_chunks_id(i::Int)	modelled	bitarray-reused-chunk-address-full	Maps every signed scalar index through native predecessor wrapping to its chunk quotient and bit remainder.
+base/bitarray.jl	124	133	glue_src_bitchunks	glue_src_bitchunks(src::Vector{UInt64}, k::Int, ks1::Int, msk_s0::UInt64, ls0::Int)	modelled	bitarray-copy-offset-values	Masked source-word composition uses full signed-count Julia shifts.
+base/bitarray.jl	135	187	copy_chunks!	copy_chunks!(dest::Vector{UInt64}, pos_d::Int, src::Vector{UInt64}, pos_s::Int, numbits::Int)	modelled	bitarray-copy-offset-values	Packed copying preserves source order, corrected middle-loop indexing and same-vector reverse-copy dispatch.
+base/bitarray.jl	189	233	copy_chunks_rtol!	copy_chunks_rtol!(chunks::Vector{UInt64}, pos_d::Int, pos_s::Int, numbits::Int)	modelled	bitarray-copy-offset-values	Reverse packed copying preserves overlap and concrete forward fallback.
+base/bitarray.jl	235	259	fill_chunks!	fill_chunks!(Bc::Array{UInt64}, x::Bool, pos::Int, numbits::Int)	modelled	bitarray-fill-chunks-storage-accounting	Packed fill retains nothing, false and assigned-UInt64 return alternatives, with source-ordered writes.
+base/bitarray.jl	261	262	copy_to_bitarray_chunks!	copy_to_bitarray_chunks!(dest::Vector{UInt64}, pos_d::Int, src::BitArray, pos_s::Int, numbits::Int)	modelled	bitarray-copy-offset-values	Packed-source dispatch calls the concrete chunk-copy chain.
+base/bitarray.jl	266	272	pack8bools	pack8bools(z::UInt64)	modelled	bitarray-pack8bools-bit-incidence	Sequential shifts consume updated UInt64 words before the final byte mask.
+base/bitarray.jl	274	337	copy_to_bitarray_chunks!	copy_to_bitarray_chunks!(Bc::Vector{UInt64}, pos_d::Int, C::Array{Bool}, pos_s::Int, numbits::Int)	modelled	bitarray-bool-copy-frame;bitarray-bool-copy-transfer;bitarray-bool-copy-return;bitarray-bool-copy-zero	Source-mirrored model JuliaLean.base.bitarray.Models2Group11.copyBoolChunks; reviewed against Julia f755f49.
+base/bitarray.jl	347	348	dumpbitcache	dumpbitcache(Bc::Vector{UInt64}, bind::Int, C::Vector{Bool})	modelled	bitarray-dump-cache-frame;bitarray-dump-cache-transfer;bitarray-dump-cache-return;bitarray-dump-cache-zero	Source-mirrored model JuliaLean.base.bitarray.Models2Group11.dumpBoolCache; reviewed against Julia f755f49.
+base/bitarray.jl	352	355	iterate	iterate(B::BitArray, i::Int=0)	modelled	bitarray-bit-array-iterator-yields	Iteration preserves storage, terminates at logical length and advances native state by one after each packed read.
+base/bitarray.jl	359	359	similar	similar(B::BitArray)	modelled	bitarray-similar-shape	Allocates the public source shape with fresh chunks and ordered native dimension errors.
+base/bitarray.jl	360	360	similar	similar(B::BitArray, dims::Int...)	modelled	bitarray-similar-dimensions	Allocates dimensions supplied as native Int varargs.
+base/bitarray.jl	361	361	similar	similar(B::BitArray, dims::Dims)	modelled	bitarray-similar-dimensions	Allocates a native Int dimension tuple through varargs constructor dispatch.
+base/bitarray.jl	363	363	similar	similar(B::BitArray, T::Type{Bool}, dims::Dims)	modelled	bitarray-similar-dimensions	Bool-element similar allocates the requested native Int shape.
+base/bitarray.jl	366	366	similar	similar(B::BitArray, T::Type, dims::Dims)	modelled	bitarray-similar-other-errors	similarBitArrayOtherDispatch passes the actual open element type and native dimensions to its selected allocator.
+base/bitarray.jl	368	379	fill!	fill!(B::BitArray, x)	modelled	bitarray-fill-conversion-errors	Models1Group15.fillConvert retains open element conversion and closes native chunk filling and tail masking; checked against pinned source.
+base/bitarray.jl	394	394	falses	falses(dims::DimOrInd...)	modelled	bitarray-boolean-varargs-errors	falsesVarargsDispatch retains arbitrary dimension/axis tuple dispatch and all constructor effects.
 base/bitarray.jl	395	395	falses	falses(dims::NTuple{N, Union{Integer, OneTo}}) where {N}	todo		
 base/bitarray.jl	396	396	falses	falses(dims::NTuple{N, Integer}) where {N}	todo		
-base/bitarray.jl	397	397	falses	falses(dims::Tuple{})	todo		
-base/bitarray.jl	398	398	falses	falses(dims::NTuple{N, DimOrInd}) where {N}	todo		
-base/bitarray.jl	413	413	trues	trues(dims::DimOrInd...)	todo		
+base/bitarray.jl	397	397	falses	falses(dims::Tuple{})	modelled	bitarray-empty-dimensions-bools	Allocates a zero-dimensional array containing one false element.
+base/bitarray.jl	398	398	falses	falses(dims::NTuple{N, DimOrInd}) where {N}	modelled	bitarray-boolean-axes-allocation-errors	falsesAxesDispatch retains open axis-dependent similar allocation and result-type-selected fill dispatch with literal false.
+base/bitarray.jl	413	413	trues	trues(dims::DimOrInd...)	modelled	bitarray-boolean-varargs-errors	truesVarargsDispatch retains arbitrary dimension/axis tuple dispatch and all constructor effects.
 base/bitarray.jl	414	414	trues	trues(dims::NTuple{N, Union{Integer, OneTo}}) where {N}	todo		
 base/bitarray.jl	415	415	trues	trues(dims::NTuple{N, Integer}) where {N}	todo		
-base/bitarray.jl	416	416	trues	trues(dims::Tuple{})	todo		
-base/bitarray.jl	417	417	trues	trues(dims::NTuple{N, DimOrInd}) where {N}	todo		
-base/bitarray.jl	419	427	one	one(x::BitMatrix)	todo		
-base/bitarray.jl	429	447	copyto!	copyto!(dest::BitArray, src::BitArray)	todo		
+base/bitarray.jl	416	416	trues	trues(dims::Tuple{})	modelled	bitarray-empty-dimensions-bools	Allocates a zero-dimensional array containing one true element.
+base/bitarray.jl	417	417	trues	trues(dims::NTuple{N, DimOrInd}) where {N}	modelled	bitarray-boolean-axes-allocation-errors	truesAxesDispatch retains open axis-dependent similar allocation and result-type-selected fill dispatch with literal true.
+base/bitarray.jl	419	427	one	one(x::BitMatrix)	modelled	bitarray-one-matrix-identity	Rejects nonsquare shapes before allocation; square shapes receive a fresh packed identity matrix.
+base/bitarray.jl	429	447	copyto!	copyto!(dest::BitArray, src::BitArray)	modelled	bitarray-copyto-frame;bitarray-copyto-same-chunks;bitarray-copyto-values	All-rank whole-array copy preserves length-check order, physical partial writes and final-word masking.
 base/bitarray.jl	449	452	unsafe_copyto!	unsafe_copyto!(dest::BitArray, doffs::Integer, src::Union{BitArray,Array}, soffs::Integer, n::Integer)	todo		
 base/bitarray.jl	454	455	copyto!	copyto!(dest::BitArray, doffs::Integer, src::Union{BitArray,Array}, soffs::Integer, n::Integer)	todo		
 base/bitarray.jl	456	464	_copyto_int!	_copyto_int!(dest::BitArray, doffs::Int, src::Union{BitArray,Array}, soffs::Int, n::Int)	todo		
 base/bitarray.jl	466	470	copyto!	copyto!(dest::BitArray, src::Array)	todo		
-base/bitarray.jl	472	474	reshape	reshape(B::BitArray{N}, dims::NTuple{N,Int}) where N	todo		
-base/bitarray.jl	475	475	reshape	reshape(B::BitArray, dims::Tuple{Vararg{Int}})	todo		
-base/bitarray.jl	476	485	_bitreshape	_bitreshape(B::BitArray, dims::NTuple{N,Int}) where N	todo		
+base/bitarray.jl	472	474	reshape	reshape(B::BitArray{N}, dims::NTuple{N,Int}) where N	modelled	bitarray-reshape-same-identity	Equal public shapes return the identical mutable object; changed shapes allocate a header sharing the chunk vector.
+base/bitarray.jl	475	475	reshape	reshape(B::BitArray, dims::Tuple{Vararg{Int}})	modelled	bitarray-reshape-rank-sharing	Different-rank reshape validates dimensions and allocates a header sharing the chunk vector.
+base/bitarray.jl	476	485	_bitreshape	_bitreshape(B::BitArray, dims::NTuple{N,Int}) where N	modelled	bitarray-bitreshape-fresh-allocation	Internal reshape retains dimension checks, temporary chunk allocation and individual field writes.
 base/bitarray.jl	489	496	Array{T,N}	Array{T,N}(B::BitArray{N}) where {T,N}	todo		
-base/bitarray.jl	498	498	BitArray	BitArray(A::AbstractArray{<:Any,N}) where {N}	todo		
+base/bitarray.jl	498	498	BitArray	BitArray(A::AbstractArray{<:Any,N}) where {N}	modelled	bitarray-abstract-constructor-errors	bitArrayFromAbstractDispatch preserves the source rank and arbitrary typed constructor dispatch.
 base/bitarray.jl	500	505	BitArray{N}	BitArray{N}(A::AbstractArray{T,N}) where N where T	todo		
 base/bitarray.jl	507	533	_copyto_bitarray!	_copyto_bitarray!(B::BitArray, A::AbstractArray)	todo		
-base/bitarray.jl	535	535	(::Type{T})	(::Type{T})(x::T) where {T<:BitArray}	todo		
-base/bitarray.jl	536	536	BitArray	BitArray(x::BitArray)	todo		
-base/bitarray.jl	566	566	BitArray	BitArray(itr)	todo		
-base/bitarray.jl	567	567	BitArray{N}	BitArray{N}(itr) where N	todo		
-base/bitarray.jl	569	569	convert	convert(::Type{T}, a::AbstractArray) where {T<:BitArray}	todo		
-base/bitarray.jl	573	573	gen_bitarray	gen_bitarray(isz::IteratorSize, itr)	todo		
+base/bitarray.jl	535	535	(::Type{T})	(::Type{T})(x::T) where {T<:BitArray}	modelled	bitarray-copy-constructors-allocation;bitarray-copy-constructors-values	Same-type constructor copies through concrete similar and copyto, allocating fresh object and chunk-array identities.
+base/bitarray.jl	536	536	BitArray	BitArray(x::BitArray)	modelled	bitarray-copy-constructors-allocation;bitarray-copy-constructors-values	BitArray copy constructor allocates fresh object and chunk-array identities while preserving raw source padding.
+base/bitarray.jl	566	566	BitArray	BitArray(itr)	modelled	bitarray-iterator-size-errors	bitArrayFromIteratorDispatch retains arbitrary effectful IteratorSize and trait-selected iterator construction.
+base/bitarray.jl	567	567	BitArray{N}	BitArray{N}(itr) where N	modelled	bitarray-iterator-size-errors	bitArrayNFromIteratorDispatch preserves the target rank and evaluates IteratorSize before constructor dispatch.
+base/bitarray.jl	569	569	convert	convert(::Type{T}, a::AbstractArray) where {T<:BitArray}	modelled	bitarray-convert-existing-packed-array	convertToBitArrayDispatch uses the built-in target-type classification and preserves the unchanged target-typed value.
+base/bitarray.jl	573	573	gen_bitarray	gen_bitarray(isz::IteratorSize, itr)	modelled	bitarray-unknown-iterator-errors	genBitArrayUnknownDispatch preserves arbitrary iterable dispatch and ignores only the source-unused size marker.
 base/bitarray.jl	576	582	gen_bitarray	gen_bitarray(::HasShape, itr)	todo		
 base/bitarray.jl	585	588	gen_bitarray	gen_bitarray(::HasShape, itr::Generator)	todo		
 base/bitarray.jl	589	592	gen_bitarray	gen_bitarray(::HasLength, itr)	todo		
-base/bitarray.jl	594	594	gen_bitarray	gen_bitarray(::IsInfinite, itr)	todo		
-base/bitarray.jl	596	596	gen_bitarrayN	gen_bitarrayN(::Type{BitVector}, itsz, itr)	todo		
-base/bitarray.jl	597	597	gen_bitarrayN	gen_bitarrayN(::Type{BitVector}, itsz::HasShape{1}, itr)	todo		
-base/bitarray.jl	598	598	gen_bitarrayN	gen_bitarrayN(::Type{BitArray{N}}, itsz::HasShape{N}, itr) where N	todo		
-base/bitarray.jl	600	600	gen_bitarrayN	gen_bitarrayN(::Type{BitVector}, itsz::HasShape{N}, itr) where N	todo		
-base/bitarray.jl	601	601	gen_bitarrayN	gen_bitarrayN(@nospecialize(T::Type), itsz::HasShape{N}, itr) where N	todo		
-base/bitarray.jl	602	602	gen_bitarrayN	gen_bitarrayN(@nospecialize(T::Type), itsz, itr)	todo		
+base/bitarray.jl	594	594	gen_bitarray	gen_bitarray(::IsInfinite, itr)	modelled	bitarray-reused-constructor-rejections	Infinite-size iterable construction raises ArgumentError before any iterator value or heap access.
+base/bitarray.jl	596	596	gen_bitarrayN	gen_bitarrayN(::Type{BitVector}, itsz, itr)	modelled	bitarray-ranked-iterator-errors	genBitArrayNVectorDispatch preserves arbitrary trait and iterator values for open constructor dispatch.
+base/bitarray.jl	597	597	gen_bitarrayN	gen_bitarrayN(::Type{BitVector}, itsz::HasShape{1}, itr)	modelled	bitarray-ranked-iterator-errors	genBitArrayNVectorShapeOneDispatch represents the fieldless HasShape{1} singleton and open iterator dispatch.
+base/bitarray.jl	598	598	gen_bitarrayN	gen_bitarrayN(::Type{BitArray{N}}, itsz::HasShape{N}, itr) where N	modelled	bitarray-ranked-iterator-errors	genBitArrayNRankDispatch retains matching target/trait rank and open iterator dispatch.
+base/bitarray.jl	600	600	gen_bitarrayN	gen_bitarrayN(::Type{BitVector}, itsz::HasShape{N}, itr) where N	modelled	bitarray-reused-constructor-rejections	Incompatible vector-shape fallback raises DimensionMismatch without accessing iterator values or changing storage.
+base/bitarray.jl	601	601	gen_bitarrayN	gen_bitarrayN(@nospecialize(T::Type), itsz::HasShape{N}, itr) where N	modelled	bitarray-reused-constructor-rejections	Incompatible target-shape fallback raises DimensionMismatch without accessing iterator values or changing storage.
+base/bitarray.jl	602	602	gen_bitarrayN	gen_bitarrayN(@nospecialize(T::Type), itsz, itr)	modelled	bitarray-reused-constructor-rejections	Generic incompatible target fallback raises DimensionMismatch without accessing iterator values or changing storage.
 base/bitarray.jl	607	632	gen_bitarray_from_itr	gen_bitarray_from_itr(itr)	todo		
 base/bitarray.jl	634	656	fill_bitarray_from_itr!	fill_bitarray_from_itr!(B::BitArray, itr)	todo		
-base/bitarray.jl	661	666	unsafe_bitgetindex	unsafe_bitgetindex(Bc::Vector{UInt64}, i::Int)	todo		
-base/bitarray.jl	668	671	getindex	getindex(B::BitArray, i::Int)	todo		
-base/bitarray.jl	675	678	unsafe_bitsetindex!	unsafe_bitsetindex!(Bc::Array{UInt64}, x::Bool, i::Int)	todo		
-base/bitarray.jl	680	686	_unsafe_bitsetindex!	_unsafe_bitsetindex!(Bc::Array{UInt64}, x::Bool, i1::Int, i2::Int)	todo		
-base/bitarray.jl	688	692	setindex!	setindex!(B::BitArray, x, i::Int)	todo		
-base/bitarray.jl	694	694	indexoffset	indexoffset(i)	todo		
-base/bitarray.jl	695	695	indexoffset	indexoffset(::Colon)	todo		
-base/bitarray.jl	697	699	setindex!	setindex!(B::BitArray, X::AbstractArray, J0::Union{Colon,AbstractUnitRange{Int}})	todo		
+base/bitarray.jl	661	666	unsafe_bitgetindex	unsafe_bitgetindex(Bc::Vector{UInt64}, i::Int)	modelled	bitarray-reused-unsafe-read-state	Packed scalar reads preserve every heap cell and header, including instrumented unsafe-access errors.
+base/bitarray.jl	668	671	getindex	getindex(B::BitArray, i::Int)	modelled	bitarray-scalar-bounds-state;bitarray-getindex-values	Native rank-selected scalar bounds precede packed reads across alias-grown or alias-shrunken storage.
+base/bitarray.jl	675	678	unsafe_bitsetindex!	unsafe_bitsetindex!(Bc::Array{UInt64}, x::Bool, i::Int)	modelled	bitarray-unsafe-set-scalar-return	Scalar unsafe setter preserves wrapped addressing, physical effects and the assigned UInt64 return.
+base/bitarray.jl	680	686	_unsafe_bitsetindex!	_unsafe_bitsetindex!(Bc::Array{UInt64}, x::Bool, i1::Int, i2::Int)	modelled	bitarray-unsafe-set-word-return	Word unsafe setter uses full signed shift dispatch and returns the assigned UInt64.
+base/bitarray.jl	688	692	setindex!	setindex!(B::BitArray, x, i::Int)	modelled	bitarray-setindex-conversion-errors	Dispatch.setIndex retains open element conversion after the concrete rank-dependent bounds check and before the native packed setter.
+base/bitarray.jl	694	694	indexoffset	indexoffset(i)	modelled	bitarray-indexoffset-first-error	indexOffsetDispatch keeps effectful first and subtraction dispatch with the source native Int literal one.
+base/bitarray.jl	695	695	indexoffset	indexoffset(::Colon)	modelled	bitarray-reused-colon-offset-zero	Whole-array Colon indexing has native zero offset.
+base/bitarray.jl	697	699	setindex!	setindex!(B::BitArray, X::AbstractArray, J0::Union{Colon,AbstractUnitRange{Int}})	modelled	bitarray-range-assignment-index-errors	bitArraySetIndexRangeDispatch preserves singleton index-tuple conversion, first-element projection, fixed linear style and open source-array assignment dispatch.
 base/bitarray.jl	703	706	setindex!	setindex!(B::BitArray, X::AbstractArray, I::BitArray)	todo		
 base/bitarray.jl	707	735	_unsafe_setindex!	_unsafe_setindex!(B::BitArray, X::AbstractArray, I::BitArray)	todo		
-base/bitarray.jl	739	755	push!	push!(B::BitVector, item)	todo		
-base/bitarray.jl	757	772	append!	append!(B::BitVector, items::BitVector)	todo		
-base/bitarray.jl	774	774	append!	append!(B::BitVector, items)	todo		
+base/bitarray.jl	739	755	push!	push!(B::BitVector, item)	modelled	bitarray-push-conversion-errors	Models1Group15.pushConvert evaluates open Bool conversion before reading the live mutable target and invoking the concrete packed push.
+base/bitarray.jl	757	772	append!	append!(B::BitVector, items::BitVector)	modelled	bitarray-append-prepend-frame;bitarray-append-prepend-values;bitarray-append-prepend-error-length	Packed append retains checked length addition, raw chunk growth, live alias copies and committed length on later errors.
+base/bitarray.jl	774	774	append!	append!(B::BitVector, items)	modelled	bitarray-append-iterator-conversion-errors	Models1Group15.appendIterableConvert constructs the iterable's BitVector before invoking concrete append on live mutable references.
 base/bitarray.jl	775	775	append!	append!(A::Vector{Bool}, items::BitVector)	todo		
-base/bitarray.jl	777	793	prepend!	prepend!(B::BitVector, items::BitVector)	todo		
-base/bitarray.jl	795	795	prepend!	prepend!(B::BitVector, items)	todo		
+base/bitarray.jl	777	793	prepend!	prepend!(B::BitVector, items::BitVector)	modelled	bitarray-append-prepend-frame;bitarray-append-prepend-values;bitarray-append-prepend-error-length	Packed prepend retains checked growth, committed length and both source-ordered live alias copies.
+base/bitarray.jl	795	795	prepend!	prepend!(B::BitVector, items)	modelled	bitarray-prepend-iterator-conversion-errors;bitarray-prepend-constructor-dispatch-error	Source-ordered mutable-header model; generic dispatch preserves raw conversion checks, aliasing and callback effects.
 base/bitarray.jl	796	796	prepend!	prepend!(A::Vector{Bool}, items::BitVector)	todo		
-base/bitarray.jl	798	801	sizehint!	sizehint!(B::BitVector, sz::Integer)	todo		
+base/bitarray.jl	798	801	sizehint!	sizehint!(B::BitVector, sz::Integer)	modelled	bitarray-sizehint-preserves	Native Int size hints reserve chunk capacity; other Integer types fail num_bit_chunks dispatch before mutation.
 base/bitarray.jl	803	803	resize!	resize!(B::BitVector, n::Integer; first::Bool=false)	todo		
 base/bitarray.jl	804	825	_resize_int!	_resize_int!(B::BitVector, n::Int, first::Bool)	todo		
-base/bitarray.jl	827	837	pop!	pop!(B::BitVector)	todo		
+base/bitarray.jl	827	837	pop!	pop!(B::BitVector)	modelled	bitarrays-deque	Removes and clears the final bit, deletes an unused chunk, and returns the removed value with the shortened header; empty input throws ArgumentError.
 base/bitarray.jl	839	859	pushfirst!	pushfirst!(B::BitVector, item)	todo		
-base/bitarray.jl	861	882	popfirst!	popfirst!(B::BitVector)	todo		
+base/bitarray.jl	861	882	popfirst!	popfirst!(B::BitVector)	modelled	bitarrays-deque	Returns the first bit and shifts packed chunks before shortening the header; empty input throws ArgumentError.
 base/bitarray.jl	884	884	insert!	insert!(B::BitVector, i::Integer, item)	todo		
 base/bitarray.jl	885	911	_insert_int!	_insert_int!(B::BitVector, i::Int, item)	todo		
-base/bitarray.jl	913	944	_deleteat!	_deleteat!(B::BitVector, i::Int)	todo		
+base/bitarray.jl	913	944	_deleteat!	_deleteat!(B::BitVector, i::Int)	modelled	bitarray-deleteat-machine	Retains masked-word reads, separately ordered writes, chunk deletion and native length decrement.
 base/bitarray.jl	946	953	deleteat!	deleteat!(B::BitVector, i::Integer)	todo		
 base/bitarray.jl	955	977	deleteat!	deleteat!(B::BitVector, r::AbstractUnitRange{Int})	todo		
 base/bitarray.jl	979	1020	deleteat!	deleteat!(B::BitVector, inds)	todo		
 base/bitarray.jl	1022	1061	deleteat!	deleteat!(B::BitVector, inds::AbstractVector{Bool})	todo		
-base/bitarray.jl	1063	1063	keepat!	keepat!(B::BitVector, inds)	todo		
-base/bitarray.jl	1064	1064	keepat!	keepat!(B::BitVector, inds::AbstractVector{Bool})	todo		
+base/bitarray.jl	1063	1063	keepat!	keepat!(B::BitVector, inds)	modelled	bitarray-keep-dispatch-errors	bitVectorKeepAt preserves open index-type-selected _keepat! dispatch, result and effects.
+base/bitarray.jl	1064	1064	keepat!	keepat!(B::BitVector, inds::AbstractVector{Bool})	modelled	bitarray-keep-dispatch-errors	bitVectorKeepAtMask preserves subtype-selected _keepat! dispatch, result and effects for arbitrary Boolean index vectors.
 base/bitarray.jl	1066	1078	splice!	splice!(B::BitVector, i::Integer)	todo		
 base/bitarray.jl	1082	1085	splice!	splice!(B::BitVector, r::Union{AbstractUnitRange{Int}, Integer}, ins::AbstractArray = _default_bit_splice)	todo		
 base/bitarray.jl	1087	1124	_splice_int!	_splice_int!(B::BitVector, r, ins)	todo		
 base/bitarray.jl	1126	1134	splice!	splice!(B::BitVector, r::Union{AbstractUnitRange{Int}, Integer}, ins)	todo		
-base/bitarray.jl	1137	1141	empty!	empty!(B::BitVector)	todo		
-base/bitarray.jl	1145	1172	-	(-)(B::BitArray)	todo		
-base/bitarray.jl	1177	1189	$f	($f)(A::BitArray, B::BitArray)	todo		generated-loop: f in (:+, :-)
+base/bitarray.jl	1137	1141	empty!	empty!(B::BitVector)	modelled	bitarray-bit-vector-empty-agrees	Deletes every physical chunk and returns the same chunk handle with zero logical length.
+base/bitarray.jl	1145	1172	-	(-)(B::BitArray)	modelled	bitarray-unary-minus	Allocates native Int storage at ranked size and writes negative one for each set bit using source chunk traversal.
+base/bitarray.jl	1177	1189	$f	($f)(A::BitArray, B::BitArray)	modelled	bitarray-binary-arithmetic	Generated addition and subtraction retain dimension promotion, allocation, left-to-right iteration and native Int output stores.
 base/bitarray.jl	1194	1194	$f	($f)(A::Union{BitMatrix,BitVector}, B::Union{BitMatrix,BitVector})	todo		generated-loop: f in (:/, :\)
 base/bitarray.jl	1197	1197	/	(/)(B::BitArray, x::Number)	todo		
 base/bitarray.jl	1198	1198	/	(/)(x::Number, B::BitArray)	todo		
-base/bitarray.jl	1206	1209	==	(==)(A::BitArray, B::BitArray)	todo		
-base/bitarray.jl	1211	1218	cmp	cmp(A::BitVector, B::BitVector)	todo		
-base/bitarray.jl	1225	1225	_reverse	_reverse(A::BitArray, d::Tuple{Integer})	todo		
+base/bitarray.jl	1206	1209	==	(==)(A::BitArray, B::BitArray)	modelled	bitarray-equality-shape-mismatch	Source-ordered mutable-header model; generic dispatch preserves raw conversion checks, aliasing and callback effects.
+base/bitarray.jl	1211	1218	cmp	cmp(A::BitVector, B::BitVector)	modelled	bitarray-comparison-alias-full	Compares packed bits in source order using native bit scans, then compares native vector lengths without mutation.
+base/bitarray.jl	1225	1225	_reverse	_reverse(A::BitArray, d::Tuple{Integer})	modelled	bitarray-reverse-tuple-dispatch-errors	Source-ordered mutable-header model; generic dispatch preserves raw conversion checks, aliasing and callback effects.
 base/bitarray.jl	1226	1270	_reverse	_reverse(A::BitArray, d::Int)	todo		
-base/bitarray.jl	1272	1324	_reverse!	_reverse!(B::BitVector, ::Colon)	todo		
-base/bitarray.jl	1326	1332	<<	(<<)(B::BitVector, i::UInt)	todo		
-base/bitarray.jl	1334	1340	>>>	(>>>)(B::BitVector, i::UInt)	todo		
-base/bitarray.jl	1377	1377	>>	(>>)(B::BitVector, i::Union{Int, UInt})	todo		
-base/bitarray.jl	1415	1415	<<	(<<)(B::BitVector, i::Int)	todo		
-base/bitarray.jl	1423	1423	>>>	(>>>)(B::BitVector, i::Int)	todo		
+base/bitarray.jl	1272	1324	_reverse!	_reverse!(B::BitVector, ::Colon)	modelled	bitarrays-reverse	Reverses physical packed words and bits with native wrapping counters and final tail alignment.
+base/bitarray.jl	1326	1332	<<	(<<)(B::BitVector, i::UInt)	modelled	bitarray-native-shift-values	NativeShift.leftUnsigned closes native comparison, promotion, checked Int conversion, object allocation, copying and source-ordered packed transfer.
+base/bitarray.jl	1334	1340	>>>	(>>>)(B::BitVector, i::UInt)	modelled	bitarray-native-shift-values	NativeShift.rightUnsigned closes native comparison, promotion, checked Int conversion, object allocation, copying and source-ordered packed transfer.
+base/bitarray.jl	1377	1377	>>	(>>)(B::BitVector, i::Union{Int, UInt})	modelled	bitarray-native-shift-values	NativeShift.arithmeticRight preserves the complete Int-or-UInt dispatch to the concrete logical-right overloads.
+base/bitarray.jl	1415	1415	<<	(<<)(B::BitVector, i::Int)	modelled	bitarray-native-shift-values	NativeShift.leftSigned retains native sign test, wrapping negation, unsigned reinterpretation and both concrete unsigned shift paths.
+base/bitarray.jl	1423	1423	>>>	(>>>)(B::BitVector, i::Int)	modelled	bitarray-native-shift-values	NativeShift.rightSigned retains native sign test, wrapping negation, unsigned reinterpretation and both concrete unsigned shift paths.
 base/bitarray.jl	1425	1425	circshift!	circshift!(dest::BitVector, src::BitVector, i::Integer)	todo		
 base/bitarray.jl	1426	1442	_circshift_int!	_circshift_int!(dest::BitVector, src::BitVector, i::Int)	todo		
 base/bitarray.jl	1444	1444	circshift!	circshift!(B::BitVector, i::Integer)	todo		
-base/bitarray.jl	1448	1454	bitcount	bitcount(Bc::Vector{UInt64}; init::T=0) where {T}	todo		
-base/bitarray.jl	1456	1456	_count	_count(::typeof(identity), B::BitArray, ::Colon, init)	todo		
-base/bitarray.jl	1458	1475	unsafe_bitfindnext	unsafe_bitfindnext(Bc::Vector{UInt64}, start::Int)	todo		
-base/bitarray.jl	1478	1483	findnext	findnext(B::BitArray, start::Integer)	todo		
-base/bitarray.jl	1488	1516	findnextnot	findnextnot(B::BitArray, start::Int)	todo		
-base/bitarray.jl	1517	1517	findfirstnot	findfirstnot(B::BitArray)	todo		
-base/bitarray.jl	1520	1526	findnext	findnext(pred::Fix2{<:Union{typeof(isequal),typeof(==)},Bool}, B::BitArray, start::Integer)	todo		
-base/bitarray.jl	1530	1530	findnext	findnext(testf::Function, B::BitArray, start::Integer)	todo		
-base/bitarray.jl	1531	1541	_findnext_int	_findnext_int(testf::Function, B::BitArray, start::Int)	todo		
-base/bitarray.jl	1544	1560	unsafe_bitfindprev	unsafe_bitfindprev(Bc::Vector{UInt64}, start::Int)	todo		
-base/bitarray.jl	1563	1568	findprev	findprev(B::BitArray, start::Integer)	todo		
-base/bitarray.jl	1570	1592	findprevnot	findprevnot(B::BitArray, start::Int)	todo		
-base/bitarray.jl	1593	1593	findlastnot	findlastnot(B::BitArray)	todo		
-base/bitarray.jl	1596	1602	findprev	findprev(pred::Fix2{<:Union{typeof(isequal),typeof(==)},Bool}, B::BitArray, start::Integer)	todo		
-base/bitarray.jl	1606	1606	findprev	findprev(testf::Function, B::BitArray, start::Integer)	todo		
-base/bitarray.jl	1607	1617	_findprev_int	_findprev_int(testf::Function, B::BitArray, start::Int)	todo		
+base/bitarray.jl	1448	1454	bitcount	bitcount(Bc::Vector{UInt64}; init::T=0) where {T}	modelled	bitarray-count-initial-type-error	bitcountDispatch closes UInt64 reads/count_ones and retains arbitrary initializer arithmetic, typed-local conversion and TypeError checks.
+base/bitarray.jl	1456	1456	_count	_count(::typeof(identity), B::BitArray, ::Colon, init)	modelled	bitarray-count-initial-type-error	bitArrayCountDispatch forwards the initializer to the installed full generic counting body.
+base/bitarray.jl	1458	1475	unsafe_bitfindnext	unsafe_bitfindnext(Bc::Vector{UInt64}, start::Int)	modelled	bitarrays-find	Scans from the masked starting word through the physical chunk vector using the native trailing-zero intrinsic.
+base/bitarray.jl	1478	1483	findnext	findnext(B::BitArray, start::Integer)	modelled	bitarray-search-conversion-errors	Dispatch.findNext retains fallible open Integer conversion and the concrete source-ordered native scan.
+base/bitarray.jl	1488	1516	findnextnot	findnextnot(B::BitArray, start::Int)	modelled	bitarrays-find	Checks the native start, scans for false bits with native trailing-one counts, and retains source final-word masking.
+base/bitarray.jl	1517	1517	findfirstnot	findfirstnot(B::BitArray)	modelled	bitarrays-find	Searches for the first false bit by invoking the concrete forward false-bit scan at native index one.
+base/bitarray.jl	1520	1526	findnext	findnext(pred::Fix2{<:Union{typeof(isequal),typeof(==)},Bool}, B::BitArray, start::Integer)	modelled	bitarray-search-conversion-errors	Dispatch.findNextFixed preserves both Bool payload branches and the exact conversion call sites.
+base/bitarray.jl	1530	1530	findnext	findnext(testf::Function, B::BitArray, start::Integer)	modelled	bitarray-search-conversion-errors	Dispatch.findNextFunction converts the arbitrary Integer start before entering the concrete predicate-search body.
+base/bitarray.jl	1531	1541	_findnext_int	_findnext_int(testf::Function, B::BitArray, start::Int)	modelled	bitarray-search-predicate-errors	Dispatch.findNextInt preserves arbitrary predicate results and typed-local Bool conversions while closing both native searches.
+base/bitarray.jl	1544	1560	unsafe_bitfindprev	unsafe_bitfindprev(Bc::Vector{UInt64}, start::Int)	modelled	bitarrays-find	Scans backward from the masked starting word using the native highest-set-bit intrinsic.
+base/bitarray.jl	1563	1568	findprev	findprev(B::BitArray, start::Integer)	modelled	bitarray-search-conversion-errors	Dispatch.findPrev retains fallible open Integer conversion and the concrete source-ordered native scan.
+base/bitarray.jl	1570	1592	findprevnot	findprevnot(B::BitArray, start::Int)	modelled	bitarrays-find	Checks the native start and scans backward for false bits using native leading-one counts.
+base/bitarray.jl	1593	1593	findlastnot	findlastnot(B::BitArray)	modelled	bitarrays-find	Searches backward for a false bit using the actual native logical length as its starting index.
+base/bitarray.jl	1596	1602	findprev	findprev(pred::Fix2{<:Union{typeof(isequal),typeof(==)},Bool}, B::BitArray, start::Integer)	modelled	bitarray-search-conversion-errors	Dispatch.findPrevFixed preserves both Bool payload branches and the exact conversion call sites.
+base/bitarray.jl	1606	1606	findprev	findprev(testf::Function, B::BitArray, start::Integer)	modelled	bitarray-search-conversion-errors	Dispatch.findPrevFunction converts the arbitrary Integer start before entering the concrete predicate-search body.
+base/bitarray.jl	1607	1617	_findprev_int	_findprev_int(testf::Function, B::BitArray, start::Int)	modelled	bitarray-search-predicate-errors	Dispatch.findPrevInt preserves arbitrary predicate results and typed-local Bool conversions while closing both native searches.
 base/bitarray.jl	1620	1631	findmax	findmax(a::BitArray)	todo		
 base/bitarray.jl	1633	1648	findmin	findmin(a::BitArray)	todo		
 base/bitarray.jl	1652	1658	allindices!	allindices!(I, B::BitArray)	todo		
 base/bitarray.jl	1661	1663	allindices!	allindices!(I, B::BitVector)	todo		
 base/bitarray.jl	1666	1672	allindices!	allindices!(I, B::BitMatrix)	todo		
-base/bitarray.jl	1674	1674	_overflowind	_overflowind(i1, irest::Tuple{}, size)	todo		
+base/bitarray.jl	1674	1674	_overflowind	_overflowind(i1, irest::Tuple{}, size)	modelled	bitarray-empty-coordinate-payload	Empty coordinate tails preserve arbitrary scalar payloads and tuple identity without conversion.
 base/bitarray.jl	1675	1683	_overflowind	_overflowind(i1, irest, size)	todo		
-base/bitarray.jl	1685	1685	_toind	_toind(i1, irest::Tuple{})	todo		
+base/bitarray.jl	1685	1685	_toind	_toind(i1, irest::Tuple{})	modelled	bitarray-empty-coordinate-payload	Empty coordinate tails return arbitrary scalar payloads without conversion.
 base/bitarray.jl	1686	1686	_toind	_toind(i1, irest)	todo		
 base/bitarray.jl	1688	1714	findall	findall(B::BitArray)	todo		
 base/bitarray.jl	1717	1717	findall	findall(::typeof(!iszero), B::BitArray)	todo		
 base/bitarray.jl	1721	1721	_sum	_sum(A::BitArray, dims)	todo		
-base/bitarray.jl	1722	1722	_sum	_sum(B::BitArray, ::Colon)	todo		
-base/bitarray.jl	1724	1734	all	all(B::BitArray)	todo		
-base/bitarray.jl	1736	1745	any	any(B::BitArray)	todo		
-base/bitarray.jl	1747	1747	minimum	minimum(B::BitArray)	todo		
-base/bitarray.jl	1748	1748	maximum	maximum(B::BitArray)	todo		
-base/bitarray.jl	1756	1756	map	map(::Union{typeof(~), typeof(!)}, A::BitArray)	todo		
-base/bitarray.jl	1757	1757	map	map(::typeof(zero), A::BitArray)	todo		
-base/bitarray.jl	1758	1758	map	map(::typeof(one), A::BitArray)	todo		
-base/bitarray.jl	1759	1759	map	map(::typeof(identity), A::BitArray)	todo		
-base/bitarray.jl	1761	1761	map!	map!(::Union{typeof(~), typeof(!)}, dest::BitArray, A::BitArray)	todo		
-base/bitarray.jl	1762	1762	map!	map!(::typeof(zero), dest::BitArray, A::BitArray)	todo		
-base/bitarray.jl	1763	1763	map!	map!(::typeof(one), dest::BitArray, A::BitArray)	todo		
-base/bitarray.jl	1764	1764	map!	map!(::typeof(identity), dest::BitArray, A::BitArray)	todo		
-base/bitarray.jl	1776	1776	map	map(::$T, A::BitArray, B::BitArray)	todo		generated-loop: (T, f) in ((:(Union{typeof(&), typeof(*), typeof(min)}), :(&)), (:(Union{typeof(|), typeof(max)}), :(|)), (:(Union{typeof(xor), typeof(!=)}), :xor), (:(typeof(nand)), :nand), (:(typeof(nor)), :nor), (:(Union{typeof(>=), typeof(^)}), :((p, q) -> p | ~q)), (:(typeof(<=)), :((p, q) -> ~p | q)), (:(typeof(==)), :((p, q) -> ~xor(p, q))), (:(typeof(<)), :((p, q) -> ~p & q)), (:(typeof(>)), :((p, q) -> p & ~q)))
-base/bitarray.jl	1777	1777	map!	map!(::$T, dest::BitArray, A::BitArray, B::BitArray)	todo		generated-loop: (T, f) in ((:(Union{typeof(&), typeof(*), typeof(min)}), :(&)), (:(Union{typeof(|), typeof(max)}), :(|)), (:(Union{typeof(xor), typeof(!=)}), :xor), (:(typeof(nand)), :nand), (:(typeof(nor)), :nor), (:(Union{typeof(>=), typeof(^)}), :((p, q) -> p | ~q)), (:(typeof(<=)), :((p, q) -> ~p | q)), (:(typeof(==)), :((p, q) -> ~xor(p, q))), (:(typeof(<)), :((p, q) -> ~p & q)), (:(typeof(>)), :((p, q) -> p & ~q)))
-base/bitarray.jl	1783	1787	bit_map	bit_map(f::F, A::BitArray, B::BitArray) where F	todo		
-base/bitarray.jl	1789	1793	bit_map_constant!	bit_map_constant!(dest::BitArray, A::BitArray, x::Bool)	todo		
-base/bitarray.jl	1795	1813	bit_map!	bit_map!(f::F, dest::BitArray, A::BitArray) where F	todo		
-base/bitarray.jl	1814	1835	bit_map!	bit_map!(f::F, dest::BitArray, A::BitArray, B::BitArray) where F	todo		
+base/bitarray.jl	1722	1722	_sum	_sum(B::BitArray, ::Colon)	modelled	bitarray-sum-colon	Whole-array sum counts source chunks with native Int accumulation.
+base/bitarray.jl	1724	1734	all	all(B::BitArray)	modelled	bitarrays-count-any-all	Returns true for an empty logical array and otherwise checks every physical chunk against the full-word or final logical mask.
+base/bitarray.jl	1736	1745	any	any(B::BitArray)	modelled	bitarrays-count-any-all	Returns false for an empty logical array and otherwise checks every physical chunk for nonzero bits.
+base/bitarray.jl	1747	1747	minimum	minimum(B::BitArray)	modelled	bitarray-scalar-extrema-values	Rejects empty arrays with ArgumentError and otherwise invokes the concrete all reduction.
+base/bitarray.jl	1748	1748	maximum	maximum(B::BitArray)	modelled	bitarray-scalar-extrema-values	Rejects empty arrays with ArgumentError and otherwise invokes the concrete any reduction.
+base/bitarray.jl	1756	1756	map	map(::Union{typeof(~), typeof(!)}, A::BitArray)	modelled	bitarray-map-not	Allocates a ranked packed array and applies source chunkwise complement.
+base/bitarray.jl	1757	1757	map	map(::typeof(zero), A::BitArray)	modelled	bitarray-map-zero	Allocates a ranked packed array and fills its logical elements with false.
+base/bitarray.jl	1758	1758	map	map(::typeof(one), A::BitArray)	modelled	bitarray-map-one	Allocates a ranked packed array and fills its logical elements with true, masking the final word.
+base/bitarray.jl	1759	1759	map	map(::typeof(identity), A::BitArray)	modelled	bitarray-map-identity	Copies ranked shape and packed storage into a fresh array.
+base/bitarray.jl	1761	1761	map!	map!(::Union{typeof(~), typeof(!)}, dest::BitArray, A::BitArray)	modelled	bitarray-map-not-bang	Chunkwise complement checks destination length and preserves masked destination tail bits.
+base/bitarray.jl	1762	1762	map!	map!(::typeof(zero), dest::BitArray, A::BitArray)	modelled	bitarray-map-zero-bang	Constant false mapping checks capacity and fills the source-length prefix.
+base/bitarray.jl	1763	1763	map!	map!(::typeof(one), dest::BitArray, A::BitArray)	modelled	bitarray-map-one-bang	Constant true mapping checks capacity and fills the source-length prefix.
+base/bitarray.jl	1764	1764	map!	map!(::typeof(identity), dest::BitArray, A::BitArray)	modelled	bitarray-map-identity-bang	Packed copy checks destination bounds and preserves the remaining destination bits.
+base/bitarray.jl	1776	1776	map	map(::$T, A::BitArray, B::BitArray)	modelled	bitarray-map-binary	All fifteen Boolean function tags use actual zip shape and ranked allocation followed by source chunkwise mapping.
+base/bitarray.jl	1777	1777	map!	map!(::$T, dest::BitArray, A::BitArray, B::BitArray)	modelled	bitarray-map-binary-bang	All fifteen Boolean function tags map the shortest logical prefix with source evaluation order and tail masking.
+base/bitarray.jl	1783	1787	bit_map	bit_map(f::F, A::BitArray, B::BitArray) where F	modelled	bitarray-allocating-map-shape-error	Source-ordered mutable-header model; generic dispatch preserves raw conversion checks, aliasing and callback effects.
+base/bitarray.jl	1789	1793	bit_map_constant!	bit_map_constant!(dest::BitArray, A::BitArray, x::Bool)	modelled	bitarray-constant-map-prefix	Constant mapping checks destination length and fills precisely the source-length prefix for either Boolean.
+base/bitarray.jl	1795	1813	bit_map!	bit_map!(f::F, dest::BitArray, A::BitArray) where F	modelled	bitarray-mapped-word-conversion-failure;bitarray-unary-map-empty	Source-ordered mutable-header model; generic dispatch preserves raw conversion checks, aliasing and callback effects.
+base/bitarray.jl	1814	1835	bit_map!	bit_map!(f::F, dest::BitArray, A::BitArray, B::BitArray) where F	modelled	bitarray-mapped-word-conversion-failure;bitarray-binary-map-empty	Source-ordered mutable-header model; generic dispatch preserves raw conversion checks, aliasing and callback effects.
 base/bitarray.jl	1839	1842	filter	filter(f, Bs::BitArray)	todo		
 base/bitarray.jl	1847	1858	hcat	hcat(B::BitVector...)	todo		
 base/bitarray.jl	1860	1872	vcat	vcat(V::BitVector...)	todo		
@@ -184,5 +184,5 @@ base/bitarray.jl	1874	1896	hcat	hcat(A::Union{BitMatrix,BitVector}...)	todo
 base/bitarray.jl	1898	1921	vcat	vcat(A::BitMatrix...)	todo		
 base/bitarray.jl	1924	1924	_cat	_cat(dims::Integer, X::Union{BitArray, Bool}...)	todo		
 base/bitarray.jl	1925	1931	_cat	_cat(dims::Int, X::Union{BitArray, Bool}...)	todo		
-base/bitarray.jl	1939	1939	sizeof	sizeof(B::BitArray)	todo		
+base/bitarray.jl	1939	1939	sizeof	sizeof(B::BitArray)	modelled	bitarray-bit-array-sizeof-agrees	Returns the physical chunk-vector length times native Int eight, including additional chunks visible through shared storage.
 base/bitarray.jl	1941	1946	_split_rest	_split_rest(a::Union{Vector, BitVector}, n::Int)	todo		

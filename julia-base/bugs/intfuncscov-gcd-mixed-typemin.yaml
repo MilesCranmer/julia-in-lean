@@ -77,5 +77,6 @@ duplicates:
     - {number: 59660, state: open, relation: duplicate}
   queries: ["gcd typemin", "gcd InexactError", "gcd unsigned signed", "gcd typemin unsigned", "_promote_mixed_signs"]
 lean:
-  property: JuliaLean.IntFuncsCov.Gcd.MixedTypeminRepresentable
-  theorem: JuliaLean.IntFuncsCov.Gcd.mixedTypeminRepresentable_refuted
+  property: JuliaLean.Proofs.base.intfuncs.MixedGcdRepresentable
+  theorem: JuliaLean.Proofs.base.intfuncs.mixedGcdRepresentable_refuted
+covers: [rational-mixed-gcd-lcm]

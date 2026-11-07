@@ -1,10 +1,11 @@
-println(sort([3, 1, 2]; alg=QuickSort))
-err = try
-    sort((3, 1, 2); alg=QuickSort)
-catch e
-    e
+function reproduced()
+    x = (2, 1)
+    sort(x) == (1, 2) || return false
+    try
+        sort(x; alg=Base.Sort.InsertionSort)
+        false
+    catch e
+        e isa MethodError
+    end
 end
-println(typeof(err))
-if err isa MethodError && err.f === Base.Sort._sort
-    println("REPRODUCED sorttuplescov-sort-ntuple-alg")
-end
+println(reproduced() ? "REPRODUCED sorttuplescov-sort-ntuple-alg" : "NOT_REPRODUCED sorttuplescov-sort-ntuple-alg")

@@ -57,5 +57,5 @@ duplicates:
     - {number: 8831, state: closed, relation: related}
   queries: ["rem RoundDown rounding interval", "mod rounding equal divisor", "rem RoundDown", "mod rounding", "mod eps"]
 lean:
-  property: JuliaLean.Float.remDownBound
-  theorem: JuliaLean.Float.remDownBound_refuted
+  property: JuliaLean.Proofs.base.div.RoundDownFloatRemainderBound
+  theorem: JuliaLean.Proofs.base.div.roundDownFloatRemainderBound_refuted

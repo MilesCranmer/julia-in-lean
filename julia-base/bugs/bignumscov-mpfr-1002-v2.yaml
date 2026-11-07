@@ -1,0 +1,76 @@
+id: bignumscov-mpfr-1002-v2
+title: cmp equates negative BigFloat zero with UInt64 zero
+priority: P2
+kind: wrong-result
+area: BigNums
+files:
+  - base/mpfr.jl
+  - base/operators.jl
+functions:
+  - cmp(::BigFloat, ::UInt64)
+summary: |
+  Comparing a negative BigFloat zero with UInt64(0) gives cmp == 0 despite
+  isless being true. The unsigned-integer MPFR comparison drops the floating
+  zero sign that Julia's documented total order preserves.
+likelihood: |
+  Mixed unsigned counters or indices and BigFloat data can reach this method.
+  The reproducer needs only a negative zero and the unsigned integer zero.
+maybe_intended: |
+  Equal numerical value is the expected MPFR result, but Julia's cmp is
+  documented in terms of isless rather than numeric ==. The signed-zero
+  distinction should therefore be retained only in the total-order comparison.
+reproducer: |
+  x = BigFloat(-0.0; precision=256)
+  y = UInt64(0)
+  @assert cmp(x, y) == 0 && isless(x, y)
+  println("REPRODUCED bignumscov-mpfr-1002-v2")
+output:
+  release: |
+    REPRODUCED bignumscov-mpfr-1002-v2
+  nightly: |
+    REPRODUCED bignumscov-mpfr-1002-v2
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  Return -1 for negative BigFloat zero compared with unsigned zero.
+promised_by: |
+  At pinned source f755f49a9e41380d7da126b3c1db9fe7f83dd027,
+  base/operators.jl:510-511 says:
+  "Return -1, 0, or 1 depending on whether `x` is less than, equal to, or greater than `y`,
+  respectively. Uses the total order implemented by `isless`."
+  base/operators.jl:211-212 says:
+  "- If `isless(x, y)` is defined, then so is `isless(y, x)` and `isequal(x, y)`,
+    and exactly one of those three yields `true`."
+  The isless implementation at line 242 orders this pair by its signless term.
+cause: |
+  base/mpfr.jl:1002-1005 handles NaN and calls mpfr_cmp_ui for CulongMax
+  operands. That function compares numerical values and returns zero for
+  negative floating zero against unsigned zero. Integer fallback at line 1006
+  delegates to the similarly affected BigInt comparison.
+possible_fix: |
+  Add the isless-compatible signed-zero tie-break to unsigned comparisons,
+  including paths that delegate to the BigInt method.
+duplicates:
+  issues:
+    - number: 64167
+      state: open
+      relation: related
+      note: Rational/float signed-zero defect, not an exact duplicate
+  prs:
+    - number: 64575
+      state: open
+      relation: related
+      note: Rational/float correction, not an MPFR correction
+  queries:
+    - tool: gh search issues --repo JuliaLang/julia
+      query: cmp BigFloat
+    - tool: gh search issues --repo JuliaLang/julia
+      query: cmp isless zero
+    - tool: gh search prs --repo JuliaLang/julia
+      query: cmp zero
+    - tool: gh search prs --repo JuliaLang/julia
+      query: cmp BigFloat
+lean:
+  property: JuliaLean.Proofs.base.mpfr.Round1.CmpUnsignedTotalOrder
+  theorem: JuliaLean.ChatGPT.Batch4.Group3.BignumscovMpfr1002V2_refuted

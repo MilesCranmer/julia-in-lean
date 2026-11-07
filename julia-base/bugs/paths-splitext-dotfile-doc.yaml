@@ -68,3 +68,22 @@ duplicates:
 lean:
   property: JuliaLean.Paths.SplitextDoc
   theorem: JuliaLean.Paths.splitextDoc_refuted
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: true
+  proof: JuliaLean.Proofs.base.path.splitextDotfileDoc_refuted
+  output: |
+    Julia 1.13.2, commit 45b6d15e34bbd2003a31acce0b1847b63dad029c:
+    splitext(".bashrc") = (".bashrc", "")
+    splitext("/home/user/.bashrc") = ("/home/user/.bashrc", "")
+    splitext("..bashrc") = (".", ".bashrc")
+    splitext("a/..") = ("a/.", ".")
+    splitext(".tar.gz") = (".tar", ".gz")
+    REPRODUCED paths-splitext-dotfile-doc
+    Julia 1.15.0-DEV.unknown, commit f755f49a9e41380d7da126b3c1db9fe7f83dd027:
+    splitext(".bashrc") = (".bashrc", "")
+    splitext("/home/user/.bashrc") = ("/home/user/.bashrc", "")
+    splitext("..bashrc") = (".", ".bashrc")
+    splitext("a/..") = ("a/.", ".")
+    splitext(".tar.gz") = (".tar", ".gz")
+    REPRODUCED paths-splitext-dotfile-doc

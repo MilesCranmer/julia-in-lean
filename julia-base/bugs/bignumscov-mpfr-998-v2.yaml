@@ -1,0 +1,76 @@
+id: bignumscov-mpfr-998-v2
+title: cmp ignores the sign of BigFloat zero against Int64 zero
+priority: P2
+kind: wrong-result
+area: BigNums
+files:
+  - base/mpfr.jl
+  - base/operators.jl
+functions:
+  - cmp(::BigFloat, ::Int64)
+summary: |
+  A 256-bit BigFloat constructed from -0.0 compares equal to Int64(0) with
+  cmp, while isless places it before the integer. This violates the documented
+  agreement between the three-way comparison and the isless total order.
+likelihood: |
+  Ordinary integer values often appear beside BigFloat results in generic
+  numerical code. A negative-zero result is sufficient to trigger the disagreement.
+maybe_intended: |
+  The underlying MPFR numeric comparison treats both zeros as equal. That is
+  appropriate for numerical equality, but cmp explicitly promises isless order.
+  The report does not suggest changing == or < to distinguish these zeros.
+reproducer: |
+  x = BigFloat(-0.0; precision=256)
+  y = Int64(0)
+  @assert cmp(x, y) == 0 && isless(x, y)
+  println("REPRODUCED bignumscov-mpfr-998-v2")
+output:
+  release: |
+    REPRODUCED bignumscov-mpfr-998-v2
+  nightly: |
+    REPRODUCED bignumscov-mpfr-998-v2
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  cmp(x, y) should return -1, matching isless(x, y).
+promised_by: |
+  At pinned source f755f49a9e41380d7da126b3c1db9fe7f83dd027,
+  base/operators.jl:510-511 says:
+  "Return -1, 0, or 1 depending on whether `x` is less than, equal to, or greater than `y`,
+  respectively. Uses the total order implemented by `isless`."
+  base/operators.jl:211-212 specifies:
+  "- If `isless(x, y)` is defined, then so is `isless(y, x)` and `isequal(x, y)`,
+    and exactly one of those three yields `true`."
+  The mixed floating/real implementation at line 242 uses signless(x, y).
+cause: |
+  The ClongMax specialization at base/mpfr.jl:998-1001 returns mpfr_cmp_si
+  after checking NaN, without a signed-zero adjustment. Other integer paths
+  can reach cmp(x, big(y)) at line 1006, whose MPFR comparison has the same
+  zero-sign omission. The tested Int64 pair consequently returns zero.
+possible_fix: |
+  Make the signed-integer comparison path break numerical zero ties by sign
+  in the same direction as isless, including the delegated BigInt path.
+duplicates:
+  issues:
+    - number: 64167
+      state: open
+      relation: related
+      note: Rational/float signed-zero inconsistency, not an exact duplicate
+  prs:
+    - number: 64575
+      state: open
+      relation: related
+      note: Rational/float fix, not a fix for these MPFR methods
+  queries:
+    - tool: gh search issues --repo JuliaLang/julia
+      query: cmp BigFloat
+    - tool: gh search issues --repo JuliaLang/julia
+      query: cmp isless zero
+    - tool: gh search prs --repo JuliaLang/julia
+      query: cmp zero
+    - tool: gh search prs --repo JuliaLang/julia
+      query: cmp BigFloat
+lean:
+  property: JuliaLean.Proofs.base.mpfr.Round1.BigFloatSignedCmpTotalOrder
+  theorem: JuliaLean.ChatGPT.Batch4.Group3.BignumscovMpfr998V2_refuted

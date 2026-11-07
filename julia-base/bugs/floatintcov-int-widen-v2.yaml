@@ -1,0 +1,46 @@
+id: floatintcov-int-widen-v2
+title: "widen preserves unsignedness, so widened unsigned subtraction still wraps"
+priority: P3
+kind: documentation
+area: IntArith
+files: [base/operators.jl, base/int.jl]
+functions: ["widen(::Type{UInt8})", "-(::UInt16, ::UInt16)"]
+summary: |
+  The widen docstring promises overflow-free addition and subtraction for all
+  input values. widen(UInt8) returns UInt16, which cannot represent negative
+  differences, so subtracting a larger widened value wraps.
+likelihood: |
+  Code commonly widens counters before arithmetic. Reversing unsigned operands
+  remains less common than addition or a nonnegative difference.
+maybe_intended: |
+  Preserving unsignedness is established behavior. The likely defect is the
+  docstring's unconditional subtraction promise.
+reproducer: |
+  widen(UInt8(0)) - widen(typemax(UInt8))
+output:
+  release: |
+    REPRODUCED floatintcov-int-widen-v2
+  nightly: |
+    REPRODUCED floatintcov-int-widen-v2
+reproduced: {release: true, nightly: true}
+expected: |
+  The widened type should represent -255, or the documentation should restrict
+  the subtraction guarantee to representable nonnegative results.
+promised_by: |
+  The widen docstring in base/operators.jl says + and - cannot overflow or lose
+  precision for any values of the input type.
+cause: |
+  base/int.jl maps UInt8 to UInt16, and every unsigned widened type remains
+  unsigned.
+possible_fix: |
+  Qualify the unsigned subtraction guarantee or use a type that represents the
+  complete difference range.
+duplicates:
+  issues: []
+  queries:
+    - "gh search issues 'widen unsigned subtraction overflow' --repo JuliaLang/julia"
+    - "gh search issues 'widen overflow precision' --repo JuliaLang/julia"
+    - "gh search prs 'widen UInt' --repo JuliaLang/julia"
+lean:
+  property: JuliaLean.Proofs.base.int.Archive20261101.WidenTypeRanges
+  theorem: JuliaLean.ChatGPT.Batch6.Group2.FloatintcovIntWidenV2_refuted

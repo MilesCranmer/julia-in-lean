@@ -1,0 +1,69 @@
+id: complex-cis-spurious-nan
+title: "cis(0.0 - 1000.0im) returns a NaN imaginary component instead of zero"
+priority: P2
+kind: wrong-result
+area: Complex
+files: [base/complex.jl]
+functions: ["cis(::Complex)"]
+summary: |
+  For the finite input z = complex(0.0, -1000.0), cis(z) returns Inf + NaN*im,
+  while the documented equivalent exp(im*z) returns Inf + 0.0im. The real
+  exponential overflows, and multiplying that infinity by sin(0.0) introduces
+  a NaN into an imaginary coordinate whose exact value is zero.
+likelihood: |
+  Complex phase factors with large negative imaginary components occur in
+  exponentially growing solutions. The input is finite; only the intermediate
+  real exponential overflows.
+maybe_intended: |
+  Multiplying an IEEE infinity by zero produces NaN. That explains the source
+  computation, but the cis docstring promises an efficient exp(im*x), and the
+  complex exp method already preserves its zero imaginary coordinate here.
+  The report does not require a finite real result or any NaN-input convention.
+reproducer: |
+  z = complex(0.0, -1000.0)
+  cis(z)
+  exp(im*z)
+output:
+  release: |
+    JULIA 1.13.2 COMMIT 45b6d15e34bbd2003a31acce0b1847b63dad029c
+    z = 0.0 - 1000.0im
+    cis(z) = Inf + NaN*im
+    exp(im*z) = Inf + 0.0im
+    imag(cis(z)) is NaN = true
+    imag(exp(im*z)) is zero = true
+    REPRODUCED complex-cis-spurious-nan
+  nightly: |
+    JULIA 1.15.0-DEV.unknown COMMIT f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    z = 0.0 - 1000.0im
+    cis(z) = Inf + NaN*im
+    exp(im*z) = Inf + 0.0im
+    imag(cis(z)) is NaN = true
+    imag(exp(im*z)) is zero = true
+    REPRODUCED complex-cis-spurious-nan
+reproduced: {release: true, nightly: true}
+expected: |
+  Inf + 0.0im, matching exp(im*z). The imaginary part of exp(1000 + 0im)
+  is exactly zero; overflow of the real component does not require a NaN there.
+promised_by: |
+  base/complex.jl:573-576 at f755f49a9e41380d7da126b3c1db9fe7f83dd027:
+  cis(x) is a "More efficient method for exp(im*x) by using Euler's formula".
+  On the imaginary axis z = i*y, exp(i*z) = exp(-y) is real.
+  https://github.com/JuliaLang/julia/blob/f755f49a9e41380d7da126b3c1db9fe7f83dd027/base/complex.jl#L573-L596
+cause: |
+  base/complex.jl:593 computes v = exp(-imag(z)), which is Inf for this input.
+  Line 594 obtains sincos(0.0) = (0.0, 1.0). Line 595 evaluates v*s for the
+  imaginary coordinate, producing Inf*0.0 = NaN. The complex exponential's
+  explicit real-axis branch avoids that multiplication.
+possible_fix: |
+  Preserve an exact zero trigonometric component when the scale overflows,
+  or route the relevant real-axis exponential case through complex exp.
+duplicates:
+  issues: []
+  queries:
+    - "gh search issues --repo JuliaLang/julia 'cis NaN overflow'"
+    - "gh search issues --repo JuliaLang/julia 'cis overflow'"
+    - "gh search issues --repo JuliaLang/julia 'cis NaN'"
+    - "gh search prs --repo JuliaLang/julia 'cis NaN'"
+lean:
+  property: JuliaLean.Proofs.base.complex.CisImaginaryAxis.ImaginaryAxisIsReal
+  theorem: JuliaLean.Proofs.base.complex.CisImaginaryAxis.imaginaryAxisIsReal_refuted

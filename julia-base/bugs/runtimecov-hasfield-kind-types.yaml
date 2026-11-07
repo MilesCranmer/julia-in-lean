@@ -51,5 +51,5 @@ duplicates:
   issues: []
   queries: ["hasfield Union{}", "hasfield MethodError", "fieldindex TypeEq", "hasfield Type", "TypeEgal hasfield", "Type{Int} fieldindex"]
 lean:
-  property: JuliaLean.RuntimeCov.Fields.HasfieldTotal
-  theorem: JuliaLean.RuntimeCov.Fields.hasfieldTotal_refuted
+  property: JuliaLean.Proofs.base.runtime_internals.LegacyRuntime.HasfieldTotal
+  theorem: JuliaLean.Proofs.base.runtime_internals.LegacyRuntime.hasfieldTotal_refuted

@@ -1,109 +1,109 @@
 file	line	endline	name	signature	status	entry	note
-base/reinterpretarray.jl	14	17	throwbits	throwbits(S::Type, T::Type, U::Type)	todo		
-base/reinterpretarray.jl	18	22	throwsize0	throwsize0(S::Type, T::Type, msg)	todo		
-base/reinterpretarray.jl	23	26	throwsingleton	throwsingleton(S::Type, T::Type)	todo		
-base/reinterpretarray.jl	27	31	throwbitpadding	throwbitpadding(S::Type, T::Type, U::Type)	todo		
-base/reinterpretarray.jl	73	103	reinterpret	reinterpret(::Type{T}, a::A) where {T,N,S,A<:AbstractArray{S, N}}	todo		
-base/reinterpretarray.jl	74	79	thrownonint	thrownonint(S::Type, T::Type, dim)	todo		
-base/reinterpretarray.jl	80	84	throwaxes1	throwaxes1(S::Type, T::Type, ax1)	todo		
-base/reinterpretarray.jl	104	104	reinterpret	reinterpret(::Type{T}, a::AbstractArray{T}) where {T}	todo		
-base/reinterpretarray.jl	107	144	ReinterpretArray{T}	ReinterpretArray{T}(::typeof(reshape), a::A) where {T,S,A<:AbstractArray{S}}	todo		
-base/reinterpretarray.jl	108	112	throwintmult	throwintmult(S::Type, T::Type)	todo		
-base/reinterpretarray.jl	113	118	throwsize1	throwsize1(a::AbstractArray, T::Type)	todo		
-base/reinterpretarray.jl	119	123	throwfromsingleton	throwfromsingleton(S, T)	todo		
-base/reinterpretarray.jl	145	145	reinterpret	reinterpret(::typeof(reshape), ::Type{T}, a::AbstractArray{T}) where {T}	todo		
-base/reinterpretarray.jl	188	188	reinterpret	reinterpret(::typeof(reshape), ::Type{T}, a::AbstractArray) where {T}	todo		
-base/reinterpretarray.jl	190	190	reinterpret	reinterpret(::Type{T}, a::NonReshapedReinterpretArray) where {T}	todo		
+base/reinterpretarray.jl	14	17	throwbits	throwbits(S::Type, T::Type, U::Type)	modelled	reinterpretarray-diagnostic-errors	Source-mirrored model JuliaLean.base.reinterpretarray.m14_throwbits; reviewed against Julia f755f49.
+base/reinterpretarray.jl	18	22	throwsize0	throwsize0(S::Type, T::Type, msg)	modelled	reinterpretarray-diagnostic-errors	Source-mirrored model JuliaLean.base.reinterpretarray.Models2Group12.throwSize0; reviewed against Julia f755f49.
+base/reinterpretarray.jl	23	26	throwsingleton	throwsingleton(S::Type, T::Type)	modelled	reinterpretarray-diagnostic-errors	Source-mirrored model JuliaLean.base.reinterpretarray.m23_throwsingleton; reviewed against Julia f755f49.
+base/reinterpretarray.jl	27	31	throwbitpadding	throwbitpadding(S::Type, T::Type, U::Type)	modelled	reinterpretarray-diagnostic-errors	Source-mirrored model JuliaLean.base.reinterpretarray.m27_throwbitpadding; reviewed against Julia f755f49.
+base/reinterpretarray.jl	73	103	reinterpret	reinterpret(::Type{T}, a::A) where {T,N,S,A<:AbstractArray{S, N}}	modelled	reinterpretarray-constructor-plain;reinterpretarray-constructor-validation-effects;reinterpretarray-constructor-padding-fields;reinterpretarray-new-view-field-effects;reinterpretarray-native-scalar-pair-arithmetic;reinterpretarray-boolean-consumption;reinterpretarray-native-axes-lookup;reinterpretarray-custom-axes-lookup	Source-mirrored model JuliaLean.base.reinterpretarray.Models2Group12.reinterpret; reviewed against Julia f755f49.
+base/reinterpretarray.jl	74	79	thrownonint	thrownonint(S::Type, T::Type, dim)	modelled	reinterpretarray-diagnostic-errors	Source-mirrored model JuliaLean.base.reinterpretarray.Models2Group12.throwNonIntegral; reviewed against Julia f755f49.
+base/reinterpretarray.jl	80	84	throwaxes1	throwaxes1(S::Type, T::Type, ax1)	modelled	reinterpretarray-diagnostic-errors	Source-mirrored model JuliaLean.base.reinterpretarray.Models2Group12.throwFirstAxis; reviewed against Julia f755f49.
+base/reinterpretarray.jl	104	104	reinterpret	reinterpret(::Type{T}, a::AbstractArray{T}) where {T}	modelled	reinterpretarray-identity-observations	Source-mirrored model JuliaLean.base.reinterpretarray.m104_reinterpretIdentity; reviewed against Julia f755f49.
+base/reinterpretarray.jl	107	144	ReinterpretArray{T}	ReinterpretArray{T}(::typeof(reshape), a::A) where {T,S,A<:AbstractArray{S}}	modelled	reinterpretarray-constructor-reshape;reinterpretarray-constructor-validation-effects;reinterpretarray-constructor-padding-fields;reinterpretarray-new-view-field-effects;reinterpretarray-native-scalar-pair-arithmetic;reinterpretarray-boolean-consumption;reinterpretarray-intmultiple-diagnostic-effects;reinterpretarray-size1-dispatched-diagnostic-effects	Source-mirrored model JuliaLean.base.reinterpretarray.Models2Group12.reinterpretReshape; reviewed against Julia f755f49.
+base/reinterpretarray.jl	108	112	throwintmult	throwintmult(S::Type, T::Type)	modelled	reinterpretarray-intmultiple-diagnostic-effects	Source-mirrored model JuliaLean.base.reinterpretarray.Models2Group12.throwIntMultiple; reviewed against Julia f755f49.
+base/reinterpretarray.jl	113	118	throwsize1	throwsize1(a::AbstractArray, T::Type)	modelled	reinterpretarray-size1-dispatched-diagnostic-effects	Source-mirrored model JuliaLean.base.reinterpretarray.Models2Group12.throwSize1Dispatched; reviewed against Julia f755f49.
+base/reinterpretarray.jl	119	123	throwfromsingleton	throwfromsingleton(S, T)	modelled	reinterpretarray-diagnostic-errors	Source-mirrored model JuliaLean.base.reinterpretarray.Models2Group12.throwFromSingleton; reviewed against Julia f755f49.
+base/reinterpretarray.jl	145	145	reinterpret	reinterpret(::typeof(reshape), ::Type{T}, a::AbstractArray{T}) where {T}	modelled	reinterpretarray-identity-observations	Source-mirrored model JuliaLean.base.reinterpretarray.m145_reinterpretReshapeIdentity; reviewed against Julia f755f49.
+base/reinterpretarray.jl	188	188	reinterpret	reinterpret(::typeof(reshape), ::Type{T}, a::AbstractArray) where {T}	modelled	reinterpretarray-reshape-wrapper-generic;reinterpretarray-reshape-wrapper-custom;reinterpretarray-reshape-wrapper-generic-effects	Source-mirrored model JuliaLean.base.reinterpretarray.Models2Group12.reinterpretReshapeArray; reviewed against Julia f755f49.
+base/reinterpretarray.jl	190	190	reinterpret	reinterpret(::Type{T}, a::NonReshapedReinterpretArray) where {T}	modelled	reinterpretarray-parent-dispatch	Source-mirrored model JuliaLean.base.reinterpretarray.Models2Group12.reinterpretParent; reviewed against Julia f755f49.
 base/reinterpretarray.jl	191	194	reinterpret	reinterpret(::typeof(reshape), ::Type{T}, a::ReshapedReinterpretArray{S,N,P}) where {T,S,N,P}	todo		
-base/reinterpretarray.jl	207	207	strides	strides(a::Union{DenseArray,StridedReshapedArray,StridedReinterpretArray})	todo		
-base/reinterpretarray.jl	208	209	stride	stride(A::Union{DenseArray,StridedReshapedArray,StridedReinterpretArray}, k::Integer)	todo		
-base/reinterpretarray.jl	211	223	strides	strides(a::ReinterpretArray{T,<:Any,S,<:AbstractArray{S},IsReshaped}) where {T,S,IsReshaped}	todo		
-base/reinterpretarray.jl	225	230	_checked_strides	_checked_strides(byte_strides::Tuple, els::Integer)	todo		
-base/reinterpretarray.jl	232	232	_checkcontiguous	_checkcontiguous(::Type{Bool}, A::ReinterpretArray)	todo		
-base/reinterpretarray.jl	234	234	similar	similar(a::ReinterpretArray, T::Type, d::Dims)	todo		
-base/reinterpretarray.jl	235	235	similar	similar(::Type{TA}, dims::Dims) where {T,N,O,P,TA<:ReinterpretArray{T,N,O,P}}	todo		
-base/reinterpretarray.jl	237	242	check_readable	check_readable(a::ReinterpretArray{T, N, S} where N) where {T,S}	todo		
-base/reinterpretarray.jl	244	254	check_writable	check_writable(a::ReinterpretArray{T, N, S} where N) where {T,S}	todo		
-base/reinterpretarray.jl	263	264	IndexStyle	IndexStyle(::Type{ReinterpretArray{T,N,S,A,false}}) where {T,N,S,A<:AbstractArray{S,N}}	todo		
-base/reinterpretarray.jl	266	272	IndexStyle	IndexStyle(::Type{ReinterpretArray{T,N,S,A,true}}) where {T,N,S,A<:AbstractArray{S}}	todo		
-base/reinterpretarray.jl	273	273	IndexStyle	IndexStyle(::IndexSCartesian2{K}, ::IndexSCartesian2{K}) where {K}	todo		
-base/reinterpretarray.jl	279	279	to_index	to_index(i::SCartesianIndex2)	todo		
-base/reinterpretarray.jl	280	281	nextind	nextind(::AbstractArray, i::SCartesianIndex2{K}) where {K}	todo		
-base/reinterpretarray.jl	282	283	prevind	prevind(::AbstractArray, i::SCartesianIndex2{K}) where {K}	todo		
-base/reinterpretarray.jl	288	288	SCartesianIndices2{K}	SCartesianIndices2{K}(indices2::AbstractUnitRange{Int}) where {K}	todo		
-base/reinterpretarray.jl	290	290	eachindex	eachindex(::IndexSCartesian2{K}, A::ReshapedReinterpretArray) where {K}	todo		
-base/reinterpretarray.jl	291	296	eachindex	eachindex(style::IndexSCartesian2{K}, A::AbstractArray, B::AbstractArray...) where {K}	todo		
-base/reinterpretarray.jl	298	298	size	size(iter::SCartesianIndices2{K}) where K	todo		
-base/reinterpretarray.jl	299	299	axes	axes(iter::SCartesianIndices2{K}) where K	todo		
-base/reinterpretarray.jl	301	301	first	first(iter::SCartesianIndices2{K}) where {K}	todo		
-base/reinterpretarray.jl	302	302	last	last(iter::SCartesianIndices2{K}) where {K}	todo		
-base/reinterpretarray.jl	304	307	getindex	getindex(iter::SCartesianIndices2{K}, i::Int, j::Int) where {K}	todo		
-base/reinterpretarray.jl	309	314	iterate	iterate(iter::SCartesianIndices2{K}) where {K}	todo		
-base/reinterpretarray.jl	316	325	iterate	iterate(iter::SCartesianIndices2{K}, (state1, item2, state2)) where {K}	todo		
-base/reinterpretarray.jl	327	327	SimdLoop.simd_outer_range	SimdLoop.simd_outer_range(iter::SCartesianIndices2)	todo		
-base/reinterpretarray.jl	328	328	SimdLoop.simd_inner_length	SimdLoop.simd_inner_length(::SCartesianIndices2{K}, ::Any) where K	todo		
-base/reinterpretarray.jl	329	331	SimdLoop.simd_index	SimdLoop.simd_index(::SCartesianIndices2{K}, Ilast::Int, I1::Int) where {K}	todo		
-base/reinterpretarray.jl	333	333	_maybe_reshape	_maybe_reshape(::IndexSCartesian2, A::AbstractArray, I...)	todo		
-base/reinterpretarray.jl	334	334	_maybe_reshape	_maybe_reshape(::IndexSCartesian2, A::ReshapedReinterpretArray, I...)	todo		
-base/reinterpretarray.jl	337	340	_getindex	_getindex(::IndexSCartesian2, A::AbstractArray, I::Vararg{Int, N}) where {N}	todo		
-base/reinterpretarray.jl	341	344	_setindex!	_setindex!(::IndexSCartesian2, A::AbstractArray, v, I::Vararg{Int, N}) where {N}	todo		
-base/reinterpretarray.jl	347	350	_getindex	_getindex(style::IndexSCartesian2, A::AbstractArray, ind::SCartesianIndex2)	todo		
-base/reinterpretarray.jl	352	355	_setindex!	_setindex!(style::IndexSCartesian2, A::AbstractArray, v, ind::SCartesianIndex2)	todo		
-base/reinterpretarray.jl	359	363	_scartesian2_trailing	_scartesian2_trailing(style::IndexSCartesian2, A::AbstractArray, ind::SCartesianIndex2)	todo		
-base/reinterpretarray.jl	365	365	eachindex	eachindex(style::IndexSCartesian2, A::AbstractArray)	todo		
-base/reinterpretarray.jl	369	369	parent	parent(a::ReinterpretArray)	todo		
-base/reinterpretarray.jl	370	370	dataids	dataids(a::ReinterpretArray)	todo		
-base/reinterpretarray.jl	371	371	unaliascopy	unaliascopy(a::NonReshapedReinterpretArray{T}) where {T}	todo		
-base/reinterpretarray.jl	372	372	unaliascopy	unaliascopy(a::ReshapedReinterpretArray{T}) where {T}	todo		
-base/reinterpretarray.jl	374	378	size	size(a::NonReshapedReinterpretArray{T,N,S} where {N}) where {T,S}	todo		
-base/reinterpretarray.jl	379	384	size	size(a::ReshapedReinterpretArray{T,N,S} where {N}) where {T,S}	todo		
-base/reinterpretarray.jl	385	385	size	size(a::NonReshapedReinterpretArray{T,0}) where {T}	todo		
-base/reinterpretarray.jl	387	392	axes	axes(a::NonReshapedReinterpretArray{T,N,S} where {N}) where {T,S}	todo		
-base/reinterpretarray.jl	393	398	axes	axes(a::ReshapedReinterpretArray{T,N,S} where {N}) where {T,S}	todo		
-base/reinterpretarray.jl	399	399	axes	axes(a::NonReshapedReinterpretArray{T,0}) where {T}	todo		
-base/reinterpretarray.jl	401	401	has_offset_axes	has_offset_axes(a::ReinterpretArray)	todo		
-base/reinterpretarray.jl	403	409	elsize	elsize(::Type{<:ReinterpretArray{T,<:Any,S,A}}) where {T,S,A}	todo		
-base/reinterpretarray.jl	410	410	cconvert	cconvert(::Type{Ptr{T}}, a::ReinterpretArray{T,N,S} where N) where {T,S}	todo		
-base/reinterpretarray.jl	411	411	unsafe_convert	unsafe_convert(::Type{Ptr{T}}, a::ReinterpretArray{T,N,S} where N) where {T,S}	todo		
-base/reinterpretarray.jl	413	419	getindex	getindex(a::NonReshapedReinterpretArray{T,0,S}) where {T,S}	todo		
-base/reinterpretarray.jl	421	424	check_ptr_indexable	check_ptr_indexable(a::ReinterpretArray{T,<:Any,S}) where {T,S}	todo		
-base/reinterpretarray.jl	425	425	check_ptr_indexable	check_ptr_indexable(a::ReshapedArray)	todo		
-base/reinterpretarray.jl	426	426	check_ptr_indexable	check_ptr_indexable(a::FastContiguousSubArray)	todo		
-base/reinterpretarray.jl	427	427	check_ptr_indexable	check_ptr_indexable(a::Union{Array, Memory})	todo		
-base/reinterpretarray.jl	428	428	check_ptr_indexable	check_ptr_indexable(a::AbstractArray)	todo		
-base/reinterpretarray.jl	430	430	getindex	getindex(a::ReshapedReinterpretArray{T,0}) where {T}	todo		
-base/reinterpretarray.jl	432	432	isassigned	isassigned(a::ReinterpretArray, inds::Integer...)	todo		
-base/reinterpretarray.jl	433	433	isassigned	isassigned(a::ReinterpretArray, inds::SCartesianIndex2)	todo		
-base/reinterpretarray.jl	434	434	_isassigned_ra	_isassigned_ra(a::ReinterpretArray, inds...)	todo		
-base/reinterpretarray.jl	436	440	getindex	getindex(a::ReinterpretArray{T,N,S}, inds::Vararg{Int, N}) where {T,N,S}	todo		
-base/reinterpretarray.jl	442	452	getindex	getindex(a::ReinterpretArray{T,N,S}, i::Int) where {T,N,S}	todo		
-base/reinterpretarray.jl	454	459	getindex	getindex(a::ReshapedReinterpretArray{T,N,S}, ind::SCartesianIndex2) where {T,N,S}	todo		
-base/reinterpretarray.jl	461	467	_getindex_ptr	_getindex_ptr(a::ReinterpretArray{T}, inds...) where {T}	todo		
-base/reinterpretarray.jl	469	471	_is_scalar_reinterpret_applicable	_is_scalar_reinterpret_applicable(T, S)	todo		
-base/reinterpretarray.jl	473	525	_getindex_ra	_getindex_ra(a::NonReshapedReinterpretArray{T,N,S}, i1::Int, tailinds::TT) where {T,N,S,TT}	todo		
-base/reinterpretarray.jl	527	570	_getindex_ra	_getindex_ra(a::ReshapedReinterpretArray{T,N,S}, i1::Int, tailinds::TT) where {T,N,S,TT}	todo		
-base/reinterpretarray.jl	572	578	setindex!	setindex!(a::NonReshapedReinterpretArray{T,0,S}, v) where {T,S}	todo		
-base/reinterpretarray.jl	580	580	setindex!	setindex!(a::ReshapedReinterpretArray{T,0}, v) where {T}	todo		
-base/reinterpretarray.jl	582	586	setindex!	setindex!(a::ReinterpretArray{T,N,S}, v, inds::Vararg{Int, N}) where {T,N,S}	todo		
-base/reinterpretarray.jl	588	596	setindex!	setindex!(a::ReinterpretArray{T,N,S}, v, i::Int) where {T,N,S}	todo		
-base/reinterpretarray.jl	598	608	setindex!	setindex!(a::ReshapedReinterpretArray{T,N,S}, v, ind::SCartesianIndex2) where {T,N,S}	todo		
-base/reinterpretarray.jl	610	617	_setindex_ptr!	_setindex_ptr!(a::ReinterpretArray{T}, v, inds...) where {T}	todo		
-base/reinterpretarray.jl	619	686	_setindex_ra!	_setindex_ra!(a::NonReshapedReinterpretArray{T,N,S}, v, i1::Int, tailinds::TT) where {T,N,S,TT}	todo		
-base/reinterpretarray.jl	688	734	_setindex_ra!	_setindex_ra!(a::ReshapedReinterpretArray{T,N,S}, v, i1::Int, tailinds::TT) where {T,N,S,TT}	todo		
-base/reinterpretarray.jl	741	743	showerror	showerror(io::IO, p::PaddingError)	todo		
-base/reinterpretarray.jl	750	758	non_padding_bytes	non_padding_bytes(T::DataType)::Memory{Bool}	todo		
-base/reinterpretarray.jl	759	771	fill_nonpadding_bytes!	fill_nonpadding_bytes!(T::DataType, offset::Int, used::Memory{Bool})	todo		
-base/reinterpretarray.jl	775	813	array_subpadding	array_subpadding(S, T)	todo		
-base/reinterpretarray.jl	815	817	struct_subpadding	struct_subpadding(Out, In)	todo		
-base/reinterpretarray.jl	819	825	packedsize	packedsize(T)	todo		
-base/reinterpretarray.jl	827	829	ispacked	ispacked(T)	todo		
-base/reinterpretarray.jl	831	840	has_bit_padding	has_bit_padding(::Type{T}) where T	todo		
-base/reinterpretarray.jl	842	860	_copytopacked!	_copytopacked!(ptr_out::Ptr{Out}, ptr_in::Ptr{In}) where {Out, In}	todo		
-base/reinterpretarray.jl	862	880	_copyfrompacked!	_copyfrompacked!(ptr_out::Ptr{Out}, ptr_in::Ptr{In}) where {Out, In}	todo		
-base/reinterpretarray.jl	882	909	_reinterpret	_reinterpret(::Type{Out}, x::In) where {Out, In}	todo		
-base/reinterpretarray.jl	913	935	_reinterpret_padding	_reinterpret_padding(::Type{Out}, x::In) where {Out, In}	todo		
-base/reinterpretarray.jl	937	942	String	String(v::ReinterpretArray{UInt8,1,S,<:Union{Vector{S},Memory{S}},IsReshaped}) where {S,IsReshaped}	todo		
-base/reinterpretarray.jl	946	954	_mapreduce	_mapreduce(f::F, op::OP, style::IndexSCartesian2{K}, A::AbstractArrayOrBroadcasted) where {F,OP,K}	todo		
-base/reinterpretarray.jl	956	982	mapreduce_impl	mapreduce_impl(f::F, op::OP, A::AbstractArrayOrBroadcasted, ifirst::SCI, ilast::SCI, blksize::Int) where {F,OP,SCI<:SCartesianIndex2{K}} where K	todo		
-base/reinterpretarray.jl	984	985	mapreduce_impl	mapreduce_impl(f::F, op::OP, A::AbstractArrayOrBroadcasted, ifirst::SCartesianIndex2, ilast::SCartesianIndex2) where {F,OP}	todo		
-base/reinterpretarray.jl	990	999	_totuple	_totuple(T::Type{All32{E,N}}, itr::Union{Array,Memory}) where {E,N}	todo		
+base/reinterpretarray.jl	207	207	strides	strides(a::Union{DenseArray,StridedReshapedArray,StridedReinterpretArray})	modelled	reinterpretarray-rank-shape,reinterpretarray-stride-behavior,reinterpretarray-stride-components	Reviewed line by line against pinned f755f49 source.
+base/reinterpretarray.jl	208	209	stride	stride(A::Union{DenseArray,StridedReshapedArray,StridedReinterpretArray}, k::Integer)	modelled	reinterpretarray-stride-dispatch	Source-mirrored model JuliaLean.base.reinterpretarray.Models2Group12.stride; reviewed against Julia f755f49.
+base/reinterpretarray.jl	211	223	strides	strides(a::ReinterpretArray{T,<:Any,S,<:AbstractArray{S},IsReshaped}) where {T,S,IsReshaped}	modelled	reinterpretarray-rank-shape,reinterpretarray-stride-behavior,reinterpretarray-stride-components	Reviewed line by line against pinned f755f49 source.
+base/reinterpretarray.jl	225	230	_checked_strides	_checked_strides(byte_strides::Tuple, els::Integer)	modelled	reinterpretarray-rank-shape,reinterpretarray-stride-behavior,reinterpretarray-stride-components	Reviewed line by line against pinned f755f49 source.
+base/reinterpretarray.jl	232	232	_checkcontiguous	_checkcontiguous(::Type{Bool}, A::ReinterpretArray)	modelled	reinterpretarray-parent-contiguity	Source-mirrored model JuliaLean.base.reinterpretarray.Models2Group12.checkContiguous; reviewed against Julia f755f49.
+base/reinterpretarray.jl	234	234	similar	similar(a::ReinterpretArray, T::Type, d::Dims)	modelled	reinterpretarray-similar-arguments	Source-mirrored model JuliaLean.base.reinterpretarray.m234_similar; reviewed against Julia f755f49.
+base/reinterpretarray.jl	235	235	similar	similar(::Type{TA}, dims::Dims) where {T,N,O,P,TA<:ReinterpretArray{T,N,O,P}}	modelled	reinterpretarray-similar-arguments	Source-mirrored model JuliaLean.base.reinterpretarray.m235_similarType; reviewed against Julia f755f49.
+base/reinterpretarray.jl	237	242	check_readable	check_readable(a::ReinterpretArray{T, N, S} where N) where {T,S}	modelled	reinterpretarray-permission-checks	Source-mirrored model JuliaLean.base.reinterpretarray.Models2Group12.checkReadable; reviewed against Julia f755f49.
+base/reinterpretarray.jl	244	254	check_writable	check_writable(a::ReinterpretArray{T, N, S} where N) where {T,S}	modelled	reinterpretarray-permission-checks	Source-mirrored model JuliaLean.base.reinterpretarray.Models2Group12.checkWritable; reviewed against Julia f755f49.
+base/reinterpretarray.jl	263	264	IndexStyle	IndexStyle(::Type{ReinterpretArray{T,N,S,A,false}}) where {T,N,S,A<:AbstractArray{S,N}}	modelled	reinterpretarray-index-style-routing	Source-mirrored model JuliaLean.base.reinterpretarray.Models2Group12.plainIndexStyle; reviewed against Julia f755f49.
+base/reinterpretarray.jl	266	272	IndexStyle	IndexStyle(::Type{ReinterpretArray{T,N,S,A,true}}) where {T,N,S,A<:AbstractArray{S}}	modelled	reinterpretarray-index-style-routing	Source-mirrored model JuliaLean.base.reinterpretarray.Models2Group12.reshapedIndexStyle; reviewed against Julia f755f49.
+base/reinterpretarray.jl	273	273	IndexStyle	IndexStyle(::IndexSCartesian2{K}, ::IndexSCartesian2{K}) where {K}	modelled	reinterpretarray-static-style-parameter	Source-mirrored model JuliaLean.base.reinterpretarray.Models2Group12.combineStaticStyle; reviewed against Julia f755f49.
+base/reinterpretarray.jl	279	279	to_index	to_index(i::SCartesianIndex2)	modelled	reinterpretarray-index-identity	Source-mirrored model JuliaLean.base.reinterpretarray.Models2Group12.toStaticIndex; reviewed against Julia f755f49.
+base/reinterpretarray.jl	280	281	nextind	nextind(::AbstractArray, i::SCartesianIndex2{K}) where {K}	modelled	reinterpretarray-static-index-motion	Source-mirrored model JuliaLean.base.reinterpretarray.Models2Group12.nextStaticIndex; reviewed against Julia f755f49.
+base/reinterpretarray.jl	282	283	prevind	prevind(::AbstractArray, i::SCartesianIndex2{K}) where {K}	modelled	reinterpretarray-static-index-motion	Source-mirrored model JuliaLean.base.reinterpretarray.Models2Group12.previousStaticIndex; reviewed against Julia f755f49.
+base/reinterpretarray.jl	288	288	SCartesianIndices2{K}	SCartesianIndices2{K}(indices2::AbstractUnitRange{Int}) where {K}	modelled	reinterpretarray-static-range-constructor	Source-mirrored model JuliaLean.base.reinterpretarray.Models2Group12.staticIndicesConstructor; reviewed against Julia f755f49.
+base/reinterpretarray.jl	290	290	eachindex	eachindex(::IndexSCartesian2{K}, A::ReshapedReinterpretArray) where {K}	modelled	reinterpretarray-static-reshaped-eachindex	Source-mirrored model JuliaLean.base.reinterpretarray.Models2Group12.staticEachindexReshaped; reviewed against Julia f755f49.
+base/reinterpretarray.jl	291	296	eachindex	eachindex(style::IndexSCartesian2{K}, A::AbstractArray, B::AbstractArray...) where {K}	modelled	reinterpretarray-cartesian-iteration	Reviewed line by line against pinned f755f49 source.
+base/reinterpretarray.jl	298	298	size	size(iter::SCartesianIndices2{K}) where K	modelled	reinterpretarray-static-range-size	Source-mirrored model JuliaLean.base.reinterpretarray.Models2Group12.staticIndicesSize; reviewed against Julia f755f49.
+base/reinterpretarray.jl	299	299	axes	axes(iter::SCartesianIndices2{K}) where K	modelled	reinterpretarray-static-range-axes	Source-mirrored model JuliaLean.base.reinterpretarray.Models2Group12.staticIndicesAxes; reviewed against Julia f755f49.
+base/reinterpretarray.jl	301	301	first	first(iter::SCartesianIndices2{K}) where {K}	modelled	reinterpretarray-static-range-first;reinterpretarray-static-endpoint-custom-results;reinterpretarray-static-constructor-dispatch	Source-mirrored model JuliaLean.base.reinterpretarray.Models2Group12.staticIndicesFirst; reviewed against Julia f755f49.
+base/reinterpretarray.jl	302	302	last	last(iter::SCartesianIndices2{K}) where {K}	modelled	reinterpretarray-static-range-last;reinterpretarray-static-endpoint-custom-results;reinterpretarray-static-constructor-dispatch;reinterpretarray-static-generated-conversion-order	Source-mirrored model JuliaLean.base.reinterpretarray.Models2Group12.staticIndicesLast; reviewed against Julia f755f49.
+base/reinterpretarray.jl	304	307	getindex	getindex(iter::SCartesianIndices2{K}, i::Int, j::Int) where {K}	modelled	reinterpretarray-static-range-getindex;reinterpretarray-static-bounds-dispatch;reinterpretarray-static-bounds-native;reinterpretarray-static-bounds-trailing;reinterpretarray-static-getindex-custom-result;reinterpretarray-static-constructor-dispatch	Source-mirrored model JuliaLean.base.reinterpretarray.Models2Group12.staticIndicesGet; reviewed against Julia f755f49.
+base/reinterpretarray.jl	309	314	iterate	iterate(iter::SCartesianIndices2{K}) where {K}	modelled	reinterpretarray-static-initial-iteration;reinterpretarray-static-iteration-custom-result;reinterpretarray-static-tuple-destructuring;reinterpretarray-static-final-state-field;reinterpretarray-static-field-observation	Source-mirrored model JuliaLean.base.reinterpretarray.Models2Group12.staticIndicesIterate; reviewed against Julia f755f49.
+base/reinterpretarray.jl	316	325	iterate	iterate(iter::SCartesianIndices2{K}, (state1, item2, state2)) where {K}	modelled	reinterpretarray-static-stateful-iteration;reinterpretarray-static-iteration-custom-result;reinterpretarray-static-tuple-destructuring;reinterpretarray-static-final-state-field;reinterpretarray-static-field-observation	Source-mirrored model JuliaLean.base.reinterpretarray.Models2Group12.staticIndicesIterateState; reviewed against Julia f755f49.
+base/reinterpretarray.jl	327	327	SimdLoop.simd_outer_range	SimdLoop.simd_outer_range(iter::SCartesianIndices2)	modelled	reinterpretarray-static-simd-metadata	Source-mirrored model JuliaLean.base.reinterpretarray.Models2Group12.staticSimdOuter; reviewed against Julia f755f49.
+base/reinterpretarray.jl	328	328	SimdLoop.simd_inner_length	SimdLoop.simd_inner_length(::SCartesianIndices2{K}, ::Any) where K	modelled	reinterpretarray-static-simd-metadata	Source-mirrored model JuliaLean.base.reinterpretarray.Models2Group12.staticSimdInnerLength; reviewed against Julia f755f49.
+base/reinterpretarray.jl	329	331	SimdLoop.simd_index	SimdLoop.simd_index(::SCartesianIndices2{K}, Ilast::Int, I1::Int) where {K}	modelled	reinterpretarray-static-simd-metadata;reinterpretarray-static-simd-dispatch	Source-mirrored model JuliaLean.base.reinterpretarray.Models2Group12.staticSimdIndex; reviewed against Julia f755f49.
+base/reinterpretarray.jl	333	333	_maybe_reshape	_maybe_reshape(::IndexSCartesian2, A::AbstractArray, I...)	modelled	reinterpretarray-static-maybe-reshape	Source-mirrored model JuliaLean.base.reinterpretarray.Models2Group12.staticMaybeReshape; reviewed against Julia f755f49.
+base/reinterpretarray.jl	334	334	_maybe_reshape	_maybe_reshape(::IndexSCartesian2, A::ReshapedReinterpretArray, I...)	modelled	reinterpretarray-static-maybe-reshape	Source-mirrored model JuliaLean.base.reinterpretarray.Models2Group12.staticMaybeReshapeIdentity; reviewed against Julia f755f49.
+base/reinterpretarray.jl	337	340	_getindex	_getindex(::IndexSCartesian2, A::AbstractArray, I::Vararg{Int, N}) where {N}	modelled	reinterpretarray-static-cartesian-fallback	Source-mirrored model JuliaLean.base.reinterpretarray.m337_getindexFallback; reviewed against Julia f755f49.
+base/reinterpretarray.jl	341	344	_setindex!	_setindex!(::IndexSCartesian2, A::AbstractArray, v, I::Vararg{Int, N}) where {N}	modelled	reinterpretarray-static-cartesian-fallback	Source-mirrored model JuliaLean.base.reinterpretarray.m341_setindexFallback; reviewed against Julia f755f49.
+base/reinterpretarray.jl	347	350	_getindex	_getindex(style::IndexSCartesian2, A::AbstractArray, ind::SCartesianIndex2)	modelled	reinterpretarray-cartesian-routing	Reviewed line by line against pinned f755f49 source.
+base/reinterpretarray.jl	352	355	_setindex!	_setindex!(style::IndexSCartesian2, A::AbstractArray, v, ind::SCartesianIndex2)	modelled	reinterpretarray-cartesian-routing	Reviewed line by line against pinned f755f49 source.
+base/reinterpretarray.jl	359	363	_scartesian2_trailing	_scartesian2_trailing(style::IndexSCartesian2, A::AbstractArray, ind::SCartesianIndex2)	modelled	reinterpretarray-cartesian-routing	Reviewed line by line against pinned f755f49 source.
+base/reinterpretarray.jl	365	365	eachindex	eachindex(style::IndexSCartesian2, A::AbstractArray)	modelled	reinterpretarray-eachindex-abstract-flow	Source-mirrored model JuliaLean.base.reinterpretarray.Models2Group12.eachIndexAbstract; reviewed against Julia f755f49.
+base/reinterpretarray.jl	369	369	parent	parent(a::ReinterpretArray)	modelled	reinterpretarray-parent-field-observations	Source-mirrored model JuliaLean.base.reinterpretarray.m369_parent; reviewed against Julia f755f49.
+base/reinterpretarray.jl	370	370	dataids	dataids(a::ReinterpretArray)	modelled	reinterpretarray-parent-metadata-observations	Source-mirrored model JuliaLean.base.reinterpretarray.m370_dataids; reviewed against Julia f755f49.
+base/reinterpretarray.jl	371	371	unaliascopy	unaliascopy(a::NonReshapedReinterpretArray{T}) where {T}	modelled	reinterpretarray-unaliascopy-flow	Source-mirrored model JuliaLean.base.reinterpretarray.Models2Group12.unaliasCopyPlain; reviewed against Julia f755f49.
+base/reinterpretarray.jl	372	372	unaliascopy	unaliascopy(a::ReshapedReinterpretArray{T}) where {T}	modelled	reinterpretarray-unaliascopy-flow	Source-mirrored model JuliaLean.base.reinterpretarray.Models2Group12.unaliasCopyReshaped; reviewed against Julia f755f49.
+base/reinterpretarray.jl	374	378	size	size(a::NonReshapedReinterpretArray{T,N,S} where {N}) where {T,S}	modelled	reinterpretarrays-size-overflow,reinterpretarray-shape-dimensions,reinterpretarray-parent-dimensions	Reviewed line by line against pinned f755f49 source.
+base/reinterpretarray.jl	379	384	size	size(a::ReshapedReinterpretArray{T,N,S} where {N}) where {T,S}	modelled	reinterpretarray-shape-dimensions,reinterpretarray-parent-dimensions	Reviewed line by line against pinned f755f49 source.
+base/reinterpretarray.jl	385	385	size	size(a::NonReshapedReinterpretArray{T,0}) where {T}	modelled	reinterpretarray-zero-dimensional-shape	Source-mirrored model JuliaLean.base.reinterpretarray.m385_sizeZero; reviewed against Julia f755f49.
+base/reinterpretarray.jl	387	392	axes	axes(a::NonReshapedReinterpretArray{T,N,S} where {N}) where {T,S}	modelled	reinterpretarray-shape-dimensions,reinterpretarray-parent-dimensions	Reviewed line by line against pinned f755f49 source.
+base/reinterpretarray.jl	393	398	axes	axes(a::ReshapedReinterpretArray{T,N,S} where {N}) where {T,S}	modelled	reinterpretarray-shape-dimensions,reinterpretarray-parent-dimensions	Reviewed line by line against pinned f755f49 source.
+base/reinterpretarray.jl	399	399	axes	axes(a::NonReshapedReinterpretArray{T,0}) where {T}	modelled	reinterpretarray-zero-dimensional-shape	Source-mirrored model JuliaLean.base.reinterpretarray.m399_axesZero; reviewed against Julia f755f49.
+base/reinterpretarray.jl	401	401	has_offset_axes	has_offset_axes(a::ReinterpretArray)	modelled	reinterpretarray-parent-metadata-observations	Source-mirrored model JuliaLean.base.reinterpretarray.m401_hasOffset; reviewed against Julia f755f49.
+base/reinterpretarray.jl	403	409	elsize	elsize(::Type{<:ReinterpretArray{T,<:Any,S,A}}) where {T,S,A}	modelled	reinterpretarray-type-element-size	Source-mirrored model JuliaLean.base.reinterpretarray.Models2Group12.elementSizeOfType; reviewed against Julia f755f49.
+base/reinterpretarray.jl	410	410	cconvert	cconvert(::Type{Ptr{T}}, a::ReinterpretArray{T,N,S} where N) where {T,S}	modelled	reinterpretarray-cconvert-parent-route	Source-mirrored model JuliaLean.base.reinterpretarray.m410_cconvert; reviewed against Julia f755f49.
+base/reinterpretarray.jl	411	411	unsafe_convert	unsafe_convert(::Type{Ptr{T}}, a::ReinterpretArray{T,N,S} where N) where {T,S}	modelled	reinterpretarray-unsafe-convert-view	Source-mirrored model JuliaLean.base.reinterpretarray.Models2Group12.unsafeConvertView; reviewed against Julia f755f49.
+base/reinterpretarray.jl	413	419	getindex	getindex(a::NonReshapedReinterpretArray{T,0,S}) where {T,S}	modelled	reinterpretarrays-ra-getindex-bytes	Reviewed line by line against pinned f755f49 source.
+base/reinterpretarray.jl	421	424	check_ptr_indexable	check_ptr_indexable(a::ReinterpretArray{T,<:Any,S}) where {T,S}	modelled	reinterpretarrays-ra-getindex-bytes,reinterpretarrays-ra-setindex-bytes,memsafety-reinterpretarray-getindex	Reviewed line by line against pinned f755f49 source.
+base/reinterpretarray.jl	425	425	check_ptr_indexable	check_ptr_indexable(a::ReshapedArray)	modelled	reinterpretarray-wrapper-pointer-route	Source-mirrored model JuliaLean.base.reinterpretarray.Models2Group12.checkPointerReshaped; reviewed against Julia f755f49.
+base/reinterpretarray.jl	426	426	check_ptr_indexable	check_ptr_indexable(a::FastContiguousSubArray)	modelled	reinterpretarray-wrapper-pointer-route	Source-mirrored model JuliaLean.base.reinterpretarray.Models2Group12.checkPointerSubarray; reviewed against Julia f755f49.
+base/reinterpretarray.jl	427	427	check_ptr_indexable	check_ptr_indexable(a::Union{Array, Memory})	modelled	reinterpretarray-pointer-metadata	Source-mirrored model JuliaLean.base.reinterpretarray.m427_checkPtrDense; reviewed against Julia f755f49.
+base/reinterpretarray.jl	428	428	check_ptr_indexable	check_ptr_indexable(a::AbstractArray)	modelled	reinterpretarray-pointer-metadata	Source-mirrored model JuliaLean.base.reinterpretarray.m428_checkPtrAbstract; reviewed against Julia f755f49.
+base/reinterpretarray.jl	430	430	getindex	getindex(a::ReshapedReinterpretArray{T,0}) where {T}	modelled	reinterpretarrays-ra-getindex-bytes,reinterpretarray-reshaped-get,reinterpretarray-reshaped-get-set	Reviewed line by line against pinned f755f49 source.
+base/reinterpretarray.jl	432	432	isassigned	isassigned(a::ReinterpretArray, inds::Integer...)	modelled	reinterpretarray-isassigned-bounds	Reviewed line by line against pinned f755f49 source.
+base/reinterpretarray.jl	433	433	isassigned	isassigned(a::ReinterpretArray, inds::SCartesianIndex2)	modelled	reinterpretarray-static-assignment-route	Source-mirrored model JuliaLean.base.reinterpretarray.Models2Group12.isAssignedStatic; reviewed against Julia f755f49.
+base/reinterpretarray.jl	434	434	_isassigned_ra	_isassigned_ra(a::ReinterpretArray, inds...)	modelled	reinterpretarray-assignment-fallback-guard	Source-mirrored model JuliaLean.base.reinterpretarray.Models2Group12.isAssignedFallback; reviewed against Julia f755f49.
+base/reinterpretarray.jl	436	440	getindex	getindex(a::ReinterpretArray{T,N,S}, inds::Vararg{Int, N}) where {T,N,S}	modelled	reinterpretarrays-ra-getindex-bytes,memsafety-reinterpretarray-getindex,reinterpretarray-pointer-metadata	Reviewed line by line against pinned f755f49 source.
+base/reinterpretarray.jl	442	452	getindex	getindex(a::ReinterpretArray{T,N,S}, i::Int) where {T,N,S}	modelled	reinterpretarrays-ra-getindex-bytes,reinterpretarray-reshaped-get,reinterpretarray-reshaped-get-set	Reviewed line by line against pinned f755f49 source.
+base/reinterpretarray.jl	454	459	getindex	getindex(a::ReshapedReinterpretArray{T,N,S}, ind::SCartesianIndex2) where {T,N,S}	modelled	reinterpretarray-cartesian-routing,reinterpretarray-cartesian-set,reinterpretarray-mapreduce-routing	Reviewed line by line against pinned f755f49 source.
+base/reinterpretarray.jl	461	467	_getindex_ptr	_getindex_ptr(a::ReinterpretArray{T}, inds...) where {T}	modelled	reinterpretarrays-ra-getindex-bytes,memsafety-reinterpretarray-getindex,reinterpretarray-pointer-metadata	Reviewed line by line against pinned f755f49 source.
+base/reinterpretarray.jl	469	471	_is_scalar_reinterpret_applicable	_is_scalar_reinterpret_applicable(T, S)	modelled	reinterpretarray-primitive-width-arithmetic;reinterpretarray-core-bitsizeof-contract;reinterpretarray-scalar-applicability-flow	Source-mirrored model JuliaLean.base.reinterpretarray.Models2Group12.scalarReinterpretApplicable; reviewed against Julia f755f49.
+base/reinterpretarray.jl	473	525	_getindex_ra	_getindex_ra(a::NonReshapedReinterpretArray{T,N,S}, i1::Int, tailinds::TT) where {T,N,S,TT}	modelled	reinterpretarrays-ra-getindex-bytes,memsafety-reinterpretarray-getindex,reinterpretarray-pointer-metadata	Reviewed line by line against pinned f755f49 source.
+base/reinterpretarray.jl	527	570	_getindex_ra	_getindex_ra(a::ReshapedReinterpretArray{T,N,S}, i1::Int, tailinds::TT) where {T,N,S,TT}	modelled	reinterpretarrays-ra-getindex-bytes,memsafety-reinterpretarray-getindex,reinterpretarray-pointer-metadata	Reviewed line by line against pinned f755f49 source.
+base/reinterpretarray.jl	572	578	setindex!	setindex!(a::NonReshapedReinterpretArray{T,0,S}, v) where {T,S}	modelled	reinterpretarrays-ra-setindex-bytes,memsafety-reinterpretarray-setindex,reinterpretarray-zero-set	Reviewed line by line against pinned f755f49 source.
+base/reinterpretarray.jl	580	580	setindex!	setindex!(a::ReshapedReinterpretArray{T,0}, v) where {T}	modelled	reinterpretarrays-ra-setindex-bytes,memsafety-reinterpretarray-setindex,reinterpretarray-reshaped-set	Reviewed line by line against pinned f755f49 source.
+base/reinterpretarray.jl	582	586	setindex!	setindex!(a::ReinterpretArray{T,N,S}, v, inds::Vararg{Int, N}) where {T,N,S}	modelled	reinterpretarrays-ra-setindex-bytes,memsafety-reinterpretarray-setindex,reinterpretarray-reshaped-set	Reviewed line by line against pinned f755f49 source.
+base/reinterpretarray.jl	588	596	setindex!	setindex!(a::ReinterpretArray{T,N,S}, v, i::Int) where {T,N,S}	modelled	reinterpretarrays-ra-setindex-bytes,memsafety-reinterpretarray-setindex,reinterpretarray-reshaped-set	Reviewed line by line against pinned f755f49 source.
+base/reinterpretarray.jl	598	608	setindex!	setindex!(a::ReshapedReinterpretArray{T,N,S}, v, ind::SCartesianIndex2) where {T,N,S}	modelled	reinterpretarrays-ra-setindex-bytes,memsafety-reinterpretarray-setindex,reinterpretarray-cartesian-routing	Reviewed line by line against pinned f755f49 source.
+base/reinterpretarray.jl	610	617	_setindex_ptr!	_setindex_ptr!(a::ReinterpretArray{T}, v, inds...) where {T}	modelled	reinterpretarrays-ra-setindex-bytes,memsafety-reinterpretarray-setindex,reinterpretarray-reshaped-set	Reviewed line by line against pinned f755f49 source.
+base/reinterpretarray.jl	619	686	_setindex_ra!	_setindex_ra!(a::NonReshapedReinterpretArray{T,N,S}, v, i1::Int, tailinds::TT) where {T,N,S,TT}	modelled	reinterpretarrays-ra-setindex-bytes,memsafety-reinterpretarray-setindex,reinterpretarray-reshaped-set	Reviewed line by line against pinned f755f49 source.
+base/reinterpretarray.jl	688	734	_setindex_ra!	_setindex_ra!(a::ReshapedReinterpretArray{T,N,S}, v, i1::Int, tailinds::TT) where {T,N,S,TT}	modelled	reinterpretarrays-ra-setindex-bytes,memsafety-reinterpretarray-setindex,reinterpretarray-reshaped-set	Reviewed line by line against pinned f755f49 source.
+base/reinterpretarray.jl	741	743	showerror	showerror(io::IO, p::PaddingError)	modelled	reinterpretarray-padding-display-protocol	Source-mirrored model JuliaLean.base.reinterpretarray.Models2Group12.showPaddingError; reviewed against Julia f755f49.
+base/reinterpretarray.jl	750	758	non_padding_bytes	non_padding_bytes(T::DataType)::Memory{Bool}	modelled	reinterpretarrays-ra-getindex-bytes,reinterpretarrays-ra-setindex-bytes,reinterpretarrays-size-overflow	Reviewed line by line against pinned f755f49 source.
+base/reinterpretarray.jl	759	771	fill_nonpadding_bytes!	fill_nonpadding_bytes!(T::DataType, offset::Int, used::Memory{Bool})	modelled	reinterpretarrays-ra-getindex-bytes,reinterpretarrays-ra-setindex-bytes,reinterpretarrays-size-overflow	Reviewed line by line against pinned f755f49 source.
+base/reinterpretarray.jl	775	813	array_subpadding	array_subpadding(S, T)	modelled	reinterpretarray-array-padding-finite-protocol;reinterpretarray-array-padding-counter-advance;reinterpretarray-array-padding-boolean-consumption;reinterpretarray-array-padding-entry-transparency;reinterpretarray-array-padding-first-read-transparency	Source-mirrored model JuliaLean.base.reinterpretarray.Models2Group12.arraySubpaddingDispatched; reviewed against Julia f755f49.
+base/reinterpretarray.jl	815	817	struct_subpadding	struct_subpadding(Out, In)	modelled	reinterpretarray-struct-padding-comparison	Source-mirrored model JuliaLean.base.reinterpretarray.Models2Group12.structSubpadding; reviewed against Julia f755f49.
+base/reinterpretarray.jl	819	825	packedsize	packedsize(T)	modelled	reinterpretarray-packed-size-dispatch	Source-mirrored model JuliaLean.base.reinterpretarray.Models2Group12.packedSize; reviewed against Julia f755f49.
+base/reinterpretarray.jl	827	829	ispacked	ispacked(T)	modelled	reinterpretarray-ispacked-layout-low-bit;reinterpretarray-ispacked-datatype-runtime;reinterpretarray-ispacked-custom-flow	Source-mirrored model JuliaLean.base.reinterpretarray.Models2Group12.isPackedDispatched; reviewed against Julia f755f49.
+base/reinterpretarray.jl	831	840	has_bit_padding	has_bit_padding(::Type{T}) where T	modelled	reinterpretarrays-ra-getindex-bytes,reinterpretarrays-ra-setindex-bytes,reinterpretarrays-size-overflow	Reviewed line by line against pinned f755f49 source.
+base/reinterpretarray.jl	842	860	_copytopacked!	_copytopacked!(ptr_out::Ptr{Out}, ptr_in::Ptr{In}) where {Out, In}	modelled	reinterpretarrays-ra-getindex-bytes,reinterpretarrays-ra-setindex-bytes,memsafety-reinterpretarray-getindex	Reviewed line by line against pinned f755f49 source.
+base/reinterpretarray.jl	862	880	_copyfrompacked!	_copyfrompacked!(ptr_out::Ptr{Out}, ptr_in::Ptr{In}) where {Out, In}	modelled	reinterpretarrays-ra-getindex-bytes,reinterpretarrays-ra-setindex-bytes,memsafety-reinterpretarray-getindex	Reviewed line by line against pinned f755f49 source.
+base/reinterpretarray.jl	882	909	_reinterpret	_reinterpret(::Type{Out}, x::In) where {Out, In}	modelled	reinterpretarrays-ra-getindex-bytes,reinterpretarrays-ra-setindex-bytes,memsafety-reinterpretarray-getindex	Reviewed line by line against pinned f755f49 source.
+base/reinterpretarray.jl	913	935	_reinterpret_padding	_reinterpret_padding(::Type{Out}, x::In) where {Out, In}	modelled	reinterpretarrays-ra-getindex-bytes,reinterpretarrays-ra-setindex-bytes,memsafety-reinterpretarray-getindex	Reviewed line by line against pinned f755f49 source.
+base/reinterpretarray.jl	937	942	String	String(v::ReinterpretArray{UInt8,1,S,<:Union{Vector{S},Memory{S}},IsReshaped}) where {S,IsReshaped}	modelled	reinterpretarray-empty-string	Reviewed line by line against pinned f755f49 source.
+base/reinterpretarray.jl	946	954	_mapreduce	_mapreduce(f::F, op::OP, style::IndexSCartesian2{K}, A::AbstractArrayOrBroadcasted) where {F,OP,K}	modelled	reinterpretarray-static-mapreduce-routing	Source-mirrored model JuliaLean.base.reinterpretarray.Models2Group12.mapreduceStatic; reviewed against Julia f755f49.
+base/reinterpretarray.jl	956	982	mapreduce_impl	mapreduce_impl(f::F, op::OP, A::AbstractArrayOrBroadcasted, ifirst::SCI, ilast::SCI, blksize::Int) where {F,OP,SCI<:SCartesianIndex2{K}} where K	modelled	reinterpretarray-mapreduce-routing	Reviewed line by line against pinned f755f49 source.
+base/reinterpretarray.jl	984	985	mapreduce_impl	mapreduce_impl(f::F, op::OP, A::AbstractArrayOrBroadcasted, ifirst::SCartesianIndex2, ilast::SCartesianIndex2) where {F,OP}	modelled	reinterpretarray-default-mapreduce-forwarding	Source-mirrored model JuliaLean.base.reinterpretarray.Models2Group12.mapreduceDefault; reviewed against Julia f755f49.
+base/reinterpretarray.jl	990	999	_totuple	_totuple(T::Type{All32{E,N}}, itr::Union{Array,Memory}) where {E,N}	modelled	reinterpretarray-totuple	Reviewed line by line against pinned f755f49 source.

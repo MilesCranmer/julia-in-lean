@@ -39,6 +39,8 @@ possible_fix: |
   Return `c >= 0 && isvalid(T, Unsigned(c))`.
 duplicates:
   issues: []
+  prs:
+    - {number: 64323, state: merged, relation: duplicate}
   queries:
     - "issues: isvalid Char InexactError"
     - "issues: isvalid Char negative"

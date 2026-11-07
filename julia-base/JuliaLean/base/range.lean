@@ -1,4 +1,10 @@
+import JuliaLean.base.checked
 import JuliaLean.Core
+import JuliaLean.base.int
+import JuliaLean.Runtime.Strings
+import JuliaLean.base.bool
+import JuliaLean.base.ntuple
+import JuliaLean.Runtime.Collections
 
 /-!
 # `base/range.jl`
@@ -67,6 +73,7 @@ inductive Exc where
   | dimensionMismatch (msg : String)
   /-- An `@inbounds` access outside the array: undefined behaviour in Julia. -/
   | inboundsViolation
+  | showError (error : JuliaLean.Strings.ShowErrorKind)
   deriving DecidableEq, Repr
 
 /-- A Julia computation that may throw. -/
@@ -2391,9 +2398,9 @@ def show_LinRange {T L Λ : Type} [JShowType T] [JFirst (LinRange T L) T] [JLast
   out := out ++ ")"
   return out
 
--- Reason: terminal-layout printing helper for `show(::MIME"text/plain", r)`: depends on `displaysize`, `alignment` and `print_matrix_row` (arrayshow.jl); its output is not a property of the range values.
+-- Reason: The docstring of `print_range`: no method body.
 -- UNTRANSLATED
--- Source: base/range.jl:647-702 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- Source: base/range.jl:647-659 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 -- """
 -- `print_range(io, r)` prints out a nice looking range r in terms of its elements
 -- as if it were `collect(r)`, dependent on the size of the
@@ -2407,50 +2414,109 @@ def show_LinRange {T L Λ : Type} [JShowType T] [JFirst (LinRange T L) T] [JLast
 -- `sep` separator string between printed elements,
 -- `hdots` string for the horizontal ellipsis.
 -- """
--- function print_range(io::IO, r::AbstractArray,
---                      pre::AbstractString = " ",
---                      sep::AbstractString = ", ",
---                      post::AbstractString = "",
---                      hdots::AbstractString = ", \u2026, ") # horiz ellipsis
---     # This function borrows from print_matrix() in show.jl
---     # and should be called by show and display
---     sz = displaysize(io)
---     if !haskey(io, :compact)
---         io = IOContext(io, :compact => true)
---     end
---     _, screenwidth = sz[1] - 4, sz[2]
---     screenwidth -= length(pre) + length(post)
---     sepsize = length(sep)
---     m = 1 # treat the range as a one-row matrix
---     n = length(r)
---     # Figure out spacing alignments for r, but only need to examine the
---     # left and right edge columns, as many as could conceivably fit on the
---     # screen, with the middle columns summarized by horz, vert, or diag ellipsis
---     maxpossiblecols = div(screenwidth, 1+sepsize) # assume each element is at least 1 char + 1 separator
---     colsr = n <= maxpossiblecols ? (1:n) : [1:div(maxpossiblecols,2)+1; (n-div(maxpossiblecols,2)):n]
---     rowmatrix = reshape(r[colsr], 1, length(colsr)) # treat the range as a one-row matrix for print_matrix_row
---     nrow, idxlast = size(rowmatrix, 2), last(axes(rowmatrix, 2))
---     A = alignment(io, rowmatrix, 1:m, 1:length(rowmatrix), screenwidth, screenwidth, sepsize, nrow) # how much space range takes
---     if n <= length(A) # cols fit screen, so print out all elements
---         print(io, pre) # put in pre chars
---         print_matrix_row(io,rowmatrix,A,1,1:n,sep,idxlast) # the entire range
---         print(io, post) # add the post characters
---     else # cols don't fit so put horiz ellipsis in the middle
---         # how many chars left after dividing width of screen in half
---         # and accounting for the horiz ellipsis
---         c = div(screenwidth-length(hdots)+1,2)+1 # chars remaining for each side of rowmatrix
---         alignR = reverse(alignment(io, rowmatrix, 1:m, length(rowmatrix):-1:1, c, c, sepsize, nrow)) # which cols of rowmatrix to put on the right
---         c = screenwidth - sum(map(sum,alignR)) - (length(alignR)-1)*sepsize - length(hdots)
---         alignL = alignment(io, rowmatrix, 1:m, 1:length(rowmatrix), c, c, sepsize, nrow) # which cols of rowmatrix to put on the left
---         print(io, pre)   # put in pre chars
---         print_matrix_row(io, rowmatrix,alignL,1,1:length(alignL),sep,idxlast) # left part of range
---         print(io, hdots) # horizontal ellipsis
---         print_matrix_row(io, rowmatrix,alignR,1,length(rowmatrix)-length(alignR)+1:length(rowmatrix),sep,idxlast) # right part of range
---         print(io, post)  # post chars
---     end
--- end
--- 
 -- /Source
+
+/-- `div(a, b)` of two `Int`s: `DivideError` for `b == 0` and for `div(typemin(Int), -1)`. -/
+def divInt (a b : JInt64) : JlX JInt64 :=
+  if b.val = 0 || (a.val = IntTy.i64.min && b.val = -1) then .error (.jl .divideError)
+  else .ok (JInt.wrap .i64 (a.val.tdiv b.val))
+
+/-- The `Int` range `a:b` as a list. -/
+def unitRangeList (a b : JInt64) : List JInt64 :=
+  if b.val < a.val then [] else (List.range (b.val - a.val + 1).toNat).map fun (k : Nat) => a + jint (k : Int)
+
+
+/--
+Julia source: base/range.jl:660-702 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+```julia
+function print_range(io::IO, r::AbstractArray,
+                     pre::AbstractString = " ",
+                     sep::AbstractString = ", ",
+                     post::AbstractString = "",
+                     hdots::AbstractString = ", \u2026, ") # horiz ellipsis
+    # This function borrows from print_matrix() in show.jl
+    # and should be called by show and display
+    sz = displaysize(io)
+    if !haskey(io, :compact)
+        io = IOContext(io, :compact => true)
+    end
+    _, screenwidth = sz[1] - 4, sz[2]
+    screenwidth -= length(pre) + length(post)
+    sepsize = length(sep)
+    m = 1 # treat the range as a one-row matrix
+    n = length(r)
+    # Figure out spacing alignments for r, but only need to examine the
+    # left and right edge columns, as many as could conceivably fit on the
+    # screen, with the middle columns summarized by horz, vert, or diag ellipsis
+    maxpossiblecols = div(screenwidth, 1+sepsize) # assume each element is at least 1 char + 1 separator
+    colsr = n <= maxpossiblecols ? (1:n) : [1:div(maxpossiblecols,2)+1; (n-div(maxpossiblecols,2)):n]
+    rowmatrix = reshape(r[colsr], 1, length(colsr)) # treat the range as a one-row matrix for print_matrix_row
+    nrow, idxlast = size(rowmatrix, 2), last(axes(rowmatrix, 2))
+    A = alignment(io, rowmatrix, 1:m, 1:length(rowmatrix), screenwidth, screenwidth, sepsize, nrow) # how much space range takes
+    if n <= length(A) # cols fit screen, so print out all elements
+        print(io, pre) # put in pre chars
+        print_matrix_row(io,rowmatrix,A,1,1:n,sep,idxlast) # the entire range
+        print(io, post) # add the post characters
+    else # cols don't fit so put horiz ellipsis in the middle
+        # how many chars left after dividing width of screen in half
+        # and accounting for the horiz ellipsis
+        c = div(screenwidth-length(hdots)+1,2)+1 # chars remaining for each side of rowmatrix
+        alignR = reverse(alignment(io, rowmatrix, 1:m, length(rowmatrix):-1:1, c, c, sepsize, nrow)) # which cols of rowmatrix to put on the right
+        c = screenwidth - sum(map(sum,alignR)) - (length(alignR)-1)*sepsize - length(hdots)
+        alignL = alignment(io, rowmatrix, 1:m, 1:length(rowmatrix), c, c, sepsize, nrow) # which cols of rowmatrix to put on the left
+        print(io, pre)   # put in pre chars
+        print_matrix_row(io, rowmatrix,alignL,1,1:length(alignL),sep,idxlast) # left part of range
+        print(io, hdots) # horizontal ellipsis
+        print_matrix_row(io, rowmatrix,alignR,1,length(rowmatrix)-length(alignR)+1:length(rowmatrix),sep,idxlast) # right part of range
+        print(io, post)  # post chars
+    end
+end
+
+```
+-/
+def print_range {Io R E : Type} (displaysize : Io → JlX (JInt64 × JInt64))
+    (haskeyCompact : Io → Bool) (withCompact : Io → Io) (length : R → JlX JInt64)
+    (getindex : R → JInt64 → JlX E)
+    (alignment : Io → List E → List JInt64 → List JInt64 → JInt64 → JInt64 → JInt64 → JInt64 →
+      JlX (List (JInt64 × JInt64)))
+    (print_matrix_row : Io → List E → List (JInt64 × JInt64) → JInt64 → List JInt64 → String →
+      JInt64 → JlX String)
+    (io : Io) (r : R) (pre : String := " ") (sep : String := ", ") (post : String := "")
+    (hdots : String := ", \u2026, ") : JlX String := do
+  let len (s : String) : JInt64 := jint s.length
+  let sz ← displaysize io
+  let io := if !haskeyCompact io then withCompact io else io
+  let screenwidth := sz.2
+  let screenwidth := screenwidth - (len pre + len post)
+  let sepsize := len sep
+  let m := jint 1
+  let n ← length r
+  let maxpossiblecols ← divInt screenwidth (jint 1 + sepsize)
+  let colsr ← if n.val ≤ maxpossiblecols.val then pure (unitRangeList (jint 1) n)
+    else do
+      let half ← divInt maxpossiblecols (jint 2)
+      pure (unitRangeList (jint 1) (half + jint 1) ++ unitRangeList (n - half) n)
+  let rowmatrix ← colsr.mapM (getindex r)
+  let nrow := jint rowmatrix.length
+  let idxlast := jint rowmatrix.length
+  let A ← alignment io rowmatrix (unitRangeList (jint 1) m) (unitRangeList (jint 1) (jint rowmatrix.length))
+    screenwidth screenwidth sepsize nrow
+  if n.val ≤ A.length then
+    let row ← print_matrix_row io rowmatrix A (jint 1) (unitRangeList (jint 1) n) sep idxlast
+    pure (pre ++ row ++ post)
+  else
+    let c := (← divInt (screenwidth - len hdots + jint 1) (jint 2)) + jint 1
+    let alignR := (← alignment io rowmatrix (unitRangeList (jint 1) m)
+      (unitRangeList (jint 1) (jint rowmatrix.length)).reverse c c sepsize nrow).reverse
+    let widths := alignR.foldl (fun acc (a, b) => acc + (a + b)) (jint 0)
+    let c := screenwidth - widths - (jint alignR.length - jint 1) * sepsize - len hdots
+    let alignL ← alignment io rowmatrix (unitRangeList (jint 1) m)
+      (unitRangeList (jint 1) (jint rowmatrix.length)) c c sepsize nrow
+    let left ← print_matrix_row io rowmatrix alignL (jint 1) (unitRangeList (jint 1) (jint alignL.length))
+      sep idxlast
+    let right ← print_matrix_row io rowmatrix alignR (jint 1)
+      (unitRangeList (jint rowmatrix.length - jint alignR.length + jint 1) (jint rowmatrix.length)) sep idxlast
+    pure (pre ++ left ++ hdots ++ right ++ post)
 
 /-! ## Interface implementations: `length`, `isempty`, `step` (lines 703-866) -/
 
@@ -3292,6 +3358,14 @@ _in_unit_range(v::UnitRange, val, i::Integer) = i > 0 && val <= v.stop && val >=
 
 ```
 -/
+def inUnitRange {Element Value Index : Type} {m : Type → Type} [Monad m]
+    (positive : Index → m Bool) (leStop : Value → Element → m Bool)
+    (leStart : Element → Value → m Bool)
+    (range : UnitRange Element) (value : Value) (index : Index) : m Bool := do
+  if !(← positive index) then return false
+  if !(← leStop value range.stop) then return false
+  leStart range.start value
+
 def _in_unit_range {T V I : Type} [JLt JInt64 I] [JLe V T] [JLe T V] (v : UnitRange T) (val : V)
     (i : I) : Bool :=
   JLt.lt (jint 0) i && JLe.le val v.stop && JLe.le v.start val
@@ -3307,6 +3381,17 @@ end
 
 ```
 -/
+def getindexUnitRange {Element Index Difference Value : Type} {m : Type → Type} [Monad m]
+    (oneunit : Index → m Index) (sub : Index → Index → m Difference)
+    (add : Element → Difference → m Value) (convert : Value → m Element)
+    (bounds : UnitRange Element → Element → Index → m Bool)
+    (throwBounds : UnitRange Element → Index → m Empty)
+    (range : UnitRange Element) (index : Index) : m Element := do
+  let value ← convert (← add range.start (← sub index (← oneunit index)))
+  if !(← bounds range value index) then
+    return Empty.elim (← throwBounds range index)
+  pure value
+
 def _getindex_UnitRange {T I D E : Type} [JOneunit I] [HSub I I D] [HAdd T D E] [JConvert T E]
     [JLt JInt64 I] [JLe T T] [JThrowBoundserror (UnitRange T) I] (v : UnitRange T) (i : I) :
     JlX T := do
@@ -3330,6 +3415,18 @@ end
 
 ```
 -/
+def getindexUnitRangeOverflowSafe {Element Index Difference Value : Type} {m : Type → Type} [Monad m]
+    (oneunit : Index → m Index) (sub : Index → Index → m Difference)
+    (add : Element → Difference → m Value)
+    (bounds : UnitRange Element → Value → Index → m Bool)
+    (throwBounds : UnitRange Element → Index → m Empty)
+    (remainder : Value → m Element)
+    (range : UnitRange Element) (index : Index) : m Element := do
+  let value ← add range.start (← sub index (← oneunit index))
+  if !(← bounds range value index) then
+    return Empty.elim (← throwBounds range index)
+  remainder value
+
 def _getindex_UnitRange_OverflowSafe {T I D E : Type} [JOneunit I] [HSub I I D] [HAdd T D E]
     [JLt JInt64 I] [JLe E T] [JLe T E] [JThrowBoundserror (UnitRange T) I] [JRemType T E]
     (v : UnitRange T) (i : I) : JlX T := do
@@ -4331,6 +4428,23 @@ def intersect_AbstractRange_3 {R1 R2 R3 R4 I J : Type} [JIntersect R1 R2 I] [JIn
 class JIsAbstractUnitRange (R : Type) where
   isAbstractUnitRange : Bool
 
+structure FindinOps (m : Type → Type) (R Span Z Out : Type) where
+  integer : Int → Z
+  firstSpan : Span → m Z
+  lastSpan : Span → m Z
+  firstRange : R → m Z
+  lastRange : R → m Z
+  step : R → m Z
+  length : R → m Z
+  less : Z → Z → m Bool
+  lessEqual : Z → Z → m Bool
+  subtract : Z → Z → m Z
+  add : Z → Z → m Z
+  cld : Z → Z → m Z
+  isAbstractUnitRange : R → Bool
+  colon2 : Z → Z → m Out
+  colon3 : Z → Z → Z → m Out
+
 /--
 Julia source: base/range.jl:1296-1314 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 ```julia
@@ -4355,6 +4469,35 @@ end
 
 ```
 -/
+def findinRange {R Span Z Out : Type} {m : Type → Type} [Monad m]
+    (ops : FindinOps m R Span Z Out) (range : R) (span : Span) : m Out := do
+  let firstSpan ← ops.firstSpan span
+  let lastSpan ← ops.lastSpan span
+  let firstRange ← ops.firstRange range
+  let lastRange ← ops.lastRange range
+  let step ← ops.step range
+  let (firstIndex, lastIndex) ←
+    if ← ops.less (ops.integer 0) step then do
+      let firstIndex ← if ← ops.lessEqual firstSpan firstRange then pure (ops.integer 1)
+        else ops.add (← ops.cld (← ops.subtract firstSpan firstRange) step) (ops.integer 1)
+      let lastIndex ← if ← ops.lessEqual lastRange lastSpan then ops.length range
+        else ops.subtract (← ops.length range) (← ops.cld (← ops.subtract lastRange lastSpan) step)
+      pure (firstIndex, lastIndex)
+    else if ← ops.less step (ops.integer 0) then do
+      let firstIndex ← if ← ops.lessEqual firstRange lastSpan then pure (ops.integer 1)
+        else ops.add (← ops.cld (← ops.subtract lastSpan firstRange) step) (ops.integer 1)
+      let lastIndex ← if ← ops.lessEqual firstSpan lastRange then ops.length range
+        else ops.subtract (← ops.length range) (← ops.cld (← ops.subtract lastRange firstSpan) step)
+      pure (firstIndex, lastIndex)
+    else do
+      let firstIndex ← if ← ops.lessEqual firstSpan firstRange then pure (ops.integer 1)
+        else ops.add (← ops.length range) (ops.integer 1)
+      let lastIndex ← if ← ops.lessEqual firstRange lastSpan then ops.length range
+        else pure (ops.integer 0)
+      pure (firstIndex, lastIndex)
+  if ops.isAbstractUnitRange range then ops.colon2 firstIndex lastIndex
+  else ops.colon3 firstIndex (ops.integer 1) lastIndex
+
 def _findin {R Q E T S C I ρ₁ ρ₂ : Type} [JFirst Q T] [JLast Q T] [JFirst R E] [JLast R E]
     [JStep R S] [JLt JInt64 S] [JLt S JInt64] [JLe T E] [JLe E T] [JOne I] [JZero I]
     [HSub T E T] [HSub E T E] [JCld T S C] [JCld E S C] [HAdd C JInt64 I] [JLength R I]
@@ -5325,31 +5468,51 @@ def in_AbstractChar_AbstractRange {X R T S M : Type} [JIsempty R] [JStep R S] [J
 
 /-! ## Range addition and subtraction (lines 1502-1535) -/
 
--- Reason: `_define_range_op(f)` is a metaprogram that `@eval`s three methods of `f` for `f` in `+`, `-` (lines 1524-1525); the generated methods are modelled below, generic in the operator `F` (`JScalarOp F` is `f` on scalars, `JRangeOp F` is `f` on ranges).
+inductive RangeMethodKind where
+  | ordinalRange
+  | linRange
+  | promotedRanges
+  deriving DecidableEq
+
+structure RangeMethodInstaller (F : Type) where
+  /-- Registers the generated signature with the body modelled below. -/
+  install : F → RangeMethodKind → Jl Unit
+
+/-!
+Julia source: base/range.jl:1502-1523 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+```julia
+function _define_range_op(@nospecialize f)
+    @eval begin
+        function $f(r1::OrdinalRange, r2::OrdinalRange)
+            r1l = length(r1)
+            (r1l == length(r2) ||
+             throw(DimensionMismatch("argument dimensions must match: length of r1 is $r1l, length of r2 is $(length(r2))")))
+            StepRangeLen($f(first(r1), first(r2)), $f(step(r1), step(r2)), r1l)
+        end
+
+        function $f(r1::LinRange{T}, r2::LinRange{T}) where T
+            len = r1.len
+            (len == r2.len ||
+             throw(DimensionMismatch("argument dimensions must match: length of r1 is $len, length of r2 is $(r2.len)")))
+            LinRange{T}(convert(T, $f(first(r1), first(r2))),
+                        convert(T, $f(last(r1), last(r2))), len)
+        end
+
+        $f(r1::Union{StepRangeLen, OrdinalRange, LinRange},
+           r2::Union{StepRangeLen, OrdinalRange, LinRange}) =
+               $f(promote(r1, r2)...)
+    end
+end
+```
+-/
+def defineRangeOp {F : Type} (ops : RangeMethodInstaller F) (f : F) : Jl Unit := do
+  ops.install f .ordinalRange
+  ops.install f .linRange
+  ops.install f .promotedRanges
+
+-- Reason: These top-level forms invoke the typed registrar; they are not method definitions.
 -- UNTRANSLATED
--- Source: base/range.jl:1502-1526 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
--- function _define_range_op(@nospecialize f)
---     @eval begin
---         function $f(r1::OrdinalRange, r2::OrdinalRange)
---             r1l = length(r1)
---             (r1l == length(r2) ||
---              throw(DimensionMismatch("argument dimensions must match: length of r1 is $r1l, length of r2 is $(length(r2))")))
---             StepRangeLen($f(first(r1), first(r2)), $f(step(r1), step(r2)), r1l)
---         end
--- 
---         function $f(r1::LinRange{T}, r2::LinRange{T}) where T
---             len = r1.len
---             (len == r2.len ||
---              throw(DimensionMismatch("argument dimensions must match: length of r1 is $len, length of r2 is $(r2.len)")))
---             LinRange{T}(convert(T, $f(first(r1), first(r2))),
---                         convert(T, $f(last(r1), last(r2))), len)
---         end
--- 
---         $f(r1::Union{StepRangeLen, OrdinalRange, LinRange},
---            r2::Union{StepRangeLen, OrdinalRange, LinRange}) =
---                $f(promote(r1, r2)...)
---     end
--- end
+-- Source: base/range.jl:1524-1526 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 -- _define_range_op(:+)
 -- _define_range_op(:-)
 -- 
@@ -5774,19 +5937,3458 @@ def show_LogRange {T X : Type} [JShowType T] [JFirst (LogRange T X) T] [JLast (L
   out := out ++ ")"
   return out
 
--- Reason: `_resolve_in_world` validates a binding partition of the running system image for the `@world` macro (essentials.jl); it operates on compiler world-age state, which this model does not represent.
+-- Reason: A comment.
 -- UNTRANSLATED
--- Source: base/range.jl:1737-1746 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- Source: base/range.jl:1737-1738 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 -- # Implementation detail of @world
 -- # The rest of this is defined in essentials.jl, but UnitRange is not available
--- function _resolve_in_world(worlds::UnitRange, gr::GlobalRef)
---     # Validate that this binding's reference covers the entire world range
---     bpart = lookup_binding_partition(UInt(first(worlds)), gr)
---     if bpart.max_world < last(worlds)
---         error("Binding does not cover the full world range")
---     end
---     _resolve_in_world(UInt(last(worlds)), gr)
--- end
 -- /Source
 
+
+/--
+Julia source: base/range.jl:1739-1746 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+```julia
+function _resolve_in_world(worlds::UnitRange, gr::GlobalRef)
+    # Validate that this binding's reference covers the entire world range
+    bpart = lookup_binding_partition(UInt(first(worlds)), gr)
+    if bpart.max_world < last(worlds)
+        error("Binding does not cover the full world range")
+    end
+    _resolve_in_world(UInt(last(worlds)), gr)
+end
+```
+-/
+-- Source: base/range.jl:1739-1746 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+def resolveInWorldRange {T E F GR BP Out : Type}
+    (first : UnitRange T → JlX E) (toUIntFirst : E → JlX (JInt .u64))
+    (lookup : JInt .u64 → GR → JlX BP) (maxWorld : BP → JInt .u64)
+    (last : UnitRange T → JlX F) (less : JInt .u64 → F → JlX Bool)
+    (toUIntLast : F → JlX (JInt .u64)) (resolve : JInt .u64 → GR → JlX Out)
+    (worlds : UnitRange T) (gr : GR) : JlX Out := do
+  let bpart ← lookup (← toUIntFirst (← first worlds)) gr
+  if ← less (maxWorld bpart) (← last worlds) then
+    throw (.errorException "Binding does not cover the full world range")
+  resolve (← toUIntLast (← last worlds)) gr
+
+-- Source: base/range.jl:1739-1746 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+def _resolve_in_world {GR BP α : Type} (lookup_binding_partition : JInt .u64 → GR → JlX BP)
+    (max_world : BP → JInt .u64) (resolveInWorldUInt : JInt .u64 → GR → JlX α)
+    (worlds : UnitRange JInt64) (gr : GR) : JlX α :=
+  let toUInt (x : JInt64) : JlX (JInt .u64) :=
+    (JInt.convert "convert" .u64 x.val).mapError .jl
+  resolveInWorldRange (fun r => .ok r.start) toUInt lookup_binding_partition max_world
+    (fun r => .ok r.stop) (fun a b => .ok (decide (a.val < b.val)))
+    toUInt resolveInWorldUInt worlds gr
+
+/-! The `Int` instances behind `colon_T_T_Real` at `T = Int`, so a model can call range.jl:5
+without importing a proof file. -/
+
+section IntRangeInstances
+
+variable {s t : IntTy}
+
+open JuliaLean.base.range
+open JuliaLean.base.int (le lit subWrap)
+
+/-- A `base/int.jl` computation inside a range method: its `JlError` is the range exception. -/
+def liftJl {α : Type} (x : Jl α) : JlX α :=
+  match x with
+  | .ok v => .ok v
+  | .error e => .error (.jl e)
+
+/-- `x <= y` on BitIntegers (`base/int.jl`). -/
+instance : JLe (JInt s) (JInt t) := ⟨le⟩
+/-- `oneunit(T) = T(one(T))` (`number.jl`). -/
+instance : JOneunit (JInt t) := ⟨lit t 1⟩
+/-- `x -% y` (`base/int.jl:92`). -/
+instance : JWrappingSub (JInt t) (JInt t) (JInt t) := ⟨subWrap⟩
+/-- range.jl:36. -/
+instance : JRangeWrappingSub (JInt t) (JInt t) (JInt t) := ⟨_range_wrapping_sub_BitInteger⟩
+/-- `convert(T, x)` between BitIntegers (`boot.jl` checked conversions, `base/int.jl`). -/
+instance : JConvert (JInt t) (JInt s) := ⟨fun x => liftJl (JuliaLean.base.int.convert t x)⟩
+/-- `unitrange_last(start::Integer, stop::Integer)`, range.jl:439. -/
+instance : JUnitrangeLast (JInt t) (JInt t) := ⟨unitrange_last_Integer⟩
+/-- `UnitRange{T}(start::T, stop::T)`, range.jl:428. -/
+instance : JUnitRangeT (JInt t) (JInt t) (JInt t) := ⟨UnitRange_T_new⟩
+
+end IntRangeInstances
+
 end JuliaLean.base.range
+
+namespace JuliaLean.base.range.Models1Group7
+
+open JuliaLean
+
+/-- Closed BitInteger instantiation of the existing Bool conversion model.
+Julia source: base/bool.jl:170-170 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027. -/
+-- Source: base/bool.jl:170-170 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- Bool(x::Real) = x==0 ? false : x==1 ? true : throw(InexactError(:Bool, Bool, x))
+-- /Source
+def boolOfBitInteger {t : IntTy} (x : JInt t) : JlX Bool :=
+  liftJl (JuliaLean.base.bool.boolFromReal
+    (fun value n => pure (JuliaLean.base.int.eq value (jint n))) x)
+
+/-- The empty integer-range endpoint has the independently specified stop type.
+The two arithmetic branches may have different intermediate result types; the declared
+Julia return type converts only the branch actually selected.
+Julia source: base/range.jl:389-398 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027. -/
+-- Source: base/range.jl:389-398 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function steprange_last_empty(start::Integer, step, stop)::typeof(stop)
+--     # empty range has a special representation where stop = start-1,
+--     # which simplifies arithmetic for Signed numbers
+--     if step > zero(step)
+--         last = _range_wrapping_sub(start, oneunit(step))
+--     else
+--         last = _range_wrapping_add(start, oneunit(step))
+--     end
+--     return last
+-- end
+-- /Source
+def steprangeLastEmptyInteger {A S T D P : Type}
+    [JZero S] [JLt S S] [JOneunit S]
+    [JRangeWrappingSub A S D] [JRangeWrappingAdd A S P]
+    [JConvert T D] [JConvert T P]
+    (start : A) (step : S) (stop : T) : JlX T := do
+  let last : D ⊕ P :=
+    if JLt.lt (JZero.zero : S) step then
+      .inl (JRangeWrappingSub.rangeWrappingSub start (JOneunit.oneunit : S))
+    else
+      .inr (JRangeWrappingAdd.rangeWrappingAdd start (JOneunit.oneunit : S))
+  match last with
+  | .inl value => JConvert.convert (T := T) value
+  | .inr value => JConvert.convert (T := T) value
+
+/-- The Bool empty-endpoint helper ignores stop, with no restriction on its type.
+There is no declared return conversion in this specialization.
+Julia source: base/range.jl:399-399 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027. -/
+-- Source: base/range.jl:399-399 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- steprange_last_empty(start::Bool, step, stop) = start ⊻ (step > zero(step)) # isnegative(step) ? start : !start
+-- /Source
+def steprangeLastEmptyBool {S B : Type} [JZero S] [JLt S S]
+    (start : Bool) (step : S) (stop : B) : JlX Bool :=
+  pure (xor start (JLt.lt (JZero.zero : S) step))
+
+/-- OneTo scalar construction with the conversion performed by new.
+The intermediate max result has its own type M. The existing Bool error helper is reused.
+The field conversion is mandated by doc/src/manual/conversion-and-promotion.md:99-107.
+Julia source: base/range.jl:487-491 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027. -/
+-- Source: base/range.jl:487-491 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+--     function OneTo{T}(stop) where {T<:Integer}
+--         throwbool(r)  = (@noinline; throw(ArgumentError("invalid index: $r of type Bool")))
+--         T === Bool && throwbool(stop)
+--         return new(max(zero(T), stop))
+--     end
+-- /Source
+def oneToStop {T A M : Type} [JType T] [JPrint A] [JZero T]
+    [JMax T A M] [JConvert T M] (stop : A) : JlX (OneTo T) := do
+  if JType.isBool T then
+    OneTo_T.throwbool stop
+  let value ← JMax.max (JZero.zero : T) stop
+  let stored ← JConvert.convert (T := T) value
+  return ⟨stored⟩
+
+/-- OneTo range construction keeps the first/step/Bool checks and their error order.
+The existing throw helpers perform their additional first/step observation at the original
+point. Only after these checks are last, max and the implicit field conversion evaluated.
+First and last may have independently represented result types.
+Julia source: base/range.jl:493-501 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027. -/
+-- Source: base/range.jl:493-501 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+--     function OneTo{T}(r::AbstractRange) where {T<:Integer}
+--         throwstart(r) = (@noinline; throw(ArgumentError("first element must be 1, got $(first(r))")))
+--         throwstep(r)  = (@noinline; throw(ArgumentError("step must be 1, got $(step(r))")))
+--         throwbool(r)  = (@noinline; throw(ArgumentError("invalid index: $r of type Bool")))
+--         first(r) == 1 || throwstart(r)
+--         step(r)  == 1 || throwstep(r)
+--         T === Bool && throwbool(r)
+--         return new(max(zero(T), last(r)))
+--     end
+-- /Source
+def oneToRange {T R F S E M : Type}
+    [JFirst R F] [JPrint F] [JEq F JInt64]
+    [JStep R S] [JPrint S] [JEq S JInt64]
+    [JType T] [JPrint R] [JLast R E] [JZero T]
+    [JMax T E M] [JConvert T M] (r : R) : JlX (OneTo T) := do
+  unless JEq.eq (← JFirst.first r) (jint 1) do
+    OneTo_T_range.throwstart r
+  unless JEq.eq (← JStep.step r) (jint 1) do
+    OneTo_T_range.throwstep r
+  if JType.isBool T then
+    OneTo_T_range.throwbool r
+  let zero : T := JZero.zero
+  let last ← JLast.last r
+  let value ← JMax.max zero last
+  let stored ← JConvert.convert (T := T) value
+  return ⟨stored⟩
+
+
+/-- StepRangeLen inner construction keeps the chained offset comparison short-circuited.
+The upper bound and max are evaluated only after the lower bound succeeds. The maximum
+may have an independent intermediate type M; no new interface class is introduced.
+Julia source: base/range.jl:533-543 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027. -/
+-- Source: base/range.jl:533-543 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+--     function StepRangeLen{T,R,S,L}(ref::R, step::S, len::Integer, offset::Integer = 1) where {T,R,S,L}
+--         if T <: Integer && !isinteger(ref + step)
+--             throw(ArgumentError("StepRangeLen{<:Integer} cannot have non-integer step"))
+--         end
+--         len = convert(L, len)
+--         len >= zero(len) || throw(ArgumentError("length cannot be negative, got $len"))
+--         offset = convert(L, offset)
+--         L1 = oneunit(typeof(len))
+--         L1 <= offset <= max(L1, len) || throw(ArgumentError("StepRangeLen: offset must be in [1,$len], got $offset"))
+--         return new(ref, step, len, offset)
+--     end
+-- /Source
+def stepRangeLenNew (T : Type) {R S X L N O M : Type}
+    [JType T] [HAdd R S X] [JIsinteger X]
+    [JConvert L N] [JZero L] [JLe L L] [JPrint L]
+    [JConvert L O] [JOneunit L] [JMax L L M] [JLe L M]
+    (ref : R) (step : S) (len : N) (offset : O) :
+    JlX (StepRangeLen T R S L) := do
+  if JType.isInteger T then
+    unless JIsinteger.isinteger (ref + step) do
+      throw (.jl (.argumentError "StepRangeLen{<:Integer} cannot have non-integer step"))
+  let len ← JConvert.convert (T := L) len
+  unless JLe.le (JZero.zero : L) len do
+    throw (.jl (.argumentError ("length cannot be negative, got " ++ JPrint.print len)))
+  let offset ← JConvert.convert (T := L) offset
+  let L1 : L := JOneunit.oneunit
+  unless JLe.le L1 offset do
+    throw (.jl (.argumentError ("StepRangeLen: offset must be in [1," ++ JPrint.print len ++
+      "], got " ++ JPrint.print offset)))
+  unless JLe.le offset (← JMax.max L1 len) do
+    throw (.jl (.argumentError ("StepRangeLen: offset must be in [1," ++ JPrint.print len ++
+      "], got " ++ JPrint.print offset)))
+  return ⟨ref, step, len, offset⟩
+
+/-- The generated shorter StepRangeLen inner-constructor method supplies the Int literal 1.
+The full source body above is shared through stepRangeLenNew.
+Julia source: base/range.jl:533-543 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027. -/
+-- Source: base/range.jl:533-543 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+--     function StepRangeLen{T,R,S,L}(ref::R, step::S, len::Integer, offset::Integer = 1) where {T,R,S,L}
+--         if T <: Integer && !isinteger(ref + step)
+--             throw(ArgumentError("StepRangeLen{<:Integer} cannot have non-integer step"))
+--         end
+--         len = convert(L, len)
+--         len >= zero(len) || throw(ArgumentError("length cannot be negative, got $len"))
+--         offset = convert(L, offset)
+--         L1 = oneunit(typeof(len))
+--         L1 <= offset <= max(L1, len) || throw(ArgumentError("StepRangeLen: offset must be in [1,$len], got $offset"))
+--         return new(ref, step, len, offset)
+--     end
+-- /Source
+def stepRangeLenNewDefault (T : Type) {R S X L N M : Type}
+    [JType T] [HAdd R S X] [JIsinteger X]
+    [JConvert L N] [JZero L] [JLe L L] [JPrint L]
+    [JConvert L JInt64] [JOneunit L] [JMax L L M] [JLe L M]
+    (ref : R) (step : S) (len : N) : JlX (StepRangeLen T R S L) :=
+  stepRangeLenNew T ref step len (jint 1)
+
+/-- LinRange inner construction permits the subtraction and maximum to change the
+length type, including the Bool length case. The stored lendiv is converted only at new.
+The integer-only remainder test is explicitly short-circuited; noninteger endpoints do not
+evaluate the remainder callee. All other callees remain the original explicit interface.
+Julia source: base/range.jl:597-609 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027. -/
+-- Source: base/range.jl:597-609 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+--     function LinRange{T,L}(start::T, stop::T, len::L) where {T,L<:Integer}
+--         len >= 0 || throw(ArgumentError("range($start, stop=$stop, length=$len): negative length"))
+--         onelen = oneunit(typeof(len))
+--         if len == onelen
+--             start == stop || throw(ArgumentError("range($start, stop=$stop, length=$len): endpoints differ"))
+--             return new(start, stop, len, len)
+--         end
+--         lendiv = max(len - onelen, onelen)
+--         if T <: Integer && !iszero(mod(stop-start, lendiv))
+--             throw(ArgumentError("LinRange{<:Integer} cannot have non-integer step"))
+--         end
+--         return new(start, stop, len, lendiv)
+--     end
+-- /Source
+def linRangeNew {T L D M A B : Type}
+    [JLe JInt64 L] [JPrint T] [JPrint L] [JOneunit L]
+    [JEq L L] [JEq T T] [HSub L L D] [JMax D L M]
+    [JType T] [HSub T T A] [JMod A M B] [JIszero B]
+    [JConvert L M] (start stop : T) (len : L) : JlX (LinRange T L) := do
+  unless JLe.le (jint 0) len do
+    throw (.jl (.argumentError ("range(" ++ JPrint.print start ++ ", stop=" ++
+      JPrint.print stop ++ ", length=" ++ JPrint.print len ++ "): negative length")))
+  let onelen : L := JOneunit.oneunit
+  if JEq.eq len onelen then
+    unless JEq.eq start stop do
+      throw (.jl (.argumentError ("range(" ++ JPrint.print start ++ ", stop=" ++
+        JPrint.print stop ++ ", length=" ++ JPrint.print len ++ "): endpoints differ")))
+    return ⟨start, stop, len, len⟩
+  let lendiv ← JMax.max (len - onelen) onelen
+  if JType.isInteger T then
+    let remainder ← JMod.mod (stop - start) lendiv
+    unless JIszero.iszero remainder do
+      throw (.jl (.argumentError "LinRange{<:Integer} cannot have non-integer step"))
+  let storedDiv ← JConvert.convert (T := L) lendiv
+  return ⟨start, stop, len, storedDiv⟩
+
+end JuliaLean.base.range.Models1Group7
+
+/-! Closed dispatch bindings for the OneTo constructors.
+All dictionaries here are closed values, installed only with letI. They add no global instances.
+The concrete numeric domain is the ten BitInteger types; the range domain is Int64 StepRange.
+The existing pure JPrint boundary observes decimal text, not general mutable IO execution.
+-/
+namespace JuliaLean.base.range.Models1Group7
+
+open JuliaLean
+
+/-- Closed type metadata for a machine integer; this is dispatch data, not an invented callee. -/
+def oneToBitIntegerType (t : IntTy) : JType (JInt t) where
+  isBool := false
+  isSigned := t.signed
+  isInteger := true
+  isAbstractFloat := false
+  bool_eq := by intro h; cases h
+
+/-- Closed Bool type metadata for the existing dispatch boundary. -/
+def oneToBoolType : JType Bool where
+  isBool := true
+  isSigned := false
+  isInteger := true
+  isAbstractFloat := false
+  bool_eq := fun _ => rfl
+
+/-- Closed BitInteger instantiation of OneTo scalar construction, base/range.jl:487.
+The numeric operations are the existing int.jl models. Decimal JPrint is the same pure
+observation boundary used by the frozen proof world; it handles every signed/unsigned input.
+No callee or correctness law is supplied by the user of this function. -/
+-- Source: base/range.jl:487-491 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+--     function OneTo{T}(stop) where {T<:Integer}
+--         throwbool(r)  = (@noinline; throw(ArgumentError("invalid index: $r of type Bool")))
+--         T === Bool && throwbool(stop)
+--         return new(max(zero(T), stop))
+--     end
+-- /Source
+def oneToStopBits (target source : IntTy) (stop : JInt source) :
+    JlX (OneTo (JInt target)) :=
+  letI : JType (JInt target) := oneToBitIntegerType target
+  letI : JPrint (JInt source) := ⟨fun x => toString x.val⟩
+  letI : JZero (JInt target) := ⟨JuliaLean.base.int.lit target 0⟩
+  letI : JMax (JInt target) (JInt source) (JInt (target.promote source)) :=
+    ⟨fun x y => pure (JuliaLean.base.int.jmax x y)⟩
+  letI : JConvert (JInt target) (JInt (target.promote source)) :=
+    ⟨fun x => liftJl (JuliaLean.base.int.convert target x)⟩
+  oneToStop (T := JInt target) (M := JInt (target.promote source)) stop
+
+/-- Closed Bool-target instantiation for every BitInteger stop, base/range.jl:487.
+The otherwise unreachable numeric dictionaries are nevertheless genuine: Bool promotes to
+its numeric partner (base/bool.jl:6), and boolOfBitInteger implements base/bool.jl:170.
+No default-value substitute is used for a failing conversion. -/
+-- Source: base/range.jl:487-491 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+--     function OneTo{T}(stop) where {T<:Integer}
+--         throwbool(r)  = (@noinline; throw(ArgumentError("invalid index: $r of type Bool")))
+--         T === Bool && throwbool(stop)
+--         return new(max(zero(T), stop))
+--     end
+-- /Source
+def oneToStopBitsBoolTarget (source : IntTy) (stop : JInt source) :
+    JlX (OneTo Bool) :=
+  letI : JType Bool := oneToBoolType
+  letI : JPrint (JInt source) := ⟨fun x => toString x.val⟩
+  letI : JZero Bool := ⟨false⟩
+  letI : JMax Bool (JInt source) (JInt source) :=
+    ⟨fun x y => pure (JuliaLean.base.int.remT source
+      (JuliaLean.base.int.jmax (JuliaLean.base.int.ofBool source x) y))⟩
+  letI : JConvert Bool (JInt source) := ⟨boolOfBitInteger⟩
+  oneToStop (T := Bool) (M := JInt source) stop
+
+/-- Closed OneTo conversion of an Int64 StepRange, base/range.jl:493.
+first, step, and last call the frozen range models. Printing is a closed interpretation of
+the existing JPrint text boundary; its value is truthful even on the unused Bool-error path.
+The corresponding property restricts raw records only by a constructible-field invariant. -/
+-- Source: base/range.jl:493-501 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+--     function OneTo{T}(r::AbstractRange) where {T<:Integer}
+--         throwstart(r) = (@noinline; throw(ArgumentError("first element must be 1, got $(first(r))")))
+--         throwstep(r)  = (@noinline; throw(ArgumentError("step must be 1, got $(step(r))")))
+--         throwbool(r)  = (@noinline; throw(ArgumentError("invalid index: $r of type Bool")))
+--         first(r) == 1 || throwstart(r)
+--         step(r)  == 1 || throwstep(r)
+--         T === Bool && throwbool(r)
+--         return new(max(zero(T), last(r)))
+--     end
+-- /Source
+def oneToRangeI64 (target : IntTy) (r : StepRange JInt64 JInt64) :
+    JlX (OneTo (JInt target)) :=
+  letI : JType (JInt target) := oneToBitIntegerType target
+  letI : JPrint JInt64 := ⟨fun x => toString x.val⟩
+  letI : JEq JInt64 JInt64 := ⟨JuliaLean.base.int.eq⟩
+  letI : JConvert JInt64 JInt64 :=
+    ⟨fun x => liftJl (JuliaLean.base.int.convert .i64 x)⟩
+  letI : JEltype (StepRange JInt64 JInt64) JInt64 := ⟨⟩
+  letI : JFieldStart (StepRange JInt64 JInt64) JInt64 := ⟨StepRange.start⟩
+  letI : JFieldStop (StepRange JInt64 JInt64) JInt64 := ⟨StepRange.stop⟩
+  letI : JFirst (StepRange JInt64 JInt64) JInt64 := ⟨first_OrdinalRange⟩
+  letI : JStep (StepRange JInt64 JInt64) JInt64 := ⟨fun q => pure (step_StepRange q)⟩
+  letI : JLast (StepRange JInt64 JInt64) JInt64 := ⟨last_OrdinalRange⟩
+  -- Concrete interpretation of the EXISTING pure JPrint observation boundary.
+  -- Default Int64 StepRange interpolation uses range.jl:1135 and Signed repr:
+  -- decimal first, ':', decimal step, ':', decimal last.
+  -- This does not introduce or claim a replacement mutable IO/show model.
+  letI : JPrint (StepRange JInt64 JInt64) :=
+    ⟨fun q => toString q.start.val ++ ":" ++ toString q.step.val ++ ":" ++ toString q.stop.val⟩
+  letI : JZero (JInt target) := ⟨JuliaLean.base.int.lit target 0⟩
+  letI : JMax (JInt target) JInt64 (JInt (target.promote .i64)) :=
+    ⟨fun x y => pure (JuliaLean.base.int.jmax x y)⟩
+  letI : JConvert (JInt target) (JInt (target.promote .i64)) :=
+    ⟨fun x => liftJl (JuliaLean.base.int.convert target x)⟩
+  oneToRange (T := JInt target) (F := JInt64) (S := JInt64) (E := JInt64)
+    (M := JInt (target.promote .i64)) r
+
+/-- Closed Bool-target OneTo conversion of an Int64 StepRange, base/range.jl:493.
+This exercises the source priority first check, then step check, then Bool rejection.
+The max and Bool conversion bindings remain correct although that final path cannot run. -/
+-- Source: base/range.jl:493-501 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+--     function OneTo{T}(r::AbstractRange) where {T<:Integer}
+--         throwstart(r) = (@noinline; throw(ArgumentError("first element must be 1, got $(first(r))")))
+--         throwstep(r)  = (@noinline; throw(ArgumentError("step must be 1, got $(step(r))")))
+--         throwbool(r)  = (@noinline; throw(ArgumentError("invalid index: $r of type Bool")))
+--         first(r) == 1 || throwstart(r)
+--         step(r)  == 1 || throwstep(r)
+--         T === Bool && throwbool(r)
+--         return new(max(zero(T), last(r)))
+--     end
+-- /Source
+def oneToRangeI64BoolTarget (r : StepRange JInt64 JInt64) : JlX (OneTo Bool) :=
+  letI : JType Bool := oneToBoolType
+  letI : JPrint JInt64 := ⟨fun x => toString x.val⟩
+  letI : JEq JInt64 JInt64 := ⟨JuliaLean.base.int.eq⟩
+  letI : JConvert JInt64 JInt64 :=
+    ⟨fun x => liftJl (JuliaLean.base.int.convert .i64 x)⟩
+  letI : JEltype (StepRange JInt64 JInt64) JInt64 := ⟨⟩
+  letI : JFieldStart (StepRange JInt64 JInt64) JInt64 := ⟨StepRange.start⟩
+  letI : JFieldStop (StepRange JInt64 JInt64) JInt64 := ⟨StepRange.stop⟩
+  letI : JFirst (StepRange JInt64 JInt64) JInt64 := ⟨first_OrdinalRange⟩
+  letI : JStep (StepRange JInt64 JInt64) JInt64 := ⟨fun q => pure (step_StepRange q)⟩
+  letI : JLast (StepRange JInt64 JInt64) JInt64 := ⟨last_OrdinalRange⟩
+  -- Concrete interpretation of the EXISTING pure JPrint observation boundary.
+  -- Default Int64 StepRange interpolation uses range.jl:1135 and Signed repr:
+  -- decimal first, ':', decimal step, ':', decimal last.
+  -- This does not introduce or claim a replacement mutable IO/show model.
+  letI : JPrint (StepRange JInt64 JInt64) :=
+    ⟨fun q => toString q.start.val ++ ":" ++ toString q.step.val ++ ":" ++ toString q.stop.val⟩
+  letI : JZero Bool := ⟨false⟩
+  letI : JMax Bool JInt64 JInt64 :=
+    ⟨fun x y => pure (JuliaLean.base.int.remT .i64
+      (JuliaLean.base.int.jmax (JuliaLean.base.int.ofBool .i64 x) y))⟩
+  letI : JConvert Bool JInt64 := ⟨boolOfBitInteger⟩
+  oneToRange (T := Bool) (F := JInt64) (S := JInt64) (E := JInt64) (M := JInt64) r
+
+end JuliaLean.base.range.Models1Group7
+
+
+namespace JuliaLean.base.range.Models1Group7
+
+open JuliaLean
+
+/-- Closed BitInteger dispatch for the repaired StepRangeLen inner constructor. Every
+scalar argument and stored length uses JInt. Arithmetic, comparisons, maximum and conversion
+call imported base.int models. The concrete isinteger binding is the constant Integer method
+of base/number.jl:22; type tests are exact facts about the selected IntTy.
+Julia source: base/range.jl:533-543 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027. -/
+-- Source: base/range.jl:533-543 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+--     function StepRangeLen{T,R,S,L}(ref::R, step::S, len::Integer, offset::Integer = 1) where {T,R,S,L}
+--         if T <: Integer && !isinteger(ref + step)
+--             throw(ArgumentError("StepRangeLen{<:Integer} cannot have non-integer step"))
+--         end
+--         len = convert(L, len)
+--         len >= zero(len) || throw(ArgumentError("length cannot be negative, got $len"))
+--         offset = convert(L, offset)
+--         L1 = oneunit(typeof(len))
+--         L1 <= offset <= max(L1, len) || throw(ArgumentError("StepRangeLen: offset must be in [1,$len], got $offset"))
+--         return new(ref, step, len, offset)
+--     end
+-- /Source
+def stepRangeLenBits (t l : IntTy) {r s n o : IntTy}
+    (ref : JInt r) (step : JInt s) (len : JInt n) (offset : JInt o) :
+    JlX (StepRangeLen (JInt t) (JInt r) (JInt s) (JInt l)) :=
+  letI : JType (JInt t) :=
+    { isBool := false, isSigned := t.signed, isInteger := true,
+      isAbstractFloat := false, bool_eq := by intro h; cases h }
+  letI : HAdd (JInt r) (JInt s) (JInt (r.promote s)) :=
+    ⟨fun x y => JuliaLean.base.int.binop JuliaLean.base.int.add x y⟩
+  letI : JIsinteger (JInt (r.promote s)) := ⟨fun _ => true⟩
+  letI : JConvert (JInt l) (JInt n) :=
+    ⟨fun x => liftJl (JuliaLean.base.int.convert l x)⟩
+  letI : JConvert (JInt l) (JInt o) :=
+    ⟨fun x => liftJl (JuliaLean.base.int.convert l x)⟩
+  letI : JZero (JInt l) := ⟨JuliaLean.base.int.lit l 0⟩
+  letI : JLe (JInt l) (JInt l) := ⟨JuliaLean.base.int.le⟩
+  letI : JPrint (JInt l) := ⟨fun x => toString x.val⟩
+  letI : JOneunit (JInt l) := ⟨JuliaLean.base.int.lit l 1⟩
+  letI : JMax (JInt l) (JInt l) (JInt (l.promote l)) :=
+    ⟨fun x y => pure (JuliaLean.base.int.jmax x y)⟩
+  letI : JLe (JInt l) (JInt (l.promote l)) := ⟨JuliaLean.base.int.le⟩
+  stepRangeLenNew (JInt t) (L := JInt l) ref step len offset
+
+/-- Closed BitInteger dispatch for the generated default-offset constructor. The default
+is the Julia Int value one, including when the explicit length has another machine type.
+Julia source: base/range.jl:533-543 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027. -/
+-- Source: base/range.jl:533-543 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+--     function StepRangeLen{T,R,S,L}(ref::R, step::S, len::Integer, offset::Integer = 1) where {T,R,S,L}
+--         if T <: Integer && !isinteger(ref + step)
+--             throw(ArgumentError("StepRangeLen{<:Integer} cannot have non-integer step"))
+--         end
+--         len = convert(L, len)
+--         len >= zero(len) || throw(ArgumentError("length cannot be negative, got $len"))
+--         offset = convert(L, offset)
+--         L1 = oneunit(typeof(len))
+--         L1 <= offset <= max(L1, len) || throw(ArgumentError("StepRangeLen: offset must be in [1,$len], got $offset"))
+--         return new(ref, step, len, offset)
+--     end
+-- /Source
+def stepRangeLenBitsDefault (t l : IntTy) {r s n : IntTy}
+    (ref : JInt r) (step : JInt s) (len : JInt n) :
+    JlX (StepRangeLen (JInt t) (JInt r) (JInt s) (JInt l)) :=
+  letI : JType (JInt t) :=
+    { isBool := false, isSigned := t.signed, isInteger := true,
+      isAbstractFloat := false, bool_eq := by intro h; cases h }
+  letI : HAdd (JInt r) (JInt s) (JInt (r.promote s)) :=
+    ⟨fun x y => JuliaLean.base.int.binop JuliaLean.base.int.add x y⟩
+  letI : JIsinteger (JInt (r.promote s)) := ⟨fun _ => true⟩
+  letI : JConvert (JInt l) (JInt n) :=
+    ⟨fun x => liftJl (JuliaLean.base.int.convert l x)⟩
+  letI : JConvert (JInt l) JInt64 :=
+    ⟨fun x => liftJl (JuliaLean.base.int.convert l x)⟩
+  letI : JZero (JInt l) := ⟨JuliaLean.base.int.lit l 0⟩
+  letI : JLe (JInt l) (JInt l) := ⟨JuliaLean.base.int.le⟩
+  letI : JPrint (JInt l) := ⟨fun x => toString x.val⟩
+  letI : JOneunit (JInt l) := ⟨JuliaLean.base.int.lit l 1⟩
+  letI : JMax (JInt l) (JInt l) (JInt (l.promote l)) :=
+    ⟨fun x y => pure (JuliaLean.base.int.jmax x y)⟩
+  letI : JLe (JInt l) (JInt (l.promote l)) := ⟨JuliaLean.base.int.le⟩
+  stepRangeLenNewDefault (JInt t) (L := JInt l) ref step len
+
+/-- Closed Int64-endpoint, Bool-length dispatch of linRangeNew. Both Bool lengths and
+all Int64 endpoints are represented, including overflowing endpoint subtraction. Required
+Bool subtraction/conversion are concrete local source models. The promoted max returns Int64
+until the final Bool field conversion.
+Julia source: base/range.jl:597-609 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027. -/
+-- Source: base/range.jl:597-609 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+--     function LinRange{T,L}(start::T, stop::T, len::L) where {T,L<:Integer}
+--         len >= 0 || throw(ArgumentError("range($start, stop=$stop, length=$len): negative length"))
+--         onelen = oneunit(typeof(len))
+--         if len == onelen
+--             start == stop || throw(ArgumentError("range($start, stop=$stop, length=$len): endpoints differ"))
+--             return new(start, stop, len, len)
+--         end
+--         lendiv = max(len - onelen, onelen)
+--         if T <: Integer && !iszero(mod(stop-start, lendiv))
+--             throw(ArgumentError("LinRange{<:Integer} cannot have non-integer step"))
+--         end
+--         return new(start, stop, len, lendiv)
+--     end
+-- /Source
+def linRangeBoolLength (start stop : JInt64) (len : Bool) : JlX (LinRange JInt64 Bool) :=
+  letI : JLe JInt64 Bool :=
+    ⟨fun x y => JuliaLean.base.int.le x (JuliaLean.base.int.ofBool .i64 y)⟩
+  letI : JPrint JInt64 := ⟨fun x => toString x.val⟩
+  letI : JPrint Bool := ⟨fun b => if b then "true" else "false"⟩
+  letI : JOneunit Bool := ⟨true⟩
+  letI : JEq Bool Bool := ⟨fun x y => x == y⟩
+  letI : JEq JInt64 JInt64 := ⟨JuliaLean.base.int.eq⟩
+  letI : HSub Bool Bool JInt64 := ⟨JuliaLean.base.bool.subBool⟩
+  letI : JMax JInt64 Bool JInt64 :=
+    ⟨fun x y => pure (JuliaLean.base.int.jmax x (JuliaLean.base.int.ofBool .i64 y))⟩
+  letI : JType JInt64 :=
+    { isBool := false, isSigned := true, isInteger := true,
+      isAbstractFloat := false, bool_eq := by intro h; cases h }
+  letI : HSub JInt64 JInt64 JInt64 := ⟨JuliaLean.base.int.sub⟩
+  letI : JMod JInt64 JInt64 JInt64 :=
+    ⟨fun x y => liftJl (JuliaLean.base.int.mod_BitSigned JInt.fld x y)⟩
+  letI : JIszero JInt64 := ⟨fun x => JuliaLean.base.int.eq x (jint 0)⟩
+  letI : JConvert Bool JInt64 := ⟨boolOfBitInteger⟩
+  linRangeNew start stop len
+
+end JuliaLean.base.range.Models1Group7
+
+namespace JuliaLean.base.range.Models1Group8
+
+open JuliaLean
+
+/-- Explicit iteration with the actual type of `i + oneunit(i)`.
+The source accepts Bool states, whose increment has type Int64. All calls use the
+unchanged pre-existing dispatch interfaces; no callee correctness is assumed.
+Julia source: base/range.jl:928-933 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027. -/
+-- Source: base/range.jl:928-933 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function iterate(r::Union{StepRangeLen,LinRange}, i::Integer=zero(length(r)))
+--     @inline
+--     i += oneunit(i)
+--     length(r) < i && return nothing
+--     unsafe_getindex(r, i), i
+-- end
+-- /Source
+def iterateStepRangeLenLinRange {R I J L T : Type}
+    [JOneunit I] [HAdd I I J] [JLength R L] [JLt L J] [JUnsafeGetindex R J T]
+    (r : R) (i : I) : JlX (Option (T × J)) := do
+  let nextIndex : J := i + (JOneunit.oneunit : I)
+  let len ← JLength.length r
+  if JLt.lt len nextIndex then return none
+  let value ← JUnsafeGetindex.unsafeGetindex r nextIndex
+  return some (value, nextIndex)
+
+/-- The generated default-argument iteration method. It evaluates `length(r)` to
+obtain the default's type/value before entering the explicit method, which evaluates
+length again. Direct reuse of the generalized body permits a different returned state
+type, unlike the baseline fixed-state `JIterate2` interface.
+Julia source: base/range.jl:928-933 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027. -/
+-- Source: base/range.jl:928-933 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function iterate(r::Union{StepRangeLen,LinRange}, i::Integer=zero(length(r)))
+--     @inline
+--     i += oneunit(i)
+--     length(r) < i && return nothing
+--     unsafe_getindex(r, i), i
+-- end
+-- /Source
+def iterateStepRangeLenLinRangeDefault {R L J T : Type}
+    [JLength R L] [JZero L] [JOneunit L] [HAdd L L J]
+    [JLt L J] [JUnsafeGetindex R J T]
+    (r : R) : JlX (Option (T × J)) := do
+  let _len ← JLength.length r
+  iterateStepRangeLenLinRange (J := J) r (JZero.zero : L)
+
+/-- Concrete dispatch for every Int64-field StepRangeLen and Bool iteration state.
+The Bool addition dependency is exactly `base/bool.jl:145`: Int(x) +% Int(y),
+using the existing int.jl conversion and wrapping-add models. Length and unsafe
+indexing reuse their existing range.jl models. This is a specialization, not an
+extra Julia method or a claim about arbitrary numeric implementations.
+Julia source: base/range.jl:928-933 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027. -/
+-- Source: base/range.jl:928-933 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function iterate(r::Union{StepRangeLen,LinRange}, i::Integer=zero(length(r)))
+--     @inline
+--     i += oneunit(i)
+--     length(r) < i && return nothing
+--     unsafe_getindex(r, i), i
+-- end
+-- /Source
+def iterateInt64RangeWithBool
+    (r : StepRangeLen JInt64 JInt64 JInt64 JInt64) (i : Bool) :
+    JlX (Option (JInt64 × JInt64)) :=
+  letI : JOneunit Bool := ⟨true⟩
+  letI : HAdd Bool Bool JInt64 := ⟨fun x y =>
+    JuliaLean.base.int.addWrap (JuliaLean.base.int.ofBool .i64 x)
+      (JuliaLean.base.int.ofBool .i64 y)⟩
+  letI : JLength (StepRangeLen JInt64 JInt64 JInt64 JInt64) JInt64 :=
+    ⟨fun a => .ok (length_StepRangeLen a)⟩
+  letI : JLt JInt64 JInt64 := ⟨JuliaLean.base.int.lt⟩
+  letI : JUnsafeGetindex (StepRangeLen JInt64 JInt64 JInt64 JInt64) JInt64 JInt64 :=
+    ⟨unsafe_getindex_StepRangeLen⟩
+  iterateStepRangeLenLinRange (J := JInt64) r i
+
+/-- Unrounded index displacement can have a different type from the stored offset.
+In particular, Bool offsets subtract to Int64. Conversion to the offset type still
+happens first, and conversion to the element type still happens last.
+Julia source: base/range.jl:986-989 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027. -/
+-- Source: base/range.jl:986-989 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function unsafe_getindex(r::StepRangeLen{T}, i::Integer) where T
+--     u = oftype(r.offset, i) - r.offset
+--     convert(T, (r.ref + u*r.step))
+-- end
+-- /Source
+def unsafeGetindexStepRangeLen {T R S L I D P E : Type}
+    [JConvert L I] [HSub L L D] [HMul D S P] [HAdd R P E] [JConvert T E]
+    (r : StepRangeLen T R S L) (i : I) : JlX T := do
+  let converted ← oftype r.offset i
+  let u : D := converted - r.offset
+  JConvert.convert (T := T) (r.ref + u * r.step)
+
+/-- High-precision internal indexing with a separately typed offset difference.
+This retains the source's absence of the final conversion to the element type.
+Julia source: base/range.jl:1105-1108 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027. -/
+-- Source: base/range.jl:1105-1108 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function _getindex_hiprec(r::StepRangeLen, i::Integer)  # without rounding by T
+--     u = oftype(r.offset, i) - r.offset
+--     r.ref + u*r.step
+-- end
+-- /Source
+def getindexHiprec {T R S L I D P V : Type}
+    [JConvert L I] [HSub L L D] [HMul D S P] [HAdd R P V]
+    (r : StepRangeLen T R S L) (i : I) : JlX V := do
+  let converted ← oftype r.offset i
+  let u : D := converted - r.offset
+  return r.ref + u * r.step
+
+/-- Internal ascending-endpoint helper. The two step calls in the sign test are
+kept, including the one inside zero(step(r)). Unary plus and unary minus have
+independent result types; a sum tag records the actual type selected by the branch.
+Julia source: base/range.jl:1229-1235 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027. -/
+-- Source: base/range.jl:1229-1235 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function first_step_last_ascending(r::StepRange)
+--     if step(r) < zero(step(r))
+--         last(r), -step(r), first(r)
+--     else
+--         first(r), +step(r), last(r)
+--     end
+-- end
+-- /Source
+def firstStepLastAscending {T S N P : Type}
+    [JStep (StepRange T S) S] [JZero S] [JLt S S]
+    [JLast (StepRange T S) T] [JNeg S N]
+    [JFirst (StepRange T S) T] [JPos S P]
+    (r : StepRange T S) : JlX (T × (N ⊕ P) × T) := do
+  let step ← JStep.step r
+  let _zeroStep ← JStep.step r
+  if JLt.lt step (JZero.zero : S) then
+    let first ← JLast.last r
+    let step ← JStep.step r
+    let ascendingStep : N := JNeg.neg step
+    let last ← JFirst.first r
+    return (first, .inl ascendingStep, last)
+  else
+    let first ← JFirst.first r
+    let step ← JStep.step r
+    let ascendingStep : P := JPos.pos step
+    let last ← JLast.last r
+    return (first, .inr ascendingStep, last)
+
+/-- Internal index-of-intersection helper with the original Int64 literal types.
+The two index variables retain their branch-dependent runtime types through sums,
+as prescribed by the baseline model convention. Final colon dispatch receives those
+tags; there is no premature conversion of literal 0 or 1 to the length type.
+Julia source: base/range.jl:1296-1313 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027. -/
+-- Source: base/range.jl:1296-1313 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function _findin(r::AbstractRange{<:Integer}, span::AbstractUnitRange{<:Integer})
+--     fspan = first(span)
+--     lspan = last(span)
+--     fr = first(r)
+--     lr = last(r)
+--     sr = step(r)
+--     if sr > 0
+--         ifirst = fr >= fspan ? 1 : cld(fspan-fr, sr)+1
+--         ilast = lr <= lspan ? length(r) : length(r) - cld(lr-lspan, sr)
+--     elseif sr < 0
+--         ifirst = fr <= lspan ? 1 : cld(lspan-fr, sr)+1
+--         ilast = lr >= fspan ? length(r) : length(r) - cld(lr-fspan, sr)
+--     else
+--         ifirst = fr >= fspan ? 1 : length(r)+1
+--         ilast = fr <= lspan ? length(r) : 0
+--     end
+--     r isa AbstractUnitRange ? (ifirst:ilast) : (ifirst:1:ilast)
+-- end
+-- /Source
+def findin {R Q E T S D1 D2 C1 C2 I1 I2 L I3 Out1 Out2 : Type}
+    [JFirst Q T] [JLast Q T] [JFirst R E] [JLast R E] [JStep R S]
+    [JLt JInt64 S] [JLt S JInt64] [JLe T E] [JLe E T]
+    [HSub T E D1] [HSub E T D2] [JCld D1 S C1] [JCld D2 S C2]
+    [HAdd C1 JInt64 I1] [JLength R L] [HSub L C2 I3] [HAdd L JInt64 I2]
+    [JIsAbstractUnitRange R]
+    [JColon2 (JInt64 ⊕ (I1 ⊕ I2)) (L ⊕ (I3 ⊕ JInt64)) Out1]
+    [JColon3 (JInt64 ⊕ (I1 ⊕ I2)) JInt64 (L ⊕ (I3 ⊕ JInt64)) Out2]
+    (r : R) (span : Q) : JlX (Out1 ⊕ Out2) := do
+  let fspan ← JFirst.first span
+  let lspan ← JLast.last span
+  let fr ← JFirst.first r
+  let lr ← JLast.last r
+  let sr ← JStep.step r
+  let indices : (JInt64 ⊕ (I1 ⊕ I2)) × (L ⊕ (I3 ⊕ JInt64)) ←
+    if JLt.lt (jint 0) sr then do
+      let firstIndex : JInt64 ⊕ (I1 ⊕ I2) ←
+        if JLe.le fspan fr then pure (.inl (jint 1))
+        else do
+          let count ← JCld.cld (fspan - fr) sr
+          pure (.inr (.inl (count + jint 1)))
+      let lastIndex : L ⊕ (I3 ⊕ JInt64) ←
+        if JLe.le lr lspan then pure (.inl (← JLength.length r))
+        else do
+          let len ← JLength.length r
+          let count ← JCld.cld (lr - lspan) sr
+          pure (.inr (.inl (len - count)))
+      pure (firstIndex, lastIndex)
+    else if JLt.lt sr (jint 0) then do
+      let firstIndex : JInt64 ⊕ (I1 ⊕ I2) ←
+        if JLe.le fr lspan then pure (.inl (jint 1))
+        else do
+          let count ← JCld.cld (lspan - fr) sr
+          pure (.inr (.inl (count + jint 1)))
+      let lastIndex : L ⊕ (I3 ⊕ JInt64) ←
+        if JLe.le fspan lr then pure (.inl (← JLength.length r))
+        else do
+          let len ← JLength.length r
+          let count ← JCld.cld (lr - fspan) sr
+          pure (.inr (.inl (len - count)))
+      pure (firstIndex, lastIndex)
+    else do
+      let firstIndex : JInt64 ⊕ (I1 ⊕ I2) ←
+        if JLe.le fspan fr then pure (.inl (jint 1))
+        else do
+          let len ← JLength.length r
+          pure (.inr (.inr (len + jint 1)))
+      let lastIndex : L ⊕ (I3 ⊕ JInt64) ←
+        if JLe.le fr lspan then pure (.inl (← JLength.length r))
+        else pure (.inr (.inr (jint 0)))
+      pure (firstIndex, lastIndex)
+  if JIsAbstractUnitRange.isAbstractUnitRange R then
+    return .inl (← JColon2.colon indices.1 indices.2)
+  else
+    return .inr (← JColon3.colon indices.1 (jint 1) indices.2)
+
+/-- Source-ordered subset test at the existing dispatch boundary.
+The left `first` call precedes the right `first` call, even though the comparison
+is represented using the existing reversed-operand `JLe` interface.
+Julia source: base/range.jl:1317-1318 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027. -/
+-- Source: base/range.jl:1317-1318 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- issubset(r::AbstractUnitRange{<:Integer}, s::AbstractUnitRange{<:Integer}) =
+--     isempty(r) || (first(r) >= first(s) && last(r) <= last(s))
+-- /Source
+def issubsetAbstractUnitRange {R Q T U : Type}
+    [JIsempty R] [JFirst R T] [JFirst Q U] [JLe U T]
+    [JLast R T] [JLast Q U] [JLe T U]
+    (r : R) (s : Q) : JlX Bool := do
+  if ← JIsempty.isempty r then return true
+  let firstR ← JFirst.first r
+  let firstS ← JFirst.first s
+  if !JLe.le firstS firstR then return false
+  let lastR ← JLast.last r
+  let lastS ← JLast.last s
+  return JLe.le lastR lastS
+
+/-- Concrete dispatch for mixed-width BitInteger UnitRanges, reusing first, last,
+isempty, convert and comparison models. No supplied correctness law or callback
+is used. Constructor validity is a property premise, not a run-time filter.
+Julia source: base/range.jl:1317-1318 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027. -/
+-- Source: base/range.jl:1317-1318 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- issubset(r::AbstractUnitRange{<:Integer}, s::AbstractUnitRange{<:Integer}) =
+--     isempty(r) || (first(r) >= first(s) && last(r) <= last(s))
+-- /Source
+def issubsetIntegerUnitRange {t u : IntTy}
+    (r : UnitRange (JInt t)) (s : UnitRange (JInt u)) : JlX Bool :=
+  letI : JEltype (UnitRange (JInt t)) (JInt t) := ⟨⟩
+  letI : JEltype (UnitRange (JInt u)) (JInt u) := ⟨⟩
+  letI : JFieldStart (UnitRange (JInt t)) (JInt t) := ⟨UnitRange.start⟩
+  letI : JFieldStart (UnitRange (JInt u)) (JInt u) := ⟨UnitRange.start⟩
+  letI : JFieldStop (UnitRange (JInt t)) (JInt t) := ⟨UnitRange.stop⟩
+  letI : JFieldStop (UnitRange (JInt u)) (JInt u) := ⟨UnitRange.stop⟩
+  letI : JFirst (UnitRange (JInt t)) (JInt t) := ⟨first_OrdinalRange⟩
+  letI : JFirst (UnitRange (JInt u)) (JInt u) := ⟨first_OrdinalRange⟩
+  letI : JLast (UnitRange (JInt t)) (JInt t) := ⟨last_OrdinalRange⟩
+  letI : JLast (UnitRange (JInt u)) (JInt u) := ⟨last_OrdinalRange⟩
+  letI : JLt (JInt t) (JInt t) := ⟨JuliaLean.base.int.lt⟩
+  letI : JIsempty (UnitRange (JInt t)) := ⟨isempty_AbstractUnitRange⟩
+  issubsetAbstractUnitRange r s
+
+/-- Internal reverse preserves the distinct types of the empty offset, the
+length-minus-offset difference, and the addition of the Int literal 1. Both branches
+then call the existing same-type constructor boundary with the actual offset type.
+Julia source: base/range.jl:1446-1452 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027. -/
+-- Source: base/range.jl:1446-1452 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function _reverse(r::StepRangeLen, ::Colon)
+--     # If `r` is empty, `length(r) - r.offset + 1 will be nonpositive hence
+--     # invalid. As `reverse(r)` is also empty, any offset would work so we keep
+--     # `r.offset`
+--     offset = isempty(r) ? r.offset : length(r)-r.offset+1
+--     return typeof(r)(r.ref, negate(r.step), length(r), offset)
+-- end
+-- /Source
+def reverseStepRangeLen {T R S L N D O S' : Type}
+    [JIsempty (StepRangeLen T R S L)] [JLength (StepRangeLen T R S L) N]
+    [HSub N L D] [HAdd D JInt64 O] [JNegate S S']
+    [JSameType4 (StepRangeLen T R S L) R S' N L]
+    [JSameType4 (StepRangeLen T R S L) R S' N O]
+    (r : StepRangeLen T R S L) (_c : Colon) : JlX (StepRangeLen T R S L) := do
+  let offset : L ⊕ O ← if ← JIsempty.isempty r then
+      pure (.inl r.offset)
+    else do
+      let len ← JLength.length r
+      pure (.inr ((len - r.offset) + jint 1))
+  let step ← JNegate.negate r.step
+  let len ← JLength.length r
+  match offset with
+  | .inl value => JSameType4.make r.ref step len value
+  | .inr value => JSameType4.make r.ref step len value
+
+/-- The arithmetic-series implementation with independent types for length minus
+Int(1), both shifts, both products, and both branch results. The sum tags only
+represent the actual runtime result type; they introduce no numerical conversion.
+Julia source: base/range.jl:1468-1473 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027. -/
+-- Source: base/range.jl:1468-1473 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function sum(r::AbstractRange{<:Real})
+--     l = length(r)
+--     # note that a little care is required to avoid overflow in l*(l-1)/2
+--     return l * first(r) + (iseven(l) ? (step(r) * (l-1)) * (l>>1)
+--                                      : (step(r) * l) * ((l-1)>>1))
+-- end
+-- /Source
+def sumAbstractRange {R L T S P D H1 H2 A1 A2 B1 B2 C1 C2 : Type}
+    [JLength R L] [JFirst R T] [HMul L T P] [JIseven L] [JStep R S]
+    [HSub L JInt64 D] [HMul S D A1] [JShr L JInt64 H1] [HMul A1 H1 B1]
+    [HMul S L A2] [JShr D JInt64 H2] [HMul A2 H2 B2]
+    [HAdd P B1 C1] [HAdd P B2 C2]
+    (r : R) : JlX (C1 ⊕ C2) := do
+  let len ← JLength.length r
+  let first ← JFirst.first r
+  let p : P := len * first
+  if JIseven.iseven len then
+    let step ← JStep.step r
+    let q : B1 := (step * (len - jint 1)) * JShr.shr len (jint 1)
+    return .inl (p + q)
+  else
+    let step ← JStep.step r
+    let q : B2 := (step * len) * JShr.shr (len - jint 1) (jint 1)
+    return .inr (p + q)
+
+/-- Local fixed-divisor binding of the existing Core checked remainder primitive.
+The nonzero-divisor proof only removes an impossible error constructor; no error is
+replaced by a value and no public contract is proved. This is needed to instantiate
+the pre-existing pure iseven dispatch boundary. Julia source: base/int.jl:356 and
+base/int.jl:181; Core.lean documents remInt as the checked signed remainder primitive. -/
+-- Source: base/int.jl:356-356 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- rem(x::T, y::T) where {T<:BitSigned64} = checked_srem_int(x, y)
+-- /Source
+
+def remainderTwoInt64 (n : JInt64) : JInt64 :=
+  JuliaLean.base.int.okOf (JInt.remInt n (jint 2)) (by
+    intro e h
+    have htwo : (jint 2).val ≠ 0 := by decide
+    simp [JInt.remInt, htwo] at h)
+
+/-- Concrete binding of the existing iseven_Real body. For Int64,
+isinteger is true (base/number.jl:22), Integer is identity (base/boot.jl:1220),
+the body supplies the literal divisor 2, and iszero compares with zero
+(base/number.jl:44). Julia source: base/int.jl:181. -/
+-- Source: base/int.jl:181-181 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- iseven(n::Real) = isinteger(n) && iszero(rem(Integer(n), 2))
+-- /Source
+
+def isevenInt64 (n : JInt64) : Bool :=
+  JuliaLean.base.int.iseven_Real (fun (_ : JInt64) => true) id
+    (fun value (_two : JInt64) => remainderTwoInt64 value)
+    (fun value => JuliaLean.base.int.eq value (JuliaLean.base.int.zero value)) n
+
+/-- Concrete arithmetic-series dispatch for all Int64-field StepRangeLens.
+First, step, length, shift and wrapping arithmetic reuse existing models. The
+iseven dependency reuses the existing iseven_Real body and Core checked remainder
+primitive, matching the Integer parity rule. The return sum is erased after
+dispatch because both runtime branches have the same Int64 result type.
+Julia source: base/range.jl:1468-1473 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027. -/
+-- Source: base/range.jl:1468-1473 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function sum(r::AbstractRange{<:Real})
+--     l = length(r)
+--     # note that a little care is required to avoid overflow in l*(l-1)/2
+--     return l * first(r) + (iseven(l) ? (step(r) * (l-1)) * (l>>1)
+--                                      : (step(r) * l) * ((l-1)>>1))
+-- end
+-- /Source
+def sumInt64StepRangeLen (r : StepRangeLen JInt64 JInt64 JInt64 JInt64) : JlX JInt64 :=
+  letI : JLength (StepRangeLen JInt64 JInt64 JInt64 JInt64) JInt64 :=
+    ⟨fun a => .ok (length_StepRangeLen a)⟩
+  letI : JUnsafeGetindex (StepRangeLen JInt64 JInt64 JInt64 JInt64) JInt64 JInt64 :=
+    ⟨unsafe_getindex_StepRangeLen⟩
+  letI : JFirst (StepRangeLen JInt64 JInt64 JInt64 JInt64) JInt64 :=
+    ⟨first_StepRangeLen⟩
+  letI : JStep (StepRangeLen JInt64 JInt64 JInt64 JInt64) JInt64 :=
+    ⟨fun a => .ok (step_StepRangeLen a)⟩
+  letI : JIseven JInt64 := ⟨isevenInt64⟩
+  letI : JShr JInt64 JInt64 JInt64 := ⟨JuliaLean.base.int.shr_Int⟩
+  (sumAbstractRange r).map (fun result =>
+    match result with
+    | .inl value => value
+    | .inr value => value)
+
+/-- Generated + and - methods on two LinRanges whose length types need not agree.
+The full surrounding @eval generator and its two invocations are quoted below.
+This represents the generated method body; the existing method-installation
+runtime remains separate and is not assumed correct.
+Julia source: base/range.jl:1502-1526 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027. -/
+-- Source: base/range.jl:1502-1526 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function _define_range_op(@nospecialize f)
+--     @eval begin
+--         function $f(r1::OrdinalRange, r2::OrdinalRange)
+--             r1l = length(r1)
+--             (r1l == length(r2) ||
+--              throw(DimensionMismatch("argument dimensions must match: length of r1 is $r1l, length of r2 is $(length(r2))")))
+--             StepRangeLen($f(first(r1), first(r2)), $f(step(r1), step(r2)), r1l)
+--         end
+-- 
+--         function $f(r1::LinRange{T}, r2::LinRange{T}) where T
+--             len = r1.len
+--             (len == r2.len ||
+--              throw(DimensionMismatch("argument dimensions must match: length of r1 is $len, length of r2 is $(r2.len)")))
+--             LinRange{T}(convert(T, $f(first(r1), first(r2))),
+--                         convert(T, $f(last(r1), last(r2))), len)
+--         end
+-- 
+--         $f(r1::Union{StepRangeLen, OrdinalRange, LinRange},
+--            r2::Union{StepRangeLen, OrdinalRange, LinRange}) =
+--                $f(promote(r1, r2)...)
+--     end
+-- end
+-- _define_range_op(:+)
+-- _define_range_op(:-)
+-- 
+-- /Source
+def rangeopLinRange (F : Type) {T L1 L2 A Out : Type}
+    [JEq L1 L2] [JPrint L1] [JPrint L2]
+    [JFirst (LinRange T L1) T] [JFirst (LinRange T L2) T]
+    [JLast (LinRange T L1) T] [JLast (LinRange T L2) T]
+    [JScalarOp F T T A] [JConvert T A] [JLinRangeT T T T L1 Out]
+    (r1 : LinRange T L1) (r2 : LinRange T L2) : JlX Out := do
+  let len := r1.len
+  unless JEq.eq len r2.len do
+    throw (.dimensionMismatch ("argument dimensions must match: length of r1 is " ++
+      JPrint.print len ++ ", length of r2 is " ++ JPrint.print r2.len))
+  let first1 ← JFirst.first r1
+  let first2 ← JFirst.first r2
+  let start ← JConvert.convert (T := T) (JScalarOp.scalarOp F first1 first2)
+  let last1 ← JLast.last r1
+  let last2 ← JLast.last r2
+  let stop ← JConvert.convert (T := T) (JScalarOp.scalarOp F last1 last2)
+  JLinRangeT.linRangeT (T := T) start stop len
+
+/-- Addition shares only T and the stored reference type R, as in Julia's
+StepRangeLen{T,R} signature. Stored step types, length types, observed step types,
+and observed length types remain independent. Repeated right-length evaluation
+in the error message is preserved.
+Julia source: base/range.jl:1527-1532 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027. -/
+-- Source: base/range.jl:1527-1532 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function +(r1::StepRangeLen{T,S}, r2::StepRangeLen{T,S}) where {T,S}
+--     len = length(r1)
+--     (len == length(r2) ||
+--      throw(DimensionMismatch("argument dimensions must match: length of r1 is $len, length of r2 is $(length(r2))")))
+--     StepRangeLen(first(r1)+first(r2), step(r1)+step(r2), len)
+-- end
+-- /Source
+def plusStepRangeLen {T R S1 L1 S2 L2 N1 N2 U1 U2 A B Out : Type}
+    [JLength (StepRangeLen T R S1 L1) N1]
+    [JLength (StepRangeLen T R S2 L2) N2]
+    [JEq N1 N2] [JPrint N1] [JPrint N2]
+    [JFirst (StepRangeLen T R S1 L1) T]
+    [JFirst (StepRangeLen T R S2 L2) T] [HAdd T T A]
+    [JStep (StepRangeLen T R S1 L1) U1]
+    [JStep (StepRangeLen T R S2 L2) U2] [HAdd U1 U2 B]
+    [JStepRangeLen3 A B N1 Out]
+    (r1 : StepRangeLen T R S1 L1) (r2 : StepRangeLen T R S2 L2) : JlX Out := do
+  let len ← JLength.length r1
+  let len2 ← JLength.length r2
+  unless JEq.eq len len2 do
+    let repeatedLen2 ← JLength.length r2
+    throw (.dimensionMismatch ("argument dimensions must match: length of r1 is " ++
+      JPrint.print len ++ ", length of r2 is " ++ JPrint.print repeatedLen2))
+  let first1 ← JFirst.first r1
+  let first2 ← JFirst.first r2
+  let a : A := first1 + first2
+  let step1 ← JStep.step r1
+  let step2 ← JStep.step r2
+  let b : B := step1 + step2
+  JStepRangeLen3.stepRangeLen a b len
+
+end JuliaLean.base.range.Models1Group8
+
+
+namespace JuliaLean.base.range.Models2Group20
+
+open JuliaLean
+
+/-!
+Additive, effect-aware models for models batch 2, group 20. The original
+declarations above remain untouched. A dispatch result carrier may be a tagged
+union of Julia values; it need not denote one concrete Julia runtime type.
+`Monad` parameters can carry errors, mutations, and divergence of selected callees.
+-/
+
+/-- A term denoting the Julia type parameter `T`, without fixing its renderer.
+Used for the literal `T` arguments at base/range.jl:636,638. -/
+-- Source: base/range.jl:634-645 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function show(io::IO, r::LinRange{T}) where {T}
+--     print(io, "LinRange{")
+--     show(io, T)
+--     print(io, "}(")
+--     ioc = IOContext(io, :typeinfo=>T)
+--     show(ioc, first(r))
+--     print(io, ", ")
+--     show(ioc, last(r))
+--     print(io, ", ")
+--     show(io, length(r))
+--     print(io, ')')
+-- end
+-- /Source
+structure TypeToken (T : Type) where
+
+/-- The literal context keys used by the queued display methods.  Source use: base/range.jl:634-645. -/
+-- Source: base/range.jl:634-645 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function show(io::IO, r::LinRange{T}) where {T}
+--     print(io, "LinRange{")
+--     show(io, T)
+--     print(io, "}(")
+--     ioc = IOContext(io, :typeinfo=>T)
+--     show(ioc, first(r))
+--     print(io, ", ")
+--     show(ioc, last(r))
+--     print(io, ", ")
+--     show(io, length(r))
+--     print(io, ')')
+-- end
+-- /Source
+inductive ContextKey where
+  | typeinfo
+  | compact
+  deriving DecidableEq, Repr
+
+/-- Open dispatch in `show(io::IO, r::LinRange{T})`, base/range.jl:634-645.
+The IO subtype is not fixed by this method. Context creation and all stream
+operations therefore retain their selected, effectful dispatch targets.
+`T`, endpoint and length renderers, and every ignored/final result are separate.
+No renderer or context-constructor correctness law is imposed. -/
+-- Source: base/range.jl:634-645 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function show(io::IO, r::LinRange{T}) where {T}
+--     print(io, "LinRange{")
+--     show(io, T)
+--     print(io, "}(")
+--     ioc = IOContext(io, :typeinfo=>T)
+--     show(ioc, first(r))
+--     print(io, ", ")
+--     show(ioc, last(r))
+--     print(io, ", ")
+--     show(io, length(r))
+--     print(io, ')')
+-- end
+-- /Source
+structure LinShowOps (m : Type → Type)
+    (Stream Context T L PrintResult TypeResult ValueResult LengthResult Result : Type) where
+  printString : Stream → String → m PrintResult
+  showType : Stream → TypeToken T → m TypeResult
+  context : Stream → ContextKey → TypeToken T → m Context
+  showValue : Context → T → m ValueResult
+  showLength : Stream → L → m LengthResult
+  printChar : Stream → Char → m Result
+
+/-- Incremental `LinRange` display, base/range.jl:634-645. Known LinRange
+accessors call their installed bodies; no callback replaces them. The final
+print result is returned unchanged, including a custom printer's return value.
+Earlier writes are never reassembled into a final string. -/
+-- Source: base/range.jl:634-645 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function show(io::IO, r::LinRange{T}) where {T}
+--     print(io, "LinRange{")
+--     show(io, T)
+--     print(io, "}(")
+--     ioc = IOContext(io, :typeinfo=>T)
+--     show(ioc, first(r))
+--     print(io, ", ")
+--     show(ioc, last(r))
+--     print(io, ", ")
+--     show(io, length(r))
+--     print(io, ')')
+-- end
+-- /Source
+def showLinRange {m : Type → Type} [Monad m]
+    {Stream Context T L PrintResult TypeResult ValueResult LengthResult Result : Type}
+    (ops : LinShowOps m Stream Context T L PrintResult TypeResult ValueResult LengthResult Result)
+    (io : Stream) (r : LinRange T L) : m Result := do
+  let _ ← ops.printString io "LinRange{"
+  let _ ← ops.showType io ⟨⟩
+  let _ ← ops.printString io "}("
+  let ioc ← ops.context io .typeinfo ⟨⟩
+  let _ ← ops.showValue ioc (first_LinRange r)
+  let _ ← ops.printString io ", "
+  let _ ← ops.showValue ioc (last_LinRange r)
+  let _ ← ops.printString io ", "
+  let _ ← ops.showLength io (length_LinRange r)
+  ops.printChar io ')'
+
+/-- An argument is a native Julia Int literal or the result of open dispatch.
+`dynamic` can contain a tagged Julia value of any runtime type.  Source use: base/range.jl:660-701. -/
+-- Source: base/range.jl:660-701 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function print_range(io::IO, r::AbstractArray,
+--                      pre::AbstractString = " ",
+--                      sep::AbstractString = ", ",
+--                      post::AbstractString = "",
+--                      hdots::AbstractString = ", \u2026, ") # horiz ellipsis
+--     # This function borrows from print_matrix() in show.jl
+--     # and should be called by show and display
+--     sz = displaysize(io)
+--     if !haskey(io, :compact)
+--         io = IOContext(io, :compact => true)
+--     end
+--     _, screenwidth = sz[1] - 4, sz[2]
+--     screenwidth -= length(pre) + length(post)
+--     sepsize = length(sep)
+--     m = 1 # treat the range as a one-row matrix
+--     n = length(r)
+--     # Figure out spacing alignments for r, but only need to examine the
+--     # left and right edge columns, as many as could conceivably fit on the
+--     # screen, with the middle columns summarized by horz, vert, or diag ellipsis
+--     maxpossiblecols = div(screenwidth, 1+sepsize) # assume each element is at least 1 char + 1 separator
+--     colsr = n <= maxpossiblecols ? (1:n) : [1:div(maxpossiblecols,2)+1; (n-div(maxpossiblecols,2)):n]
+--     rowmatrix = reshape(r[colsr], 1, length(colsr)) # treat the range as a one-row matrix for print_matrix_row
+--     nrow, idxlast = size(rowmatrix, 2), last(axes(rowmatrix, 2))
+--     A = alignment(io, rowmatrix, 1:m, 1:length(rowmatrix), screenwidth, screenwidth, sepsize, nrow) # how much space range takes
+--     if n <= length(A) # cols fit screen, so print out all elements
+--         print(io, pre) # put in pre chars
+--         print_matrix_row(io,rowmatrix,A,1,1:n,sep,idxlast) # the entire range
+--         print(io, post) # add the post characters
+--     else # cols don't fit so put horiz ellipsis in the middle
+--         # how many chars left after dividing width of screen in half
+--         # and accounting for the horiz ellipsis
+--         c = div(screenwidth-length(hdots)+1,2)+1 # chars remaining for each side of rowmatrix
+--         alignR = reverse(alignment(io, rowmatrix, 1:m, length(rowmatrix):-1:1, c, c, sepsize, nrow)) # which cols of rowmatrix to put on the right
+--         c = screenwidth - sum(map(sum,alignR)) - (length(alignR)-1)*sepsize - length(hdots)
+--         alignL = alignment(io, rowmatrix, 1:m, 1:length(rowmatrix), c, c, sepsize, nrow) # which cols of rowmatrix to put on the left
+--         print(io, pre)   # put in pre chars
+--         print_matrix_row(io, rowmatrix,alignL,1,1:length(alignL),sep,idxlast) # left part of range
+--         print(io, hdots) # horizontal ellipsis
+--         print_matrix_row(io, rowmatrix,alignR,1,length(rowmatrix)-length(alignR)+1:length(rowmatrix),sep,idxlast) # right part of range
+--         print(io, post)  # post chars
+--     end
+-- end
+-- /Source
+inductive CallArg (V : Type) where
+  | native (value : JInt64)
+  | dynamic (value : V)
+
+/-- The implicit Boolean-condition check distinguishes actual Bool values.  Source use: base/range.jl:660-701. -/
+-- Source: base/range.jl:660-701 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function print_range(io::IO, r::AbstractArray,
+--                      pre::AbstractString = " ",
+--                      sep::AbstractString = ", ",
+--                      post::AbstractString = "",
+--                      hdots::AbstractString = ", \u2026, ") # horiz ellipsis
+--     # This function borrows from print_matrix() in show.jl
+--     # and should be called by show and display
+--     sz = displaysize(io)
+--     if !haskey(io, :compact)
+--         io = IOContext(io, :compact => true)
+--     end
+--     _, screenwidth = sz[1] - 4, sz[2]
+--     screenwidth -= length(pre) + length(post)
+--     sepsize = length(sep)
+--     m = 1 # treat the range as a one-row matrix
+--     n = length(r)
+--     # Figure out spacing alignments for r, but only need to examine the
+--     # left and right edge columns, as many as could conceivably fit on the
+--     # screen, with the middle columns summarized by horz, vert, or diag ellipsis
+--     maxpossiblecols = div(screenwidth, 1+sepsize) # assume each element is at least 1 char + 1 separator
+--     colsr = n <= maxpossiblecols ? (1:n) : [1:div(maxpossiblecols,2)+1; (n-div(maxpossiblecols,2)):n]
+--     rowmatrix = reshape(r[colsr], 1, length(colsr)) # treat the range as a one-row matrix for print_matrix_row
+--     nrow, idxlast = size(rowmatrix, 2), last(axes(rowmatrix, 2))
+--     A = alignment(io, rowmatrix, 1:m, 1:length(rowmatrix), screenwidth, screenwidth, sepsize, nrow) # how much space range takes
+--     if n <= length(A) # cols fit screen, so print out all elements
+--         print(io, pre) # put in pre chars
+--         print_matrix_row(io,rowmatrix,A,1,1:n,sep,idxlast) # the entire range
+--         print(io, post) # add the post characters
+--     else # cols don't fit so put horiz ellipsis in the middle
+--         # how many chars left after dividing width of screen in half
+--         # and accounting for the horiz ellipsis
+--         c = div(screenwidth-length(hdots)+1,2)+1 # chars remaining for each side of rowmatrix
+--         alignR = reverse(alignment(io, rowmatrix, 1:m, length(rowmatrix):-1:1, c, c, sepsize, nrow)) # which cols of rowmatrix to put on the right
+--         c = screenwidth - sum(map(sum,alignR)) - (length(alignR)-1)*sepsize - length(hdots)
+--         alignL = alignment(io, rowmatrix, 1:m, 1:length(rowmatrix), c, c, sepsize, nrow) # which cols of rowmatrix to put on the left
+--         print(io, pre)   # put in pre chars
+--         print_matrix_row(io, rowmatrix,alignL,1,1:length(alignL),sep,idxlast) # left part of range
+--         print(io, hdots) # horizontal ellipsis
+--         print_matrix_row(io, rowmatrix,alignR,1,length(rowmatrix)-length(alignR)+1:length(rowmatrix),sep,idxlast) # right part of range
+--         print(io, post)  # post chars
+--     end
+-- end
+-- /Source
+inductive Condition (Other : Type) where
+  | bool (value : Bool)
+  | other (value : Other)
+
+/-- Caller-introduced errors: TypeError at a non-Bool condition, or the exact
+Base error from the concrete native range constructor. Callees may additionally
+throw arbitrary errors through the effect monad.  Source use: base/range.jl:660-701. -/
+-- Source: base/range.jl:660-701 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function print_range(io::IO, r::AbstractArray,
+--                      pre::AbstractString = " ",
+--                      sep::AbstractString = ", ",
+--                      post::AbstractString = "",
+--                      hdots::AbstractString = ", \u2026, ") # horiz ellipsis
+--     # This function borrows from print_matrix() in show.jl
+--     # and should be called by show and display
+--     sz = displaysize(io)
+--     if !haskey(io, :compact)
+--         io = IOContext(io, :compact => true)
+--     end
+--     _, screenwidth = sz[1] - 4, sz[2]
+--     screenwidth -= length(pre) + length(post)
+--     sepsize = length(sep)
+--     m = 1 # treat the range as a one-row matrix
+--     n = length(r)
+--     # Figure out spacing alignments for r, but only need to examine the
+--     # left and right edge columns, as many as could conceivably fit on the
+--     # screen, with the middle columns summarized by horz, vert, or diag ellipsis
+--     maxpossiblecols = div(screenwidth, 1+sepsize) # assume each element is at least 1 char + 1 separator
+--     colsr = n <= maxpossiblecols ? (1:n) : [1:div(maxpossiblecols,2)+1; (n-div(maxpossiblecols,2)):n]
+--     rowmatrix = reshape(r[colsr], 1, length(colsr)) # treat the range as a one-row matrix for print_matrix_row
+--     nrow, idxlast = size(rowmatrix, 2), last(axes(rowmatrix, 2))
+--     A = alignment(io, rowmatrix, 1:m, 1:length(rowmatrix), screenwidth, screenwidth, sepsize, nrow) # how much space range takes
+--     if n <= length(A) # cols fit screen, so print out all elements
+--         print(io, pre) # put in pre chars
+--         print_matrix_row(io,rowmatrix,A,1,1:n,sep,idxlast) # the entire range
+--         print(io, post) # add the post characters
+--     else # cols don't fit so put horiz ellipsis in the middle
+--         # how many chars left after dividing width of screen in half
+--         # and accounting for the horiz ellipsis
+--         c = div(screenwidth-length(hdots)+1,2)+1 # chars remaining for each side of rowmatrix
+--         alignR = reverse(alignment(io, rowmatrix, 1:m, length(rowmatrix):-1:1, c, c, sepsize, nrow)) # which cols of rowmatrix to put on the right
+--         c = screenwidth - sum(map(sum,alignR)) - (length(alignR)-1)*sepsize - length(hdots)
+--         alignL = alignment(io, rowmatrix, 1:m, 1:length(rowmatrix), c, c, sepsize, nrow) # which cols of rowmatrix to put on the left
+--         print(io, pre)   # put in pre chars
+--         print_matrix_row(io, rowmatrix,alignL,1,1:length(alignL),sep,idxlast) # left part of range
+--         print(io, hdots) # horizontal ellipsis
+--         print_matrix_row(io, rowmatrix,alignR,1,length(rowmatrix)-length(alignR)+1:length(rowmatrix),sep,idxlast) # right part of range
+--         print(io, post)  # post chars
+--     end
+-- end
+-- /Source
+inductive PrintRangeError (Other : Type) where
+  | typeError (value : Other)
+  | base (error : Exc)
+
+/-- Identity of the Julia `sum` generic function, passed to open `map` dispatch.  Source use: base/range.jl:660-701. -/
+-- Source: base/range.jl:660-701 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function print_range(io::IO, r::AbstractArray,
+--                      pre::AbstractString = " ",
+--                      sep::AbstractString = ", ",
+--                      post::AbstractString = "",
+--                      hdots::AbstractString = ", \u2026, ") # horiz ellipsis
+--     # This function borrows from print_matrix() in show.jl
+--     # and should be called by show and display
+--     sz = displaysize(io)
+--     if !haskey(io, :compact)
+--         io = IOContext(io, :compact => true)
+--     end
+--     _, screenwidth = sz[1] - 4, sz[2]
+--     screenwidth -= length(pre) + length(post)
+--     sepsize = length(sep)
+--     m = 1 # treat the range as a one-row matrix
+--     n = length(r)
+--     # Figure out spacing alignments for r, but only need to examine the
+--     # left and right edge columns, as many as could conceivably fit on the
+--     # screen, with the middle columns summarized by horz, vert, or diag ellipsis
+--     maxpossiblecols = div(screenwidth, 1+sepsize) # assume each element is at least 1 char + 1 separator
+--     colsr = n <= maxpossiblecols ? (1:n) : [1:div(maxpossiblecols,2)+1; (n-div(maxpossiblecols,2)):n]
+--     rowmatrix = reshape(r[colsr], 1, length(colsr)) # treat the range as a one-row matrix for print_matrix_row
+--     nrow, idxlast = size(rowmatrix, 2), last(axes(rowmatrix, 2))
+--     A = alignment(io, rowmatrix, 1:m, 1:length(rowmatrix), screenwidth, screenwidth, sepsize, nrow) # how much space range takes
+--     if n <= length(A) # cols fit screen, so print out all elements
+--         print(io, pre) # put in pre chars
+--         print_matrix_row(io,rowmatrix,A,1,1:n,sep,idxlast) # the entire range
+--         print(io, post) # add the post characters
+--     else # cols don't fit so put horiz ellipsis in the middle
+--         # how many chars left after dividing width of screen in half
+--         # and accounting for the horiz ellipsis
+--         c = div(screenwidth-length(hdots)+1,2)+1 # chars remaining for each side of rowmatrix
+--         alignR = reverse(alignment(io, rowmatrix, 1:m, length(rowmatrix):-1:1, c, c, sepsize, nrow)) # which cols of rowmatrix to put on the right
+--         c = screenwidth - sum(map(sum,alignR)) - (length(alignR)-1)*sepsize - length(hdots)
+--         alignL = alignment(io, rowmatrix, 1:m, 1:length(rowmatrix), c, c, sepsize, nrow) # which cols of rowmatrix to put on the left
+--         print(io, pre)   # put in pre chars
+--         print_matrix_row(io, rowmatrix,alignL,1,1:length(alignL),sep,idxlast) # left part of range
+--         print(io, hdots) # horizontal ellipsis
+--         print_matrix_row(io, rowmatrix,alignR,1,length(rowmatrix)-length(alignR)+1:length(rowmatrix),sep,idxlast) # right part of range
+--         print(io, post)  # post chars
+--     end
+-- end
+-- /Source
+structure SumFunction where
+
+/-- Selected calls in base/range.jl:660-701. AbstractArray, AbstractString and
+IO subtypes and their result types are not fixed by this caller. Dynamic
+carriers include changing runtime types without a callee-correctness law.
+Literal `1:m` is absent from this interface: the body calls installed native
+colon. `mapSum` receives the actual `sum` function token; outer sum is separate. -/
+-- Source: base/range.jl:660-701 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function print_range(io::IO, r::AbstractArray,
+--                      pre::AbstractString = " ",
+--                      sep::AbstractString = ", ",
+--                      post::AbstractString = "",
+--                      hdots::AbstractString = ", \u2026, ") # horiz ellipsis
+--     # This function borrows from print_matrix() in show.jl
+--     # and should be called by show and display
+--     sz = displaysize(io)
+--     if !haskey(io, :compact)
+--         io = IOContext(io, :compact => true)
+--     end
+--     _, screenwidth = sz[1] - 4, sz[2]
+--     screenwidth -= length(pre) + length(post)
+--     sepsize = length(sep)
+--     m = 1 # treat the range as a one-row matrix
+--     n = length(r)
+--     # Figure out spacing alignments for r, but only need to examine the
+--     # left and right edge columns, as many as could conceivably fit on the
+--     # screen, with the middle columns summarized by horz, vert, or diag ellipsis
+--     maxpossiblecols = div(screenwidth, 1+sepsize) # assume each element is at least 1 char + 1 separator
+--     colsr = n <= maxpossiblecols ? (1:n) : [1:div(maxpossiblecols,2)+1; (n-div(maxpossiblecols,2)):n]
+--     rowmatrix = reshape(r[colsr], 1, length(colsr)) # treat the range as a one-row matrix for print_matrix_row
+--     nrow, idxlast = size(rowmatrix, 2), last(axes(rowmatrix, 2))
+--     A = alignment(io, rowmatrix, 1:m, 1:length(rowmatrix), screenwidth, screenwidth, sepsize, nrow) # how much space range takes
+--     if n <= length(A) # cols fit screen, so print out all elements
+--         print(io, pre) # put in pre chars
+--         print_matrix_row(io,rowmatrix,A,1,1:n,sep,idxlast) # the entire range
+--         print(io, post) # add the post characters
+--     else # cols don't fit so put horiz ellipsis in the middle
+--         # how many chars left after dividing width of screen in half
+--         # and accounting for the horiz ellipsis
+--         c = div(screenwidth-length(hdots)+1,2)+1 # chars remaining for each side of rowmatrix
+--         alignR = reverse(alignment(io, rowmatrix, 1:m, length(rowmatrix):-1:1, c, c, sepsize, nrow)) # which cols of rowmatrix to put on the right
+--         c = screenwidth - sum(map(sum,alignR)) - (length(alignR)-1)*sepsize - length(hdots)
+--         alignL = alignment(io, rowmatrix, 1:m, 1:length(rowmatrix), c, c, sepsize, nrow) # which cols of rowmatrix to put on the left
+--         print(io, pre)   # put in pre chars
+--         print_matrix_row(io, rowmatrix,alignL,1,1:length(alignL),sep,idxlast) # left part of range
+--         print(io, hdots) # horizontal ellipsis
+--         print_matrix_row(io, rowmatrix,alignR,1,length(rowmatrix)-length(alignR)+1:length(rowmatrix),sep,idxlast) # right part of range
+--         print(io, post)  # post chars
+--     end
+-- end
+-- /Source
+structure PrintRangeOps (m : Type → Type)
+    (Stream R Str Size V Cols Cat Slice Matrix Axis Index Align Mapped HasKey Bad Result RowResult : Type) where
+  displaysize : Stream → m Size
+  haskey : Stream → ContextKey → m HasKey
+  not : HasKey → m (Condition Bad)
+  context : Stream → ContextKey → Bool → m Stream
+  sizeGetindex : Size → JInt64 → m V
+  lengthString : Str → m V
+  lengthRange : R → m V
+  add : CallArg V → CallArg V → m V
+  sub : CallArg V → CallArg V → m V
+  mul : CallArg V → CallArg V → m V
+  div : CallArg V → CallArg V → m V
+  le : V → V → m (Condition Bad)
+  colon2 : CallArg V → CallArg V → m Cols
+  colon3 : CallArg V → JInt64 → JInt64 → m Cols
+  vcat : Cols → Cols → m Cat
+  getindex : R → Sum Cols Cat → m Slice
+  lengthSelection : Sum Cols Cat → m V
+  reshape : Slice → JInt64 → V → m Matrix
+  size : Matrix → JInt64 → m V
+  axes : Matrix → JInt64 → m Axis
+  lastAxis : Axis → m Index
+  lengthMatrix : Matrix → m V
+  alignment : Stream → Matrix → UnitRange JInt64 → Cols → V → V → V → V → m Align
+  lengthAlignment : Align → m V
+  reverse : Align → m Align
+  mapSum : SumFunction → Align → m Mapped
+  sum : Mapped → m V
+  print : Stream → Str → m Result
+  printMatrixRow : Stream → Matrix → Align → JInt64 → Cols → Str → Index → m RowResult
+
+/-- `print_range`, base/range.jl:660-701. Preserves every repeated evaluation,
+the unused `sz[1]-4`, nonstandard axes, one dispatched vector-index operation,
+and every incremental print. Known native `1:m` uses `colon_T_T_Real`.
+Optional arguments are explicit, as in the installed model convention. -/
+-- Source: base/range.jl:660-701 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function print_range(io::IO, r::AbstractArray,
+--                      pre::AbstractString = " ",
+--                      sep::AbstractString = ", ",
+--                      post::AbstractString = "",
+--                      hdots::AbstractString = ", \u2026, ") # horiz ellipsis
+--     # This function borrows from print_matrix() in show.jl
+--     # and should be called by show and display
+--     sz = displaysize(io)
+--     if !haskey(io, :compact)
+--         io = IOContext(io, :compact => true)
+--     end
+--     _, screenwidth = sz[1] - 4, sz[2]
+--     screenwidth -= length(pre) + length(post)
+--     sepsize = length(sep)
+--     m = 1 # treat the range as a one-row matrix
+--     n = length(r)
+--     # Figure out spacing alignments for r, but only need to examine the
+--     # left and right edge columns, as many as could conceivably fit on the
+--     # screen, with the middle columns summarized by horz, vert, or diag ellipsis
+--     maxpossiblecols = div(screenwidth, 1+sepsize) # assume each element is at least 1 char + 1 separator
+--     colsr = n <= maxpossiblecols ? (1:n) : [1:div(maxpossiblecols,2)+1; (n-div(maxpossiblecols,2)):n]
+--     rowmatrix = reshape(r[colsr], 1, length(colsr)) # treat the range as a one-row matrix for print_matrix_row
+--     nrow, idxlast = size(rowmatrix, 2), last(axes(rowmatrix, 2))
+--     A = alignment(io, rowmatrix, 1:m, 1:length(rowmatrix), screenwidth, screenwidth, sepsize, nrow) # how much space range takes
+--     if n <= length(A) # cols fit screen, so print out all elements
+--         print(io, pre) # put in pre chars
+--         print_matrix_row(io,rowmatrix,A,1,1:n,sep,idxlast) # the entire range
+--         print(io, post) # add the post characters
+--     else # cols don't fit so put horiz ellipsis in the middle
+--         # how many chars left after dividing width of screen in half
+--         # and accounting for the horiz ellipsis
+--         c = div(screenwidth-length(hdots)+1,2)+1 # chars remaining for each side of rowmatrix
+--         alignR = reverse(alignment(io, rowmatrix, 1:m, length(rowmatrix):-1:1, c, c, sepsize, nrow)) # which cols of rowmatrix to put on the right
+--         c = screenwidth - sum(map(sum,alignR)) - (length(alignR)-1)*sepsize - length(hdots)
+--         alignL = alignment(io, rowmatrix, 1:m, 1:length(rowmatrix), c, c, sepsize, nrow) # which cols of rowmatrix to put on the left
+--         print(io, pre)   # put in pre chars
+--         print_matrix_row(io, rowmatrix,alignL,1,1:length(alignL),sep,idxlast) # left part of range
+--         print(io, hdots) # horizontal ellipsis
+--         print_matrix_row(io, rowmatrix,alignR,1,length(rowmatrix)-length(alignR)+1:length(rowmatrix),sep,idxlast) # right part of range
+--         print(io, post)  # post chars
+--     end
+-- end
+-- /Source
+def printRange {m : Type → Type} [Monad m]
+    {Stream R Str Size V Cols Cat Slice Matrix Axis Index Align Mapped HasKey Bad Result RowResult : Type}
+    [MonadExceptOf (PrintRangeError Bad) m]
+    (ops : PrintRangeOps m Stream R Str Size V Cols Cat Slice Matrix Axis Index Align Mapped HasKey Bad Result RowResult)
+    (io : Stream) (r : R) (pre sep post hdots : Str) : m Result := do
+  let test (c : Condition Bad) : m Bool :=
+    match c with
+    | .bool value => pure value
+    | .other value => throw (PrintRangeError.typeError value)
+  let sz ← ops.displaysize io
+  let hasCompact ← ops.haskey io .compact
+  let addCompact ← test (← ops.not hasCompact)
+  let io ← if addCompact then ops.context io .compact true else pure io
+  let height ← ops.sizeGetindex sz (jint 1)
+  let _ ← ops.sub (.dynamic height) (.native (jint 4))
+  let screenwidth ← ops.sizeGetindex sz (jint 2)
+  let preLength ← ops.lengthString pre
+  let postLength ← ops.lengthString post
+  let margins ← ops.add (.dynamic preLength) (.dynamic postLength)
+  let screenwidth ← ops.sub (.dynamic screenwidth) (.dynamic margins)
+  let sepsize ← ops.lengthString sep
+  let rowCount := jint 1
+  let n ← ops.lengthRange r
+  let minimumColumn ← ops.add (.native (jint 1)) (.dynamic sepsize)
+  let maxpossiblecols ← ops.div (.dynamic screenwidth) (.dynamic minimumColumn)
+  let fitsEstimate ← test (← ops.le n maxpossiblecols)
+  let colsr : Sum Cols Cat ← if fitsEstimate then do
+      pure (.inl (← ops.colon2 (.native (jint 1)) (.dynamic n)))
+    else do
+      let half ← ops.div (.dynamic maxpossiblecols) (.native (jint 2))
+      let leftEnd ← ops.add (.dynamic half) (.native (jint 1))
+      let left ← ops.colon2 (.native (jint 1)) (.dynamic leftEnd)
+      let half ← ops.div (.dynamic maxpossiblecols) (.native (jint 2))
+      let rightStart ← ops.sub (.dynamic n) (.dynamic half)
+      let right ← ops.colon2 (.dynamic rightStart) (.dynamic n)
+      pure (.inr (← ops.vcat left right))
+  let slice ← ops.getindex r colsr
+  let selectedLength ← ops.lengthSelection colsr
+  let rowmatrix ← ops.reshape slice (jint 1) selectedLength
+  let nrow ← ops.size rowmatrix (jint 2)
+  let rowAxis ← ops.axes rowmatrix (jint 2)
+  let idxlast ← ops.lastAxis rowAxis
+  let nativeRows : m (UnitRange JInt64) :=
+    match colon_T_T_Real (jint 1) rowCount with
+    | .ok rows => pure rows
+    | .error error => throw (PrintRangeError.base error)
+  let rows ← nativeRows
+  let matrixLength ← ops.lengthMatrix rowmatrix
+  let columns ← ops.colon2 (.native (jint 1)) (.dynamic matrixLength)
+  let a ← ops.alignment io rowmatrix rows columns screenwidth screenwidth sepsize nrow
+  let aLength ← ops.lengthAlignment a
+  let fits ← test (← ops.le n aLength)
+  if fits then
+    let _ ← ops.print io pre
+    let columns ← ops.colon2 (.native (jint 1)) (.dynamic n)
+    let _ ← ops.printMatrixRow io rowmatrix a (jint 1) columns sep idxlast
+    ops.print io post
+  else
+    let dotsLength ← ops.lengthString hdots
+    let c ← ops.sub (.dynamic screenwidth) (.dynamic dotsLength)
+    let c ← ops.add (.dynamic c) (.native (jint 1))
+    let c ← ops.div (.dynamic c) (.native (jint 2))
+    let c ← ops.add (.dynamic c) (.native (jint 1))
+    let rows ← nativeRows
+    let matrixLength ← ops.lengthMatrix rowmatrix
+    let columns ← ops.colon3 (.dynamic matrixLength) (jint (-1)) (jint 1)
+    let rightAlignment ← ops.alignment io rowmatrix rows columns c c sepsize nrow
+    let alignR ← ops.reverse rightAlignment
+    let totals ← ops.mapSum ⟨⟩ alignR
+    let total ← ops.sum totals
+    let c ← ops.sub (.dynamic screenwidth) (.dynamic total)
+    let rightLength ← ops.lengthAlignment alignR
+    let separators ← ops.sub (.dynamic rightLength) (.native (jint 1))
+    let separators ← ops.mul (.dynamic separators) (.dynamic sepsize)
+    let c ← ops.sub (.dynamic c) (.dynamic separators)
+    let dotsLength ← ops.lengthString hdots
+    let c ← ops.sub (.dynamic c) (.dynamic dotsLength)
+    let rows ← nativeRows
+    let matrixLength ← ops.lengthMatrix rowmatrix
+    let columns ← ops.colon2 (.native (jint 1)) (.dynamic matrixLength)
+    let alignL ← ops.alignment io rowmatrix rows columns c c sepsize nrow
+    let _ ← ops.print io pre
+    let leftLength ← ops.lengthAlignment alignL
+    let columns ← ops.colon2 (.native (jint 1)) (.dynamic leftLength)
+    let _ ← ops.printMatrixRow io rowmatrix alignL (jint 1) columns sep idxlast
+    let _ ← ops.print io hdots
+    let matrixLength ← ops.lengthMatrix rowmatrix
+    let rightLength ← ops.lengthAlignment alignR
+    let rightStart ← ops.sub (.dynamic matrixLength) (.dynamic rightLength)
+    let rightStart ← ops.add (.dynamic rightStart) (.native (jint 1))
+    let matrixLength ← ops.lengthMatrix rowmatrix
+    let columns ← ops.colon2 (.dynamic rightStart) (.dynamic matrixLength)
+    let _ ← ops.printMatrixRow io rowmatrix alignR (jint 1) columns sep idxlast
+    ops.print io post
+
+end JuliaLean.base.range.Models2Group20
+
+namespace JuliaLean.base.range.Models2Group20
+
+open JuliaLean
+
+/-- Selected scalar calls for `isempty(::StepRange)`, base/range.jl:708-710.
+The element/step types are not fixed. Neither comparison nor `!=` nor `&`
+is forced to return Bool; `zero(step)` may have a distinct result type.
+Each operation retains its own errors and mutations through `m`. -/
+-- Source: base/range.jl:708-710 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- isempty(r::StepRange) =
+--     # steprange_last(r.start, r.step, r.stop) == r.stop
+--     (r.start != r.stop) & ((r.step > zero(r.step)) != (r.stop > r.start))
+-- /Source
+structure StepEmptyOps (m : Type → Type) (T S Z E G H D Result : Type) where
+  neEndpoints : T → T → m E
+  zeroStep : S → m Z
+  gtStep : S → Z → m G
+  gtEndpoints : T → T → m H
+  neDirections : G → H → m D
+  and : E → D → m Result
+
+/-- Eager emptiness test, base/range.jl:708-710. All operands are evaluated
+left to right before the selected `&`; no implicit Bool check or short circuit
+is inserted. The final dispatched result is returned unchanged. -/
+-- Source: base/range.jl:708-710 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- isempty(r::StepRange) =
+--     # steprange_last(r.start, r.step, r.stop) == r.stop
+--     (r.start != r.stop) & ((r.step > zero(r.step)) != (r.stop > r.start))
+-- /Source
+def isemptyStepRange {m : Type → Type} [Monad m]
+    {T S Z E G H D Result : Type}
+    (ops : StepEmptyOps m T S Z E G H D Result) (r : StepRange T S) : m Result := do
+  let unequal ← ops.neEndpoints r.start r.stop
+  let zero ← ops.zeroStep r.step
+  let positive ← ops.gtStep r.step zero
+  let increasing ← ops.gtEndpoints r.stop r.start
+  let directions ← ops.neDirections positive increasing
+  ops.and unequal directions
+
+/-- Open subtraction and division for `step(::LinRange)`, base/range.jl:740.
+Both arithmetic operations can throw or mutate state, and their result types
+need not equal either endpoint or length type. -/
+-- Source: base/range.jl:740-740 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- step(r::LinRange) = (last(r)-first(r))/r.lendiv
+-- /Source
+structure LinStepOps (m : Type → Type) (T L Difference Result : Type) where
+  sub : T → T → m Difference
+  div : Difference → L → m Result
+
+/-- `LinRange` spacing, base/range.jl:740. The concrete range's installed
+first/last accessors are used. Subtraction occurs before division, permitting
+checked Rational arithmetic and other dispatched failures at their source point.
+The denominator is the stored `lendiv`, not the stored count. -/
+-- Source: base/range.jl:740-740 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- step(r::LinRange) = (last(r)-first(r))/r.lendiv
+-- /Source
+def stepLinRange {m : Type → Type} [Monad m]
+    {T L Difference Result : Type}
+    (ops : LinStepOps m T L Difference Result) (r : LinRange T L) : m Result := do
+  let stop := last_LinRange r
+  let start := first_LinRange r
+  let difference ← ops.sub stop start
+  ops.div difference r.lendiv
+
+/-- Open calls in `length(::AbstractUnitRange)`, base/range.jl:794-804.
+`Sum Signed Other` carries the runtime `isa Signed` classification of the
+value returned by `oneunit`; this is type metadata, not a supplied comparison
+or correctness law. Each operation has its own result carrier, including the
+first/last results and the two branches' changed accumulator types. -/
+-- Source: base/range.jl:794-804 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function length(r::AbstractUnitRange{T}) where T
+--     @inline
+--     start, stop = first(r), last(r)
+--     a = oneunit(zero(stop) - zero(start))
+--     if a isa Signed || stop >= start
+--         a += stop - start # Signed are allowed to go negative
+--     else
+--         a = zero(a) # Unsigned don't necessarily underflow
+--     end
+--     return Integer(a)
+-- end
+-- /Source
+structure UnitLengthOps (m : Type → Type)
+    (R First Last ZeroLast ZeroFirst ZeroDiff Signed Other Diff Updated Empty Result Bad : Type) where
+  first : R → m First
+  last : R → m Last
+  zeroLast : Last → m ZeroLast
+  zeroFirst : First → m ZeroFirst
+  subZeros : ZeroLast → ZeroFirst → m ZeroDiff
+  oneunit : ZeroDiff → m (Sum Signed Other)
+  ge : Last → First → m (Condition Bad)
+  subEndpoints : Last → First → m Diff
+  add : Sum Signed Other → Diff → m Updated
+  zeroOther : Other → m Empty
+  integerUpdated : Updated → m Result
+  integerEmpty : Empty → m Result
+
+/-- Generic unit-range length, base/range.jl:794-804. Derive the unit from
+value-sensitive endpoint zeros before testing its runtime Signed classification.
+Signed units bypass endpoint comparison; a non-Bool comparison raises TypeError
+at the condition. Both branch arithmetic and Integer conversion remain effectful.
+No native specialization or arithmetic correctness premise restricts the domain. -/
+-- Source: base/range.jl:794-804 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function length(r::AbstractUnitRange{T}) where T
+--     @inline
+--     start, stop = first(r), last(r)
+--     a = oneunit(zero(stop) - zero(start))
+--     if a isa Signed || stop >= start
+--         a += stop - start # Signed are allowed to go negative
+--     else
+--         a = zero(a) # Unsigned don't necessarily underflow
+--     end
+--     return Integer(a)
+-- end
+-- /Source
+def lengthAbstractUnitRange {m : Type → Type} [Monad m]
+    {R First Last ZeroLast ZeroFirst ZeroDiff Signed Other Diff Updated Empty Result Bad : Type}
+    [MonadExceptOf (PrintRangeError Bad) m]
+    (ops : UnitLengthOps m R First Last ZeroLast ZeroFirst ZeroDiff Signed Other Diff Updated Empty Result Bad)
+    (r : R) : m Result := do
+  let start ← ops.first r
+  let stop ← ops.last r
+  let zeroStop ← ops.zeroLast stop
+  let zeroStart ← ops.zeroFirst start
+  let zeroDifference ← ops.subZeros zeroStop zeroStart
+  let a ← ops.oneunit zeroDifference
+  match a with
+  | .inl signed =>
+      let difference ← ops.subEndpoints stop start
+      let updated ← ops.add (.inl signed) difference
+      ops.integerUpdated updated
+  | .inr other =>
+      let condition ← ops.ge stop start
+      match condition with
+      | .other bad => throw (.typeError bad)
+      | .bool true =>
+          let difference ← ops.subEndpoints stop start
+          let updated ← ops.add (.inr other) difference
+          ops.integerUpdated updated
+      | .bool false =>
+          let empty ← ops.zeroOther other
+          ops.integerEmpty empty
+
+end JuliaLean.base.range.Models2Group20
+
+
+namespace JuliaLean.base.range.Models2Group20
+
+/-- Open, effectful dispatch used by `show(::IO, ::AbstractRange)`,
+base/range.jl:1135. First, step, last and all three repr results have independent
+carriers, which may contain tagged values with changing Julia runtime types.
+The variadic print is one call with its exact five value arguments. -/
+-- Source: base/range.jl:1135-1135 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- show(io::IO, r::AbstractRange) = print(io, repr(first(r)), ':', repr(step(r)), ':', repr(last(r)))
+-- /Source
+structure AbstractShowOps (m : Type → Type)
+    (Stream R First Step Last FirstText StepText LastText Result : Type) where
+  first : R → m First
+  reprFirst : First → m FirstText
+  step : R → m Step
+  reprStep : Step → m StepText
+  last : R → m Last
+  reprLast : Last → m LastText
+  print5 : Stream → FirstText → Char → StepText → Char → LastText → m Result
+
+/-- Generic range display, base/range.jl:1135. Repr arguments are evaluated
+left to right before the single variadic stream call. Its return is retained;
+the monad also retains exceptions and all earlier mutations. -/
+-- Source: base/range.jl:1135-1135 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- show(io::IO, r::AbstractRange) = print(io, repr(first(r)), ':', repr(step(r)), ':', repr(last(r)))
+-- /Source
+def showAbstractRange {m : Type → Type} [Monad m]
+    {Stream R First Step Last FirstText StepText LastText Result : Type}
+    (ops : AbstractShowOps m Stream R First Step Last FirstText StepText LastText Result)
+    (io : Stream) (r : R) : m Result := do
+  let first ← ops.first r
+  let firstText ← ops.reprFirst first
+  let step ← ops.step r
+  let stepText ← ops.reprStep step
+  let last ← ops.last r
+  let lastText ← ops.reprLast last
+  ops.print5 io firstText ':' stepText ':' lastText
+
+/-- Effectful open conversion and output targets of UnitRange display,
+base/range.jl:1136-1140. `Converted` and `Result` can be tagged dynamic carriers;
+conversion is not silently assumed to return a value of its requested type.
+The concrete first/last source bodies are implemented below. -/
+-- Source: base/range.jl:1136-1140 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function show(io::IO, r::UnitRange)
+--     show(io, first(r))
+--     print(io, ':')
+--     show(io, last(r))
+-- end
+-- /Source
+structure UnitShowOps (m : Type → Type) (Stream T Converted ColonResult Result : Type) where
+  convert : TypeToken T → T → m Converted
+  showValue : Stream → Converted → m Result
+  printChar : Stream → Char → m ColonResult
+
+/-- The UnitRange specialization of the concrete ordinal accessor,
+base/range.jl:867. It selects the stored start itself and calls the selected
+`convert(T, value)` at that point. The installed accessor uses fixed `JlX`;
+this additive helper preserves arbitrary conversion state and exceptions. -/
+-- Source: base/range.jl:867-867 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- first(r::OrdinalRange{T}) where {T} = convert(T, r.start)
+-- /Source
+def unitRangeFirstEffectful {m : Type → Type} {T Converted : Type}
+    (convert : TypeToken T → T → m Converted) (r : UnitRange T) : m Converted :=
+  convert ⟨⟩ r.start
+
+/-- The UnitRange specialization of the concrete ordinal accessor,
+base/range.jl:877. Stored stop selection and effectful conversion are explicit;
+no arbitrary callback replaces `last(::UnitRange)` itself. -/
+-- Source: base/range.jl:877-877 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- last(r::OrdinalRange{T}) where {T} = convert(T, r.stop) # via steprange_last
+-- /Source
+def unitRangeLastEffectful {m : Type → Type} {T Converted : Type}
+    (convert : TypeToken T → T → m Converted) (r : UnitRange T) : m Converted :=
+  convert ⟨⟩ r.stop
+
+/-- Incremental UnitRange display, base/range.jl:1136-1140. The last endpoint
+is converted only after the first show and colon print have succeeded. The
+final show result is returned unchanged; a later failure retains prior writes. -/
+-- Source: base/range.jl:1136-1140 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function show(io::IO, r::UnitRange)
+--     show(io, first(r))
+--     print(io, ':')
+--     show(io, last(r))
+-- end
+-- /Source
+def showUnitRange {m : Type → Type} [Monad m]
+    {Stream T Converted ColonResult Result : Type}
+    (ops : UnitShowOps m Stream T Converted ColonResult Result)
+    (io : Stream) (r : UnitRange T) : m Result := do
+  let first ← unitRangeFirstEffectful ops.convert r
+  let _ ← ops.showValue io first
+  let _ ← ops.printChar io ':'
+  let last ← unitRangeLastEffectful ops.convert r
+  ops.showValue io last
+
+/-- One variadic print dispatch for `show(::IO, ::OneTo)`, base/range.jl:1141.
+The arbitrary IO subtype selects the stream method; the stored stop is passed
+as its actual value, without conversion or pre-rendering. -/
+-- Source: base/range.jl:1141-1141 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- show(io::IO, r::OneTo) = print(io, "Base.OneTo(", r.stop, ")")
+-- /Source
+structure OneToShowOps (m : Type → Type) (Stream T Result : Type) where
+  print3 : Stream → String → T → String → m Result
+
+/-- OneTo display, base/range.jl:1141: exactly one variadic print invocation
+receives the original stream and stored stop, returning its result unchanged. -/
+-- Source: base/range.jl:1141-1141 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- show(io::IO, r::OneTo) = print(io, "Base.OneTo(", r.stop, ")")
+-- /Source
+def showOneTo {m : Type → Type} {Stream T Result : Type}
+    (ops : OneToShowOps m Stream T Result) (io : Stream) (r : OneTo T) : m Result :=
+  ops.print3 io "Base.OneTo(" r.stop ")"
+
+end JuliaLean.base.range.Models2Group20
+
+namespace JuliaLean.base.range.Models2Group20
+
+open JuliaLean
+
+/-!
+Effectful `show(::StepRangeLen)` with explicit closed accessor dispatch.
+The argument constructors record the selected built-in representation cases,
+as `OffsetArgument` does in the installed abstract-array example. A pair in the
+TwicePrecision cases is the stored `(hi, lo)` field view, not a Julia Tuple
+substituted for the numeric value. Reference and step scalar types are independent.
+-/
+
+/-- Runtime representation/dispatch cases needed by base/range.jl:1142.
+`ordinaryStored` is the non-AbstractFloat fallback with at least one field type
+not TwicePrecision; `ordinaryConverted` is its AbstractFloat counterpart.
+`twiceStored` has two TwicePrecision field types, non-AbstractFloat T, and is
+outside the exact matching T/T/T step specialization. `twiceConverted` covers
+AbstractFloat T or matching TwicePrecision{T} reference and step, including
+non-floating T. These tags describe actual type selection, not a caller-supplied
+implementation or a law about arithmetic. The four original fields remain stored;
+all constructible length/offset values are included. -/
+-- Source: base/range.jl:738-739 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- step(r::StepRangeLen) = r.step
+-- step(r::StepRangeLen{T}) where {T<:AbstractFloat} = T(r.step)
+-- /Source
+inductive StepLenArgument (T R S L F G : Type) where
+  | ordinaryStored (range : StepRangeLen T R S L)
+  | ordinaryConverted (range : StepRangeLen T R S L)
+  | twiceStored (range : StepRangeLen T (F × F) (G × G) L)
+  | twiceConverted (range : StepRangeLen T (F × F) (G × G) L)
+
+/-- Arguments to scalar dispatch preserve their original runtime categories.
+The dynamic carrier may contain values of changing Julia types. `twiceStep`
+retains the actual immutable TwicePrecision step through its two stored fields;
+its tag is distinct from a Julia tuple. No arithmetic result is fixed to L, F,
+G, or the represented element type T.  Source use: base/twiceprecision.jl:196-199. -/
+-- Source: base/twiceprecision.jl:196-199 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- struct TwicePrecision{T}
+--     hi::T    # most significant bits
+--     lo::T    # least significant bits
+-- end
+-- /Source
+inductive StepLenScalar (R S L F G V : Type) where
+  | reference (value : R)
+  | step (value : S)
+  | length (value : L)
+  | referencePart (value : F)
+  | stepPart (value : G)
+  | twiceStep (parts : G × G)
+  | dynamic (value : V)
+
+/-- The observable field view of any object returned by open indexed_iterate.
+A Module is distinguished because integer Core.getfield on it raises TypeError.
+Every other object exposes its actual UInt32 field count and first two stored
+slots; none in an existing slot is #undef, whereas a missing numbered field is
+out of bounds. All remaining fields are unobserved. This is concrete runtime
+metadata, not an arbitrary getfield function. It extends the installed
+BootCov.getfieldObj slot model without an unbounded tuple/list assumption.
+Source use: base/twiceprecision.jl:484; Core documentation:
+base/docs/basedocs.jl:2609-2620. Default-order reads of these fields have no
+user dispatch; the view is taken after each indexed_iterate returns. -/
+-- Source: base/twiceprecision.jl:484-484 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+--     x_hi, x_lo = add12(r.ref.hi, shift_hi)
+-- /Source
+inductive StepLenIndexedObject (V : Type) where
+  | moduleValue
+  | fields (count : JInt .u32) (first second : Option V)
+
+/-- Only the first and second primitive field positions occur in the lowering
+of this two-target assignment at base/twiceprecision.jl:484. -/
+-- Source: base/twiceprecision.jl:484-484 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+--     x_hi, x_lo = add12(r.ref.hi, shift_hi)
+-- /Source
+inductive StepLenProjection where
+  | first
+  | second
+  deriving DecidableEq, Repr
+
+/-- Errors introduced by this caller and its concrete destructuring helper.
+Other exceptions remain in the selected effect monad. Both non-Bool conditions
+and integer getfield on Modules are TypeError; undefined existing fields are
+UndefRefError and nonexistent fields are the installed BoundsError class.  Source use: base/range.jl:1142-1149. -/
+-- Source: base/range.jl:1142-1149 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function show(io::IO, r::StepRangeLen)
+--     if !iszero(step(r))
+--         print(io, repr(first(r)), ':', repr(step(r)), ':', repr(last(r)))
+--     else
+--         # ugly temporary printing, to avoid 0:0:0 etc.
+--         print(io, "StepRangeLen(", repr(first(r)), ", ", repr(step(r)), ", ", repr(length(r)), ")")
+--     end
+-- end
+-- /Source
+inductive StepLenError (Bad : Type) where
+  | conditionTypeError (value : Bad)
+  | getfieldTypeError
+  | undefRefError
+  | jl (error : JlError)
+
+/-- Primitive positional projection used by the lowering of the add12
+assignment at base/twiceprecision.jl:484. No user callback replaces the field
+read. Native UInt32 field-count metadata separates a missing field from #undef.
+Core field-read semantics follow the installed BootCov.getfieldObj model;
+base/docs/basedocs.jl:2609-2620 specifies positional access and bounds checking;
+the installed BootCov.getfieldObj model supplies BoundsError/UndefRefError
+slot semantics.
+The Module special case keeps Core's Symbol-only global lookup TypeError. -/
+-- Source: base/twiceprecision.jl:484-484 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+--     x_hi, x_lo = add12(r.ref.hi, shift_hi)
+-- /Source
+def stepLenIndexedField {m : Type → Type} [Monad m] {V Bad : Type}
+    [MonadExceptOf (StepLenError Bad) m]
+    (object : StepLenIndexedObject V) (position : StepLenProjection) : m V := do
+  match object with
+  | .moduleValue => throw StepLenError.getfieldTypeError
+  | .fields count first second =>
+      let index : JInt .u32 := JInt.wrap .u32 (match position with | .first => 1 | .second => 2)
+      if count.val < index.val then throw (StepLenError.jl .boundsError)
+      match (match position with | .first => first | .second => second) with
+      | none => throw StepLenError.undefRefError
+      | some value => pure value
+
+/-- One variadic print argument is a literal String, a literal Char, or an
+unrestricted result of open repr dispatch. The fixed five/seven argument lists
+in the method are constructible Julia tuples; no arbitrary array is introduced.  Source use: base/range.jl:1142-1149. -/
+-- Source: base/range.jl:1142-1149 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function show(io::IO, r::StepRangeLen)
+--     if !iszero(step(r))
+--         print(io, repr(first(r)), ':', repr(step(r)), ':', repr(last(r)))
+--     else
+--         # ugly temporary printing, to avoid 0:0:0 etc.
+--         print(io, "StepRangeLen(", repr(first(r)), ", ", repr(step(r)), ", ", repr(length(r)), ")")
+--     end
+-- end
+-- /Source
+inductive StepLenPrintArg (P : Type) where
+  | text (value : String)
+  | char (value : Char)
+  | rendered (value : P)
+
+/-- Open leaves in the StepRangeLen accessors and display. Arithmetic,
+oftype, element conversion/construction, add12, indexed_iterate, iszero, !,
+repr and print dispatch on types this source does not fix. The concrete range
+accessors and both unsafe_getindex algorithms are absent from this interface:
+they are implemented below. add12 may return any Julia object A, with arbitrary
+indexed_iterate effects and result shapes. State values use V and can change
+runtime type between calls. No callee-correctness law is assumed.  Source use: base/range.jl:1142-1149. -/
+-- Source: base/range.jl:1142-1149 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function show(io::IO, r::StepRangeLen)
+--     if !iszero(step(r))
+--         print(io, repr(first(r)), ':', repr(step(r)), ':', repr(last(r)))
+--     else
+--         # ugly temporary printing, to avoid 0:0:0 etc.
+--         print(io, "StepRangeLen(", repr(first(r)), ", ", repr(step(r)), ", ", repr(length(r)), ")")
+--     end
+-- end
+-- /Source
+structure StepLenShowOps (m : Type → Type)
+    (T R S L F G V A Z Bad P Stream Output : Type) where
+  oftype : L → Sum JInt64 L → m V
+  sub : StepLenScalar R S L F G V → StepLenScalar R S L F G V → m V
+  mul : StepLenScalar R S L F G V → StepLenScalar R S L F G V → m V
+  add : StepLenScalar R S L F G V → StepLenScalar R S L F G V → m V
+  convertElement : TypeToken T → V → m V
+  constructElement : TypeToken T → StepLenScalar R S L F G V → m V
+  add12 : F → V → m A
+  indexedIterateFirst : A → JInt64 → m (StepLenIndexedObject V)
+  indexedIterateNext : A → JInt64 → V → m (StepLenIndexedObject V)
+  iszero : StepLenScalar R S L F G V → m Z
+  not : Z → m (Condition Bad)
+  repr : StepLenScalar R S L F G V → m P
+  print : Stream → List (StepLenPrintArg P) → m Output
+
+/-- Concrete stored length, base/range.jl:807, for all four representations.
+Each branch reuses the installed accessor. In particular custom integer L and
+all constructible counts remain unchanged. -/
+-- Source: base/range.jl:807-807 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- length(r::StepRangeLen) = r.len
+-- /Source
+def stepLenLength {T R S L F G : Type} (r : StepLenArgument T R S L F G) : L :=
+  match r with
+  | .ordinaryStored r | .ordinaryConverted r => length_StepRangeLen r
+  | .twiceStored r | .twiceConverted r => length_StepRangeLen r
+
+/-- Closed selection of the actual step bodies, base/range.jl:738-739 and
+base/twiceprecision.jl:438-439. Stored access calls the installed accessor;
+selected T(step) invokes the open scalar constructor at its original point.
+The twiceConverted branch includes the non-floating matching T specialization. -/
+-- Source: base/range.jl:738-739 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- step(r::StepRangeLen) = r.step
+-- step(r::StepRangeLen{T}) where {T<:AbstractFloat} = T(r.step)
+-- /Source
+-- Source: base/twiceprecision.jl:438-439 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- step(r::StepRangeLen{T,TwicePrecision{T},TwicePrecision{T}}) where {T<:AbstractFloat} = T(r.step)
+-- step(r::StepRangeLen{T,TwicePrecision{T},TwicePrecision{T}}) where {T} = T(r.step)
+-- /Source
+def stepLenStep {m : Type → Type} [Monad m]
+    {T R S L F G V A Z Bad P Stream Output : Type}
+    (ops : StepLenShowOps m T R S L F G V A Z Bad P Stream Output)
+    (r : StepLenArgument T R S L F G) : m (StepLenScalar R S L F G V) := do
+  match r with
+  | .ordinaryStored r => pure (.step (step_StepRangeLen r))
+  | .ordinaryConverted r =>
+      pure (.dynamic (← ops.constructElement ⟨⟩ (.step (step_StepRangeLen r))))
+  | .twiceStored r => pure (.twiceStep (step_StepRangeLen r))
+  | .twiceConverted r =>
+      pure (.dynamic (← ops.constructElement ⟨⟩ (.twiceStep (step_StepRangeLen r))))
+
+/-- Ordinary unsafe_getindex body, base/range.jl:986-989. Native 1 and the
+stored L-valued length remain distinct arguments to oftype. Every arithmetic
+result uses V, so subtraction/multiplication can change runtime type or throw.
+The final call is convert(T, value), not the constructor T(value). -/
+-- Source: base/range.jl:986-989 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function unsafe_getindex(r::StepRangeLen{T}, i::Integer) where T
+--     u = oftype(r.offset, i) - r.offset
+--     convert(T, (r.ref + u*r.step))
+-- end
+-- /Source
+def stepLenUnsafeOrdinary {m : Type → Type} [Monad m]
+    {T R S L F G V A Z Bad P Stream Output : Type}
+    (ops : StepLenShowOps m T R S L F G V A Z Bad P Stream Output)
+    (r : StepRangeLen T R S L) (i : Sum JInt64 L) : m V := do
+  let converted ← ops.oftype r.offset i
+  let u ← ops.sub (.dynamic converted) (.length r.offset)
+  let shift ← ops.mul (.dynamic u) (.step r.step)
+  let value ← ops.add (.reference r.ref) (.dynamic shift)
+  ops.convertElement ⟨⟩ value
+
+/-- Actual two-target destructuring of the open add12 result at
+base/twiceprecision.jl:484. Source lowering uses indexed_iterate at 1, extracts
+value then state, calls indexed_iterate at 2 with that state, and extracts only
+the second value. Core field projections are concrete above; no tuple-return
+law for custom add12 or indexed_iterate is assumed. -/
+-- Source: base/twiceprecision.jl:484-484 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+--     x_hi, x_lo = add12(r.ref.hi, shift_hi)
+-- /Source
+def stepLenDestructure {m : Type → Type} [Monad m]
+    {T R S L F G V A Z Bad P Stream Output : Type}
+    [MonadExceptOf (StepLenError Bad) m]
+    (ops : StepLenShowOps m T R S L F G V A Z Bad P Stream Output)
+    (result : A) : m (V × V) := do
+  let first ← ops.indexedIterateFirst result (jint 1)
+  let high ← stepLenIndexedField (Bad := Bad) first .first
+  let state ← stepLenIndexedField (Bad := Bad) first .second
+  let second ← ops.indexedIterateNext result (jint 2) state
+  let low ← stepLenIndexedField (Bad := Bad) second .first
+  pure (high, low)
+
+/-- Optimized unsafe_getindex, base/twiceprecision.jl:480-486. The reference
+parts F and step parts G are independently typed, exactly as the two separate
+<:TwicePrecision constraints permit. Multiplication, add12 and nested additions
+retain all errors/effects. The final operation is constructor T(value), distinct
+from the ordinary branch's convert. Stored parts are direct fields, not arbitrary
+whole-accessor callbacks. -/
+-- Source: base/twiceprecision.jl:480-486 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function unsafe_getindex(r::StepRangeLen{T,<:TwicePrecision,<:TwicePrecision}, i::Integer) where T
+--     # Very similar to _getindex_hiprec, but optimized to avoid a 2nd call to add12
+--     u = oftype(r.offset, i) - r.offset
+--     shift_hi, shift_lo = u*r.step.hi, u*r.step.lo
+--     x_hi, x_lo = add12(r.ref.hi, shift_hi)
+--     T(x_hi + (x_lo + (shift_lo + r.ref.lo)))
+-- end
+-- /Source
+def stepLenUnsafeTwice {m : Type → Type} [Monad m]
+    {T R S L F G V A Z Bad P Stream Output : Type}
+    [MonadExceptOf (StepLenError Bad) m]
+    (ops : StepLenShowOps m T R S L F G V A Z Bad P Stream Output)
+    (r : StepRangeLen T (F × F) (G × G) L) (i : Sum JInt64 L) : m V := do
+  let converted ← ops.oftype r.offset i
+  let u ← ops.sub (.dynamic converted) (.length r.offset)
+  let shiftHigh ← ops.mul (.dynamic u) (.stepPart r.step.1)
+  let shiftLow ← ops.mul (.dynamic u) (.stepPart r.step.2)
+  let decomposition ← ops.add12 r.ref.1 shiftHigh
+  let (high, low) ← stepLenDestructure ops decomposition
+  let lowTail ← ops.add (.dynamic shiftLow) (.referencePart r.ref.2)
+  let lowTotal ← ops.add (.dynamic low) (.dynamic lowTail)
+  let value ← ops.add (.dynamic high) (.dynamic lowTotal)
+  ops.constructElement ⟨⟩ (.dynamic value)
+
+/-- Closed unsafe_getindex dispatch needed by first/last at
+base/range.jl:869,878. Both TwicePrecision cases use the optimized body, whether
+the public step accessor stores or constructs its result. Ordinary cases use
+the actual ordinary body. No callback can replace either algorithm. -/
+-- Source: base/range.jl:986-989 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function unsafe_getindex(r::StepRangeLen{T}, i::Integer) where T
+--     u = oftype(r.offset, i) - r.offset
+--     convert(T, (r.ref + u*r.step))
+-- end
+-- /Source
+def stepLenUnsafeIndex {m : Type → Type} [Monad m]
+    {T R S L F G V A Z Bad P Stream Output : Type}
+    [MonadExceptOf (StepLenError Bad) m]
+    (ops : StepLenShowOps m T R S L F G V A Z Bad P Stream Output)
+    (r : StepLenArgument T R S L F G) (i : Sum JInt64 L) : m V :=
+  match r with
+  | .ordinaryStored r | .ordinaryConverted r => stepLenUnsafeOrdinary ops r i
+  | .twiceStored r | .twiceConverted r => stepLenUnsafeTwice ops r i
+
+/-- Concrete first accessor, base/range.jl:869. The source index is native
+Julia Int(1), not a conversion to the stored length type before calling oftype. -/
+-- Source: base/range.jl:869-869 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- first(r::StepRangeLen) = unsafe_getindex(r, 1)
+-- /Source
+def stepLenFirst {m : Type → Type} [Monad m]
+    {T R S L F G V A Z Bad P Stream Output : Type}
+    [MonadExceptOf (StepLenError Bad) m]
+    (ops : StepLenShowOps m T R S L F G V A Z Bad P Stream Output)
+    (r : StepLenArgument T R S L F G) : m V :=
+  stepLenUnsafeIndex ops r (.inl (jint 1))
+
+/-- Concrete last accessor, base/range.jl:878. Stored length uses its
+installed accessor and is passed unchanged to the selected indexing body. -/
+-- Source: base/range.jl:878-878 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- last(r::StepRangeLen) = unsafe_getindex(r, length(r))
+-- /Source
+def stepLenLast {m : Type → Type} [Monad m]
+    {T R S L F G V A Z Bad P Stream Output : Type}
+    [MonadExceptOf (StepLenError Bad) m]
+    (ops : StepLenShowOps m T R S L F G V A Z Bad P Stream Output)
+    (r : StepLenArgument T R S L F G) : m V :=
+  stepLenUnsafeIndex ops r (.inr (stepLenLength r))
+
+/-- Full effectful StepRangeLen show caller, base/range.jl:1142-1149.
+Every concrete range accessor uses its real body, including TwicePrecision
+indexing. iszero and ! retain open dispatch, followed by the native Bool check.
+The step accessor is evaluated twice; its first value is never cached for repr.
+All three repr argument evaluations precede the single variadic print invocation,
+whose return value and effects are retained unchanged. -/
+-- Source: base/range.jl:1142-1149 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function show(io::IO, r::StepRangeLen)
+--     if !iszero(step(r))
+--         print(io, repr(first(r)), ':', repr(step(r)), ':', repr(last(r)))
+--     else
+--         # ugly temporary printing, to avoid 0:0:0 etc.
+--         print(io, "StepRangeLen(", repr(first(r)), ", ", repr(step(r)), ", ", repr(length(r)), ")")
+--     end
+-- end
+-- /Source
+def showStepRangeLen {m : Type → Type} [Monad m]
+    {T R S L F G V A Z Bad P Stream Output : Type}
+    [MonadExceptOf (StepLenError Bad) m]
+    (ops : StepLenShowOps m T R S L F G V A Z Bad P Stream Output)
+    (io : Stream) (r : StepLenArgument T R S L F G) : m Output := do
+  let initialStep ← stepLenStep ops r
+  let zero ← ops.iszero initialStep
+  let condition ← ops.not zero
+  let nonzero ← match condition with
+    | .bool value => pure value
+    | .other value => throw (StepLenError.conditionTypeError value)
+  if nonzero then
+    let first ← ops.repr (.dynamic (← stepLenFirst ops r))
+    let step ← ops.repr (← stepLenStep ops r)
+    let last ← ops.repr (.dynamic (← stepLenLast ops r))
+    ops.print io [.rendered first, .char ':', .rendered step, .char ':', .rendered last]
+  else
+    let first ← ops.repr (.dynamic (← stepLenFirst ops r))
+    let step ← ops.repr (← stepLenStep ops r)
+    let length ← ops.repr (.length (stepLenLength r))
+    ops.print io [.text "StepRangeLen(", .rendered first, .text ", ", .rendered step,
+      .text ", ", .rendered length, .text ")"]
+
+end JuliaLean.base.range.Models2Group20
+
+namespace JuliaLean.base.range.Models2Group20
+
+open JuliaLean
+
+/-- A state/error computation with a separate divergent outcome. A failure
+retains the world reached at its throw point. This local representation follows
+the installed `base.io.M` pattern without adding an unavailable IO import.  Source use: base/range.jl:1180-1193. -/
+-- Source: base/range.jl:1180-1193 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function ==(r::AbstractRange, s::AbstractRange)
+--     lr = length(r)
+--     if lr != length(s)
+--         return false
+--     elseif iszero(lr)
+--         return true
+--     end
+--     yr, ys = iterate(r), iterate(s)
+--     while yr !== nothing
+--         yr[1] == ys[1] || return false
+--         yr, ys = iterate(r, yr[2]), iterate(s, ys[2])
+--     end
+--     return true
+-- end
+-- /Source
+abbrev RangeEffect (Error World A : Type) :=
+  World → Option (Except (Error × World) (A × World))
+
+/-- Sequential state/error composition for base/range.jl:1180-1193. -/
+-- Source: base/range.jl:1180-1193 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function ==(r::AbstractRange, s::AbstractRange)
+--     lr = length(r)
+--     if lr != length(s)
+--         return false
+--     elseif iszero(lr)
+--         return true
+--     end
+--     yr, ys = iterate(r), iterate(s)
+--     while yr !== nothing
+--         yr[1] == ys[1] || return false
+--         yr, ys = iterate(r, yr[2]), iterate(s, ys[2])
+--     end
+--     return true
+-- end
+-- /Source
+scoped instance rangeEffectMonad {Error World : Type} : Monad (RangeEffect Error World) where
+  pure value := fun world => some (.ok (value, world))
+  bind action next := fun world => do
+    match ← action world with
+    | .error error => pure (.error error)
+    | .ok (value, world) => next value world
+
+/-- Error handling preserves the changed world, base/range.jl:1180-1193. -/
+-- Source: base/range.jl:1180-1193 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function ==(r::AbstractRange, s::AbstractRange)
+--     lr = length(r)
+--     if lr != length(s)
+--         return false
+--     elseif iszero(lr)
+--         return true
+--     end
+--     yr, ys = iterate(r), iterate(s)
+--     while yr !== nothing
+--         yr[1] == ys[1] || return false
+--         yr, ys = iterate(r, yr[2]), iterate(s, ys[2])
+--     end
+--     return true
+-- end
+-- /Source
+scoped instance rangeEffectExcept {Error World : Type} : MonadExceptOf Error (RangeEffect Error World) where
+  throw error := fun world => some (.error (error, world))
+  tryCatch action handler := fun world =>
+    match action world with
+    | none => none
+    | some (.ok result) => some (.ok result)
+    | some (.error (error, world)) => handler error world
+
+/-- A tagged carrier can include every Julia runtime type. Its tag and payload
+may change at every iteration, rather than fixing one Julia state type.  Source use: base/range.jl:1180-1193. -/
+-- Source: base/range.jl:1180-1193 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function ==(r::AbstractRange, s::AbstractRange)
+--     lr = length(r)
+--     if lr != length(s)
+--         return false
+--     elseif iszero(lr)
+--         return true
+--     end
+--     yr, ys = iterate(r), iterate(s)
+--     while yr !== nothing
+--         yr[1] == ys[1] || return false
+--         yr, ys = iterate(r, yr[2]), iterate(s, ys[2])
+--     end
+--     return true
+-- end
+-- /Source
+abbrev Dynamic (Code : Type) (Value : Code → Type) := Sigma Value
+
+/-- The equality caller introduces only a Boolean-context TypeError or the
+known getindex(::Nothing, ::Int) MethodError. Callee errors are unrestricted.  Source use: base/range.jl:1180-1193. -/
+-- Source: base/range.jl:1180-1193 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function ==(r::AbstractRange, s::AbstractRange)
+--     lr = length(r)
+--     if lr != length(s)
+--         return false
+--     elseif iszero(lr)
+--         return true
+--     end
+--     yr, ys = iterate(r), iterate(s)
+--     while yr !== nothing
+--         yr[1] == ys[1] || return false
+--         yr, ys = iterate(r, yr[2]), iterate(s, ys[2])
+--     end
+--     return true
+-- end
+-- /Source
+inductive EqualityError (Value Foreign : Type) where
+  | base (error : Exc)
+  | typeError (value : Value)
+  | callee (error : Foreign)
+
+/-- Open calls of base/range.jl:1180-1193. An iterate result is either actual
+nothing or an arbitrary dynamic object, not an assumed pair. Its getindex
+calls are therefore retained. Both ranges and all returned types are open. -/
+-- Source: base/range.jl:1180-1193 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function ==(r::AbstractRange, s::AbstractRange)
+--     lr = length(r)
+--     if lr != length(s)
+--         return false
+--     elseif iszero(lr)
+--         return true
+--     end
+--     yr, ys = iterate(r), iterate(s)
+--     while yr !== nothing
+--         yr[1] == ys[1] || return false
+--         yr, ys = iterate(r, yr[2]), iterate(s, ys[2])
+--     end
+--     return true
+-- end
+-- /Source
+structure RangeEqualityOps (m : Type → Type) (R S V : Type) where
+  lengthR : R → m V
+  lengthS : S → m V
+  ne : V → V → m (Condition V)
+  iszero : V → m (Condition V)
+  iterateR : R → m (Option V)
+  iterateS : S → m (Option V)
+  getindex : V → JInt64 → m V
+  eq : V → V → m (Condition V)
+  nextR : R → V → m (Option V)
+  nextS : S → V → m (Option V)
+
+/-- Actual fuel-free recursion for the source while-loop. `none` denotes a
+divergent execution; there is no synthetic exhaustion error. The step is built
+from the caller's explicit body below, not supplied as its implementation.  Source use: base/range.jl:1180-1193. -/
+-- Source: base/range.jl:1180-1193 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function ==(r::AbstractRange, s::AbstractRange)
+--     lr = length(r)
+--     if lr != length(s)
+--         return false
+--     elseif iszero(lr)
+--         return true
+--     end
+--     yr, ys = iterate(r), iterate(s)
+--     while yr !== nothing
+--         yr[1] == ys[1] || return false
+--         yr, ys = iterate(r, yr[2]), iterate(s, ys[2])
+--     end
+--     return true
+-- end
+-- /Source
+def equalityWhile {Error World State : Type}
+    (step : State → RangeEffect Error World (Sum Bool State))
+    (state : State) : RangeEffect Error World Bool := fun world =>
+  match step state world with
+  | none => none
+  | some (.error error) => some (.error error)
+  | some (.ok (.inl value, world)) => some (.ok (value, world))
+  | some (.ok (.inr next, world)) => equalityWhile step next world
+partial_fixpoint
+
+/-- One source loop iteration, base/range.jl:1188-1192. The left iterator
+controls exhaustion. A prematurely exhausted right iterator raises MethodError
+only after reading the current left element. Next-state indexing and iteration
+remain interleaved left then right as in the tuple-assignment RHS. -/
+-- Source: base/range.jl:1180-1193 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function ==(r::AbstractRange, s::AbstractRange)
+--     lr = length(r)
+--     if lr != length(s)
+--         return false
+--     elseif iszero(lr)
+--         return true
+--     end
+--     yr, ys = iterate(r), iterate(s)
+--     while yr !== nothing
+--         yr[1] == ys[1] || return false
+--         yr, ys = iterate(r, yr[2]), iterate(s, ys[2])
+--     end
+--     return true
+-- end
+-- /Source
+def equalityIteration {R S V Foreign World : Type}
+    (ops : RangeEqualityOps (RangeEffect (EqualityError V Foreign) World) R S V)
+    (r : R) (s : S) (state : Option V × Option V) :
+    RangeEffect (EqualityError V Foreign) World (Sum Bool (Option V × Option V)) := do
+  match state.1 with
+  | none => pure (.inl true)
+  | some yr =>
+      let left ← ops.getindex yr (jint 1)
+      let right ← match state.2 with
+        | none => throw (EqualityError.base (.jl (.methodError "getindex")))
+        | some ys => ops.getindex ys (jint 1)
+      let condition ← ops.eq left right
+      match condition with
+      | .other bad => throw (EqualityError.typeError bad)
+      | .bool false => pure (.inl false)
+      | .bool true =>
+          let rstate ← ops.getindex yr (jint 2)
+          let yr ← ops.nextR r rstate
+          let sstate ← match state.2 with
+            | none => throw (EqualityError.base (.jl (.methodError "getindex")))
+            | some ys => ops.getindex ys (jint 2)
+          let ys ← ops.nextS s sstate
+          pure (.inr (yr, ys))
+
+/-- Full generic range equality, base/range.jl:1180-1193. Length checks precede
+iteration, while iterations have genuinely changing dynamic states. The two
+initial iterations run even when the first returns nothing. The loop is actual
+recursion over the error/state semantics and can diverge without inventing a
+Julia error. No callee-correctness or termination law is required. -/
+-- Source: base/range.jl:1180-1193 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function ==(r::AbstractRange, s::AbstractRange)
+--     lr = length(r)
+--     if lr != length(s)
+--         return false
+--     elseif iszero(lr)
+--         return true
+--     end
+--     yr, ys = iterate(r), iterate(s)
+--     while yr !== nothing
+--         yr[1] == ys[1] || return false
+--         yr, ys = iterate(r, yr[2]), iterate(s, ys[2])
+--     end
+--     return true
+-- end
+-- /Source
+def eqAbstractRange {R S Code Foreign World : Type} {Value : Code → Type}
+    (ops : RangeEqualityOps
+      (RangeEffect (EqualityError (Dynamic Code Value) Foreign) World)
+      R S (Dynamic Code Value)) (r : R) (s : S) :
+    RangeEffect (EqualityError (Dynamic Code Value) Foreign) World Bool := do
+  let lr ← ops.lengthR r
+  let ls ← ops.lengthS s
+  let different ← ops.ne lr ls
+  match different with
+  | .other bad => throw (EqualityError.typeError bad)
+  | .bool true => pure false
+  | .bool false =>
+      let zero ← ops.iszero lr
+      match zero with
+      | .other bad => throw (EqualityError.typeError bad)
+      | .bool true => pure true
+      | .bool false =>
+          let yr ← ops.iterateR r
+          let ys ← ops.iterateS s
+          equalityWhile (equalityIteration ops r s) (yr, ys)
+
+end JuliaLean.base.range.Models2Group20
+
+namespace JuliaLean.base.range.Models2Group20
+
+open JuliaLean
+
+/-- A constructible heterogeneous vararg tuple. Its field count fits the actual UInt32
+runtime layout metadata, and its native length and terminal state fit Julia Int. Each element has its own runtime tag;
+the carrier does not require the ranges to share a concrete Julia type.
+This is the tuple representation for base/range.jl:1287-1293. -/
+-- Source: base/range.jl:1287-1293 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function intersect(r1::AbstractRange, r2::AbstractRange, r3::AbstractRange, r::AbstractRange...)
+--     i = intersect(intersect(r1, r2), r3)
+--     for t in r
+--         i = intersect(i, t)
+--     end
+--     i
+-- end
+-- /Source
+structure RangeArguments (Code : Type) (Value : Code → Type) where
+  values : List (Dynamic Code Value)
+  fieldCountFits : values.length ≤ IntTy.u32.max.toNat
+
+/-- Concrete tuple length from field-count metadata, base/tuple.jl:28.
+The UInt32 runtime bound (base/runtime_internals.jl:624-627) makes this an exact
+native Int value; no unbounded mathematical length replaces source arithmetic. -/
+-- Source: base/tuple.jl:28-28 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- length(@nospecialize t::Tuple) = nfields(t)
+-- /Source
+def rangeArgumentsLength {Code : Type} {Value : Code → Type}
+    (arguments : RangeArguments Code Value) : JInt64 :=
+  ⟨(arguments.values.length : Int), by
+    have bound := arguments.fieldCountFits
+    simp [IntTy.max, IntTy.min, IntTy.signed, IntTy.bits] at bound ⊢
+    omega⟩
+
+/-- Concrete native-state Tuple iteration, base/tuple.jl:69-73. The positional
+field read follows both source bounds checks; the stored immutable field is
+selected by a proved in-bounds address. The returned state uses installed
+wrapping Int addition. No callback or fuel substitutes for Tuple iteration. -/
+-- Source: base/tuple.jl:69-73 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function iterate(@nospecialize(t::Tuple), i::Int=1)
+--     @inline
+--     @_nothrow_meta
+--     return (1 <= i <= length(t)) ? (t[i], i + 1) : nothing
+-- end
+-- /Source
+def rangeArgumentsIterate {Code : Type} {Value : Code → Type}
+    (arguments : RangeArguments Code Value) (index : JInt64 := jint 1) :
+    Option (Dynamic Code Value × JInt64) :=
+  let length := rangeArgumentsLength arguments
+  if checked : 1 ≤ index.val ∧ index.val ≤ length.val then
+    let position : Fin arguments.values.length := ⟨(index.val - 1).toNat, by
+      change 1 ≤ index.val ∧ index.val ≤ (arguments.values.length : Int) at checked
+      omega⟩
+    some (arguments.values[position], index + jint 1)
+  else none
+
+/-- Selected binary intersection calls, base/range.jl:1287-1293. The changing
+accumulator is explicitly a tagged dynamic value and may become an Array or
+another type after any call. No closure over one fixed Julia accumulator type
+or one fixed Julia type for the remaining ranges is assumed. -/
+-- Source: base/range.jl:1287-1293 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function intersect(r1::AbstractRange, r2::AbstractRange, r3::AbstractRange, r::AbstractRange...)
+--     i = intersect(intersect(r1, r2), r3)
+--     for t in r
+--         i = intersect(i, t)
+--     end
+--     i
+-- end
+-- /Source
+structure IntersectManyOps (m : Type → Type) (R1 R2 R3 RangeValue AccValue : Type) where
+  firstTwo : R1 → R2 → m AccValue
+  third : AccValue → R3 → m AccValue
+  next : AccValue → RangeValue → m AccValue
+
+/-- Actual traversal of the concrete tuple in base/range.jl:1289-1291.
+Tuple iteration calls the concrete native helper and visits stored fields in
+order. The UInt32 field-count bound excludes native-state overflow. This helper
+performs the actual loop recursion, preserving every call result and world. -/
+-- Source: base/range.jl:1287-1293 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function intersect(r1::AbstractRange, r2::AbstractRange, r3::AbstractRange, r::AbstractRange...)
+--     i = intersect(intersect(r1, r2), r3)
+--     for t in r
+--         i = intersect(i, t)
+--     end
+--     i
+-- end
+-- /Source
+def intersectManyTail {R1 R2 R3 RangeCode AccValue Error World : Type}
+    {RangeValue : RangeCode → Type}
+    (ops : IntersectManyOps (RangeEffect Error World) R1 R2 R3
+      (Dynamic RangeCode RangeValue) AccValue)
+    (arguments : RangeArguments RangeCode RangeValue) (acc : AccValue)
+    (index : JInt64) : RangeEffect Error World AccValue := fun world =>
+  match rangeArgumentsIterate arguments index with
+  | none => some (.ok (acc, world))
+  | some (current, nextIndex) =>
+      match ops.next acc current world with
+      | none => none
+      | some (.error error) => some (.error error)
+      | some (.ok (next, after)) => intersectManyTail ops arguments next nextIndex after
+partial_fixpoint
+
+/-- Three-or-more range intersection, base/range.jl:1287-1293. Retains the
+left-associated first two calls and the ordered concrete tuple loop. Both
+remaining arguments and successive accumulator results may change Julia type;
+exceptions, state changes and arbitrary callee return values are preserved. -/
+-- Source: base/range.jl:1287-1293 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function intersect(r1::AbstractRange, r2::AbstractRange, r3::AbstractRange, r::AbstractRange...)
+--     i = intersect(intersect(r1, r2), r3)
+--     for t in r
+--         i = intersect(i, t)
+--     end
+--     i
+-- end
+-- /Source
+def intersectRangesMany {R1 R2 R3 RangeCode AccCode Error World : Type}
+    {RangeValue : RangeCode → Type} {AccValue : AccCode → Type}
+    (ops : IntersectManyOps (RangeEffect Error World) R1 R2 R3
+      (Dynamic RangeCode RangeValue) (Dynamic AccCode AccValue))
+    (r1 : R1) (r2 : R2) (r3 : R3) (rest : RangeArguments RangeCode RangeValue) :
+    RangeEffect Error World (Dynamic AccCode AccValue) := do
+  let first ← ops.firstTwo r1 r2
+  let initial ← ops.third first r3
+  intersectManyTail ops rest initial (jint 1)
+
+end JuliaLean.base.range.Models2Group20
+
+
+namespace JuliaLean.base.range.Models2Group20
+
+open JuliaLean
+
+/-- Open IO dispatch of LogRange show, base/range.jl:1726-1735. The initial
+print is a single variadic invocation containing the actual type argument.
+All result carriers are independent; context and endpoint display are effectful. -/
+-- Source: base/range.jl:1726-1735 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function show(io::IO, r::LogRange{T}) where {T}
+--     print(io, "LogRange{", T, "}(")
+--     ioc = IOContext(io, :typeinfo => T)
+--     show(ioc, first(r))
+--     print(io, ", ")
+--     show(ioc, last(r))
+--     print(io, ", ")
+--     show(io, length(r))
+--     print(io, ')')
+-- end
+-- /Source
+structure LogShowOps (m : Type → Type)
+    (Stream Context T OpeningResult PrintResult ValueResult LengthResult Result : Type) where
+  printType : Stream → String → TypeToken T → String → m OpeningResult
+  context : Stream → ContextKey → TypeToken T → m Context
+  showValue : Context → T → m ValueResult
+  printString : Stream → String → m PrintResult
+  showLength : Stream → JInt64 → m LengthResult
+  printChar : Stream → Char → m Result
+
+/-- Incremental LogRange display, base/range.jl:1726-1735. It uses the installed
+concrete first/last/length models, retains the opening variadic call, and sends
+only endpoint displays to the returned context. Later failures preserve earlier
+writes in state-preserving effect instantiations. No cached-log field is read. -/
+-- Source: base/range.jl:1726-1735 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function show(io::IO, r::LogRange{T}) where {T}
+--     print(io, "LogRange{", T, "}(")
+--     ioc = IOContext(io, :typeinfo => T)
+--     show(ioc, first(r))
+--     print(io, ", ")
+--     show(ioc, last(r))
+--     print(io, ", ")
+--     show(io, length(r))
+--     print(io, ')')
+-- end
+-- /Source
+def showLogRange {m : Type → Type} [Monad m]
+    {Stream Context T X OpeningResult PrintResult ValueResult LengthResult Result : Type}
+    (ops : LogShowOps m Stream Context T OpeningResult PrintResult ValueResult LengthResult Result)
+    (io : Stream) (r : LogRange T X) : m Result := do
+  let _ ← ops.printType io "LogRange{" ⟨⟩ "}("
+  let ioc ← ops.context io .typeinfo ⟨⟩
+  let _ ← ops.showValue ioc (first_LogRange r)
+  let _ ← ops.printString io ", "
+  let _ ← ops.showValue ioc (last_LogRange r)
+  let _ ← ops.printString io ", "
+  let _ ← ops.showLength io (length_LogRange r)
+  ops.printChar io ')'
+
+end JuliaLean.base.range.Models2Group20
+
+namespace JuliaLean.Multidim
+
+/-- An `OrdinalRange{Int,Int}`: `start`, `step` and `length`. -/
+structure Rng where
+  start : I64
+  step : I64
+  len : Nat
+  deriving DecidableEq, Repr
+
+/-- The exact value of the `j`-th element (0-based). -/
+def Rng.elem (r : Rng) (j : Int) : Int := r.start.val + j * r.step.val
+
+/-- `last(r)`: the normalised `stop` field, `start + (len-1)*step` (for an empty range
+`start - step`, as `steprange_last_empty` produces), `base/range.jl`. -/
+def Rng.last (r : Rng) : I64 := JInt.wrap .i64 (r.elem ((r.len : Int) - 1))
+
+/-- The elements of `r`, in iteration order. -/
+def Rng.elems (r : Rng) : List I64 :=
+  (List.range r.len).map fun (j : Nat) => JInt.wrap .i64 (r.elem j)
+
+/-- `in(x, r)` for an integer range: `x` is one of its elements. -/
+def Rng.contains (r : Rng) (x : I64) : Bool := r.elems.contains x
+
+/-- 0-based position of the exact integer `x` in `r`, if it is an element. -/
+def Rng.pos (r : Rng) (x : Int) : Option Nat :=
+  if r.step.val ≠ 0 ∧ (x - r.start.val) % r.step.val = 0 ∧ 0 ≤ (x - r.start.val) / r.step.val ∧
+      (x - r.start.val) / r.step.val < r.len
+  then some ((x - r.start.val) / r.step.val).toNat else none
+
+/-- The unit range `lo:hi` (`UnitRange{Int}`), converted for a `CartesianIndices`. -/
+def unitRng (lo hi : Int) : Rng := ⟨i64 lo, i64 1, (hi - lo + 1).toNat⟩
+
+end JuliaLean.Multidim
+
+namespace JuliaLean.BroadcastViews
+
+open JuliaLean
+
+/-- A `UnitRange{Int}` `lo:hi`. -/
+structure URange where
+  lo : I64
+  hi : I64
+  deriving DecidableEq, Repr
+
+/-- `length(lo:hi)` (exact for the modelled inputs; `checked_length` throws on overflow). -/
+def URange.len (r : URange) : Nat := (r.hi.val - r.lo.val + 1).toNat
+
+/-- The elements of `lo:hi`. -/
+def URange.elems (r : URange) : List I64 := (List.range r.len).map (fun k : Nat => r.lo + i64 k)
+
+/-- `+(r1::OrdinalRange, r2::OrdinalRange)`, `base/range.jl:1493-1498`: throws `DimensionMismatch`
+unless the lengths are equal, else `StepRangeLen(first(r1)+first(r2), step(r1)+step(r2), r1l)`,
+whose elements are `(first(r1)+first(r2)) + k*(1+1)`. Reached from
+`broadcasted(::DefaultArrayStyle{1}, ::typeof(+), r1::AbstractRange, r2::AbstractRange) = r1 + r2`
+(`base/broadcast.jl:1198`). -/
+def bcAddRanges (r1 r2 : URange) : R (List I64) :=
+  if r1.len = r2.len then
+    .ok ((List.range r1.len).map (fun k : Nat => (r1.lo + r2.lo) + i64 k * (i64 1 + i64 1)))
+  else .error .dimensionMismatch
+
+/-- Julia `UInt64`. -/
+abbrev U64 := JInt .u64
+
+/-- `r[i]` for the `StepRangeLen` built by `floatrangeU` (exact value of the `TwicePrecision`
+evaluation): `u = oftype(r.offset, i) - r.offset` is a `UInt64` difference
+(`base/range.jl:1096`), then `ref + u*step`. -/
+def srlElemU (ref : Int) (offset : U64) (stepN : Int) (i : Nat) : Int :=
+  ref + (JInt.wrap .u64 ((i : Int) - offset.val)).val * stepN
+
+/-- Julia `UInt8` and `Int8`. -/
+abbrev U8 := JInt .u8
+abbrev I8 := JInt .i8
+
+/-- A `StepRange{UInt8,Int8}` after construction: `start`, `step`, normalised `stop`. -/
+structure SRange8 where
+  start : U8
+  step : I8
+  stop : U8
+  deriving DecidableEq, Repr
+
+/-- `steprange_last(start, step, stop)`, `base/range.jl:353-387` (exact: the differences of `UInt8`
+values fit), with `steprange_last_empty` (389-397) for an empty range. -/
+def steprangeLast (start : U8) (step : I8) (stop : U8) : R U8 :=
+  if step.val = 0 then .error .argumentError
+  else if stop.val = start.val then .ok stop
+  else if (step.val > 0) ≠ (stop.val > start.val) then
+    .ok (if step.val > 0 then JInt.wrap .u8 (start.val - 1) else JInt.wrap .u8 (start.val + 1))
+  else
+    let absdiff := if stop.val > start.val then stop.val - start.val else start.val - stop.val
+    let absstep := if stop.val > start.val then step.val else -step.val
+    let remain := absdiff % absstep
+    .ok (if stop.val > start.val then JInt.wrap .u8 (stop.val - remain) else JInt.wrap .u8 (stop.val + remain))
+
+/-- `start:step:stop` for `UInt8` endpoints and an `Int8` step (`StepRange` constructor). -/
+def mkSRange8 (start : U8) (step : I8) (stop : U8) : R SRange8 := do
+  let last ← steprangeLast start step stop
+  pure ⟨start, step, last⟩
+
+/-- The elements of a `StepRange{UInt8,Int8}`: `length = div(stop - start, step) + 1` when the
+range is nonempty (`base/range.jl`, `length(::OrdinalRange)`), elements `start + k*step` in `UInt8`. -/
+def SRange8.elems (r : SRange8) : List U8 :=
+  let n := (r.stop.val - r.start.val) / r.step.val + 1
+  if (r.step.val > 0 ∧ r.stop.val < r.start.val) ∨ (r.step.val < 0 ∧ r.stop.val > r.start.val) then []
+  else (List.range n.toNat).map (fun k : Nat => JInt.wrap .u8 (r.start.val + (k : Int) * r.step.val))
+
+/-- `negate(x::Unsigned) = -convert(Signed, x)`, `base/int.jl:97`, for the `UInt8` step `1`. -/
+def negateOne8 : I8 := -(JInt.lit .i8 1)
+
+/-- The elements of `lo:hi::UnitRange{UInt8}`. -/
+def urange8Elems (lo hi : U8) : List U8 :=
+  (List.range (hi.val - lo.val + 1).toNat).map (fun k : Nat => JInt.wrap .u8 (lo.val + (k : Int)))
+
+end JuliaLean.BroadcastViews
+
+namespace JuliaLean.AbstractArraySpecs
+
+/-- `length(r)`: `r.stop` for `OneTo` (base/range.jl:806), else
+`oneunit + (stop - start)` with wrapping `Int` arithmetic (base/range.jl:794-805). -/
+def axLength (r : Ax) : I64 :=
+  match r.kind with
+  | .oneTo => r.hi
+  | .unit => i64 1 + (r.hi - r.lo)
+
+/-- `isempty(r::AbstractUnitRange) = first(r) > last(r)` (base/range.jl:711). -/
+def axIsEmpty (r : Ax) : Bool := decide (r.hi < r.lo)
+
+/-- `==` on two `AbstractUnitRange{Int}` (base/range.jl:1141-1150): empty ranges are
+equal, a length-one range equals a length-one range with the same first element,
+otherwise first, step (always 1) and last must agree. -/
+def axEq (r s : Ax) : Bool :=
+  if axIsEmpty r then axIsEmpty s
+  else if axLength r == i64 1 then (axLength s == i64 1) && (r.lo == s.lo)
+  else (r.lo == s.lo) && (r.hi == s.hi)
+
+end JuliaLean.AbstractArraySpecs
+
+namespace JuliaLean.Ranges
+
+/-- `base/range.jl:339-350,425-429,486-511`: integer ordinal range representations. -/
+inductive RangeKind where
+  | unit | step | oneTo
+  deriving DecidableEq, Repr
+
+/-- `base/range.jl:339-350,425-429,486-511`: stored endpoints and step. -/
+structure Rng where
+  kind : RangeKind
+  start : Num
+  stride : Num
+  stop : Num
+  deriving DecidableEq
+
+/-- `base/range.jl:867-868`: OneTo supplies a type-level lower endpoint. -/
+def first (r : Rng) : Num :=
+  if r.kind = .oneTo then Num.one r.stop.ty else r.start
+
+/-- `base/range.jl:877`: constructors store the normalized last endpoint. -/
+def last (r : Rng) : Num := r.stop
+
+/-- `base/range.jl:735-737`: Bool unit steps stay Bool; other units subtract zero. -/
+def step (r : Rng) : Num :=
+  if r.kind = .step then r.stride
+  else if r.start.ty = .bool then Num.one .bool
+  else Num.sub (Num.one r.start.ty) (Num.zero r.start.ty)
+
+/-- `base/range.jl:708-711`: emptiness uses direction and normalized endpoints. -/
+def isEmpty (r : Rng) : Bool :=
+  if r.kind = .step then
+    !Num.eq r.start r.stop && ((decide (r.stride.val > 0)) != (decide (r.stop.val > r.start.val)))
+  else decide ((first r).val > (last r).val)
+
+/-- `base/range.jl:439-441`: integral UnitRange empty normalization. -/
+def unitrangeLast (a b : Num) : Jl Num :=
+  if b.val ≥ a.val then .ok b
+  else Num.cast b.ty (Num.sub a (Num.one (Num.sub a b).ty))
+
+/-- `base/range.jl:428-435`: UnitRange promotes endpoints by exact conversion. -/
+def unit (a b : Num) : Jl Rng := do
+  let ty := Num.promote a.ty b.ty
+  let a ← Num.cast ty a
+  let b ← Num.cast ty b
+  let z ← unitrangeLast a b
+  pure ⟨.unit, a, Num.one ty, z⟩
+
+/-- `base/range.jl:389-399`: empty StepRange uses oneunit(step), with a Bool xor specialization. -/
+def steprangeLastEmpty (a s b : Num) : Jl Num :=
+  if a.ty = .bool then
+    .ok (Num.lit .bool (if decide (a.val ≠ 0) != decide (s.val > 0) then 1 else 0))
+  else Num.cast b.ty (if s.val > 0 then Num.sub a (Num.one s.ty) else Num.add a (Num.one s.ty))
+
+/-- `base/range.jl:353-387`: signed-overflow remainder uses unsigned(absdiff), including typemin steps. -/
+def steprangeLast (a s b : Num) : Jl Num := do
+  if s.val = 0 then .error (.argumentError "step cannot be zero")
+  else if b.val = a.val then pure b
+  else if decide (s.val > 0) != decide (b.val > a.val) then steprangeLastEmpty a s b
+  else
+    let (diff, st) := if b.val > a.val then (Num.sub b a, s) else (Num.sub a b, Num.neg s)
+    let rem ← Num.rem (if diff.ty.signed && decide (diff.val < 0) then Num.unsigned diff else diff) st
+    let rem ← Num.cast diff.ty rem
+    Num.cast b.ty (if b.val > a.val then Num.sub b rem else Num.add b rem)
+
+/-- `base/range.jl:339-350,404-405`: the unparameterized StepRange requires equal endpoint types. -/
+def stepRange (a s b : Num) : Jl Rng := do
+  if a.ty ≠ b.ty then .error (.methodError "StepRange")
+  else
+    let z ← steprangeLast a s b
+    pure ⟨.step, a, s, z⟩
+
+/-- `base/range.jl:3-5`: two-argument colon promotes exactly and constructs UnitRange. -/
+def colon2 (a b : Num) : Jl Rng := unit a b
+
+/-- `base/range.jl:10-11,22-24,64-70`: colon preserves step type, widening endpoints through start+zero(step). -/
+def colon3 (a s b : Num) : Jl Rng := do
+  let ty := Num.promote a.ty b.ty
+  let a ← Num.cast ty a
+  let b ← Num.cast ty b
+  if ty = s.ty then stepRange a s b
+  else
+    let ty' := (Num.add a (Num.zero s.ty)).ty
+    let a ← Num.cast ty' a
+    let b ← Num.cast ty' b
+    stepRange a s b
+
+/-- `base/range.jl:486-492,513`: OneTo rejects Bool, then clips negative stops to zero. -/
+def oneTo (n : Num) : Jl Rng :=
+  if n.ty = .bool then .error (.argumentError "invalid index of type Bool")
+  else .ok ⟨.oneTo, Num.one n.ty, Num.one n.ty, Num.max (Num.zero n.ty) n⟩
+
+/-- `base/range.jl:777-791`: generic ordinal length, used for Bool element ranges. -/
+def genericLength (r : Rng) : Jl Num := do
+  let s := step r
+  let a := first r
+  if isEmpty r then Num.div (Num.sub a a) (Num.one s.ty)
+  else
+    let (diff, s) := if s.val < 0 then (Num.sub a (last r), Num.neg s) else (Num.sub (last r) a, s)
+    let q ← Num.div diff s
+    pure (Num.add q (Num.one q.ty))
+
+/-- `base/range.jl:794-806,817-829,853-860`: all built-in integer length specializations. -/
+def length (r : Rng) : Jl Num := do
+  let a := first r
+  let b := last r
+  if r.kind = .oneTo then
+    if b.ty.small then Num.cast (.bit .i64) b else pure b
+  else if a.ty.small then
+    let a ← Num.cast (.bit .i64) a
+    let b ← Num.cast (.bit .i64) b
+    if r.kind ≠ .step then pure (Num.add (Num.sub b a) (Num.one (.bit .i64)))
+    else if isEmpty r then pure (Num.zero (.bit .i64))
+    else
+      let q ← Num.div (Num.sub b a) (step r)
+      let q ← Num.cast (.bit .i64) q
+      pure (Num.add q (Num.one (.bit .i64)))
+  else if r.kind ≠ .step then
+    let unit := Num.one (Num.sub (Num.zero b.ty) (Num.zero a.ty)).ty
+    if unit.ty.signed || decide (b.val ≥ a.val) then pure (Num.add unit (Num.sub b a))
+    else pure (Num.zero unit.ty)
+  else if a.ty = .bool then genericLength r
+  else
+    let s := step r
+    let diff := Num.sub b a
+    if isEmpty r then pure (Num.zero diff.ty)
+    else
+      let q ← Num.div (Num.unsigned (Num.flipsign diff s)) s
+      let q := Num.lit diff.ty q.val
+      pure (Num.add (Num.flipsign q s) (Num.one q.ty))
+
+/-- `base/range.jl:751-775`: generic checked ordinal/unit length (Bool element specialization). -/
+def genericCheckedLength (r : Rng) : Jl Num := do
+  let a := first r
+  if r.kind ≠ .step then
+    if isEmpty r then pure (Num.sub a a)
+    else
+      let q ← Num.checkedSub (last r) a
+      Num.checkedAdd q (Num.one q.ty)
+  else
+    let s := step r
+    if isEmpty r then Num.div (Num.sub a a) (Num.one s.ty)
+    else
+      let diff ← if s.val < 0 then Num.checkedSub a (last r) else Num.checkedSub (last r) a
+      let q ← Num.div diff (if s.val < 0 then Num.neg s else s)
+      Num.checkedAdd q (Num.one q.ty)
+
+/-- `base/range.jl:768-775,831-848,861-863`: checked length preserves intermediate conversions/errors. -/
+def checkedLength (r : Rng) : Jl Num := do
+  let a := first r
+  if a.ty.small then length r
+  else if r.kind ≠ .step ∨ a.ty = .bool then genericCheckedLength r
+  else
+    let s := step r
+    let b := last r
+    let ty := Num.promote b.ty a.ty
+    if isEmpty r then pure (Num.zero ty)
+    else
+      let q ← if s.val > 1 then
+          Num.div (Num.unsigned (Num.sub b a)) s
+        else if s.val < -1 then
+          Num.div (Num.unsigned (Num.sub a b)) (Num.neg s)
+        else if s.val > 0 then do
+          let diff ← Num.checkedSub b a
+          Num.div diff s
+        else do
+          let diff ← Num.checkedSub a b
+          Num.div diff (Num.neg s)
+      let q ← Num.cast ty q
+      Num.checkedAdd q (Num.one q.ty)
+
+/-- Mathematical cardinality of normalized ordinal ranges, without machine-width overflow. -/
+def trueCount (r : Rng) : Int :=
+  if isEmpty r then 0
+  else if r.kind ≠ .step then (last r).val - (first r).val + 1
+  else ((last r).val - (first r).val).tdiv (step r).val + 1
+
+/-- `base/range.jl:974-978`: specialized bounds arithmetic widens products before adding first. -/
+def stepBounds64 (r : Rng) (i : Num) (hs : (step r).ty.bits ≤ 64) (hi : i.ty.bits ≤ 64) : Bool :=
+  let j := Num.sub i (Num.one i.ty)
+  let res := Num.add (Num.widemul64 (step r) j hs (Num.sub_one_bits_le64 i hi)) (first r)
+  decide (0 < i.val) && (if (step r).val > 0 then decide (res.val ≤ (last r).val) else decide (res.val ≥ (last r).val))
+
+/-- `base/range.jl:950-953,974-978`, `base/abstractarray.jl` linear bounds: StepRange64 avoids length. -/
+def scalarBounds (r : Rng) (i : Num) : Jl Bool := do
+  if h : r.kind = .step ∧ r.start.ty ≠ .bool ∧ r.stride.ty ≠ .bool ∧ i.ty ≠ .bool ∧
+      r.start.ty.bits ≤ 64 ∧ r.stride.ty.bits ≤ 64 ∧ i.ty.bits ≤ 64 then
+    have hs : (step r).ty.bits ≤ 64 := by simpa [step, h.1] using h.2.2.2.2.2.1
+    pure (stepBounds64 r i hs h.2.2.2.2.2.2)
+  else
+    let n ← length r
+    pure (decide (1 ≤ i.val ∧ i.val ≤ n.val))
+
+/-- `base/range.jl:950-971,984-985`, `base/abstractarray.jl`: scalar indexing rejects Bool before bounds. -/
+def getindex (r : Rng) (i : Num) : Jl Num := do
+  if i.ty = .bool then .error (.argumentError "invalid index of type Bool")
+  else if r.kind = .unit then
+    let v := Num.add r.start (Num.sub i (Num.one i.ty))
+    if i.val > 0 ∧ v.val ≤ r.stop.val ∧ v.val ≥ r.start.val then
+      pure (Num.lit r.start.ty v.val)
+    else .error .boundsError
+  else
+    let valid ← scalarBounds r i
+    if !valid then .error .boundsError
+    else if r.kind = .oneTo then Num.cast r.stop.ty i
+    else Num.cast r.start.ty (Num.add (first r) (Num.mul (Num.sub i (Num.one i.ty)) (step r)))
+
+/-- `base/range.jl:935-942`: ordinal iteration carries the current element, terminating at last. -/
+def iterate (r : Rng) (state : Option Num := none) : Jl (Option Num) := do
+  match state with
+  | none => pure (if isEmpty r then none else some (first r))
+  | some i =>
+      if Num.eq i (last r) then pure none
+      else
+        let n ← Num.cast r.start.ty (Num.add i (step r))
+        pure (some n)
+
+/-- Integer-element `StepRangeLen` fields, base/range.jl:530-535. -/
+structure RngLen where
+  ref : Num
+  stride : Num
+  len : Num
+  offset : Num
+  elementTy : NType
+  deriving DecidableEq
+
+inductive ResultRng where
+  | ordinal (r : Rng)
+  | counted (r : RngLen)
+  deriving DecidableEq
+
+/-- `StepRangeLen{T,R,S}` and default length promotion, base/range.jl:537-561.
+Only integer reference and step types are in this model. -/
+def countedRange (elementTy : NType) (ref stride len : Num)
+    (offset : Num := Num.lit (.bit .i64) 1) : Jl ResultRng := do
+  let L := Num.promote (.bit .i64) len.ty
+  let n ← Num.cast L len
+  if n.val < 0 then
+    throw (.argumentError "length cannot be negative")
+  let o ← Num.cast L offset
+  if o.val < 1 ∨ o.val > max 1 n.val then
+    throw (.argumentError "StepRangeLen: offset must be in range")
+  return .counted ⟨ref, stride, n, o, elementTy⟩
+
+/-- `range_start_length`, base/range.jl:217-226. -/
+def rangeStartLength (a len : Num) : Jl ResultRng := do
+  let stride ← Num.cast (Num.sub a a).ty (Num.lit (.bit .i64) 1)
+  let stop := Num.add a (Num.sub len (Num.one len.ty))
+  match stop.ty with
+  | .bit t =>
+    if t.signed then
+      let start ← Num.cast stop.ty a
+      return .ordinal (← unit start stop)
+    else
+      countedRange stop.ty a stride len
+  | .bool => countedRange stop.ty a stride len
+
+/-- `range_stop_length`, base/range.jl:206-215. -/
+def rangeStopLength (a len : Num) : Jl ResultRng := do
+  let stride ← Num.cast (Num.sub a a).ty (Num.lit (.bit .i64) 1)
+  let start := Num.sub a (Num.sub len (Num.one len.ty))
+  match start.ty with
+  | .bit t =>
+    if t.signed then
+      let stop ← Num.cast start.ty a
+      return .ordinal (← unit start stop)
+    else
+      countedRange start.ty start stride len
+  | .bool => countedRange start.ty start stride len
+
+/-- `range_start_step_length`, base/range.jl:230-238. -/
+def rangeStartStepLength (a stride len : Num) : Jl ResultRng := do
+  let stop := Num.add a (Num.mul stride (Num.sub len (Num.one len.ty)))
+  match stop.ty with
+  | .bit t =>
+    if t.signed then
+      let start ← Num.cast stop.ty a
+      return .ordinal (← stepRange start stride stop)
+    else
+      countedRange stop.ty a stride len
+  | .bool => countedRange stop.ty a stride len
+
+/-- `range_step_stop_length`, base/range.jl:195-204. -/
+def rangeStepStopLength (stride a len : Num) : Jl ResultRng := do
+  let start := Num.sub a (Num.mul stride (Num.sub len (Num.one len.ty)))
+  match start.ty with
+  | .bit t =>
+    if t.signed then
+      let stop ← Num.cast start.ty a
+      return .ordinal (← stepRange start stride stop)
+    else
+      countedRange start.ty start stride len
+  | .bool => countedRange start.ty start stride len
+
+/-- `length(::StepRangeLen)` and ordinal dispatch, base/range.jl:811-813. -/
+def resultLength : ResultRng → Jl Num
+  | .ordinal r => length r
+  | .counted r => .ok r.len
+
+/-- `unsafe_getindex(::StepRangeLen)` with generic scalar index validation,
+base/range.jl:976-984 and base/abstractarray.jl scalar Bool-index rejection. -/
+def resultGetindex (r : ResultRng) (i : Num) : Jl Num := do
+  match r with
+  | .ordinal r => getindex r i
+  | .counted r =>
+    if i.ty = .bool then throw (.argumentError "invalid index of type Bool")
+    if i.val < 1 ∨ i.val > r.len.val then throw .boundsError
+    let ii ← Num.cast r.offset.ty i
+    let u := Num.sub ii r.offset
+    Num.cast r.elementTy (Num.add r.ref (Num.mul u r.stride))
+
+/-- `range_error` hint, base/range.jl:243-259. Line 247 reads
+`haslength = start !== nothing`, so `haslength` copies `hasstart`. Only the hint
+line of the ArgumentError message (base/range.jl:261-269) is modelled. -/
+def rangeErrorHint (start step stop _len : Option Num) : String :=
+  let hasstart := start.isSome
+  let hasstep := step.isSome
+  let hasstop := stop.isSome
+  let haslength := start.isSome
+  if hasstart && hasstep && hasstop && haslength then "Try specifying only three arguments"
+  else if !hasstop && !haslength then "At least one of `length` or `stop` must be specified."
+  else if !hasstep && !haslength then "At least one of `length` or `step` must be specified."
+  else if !hasstart && !hasstop then "At least one of `start` or `stop` must be specified."
+  else "Try specifying more arguments."
+
+/-- `range_error`, base/range.jl:243-270: always throws an ArgumentError. -/
+def rangeError (start step stop len : Option Num) : Jl ResultRng :=
+  .error (.argumentError (rangeErrorHint start step stop len))
+
+/-- `range(...)` front ends (base/range.jl:167-173) and the sixteen `_range`
+methods (base/range.jl:175-190); `none` is an argument left as `nothing`.
+`range_length`/`range_stop(::Integer)` build `OneTo` (base/range.jl:193,197).
+The result is `none` only for start/stop/length (base/range.jl:186), whose
+integer arguments produce floating-point elements outside this model. -/
+def rangeKw : Option Num → Option Num → Option Num → Option Num → Option (Jl ResultRng)
+  | none, none, none, some n => some (.ordinal <$> oneTo n)
+  | none, none, some b, none => some (.ordinal <$> oneTo b)
+  | none, none, some b, some n => some (rangeStopLength b n)
+  | none, some s, some b, some n => some (rangeStepStopLength s b n)
+  | some a, none, none, some n => some (rangeStartLength a n)
+  | some a, none, some b, none => some (.ordinal <$> colon2 a b)
+  | some _, none, some _, some _ => none
+  | some a, some s, none, some n => some (rangeStartStepLength a s n)
+  | some a, some s, some b, none => some (.ordinal <$> colon3 a s b)
+  | a, s, b, n => some (rangeError a s b n)
+
+/-- `mod(i, r)` and `mod1` dispatch, base/range.jl:1548-1549,
+base/operators.jl:914, base/promotion.jl:522. -/
+def modRange (i : Num) (r : Rng) : Jl Num := do
+  if r.kind = .oneTo then
+    let ty := Num.promote i.ty (last r).ty
+    let i ← Num.cast ty i
+    let stop ← Num.cast ty (last r)
+    let m ← Num.mod i stop
+    pure (if m.val = 0 then stop else m)
+  else
+    let n ← length r
+    let m ← Num.mod (Num.sub i (first r)) n
+    pure (Num.add m (first r))
+
+/-- `base/range.jl:537-550`: the integer-only inner constructor, including exact length/offset conversions. -/
+def countedNewTyped (elementTy lengthTy : NType) (ref stride len offset : Num) : Jl RngLen := do
+  let n ← Num.cast lengthTy len
+  if n.val < 0 then throw (.argumentError "length cannot be negative")
+  let o ← Num.cast lengthTy offset
+  if o.val < 1 ∨ o.val > max 1 n.val then
+    throw (.argumentError "StepRangeLen: offset must be in range")
+  return ⟨ref, stride, n, o, elementTy⟩
+
+/-- `base/range.jl:554-561`: `StepRangeLen{T}` promotes the length type with Int. -/
+def countedNew (elementTy : NType) (ref stride len : Num)
+    (offset : Num := Num.lit (.bit .i64) 1) : Jl RngLen :=
+  countedNewTyped elementTy (Num.promote (.bit .i64) len.ty) ref stride len offset
+
+/-- `base/range.jl:1095-1098`: high-precision indexing retains the reference and step types. -/
+def countedHiprec (r : RngLen) (i : Num) : Jl Num := do
+  let i ← Num.cast r.offset.ty i
+  return Num.add r.ref (Num.mul (Num.sub i r.offset) r.stride)
+
+/-- `base/range.jl:981-984`: conversion to the element type occurs after the arithmetic. -/
+def countedUnsafeGetindex (r : RngLen) (i : Num) : Jl Num := do
+  Num.cast r.elementTy (← countedHiprec r i)
+
+/-- `base/range.jl:869`: first indexes at the literal Int 1, even for an empty range. -/
+def countedFirst (r : RngLen) : Jl Num :=
+  countedUnsafeGetindex r (Num.lit (.bit .i64) 1)
+
+/-- `base/range.jl:878`: last indexes at the stored length, including zero. -/
+def countedLast (r : RngLen) : Jl Num := countedUnsafeGetindex r r.len
+
+/-- `base/range.jl:738`: the integer element specialization returns the stored step. -/
+def countedStep (r : RngLen) : Num := r.stride
+
+/-- `base/range.jl:712`: emptiness tests length, independently of endpoint overflow. -/
+def countedIsEmpty (r : RngLen) : Bool := decide (r.len.val = 0)
+
+/-- `base/checked.jl:376`, `base/range.jl:807`: checked length uses the stored-length fallback. -/
+def countedCheckedLength (r : RngLen) : Jl Num := .ok r.len
+
+/-- `base/range.jl:928-933`: iteration increments its integer state before testing length. -/
+def countedIterate (r : RngLen) (state : Option Num := none) : Jl (Option (Num × Num)) := do
+  let i := state.getD (Num.zero r.len.ty)
+  let i := Num.add i (Num.one i.ty)
+  if r.len.val < i.val then return none
+  return some (← countedUnsafeGetindex r i, i)
+
+/-- `base/range.jl:1436-1442`: reverse preserves all four type parameters. -/
+def countedReverse (r : RngLen) : Jl RngLen := do
+  let offset := if countedIsEmpty r then r.offset
+    else Num.add (Num.sub r.len r.offset) (Num.lit (.bit .i64) 1)
+  let stride ← Num.negate r.stride
+  if stride.ty ≠ r.stride.ty then throw (.methodError "StepRangeLen")
+  countedNewTyped r.elementTy r.len.ty r.ref stride r.len offset
+
+
+/-- `base/range.jl:881-884`: extrema inspect endpoints, with the empty check first. -/
+def countedMinimum (r : RngLen) : Jl Num := do
+  if countedIsEmpty r then throw (.argumentError "range must be non-empty")
+  let a ← countedFirst r
+  let b ← countedLast r
+  return Num.min a b
+
+/-- `base/range.jl:881-884`: maximum uses endpoint max after the empty check. -/
+def countedMaximum (r : RngLen) : Jl Num := do
+  if countedIsEmpty r then throw (.argumentError "range must be non-empty")
+  let a ← countedFirst r
+  let b ← countedLast r
+  return Num.max a b
+
+/-- `base/range.jl:920`: evaluate minimum before maximum. -/
+def countedExtrema (r : RngLen) : Jl (Num × Num) := do
+  let a ← countedMinimum r
+  let b ← countedMaximum r
+  return (a, b)
+
+/-- `base/range.jl:1481-1484`: integer-element membership retains both separate mod calls. -/
+def countedContains (r : RngLen) (x : Num) : Jl Bool := do
+  if countedIsEmpty r then return false
+  if r.stride.val = 0 then return Num.eq x (← countedFirst r)
+  let lo ← countedMinimum r
+  if x.val < lo.val then return false
+  let hi ← countedMaximum r
+  if x.val > hi.val then return false
+  let x ← Num.cast r.elementTy x
+  let a ← Num.mod x r.stride
+  let b ← Num.mod (← countedFirst r) r.stride
+  return decide ((Num.sub a b).val = 0)
+
+/-- `base/range.jl:1458-1463`, `base/int.jl:610-620`: arithmetic right shift by one. -/
+def countedHalf (x : Num) : Num := Num.lit x.ty (x.val / 2)
+
+/-- `base/range.jl:1458-1463`: arithmetic-series sum, retaining parity and product order. -/
+def countedSum (r : RngLen) : Jl Num := do
+  let l := r.len
+  let a ← countedFirst r
+  let lm1 := Num.sub l (Num.lit (.bit .i64) 1)
+  let tail := if l.val % 2 = 0 then
+      Num.mul (Num.mul r.stride lm1) (countedHalf l)
+    else Num.mul (Num.mul r.stride l) (countedHalf lm1)
+  return Num.add (Num.mul l a) tail
+
+/-- `base/abstractarray.jl:756-757`, `base/multidimensional.jl:910-917`: logical masks check length; ordinary ranges check endpoints. -/
+def countedSliceBounds (r : RngLen) (s : Rng) : Jl Bool := do
+  if (first s).ty = .bool then
+    return Num.eq (← length s) r.len
+  if isEmpty s then return true
+  return decide (1 ≤ (first s).val ∧ (first s).val ≤ r.len.val ∧
+    1 ≤ (last s).val ∧ (last s).val ≤ r.len.val)
+
+/-- `base/range.jl:1158-1159`: all four parameters determine identical counted range types. -/
+def countedSameType (r s : RngLen) : Bool :=
+  decide (r.elementTy = s.elementTy ∧ r.ref.ty = s.ref.ty ∧
+    r.stride.ty = s.stride.ty ∧ r.len.ty = s.len.ty)
+
+/-- `base/range.jl:1158-1159`: same-type counted equality eagerly compares first, length, and last. -/
+def countedSameTypeEq (r s : RngLen) : Jl Bool := do
+  let empty := countedIsEmpty r && countedIsEmpty s
+  let rf ← countedFirst r
+  let sf ← countedFirst s
+  let rl ← countedLast r
+  let sl ← countedLast s
+  return empty || (Num.eq rf sf && Num.eq r.len s.len && Num.eq rl sl)
+
+/-- `base/range.jl:1161-1165`: the same-element/reference specialization short-circuits empty and singleton ranges. -/
+def countedExactEq (r s : RngLen) : Jl Bool := do
+  if countedIsEmpty r then return countedIsEmpty s
+  if r.len.val = 1 then
+    let a ← countedFirst r
+    let b ← countedFirst s
+    return decide (s.len.val = 1) && Num.eq a b
+  let a ← countedFirst r
+  let b ← countedFirst s
+  let c ← countedLast r
+  let d ← countedLast s
+  return Num.eq a b && Num.eq r.stride s.stride && Num.eq c d
+
+/-- `base/range.jl:1161-1165`: the StepRange/StepRangeLen{T,T} specialization, in either argument order. -/
+def countedOrdinalExactEq (r : RngLen) (s : Rng) (countedLeft : Bool) : Jl Bool := do
+  if countedLeft then
+    if countedIsEmpty r then return isEmpty s
+    if r.len.val = 1 then return Num.eq (first s) (last s) && Num.eq (← countedFirst r) (first s)
+  else
+    if isEmpty s then return countedIsEmpty r
+    if Num.eq (first s) (last s) then return decide (r.len.val = 1) && Num.eq (first s) (← countedFirst r)
+  let a ← countedFirst r
+  let b ← countedLast r
+  return Num.eq a (first s) && Num.eq r.stride (step s) && Num.eq b (last s)
+
+/-- `base/range.jl:928-942`: generic equality observes both yielded element and Julia iteration state. -/
+def countedResultIterate (r : ResultRng) (state : Option Num := none) : Jl (Option (Num × Num)) := do
+  match r with
+  | .counted r => countedIterate r state
+  | .ordinal r =>
+    let next ← iterate r state
+    return next.map (fun x => (x, x))
+
+/-- `base/range.jl:1178-1183`: finite evaluations of the generic equality loop.
+An inductive execution relation preserves wrapping iteration states without an artificial fuel cutoff. -/
+inductive CountedEqLoop (r s : ResultRng) :
+    Jl (Option (Num × Num)) → Jl (Option (Num × Num)) → Jl Bool → Prop where
+  | leftError (e) (ys) : CountedEqLoop r s (.error e) ys (.error e)
+  | rightError (yr) (e) : CountedEqLoop r s (.ok yr) (.error e) (.error e)
+  | stop (ys) : CountedEqLoop r s (.ok none) (.ok ys) (.ok true)
+  | rightAbsent (x : Num × Num) :
+      CountedEqLoop r s (.ok (some x)) (.ok none) (.error (.methodError "getindex"))
+  | mismatch (x y : Num × Num) (h : Num.eq x.1 y.1 = false) :
+      CountedEqLoop r s (.ok (some x)) (.ok (some y)) (.ok false)
+  | next (x y : Num × Num) (out) (h : Num.eq x.1 y.1 = true)
+      (tail : CountedEqLoop r s (countedResultIterate r (some x.2))
+        (countedResultIterate s (some y.2)) out) :
+      CountedEqLoop r s (.ok (some x)) (.ok (some y)) out
+
+/-- `base/range.jl:1170-1184`: generic equality compares lengths before entering iteration. -/
+def countedGenericEq (r s : ResultRng) (out : Jl Bool) : Prop :=
+  match resultLength r, resultLength s with
+  | .error e, _ => out = .error e
+  | .ok _, .error e => out = .error e
+  | .ok lr, .ok ls =>
+    if !Num.eq lr ls then out = .ok false
+    else if lr.val = 0 then out = .ok true
+    else CountedEqLoop r s (countedResultIterate r) (countedResultIterate s) out
+
+/-- `base/range.jl:1158-1184`: counted/counted equality dispatch. -/
+def countedEq (r s : RngLen) (out : Jl Bool) : Prop :=
+  if r.elementTy = s.elementTy ∧ r.ref.ty = r.elementTy ∧ s.ref.ty = s.elementTy then
+    out = countedExactEq r s
+  else if countedSameType r s then out = countedSameTypeEq r s
+  else countedGenericEq (.counted r) (.counted s) out
+
+/-- `base/range.jl:1161-1184`: counted/ordinal equality dispatch, including argument order. -/
+def countedOrdinalEq (r : RngLen) (s : Rng) (out : Jl Bool)
+    (countedLeft : Bool := true) : Prop :=
+  if s.kind = .step ∧ r.elementTy = (first s).ty ∧ r.ref.ty = r.elementTy then
+    out = countedOrdinalExactEq r s countedLeft
+  else if countedLeft then countedGenericEq (.counted r) (.ordinal s) out
+  else countedGenericEq (.ordinal s) (.counted r) out
+
+end JuliaLean.Ranges
+
+namespace JuliaLean.AbstractArraySpecs
+
+/-- An `AbstractRange{Int}` whose elements are `first + k * step` for `k < len`
+(`UnitRange`, `StepRange`, `OneTo`, `StepRangeLen` with `Int` step). -/
+structure Rg where
+  first : I64
+  step : I64
+  len : Nat
+  deriving DecidableEq, Repr
+
+/-- The `k`-th element (0-based). -/
+def Rg.at (r : Rg) (k : Nat) : I64 := i64 (r.first.val + (k : Int) * r.step.val)
+
+/-- The elements from the `k`-th on, `m` of them. -/
+def Rg.elemsFrom (r : Rg) : Nat → Nat → List I64
+  | _, 0 => []
+  | k, m + 1 => r.at k :: r.elemsFrom (k + 1) m
+
+/-- The elements in iteration order. -/
+def Rg.elems (r : Rg) : List I64 := r.elemsFrom 0 r.len
+
+end JuliaLean.AbstractArraySpecs
+
+namespace JuliaLean.Tuples
+
+/-- `unitrange_last(start, stop)`, `base/range.jl:439-441`: `stop` when `stop >= start`,
+else `start - 1` (wrapping). -/
+def unitrangeLast {t : IntTy} (start stop : JInt t) : JInt t :=
+  if stop.val ≥ start.val then stop else start - JInt.lit t 1
+
+/-- `start:stop` for `BitInteger`s (`(:)(a::Real, b::Real) = (:)(promote(a, b)...)` and
+`UnitRange{T}(start, stop)`, `base/range.jl:3,5,428`), then `convert(OrdinalRangeInt, r)`
+in `CartesianIndices` (`base/multidimensional.jl:299-301`, `base/range.jl:1341`): the
+`Int` endpoints `(first, last)`. -/
+def unitRangeInt {s t : IntTy} (a : JInt s) (b : JInt t) : R (Int × Int) := do
+  let p ← promoteInts a b
+  let f ← liftJ (JInt.convert (IntTy.i64.name) .i64 p.1.val)
+  let l ← liftJ (JInt.convert (IntTy.i64.name) .i64 (unitrangeLast p.1 p.2).val)
+  pure (f.val, l.val)
+
+/-- `length(r::UnitRange{Int})`, `base/range.jl:820-833`: `0` when empty, else
+`(last -% first) + 1`. -/
+def rangeLength (r : Int × Int) : Int :=
+  if r.1 > r.2 then 0 else (JInt.wrap .i64 (r.2 - r.1 + 1)).val
+
+end JuliaLean.Tuples
+
+namespace JuliaLean.ArrayOps
+
+open JuliaLean
+
+/-- `length(r::UnitRange{T})` for a nonempty range, `base/range.jl:794-804, 859`:
+`Int(last) - Int(first) + 1` for types narrower than `Int`, else
+`last - first + 1` in `T`, wrapping. The result type is `Int` or `T`. -/
+def unitLengthTy (t : IntTy) : IntTy := if t.bits ≤ 32 then .i64 else t
+
+def unitLength {t : IntTy} (lo hi : JInt t) : JInt (unitLengthTy t) :=
+  JInt.wrap _ (hi.val - lo.val + 1)
+
+end JuliaLean.ArrayOps
+
+namespace JuliaLean.ArrayOps
+
+open JuliaLean
+
+variable {α β : Type}
+
+/-- The elements of `lo:hi` (`UnitRange{Int}`, `hi ≥ lo - 1`). -/
+def unitElems (lo hi : JInt64) : List JInt64 :=
+  (List.range (hi.val - lo.val + 1).toNat).map fun (k : Nat) => JInt.wrap .i64 (lo.val + (k : Int))
+
+/-- `vcat(rs::AbstractRange{T}...)` for unit ranges of `Int`, `base/range.jl:1405-1417`:
+`n = checked_add(n, length(ra))` over the ranges (`length` wraps, `base/range.jl:794-804`),
+then every element is stored. Elements are only stored while `i ≤ n`; the model reports
+`BoundsError` if an element would land past `n` (Julia stores it with `@inbounds`). -/
+def vcatRanges (rs : List (JInt64 × JInt64)) : Jl (List JInt64) := do
+  let n ← rs.foldlM (fun n r => checkedAdd64 n (JInt.wrap .i64 (r.2.val - r.1.val + 1)))
+    (JInt.lit .i64 0)
+  let elems := rs.flatMap fun r => unitElems r.1 r.2
+  if elems.length ≤ n.val then pure elems else throw .boundsError
+
+end JuliaLean.ArrayOps
+
+namespace JuliaLean.Dicts
+
+open JuliaLean.Float
+
+/-- `StepRangeLen{Float64,Float64,Float64}(ref, step, len, offset)`. -/
+structure SRL where
+  ref : F64
+  step : F64
+  len : Nat
+  offset : Int
+
+/-- `unsafe_getindex(r::StepRangeLen{T}, i)`, `base/range.jl:986-989`:
+`u = i - r.offset; convert(T, r.ref + u*r.step)`, with `Int * Float64`
+promoting `u` exactly (`|u| < 2^53` here). -/
+def SRL.elem (r : SRL) (i : Nat) : F64 :=
+  F64.add r.ref (F64.mul (F64.ofInt ((i : Int) - r.offset)) r.step)
+
+/-- `collect(r)`: elements `1:length(r)`. -/
+def SRL.collect (r : SRL) : List F64 := (List.range r.len).map fun i => r.elem (i + 1)
+
+end JuliaLean.Dicts
+
+namespace JuliaLean.ReduceCov.Indices
+
+/-- `el_same(T, a, b)`, `base/range.jl:1321-1324`: `a` when `eltype(a) == T`, `b` when
+`eltype(b) == T`, otherwise `promote_typejoin(a, b)`. -/
+def elSame (T : ElT) (a b : WT) : WT :=
+  if a.eltype = T then a else if b.eltype = T then b else WT.typejoin a b
+
+end JuliaLean.ReduceCov.Indices

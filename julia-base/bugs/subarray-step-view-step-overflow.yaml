@@ -1,0 +1,57 @@
+id: subarray-step-view-step-overflow
+title: "A StepRange view silently becomes empty when its composed step overflows"
+priority: P2
+kind: wrong-result
+area: SubArray
+files: [base/subarray.jl, base/range.jl]
+functions: ["view(::StepRange, ::AbstractRange)", "getindex(::StepRange, ::AbstractRange)"]
+summary: |
+  Selecting positions 1 and 3 from a four-element Int64 StepRange returns an
+  empty range. Multiplying the original step 2^62 by the selector step 2
+  changes its sign through Int64 overflow and range normalization drops both values.
+likelihood: |
+  Requires large step values, but the parent contains only four elements and
+  the selector contains two. Ordinary allocation size is sufficient to observe it.
+maybe_intended: ""
+reproducer: |
+  r = typemin(Int):(Int(1) << 62):(Int(1) << 62)
+  view(r, 1:2:3)
+  [r[1], r[3]]
+output:
+  release: |
+    JULIA 1.13.2 COMMIT 45b6d15e34bbd2003a31acce0b1847b63dad029c
+    parent = [-9223372036854775808, -4611686018427387904, 0, 4611686018427387904]
+    selector = [1, 3]
+    expected = [-9223372036854775808, 0]
+    actual = Int64[]
+    REPRODUCED subarray-step-view-step-overflow
+  nightly: |
+    JULIA 1.15.0-DEV.unknown COMMIT f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    parent = [-9223372036854775808, -4611686018427387904, 0, 4611686018427387904]
+    selector = [1, 3]
+    expected = [-9223372036854775808, 0]
+    actual = Int64[]
+    REPRODUCED subarray-step-view-step-overflow
+reproduced: {release: true, nightly: true}
+expected: |
+  The selected sequence has two elements, typemin(Int) and zero. A range
+  representation must preserve both elements or report an unrepresentable step.
+promised_by: |
+  doc/src/manual/arrays.md:619-621 specifies view selection. The concrete
+  method at base/subarray.jl:238-241 delegates to getindex, whose selected
+  values must agree with the parent's scalar values at those same valid indices.
+cause: |
+  base/range.jl:1065-1072 multiplies the parent and selector steps in the
+  original machine type. The mathematical step 2^63 becomes -2^63. The
+  computed stop remains zero, and StepRange normalization at lines353-387
+  interprets the negative step with increasing endpoints as an empty range.
+possible_fix: |
+  Check the composed step multiplication and use a representation with a
+  wider step type or throw OverflowError when the original step type cannot hold it.
+duplicates:
+  issues: []
+  queries: ['site:github.com/JuliaLang/julia "StepRange" "overflow" "getindex"']
+lean:
+  property: JuliaLean.Proofs.base.subarray.Models1Group17.StepRangeViewElementsAndErrors
+  theorem: JuliaLean.Proofs.base.subarray.Models1Group17.stepRangeViewElementsAndErrors_refuted
+covers: [subarray-step-range-view-elements-errors]

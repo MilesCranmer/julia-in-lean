@@ -4,35 +4,64 @@ priority: P2
 kind: wrong-exception
 area: DocsSyntaxCov
 files: [base/linking.jl]
-functions: ["Base.Linking.library_files!", "Base.Linking.is_library_file"]
+functions: ["Base.Linking.library_files(::AbstractString)"]
 summary: |
-  `library_files!` parses every directory entry before deciding whether its name
-  matches the requested library. Looking up `libfoo` therefore throws on an
-  unrelated `libbar.1.2.3.4.so` and never reaches a valid `libfoo.so` entry.
+  The documented public wrapper scans the Julia installation's library directories.
+  When an unrelated `libbar.1.2.3.4.so` is present beside the requested `libjulia`
+  library, it throws while parsing that name instead of returning the shipped paths.
 likelihood: |
-  Moderate on installations containing four-part library versions, including
-  CUDA libraries. Runtime-library discovery scans whole Julia library directories.
+  Moderate for installations whose library directories contain an unrelated
+  four-part shared-library version; the checked-in probe adds one beside libjulia.
 maybe_intended: ""
 reproducer: |
-  paths = String[]
-  listings = ["/d" => ["libbar.1.2.3.4.so", "libfoo.so"]]
-  Base.Linking.library_files!(paths, "libfoo", listings)
+  function reproduce()
+      if !isdefined(Base, :Linking) || !isdefined(Base.Linking, :library_files)
+          println("Base.Linking.library_files is unavailable in ", VERSION)
+          println("NOT REPRODUCED docssyntaxcov-library-files-unrelated-invalid")
+          return
+      end
+      source_root = dirname(Sys.BINDIR)
+      name = "libjulia"
+      @assert any(path -> basename(path) == "libjulia.so", Base.Linking.library_files(name))
+      copy_root = joinpath(mktempdir(), "julia")
+      run(`cp -a $source_root $copy_root`)
+      copy_dir = joinpath(copy_root, "lib")
+      open(joinpath(copy_dir, "libbar.1.2.3.4.so"), "w") do io
+          write(io, UInt8[])
+      end
+      println("copied install: libbar.1.2.3.4.so beside libjulia.so")
+      child = """
+      name = ARGS[1]
+      result = try
+          Base.Linking.library_files(name)
+      catch err
+          err
+      end
+      println("library_files(", repr(name), ") = ", result isa Exception ? sprint(showerror, result) : repr(result))
+      if result isa ArgumentError && occursin("1.2.3.4", sprint(showerror, result))
+          println("REPRODUCED docssyntaxcov-library-files-unrelated-invalid")
+      else
+          error("public library lookup did not reject the unrelated version")
+      end
+      """
+      run(Cmd([joinpath(copy_root, "bin", "julia"), "--startup-file=no", "--history-file=no", "-e", child, name]))
+  end
+  reproduce()
 output:
   release: |
-    result = UndefVarError: `library_files!` not defined in `Base.Linking`
-    Suggestion: check for spelling errors or missing imports.
-    paths = String[]
+    Base.Linking.library_files is unavailable in 1.13.2
+    NOT REPRODUCED docssyntaxcov-library-files-unrelated-invalid
   nightly: |
-    result = ArgumentError: invalid version string: 1.2.3.4
-    paths = String[]
+    copied install: libbar.1.2.3.4.so beside libjulia.so
+    library_files("libjulia") = ArgumentError: invalid version string: 1.2.3.4
     REPRODUCED docssyntaxcov-library-files-unrelated-invalid
 reproduced: {release: false, nightly: true}
 expected: |
-  The unrelated file should contribute nothing, and `libfoo.so` should be added
-  to `paths` with a return value of `true`.
+  The public wrapper returns the shipped libjulia paths and ignores the unrelated
+  four-part filename.
 promised_by: |
-  `library_files` at base/linking.jl:288-295 promises paths for the requested
-  names and says names the installation does not ship contribute nothing.
+  Base.Linking.library_files at base/linking.jl:288-295 returns paths for the
+  requested names and says names the installation does not ship contribute nothing.
 cause: |
   `is_library_file` catches `ArgumentError` only around the first
   `parse_dl_name_version` call at base/linking.jl:256-261. The fallback call at

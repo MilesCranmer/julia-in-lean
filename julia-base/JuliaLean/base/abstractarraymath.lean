@@ -1,6 +1,10 @@
+import JuliaLean.base.checked
 import JuliaLean.base.array
 import JuliaLean.base.abstractarray
 import JuliaLean.base.indices
+import JuliaLean.base.multidimensional
+import JuliaLean.base.subarray
+import JuliaLean.base.tuple
 
 /-!
 # Model of `base/abstractarraymath.jl`
@@ -126,7 +130,7 @@ def subTupleNonempty {A B R : Type} (sub : List A → List B → R)
 def subTupleDispatch {A B : Type} : List A → List B → Result (List A)
   | t, [] => .ok t
   | _ :: t, _ :: s => subTupleDispatch t s
-  | [], _ :: _ => .error (.method "_sub")
+  | [], _ :: _ => .error (.argument "Cannot call tail on an empty tuple.")
 
 
 /-! ## Dimension-changing views -/
@@ -403,13 +407,13 @@ end
 ```
 -/
 def selectdimInternal {A D Ix V : Type} {M : Type → Type} [Monad M] [MonadExceptOf Error M]
-    (dimensionAtLeastOne : D → M Bool) (ndims : A → I64)
+    (dimensionAtLeastOne : D → M Bool) (showDim : D → String) (ndims : A → I64)
     (dimensionGreater : D → I64 → M Bool) (indexEqualsOne : Ix → M Bool)
     (minusOne : D → M D) (ntupleColons : D → M (List Ix))
     (boundsError : A → List Ix → Error) (view : A → List Ix → M V)
     (a : A) (d : D) (i : Ix) (idxs : List Ix) : M V := do
   if !(← dimensionAtLeastOne d) then
-    throw (.argument "dimension must be ≥ 1")
+    throw (.argument ("dimension must be ≥ 1, got " ++ showDim d))
   let nd := ndims a
   if ← dimensionGreater d nd then
     if !(← indexEqualsOne i) then
@@ -481,6 +485,11 @@ def circshiftGeneric {α A S V : Type}
 
 /-! ## Repetition helpers -/
 
+inductive CountArg (C I : Type) where
+  | tuple (values : List C)
+  | integer (value : C)
+  | iterable (value : I)
+
 /--
 Julia source: base/abstractarraymath.jl:445-447 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 ```julia
@@ -489,11 +498,6 @@ function repeat(A::AbstractArray, counts...)
 end
 ```
 -/
-inductive CountArg (C I : Type) where
-  | tuple (values : List C)
-  | integer (value : C)
-  | iterable (value : I)
-
 def repeatPositional {α A C I : Type}
     (repeatKeyword : A → Option (CountArg C I) → Option (CountArg C I) → MutationM α A)
     (a : A) (counts : List C) : MutationM α A :=
@@ -762,32 +766,38 @@ def check {α A C I : Type}
     (all : (C → MutationM α Bool) → CountArg C I → MutationM α Bool)
     (any : (C → MutationM α Bool) → CountArg C I → MutationM α Bool)
     (length : CountArg C I → MutationM α I64) (ndims : A → I64)
+    (showCounts : CountArg C I → String)
     (arr : A) (inner outer : Option (CountArg C I)) : MutationM α Unit := do
   if let some inner := inner then
     requireOneBased arr
     if !(← all (fun n => pure (isInteger n)) inner) then
-      throw (.argument "repeat requires integer counts in inner")
+      throw (.argument ("repeat requires integer counts, got inner = " ++ showCounts inner))
     if ← any (fun n => pure (isNegative n)) inner then
-      throw (.argument "no inner repetition count may be negative")
+      throw (.argument ("no inner repetition count may be negative; got " ++ showCounts inner))
     if (← length inner) < ndims arr then
-      throw (.argument "number of inner repetitions cannot be less than number of dimensions")
+      throw (.argument ("number of inner repetitions (" ++ toString (← length inner).val ++
+        ") cannot be less than number of dimensions of input array (" ++
+        toString (ndims arr).val ++ ")"))
   if let some outer := outer then
     if !(← all (fun n => pure (isInteger n)) outer) then
-      throw (.argument "repeat requires integer counts in outer")
+      throw (.argument ("repeat requires integer counts, got outer = " ++ showCounts outer))
     if ← any (fun n => pure (isNegative n)) outer then
-      throw (.argument "no outer repetition count may be negative")
+      throw (.argument ("no outer repetition count may be negative; got " ++ showCounts outer))
     if (← length outer) < ndims arr then
       if inner.isSome then
-        throw (.argument "number of outer repetitions cannot be less than number of dimensions")
+        throw (.argument ("number of outer repetitions (" ++ toString (← length outer).val ++
+          ") cannot be less than number of dimensions of input array (" ++
+          toString (ndims arr).val ++ ")"))
 
 def checkDispatch {α A C I : Type}
     (requireOneBased : A → MutationM α Unit)
     (isInteger : C → Bool) (isNegative : C → Bool)
     (all : (C → MutationM α Bool) → CountArg C I → MutationM α Bool)
     (any : (C → MutationM α Bool) → CountArg C I → MutationM α Bool)
-    (length : CountArg C I → MutationM α I64) (ndims : A → I64) :
+    (length : CountArg C I → MutationM α I64) (ndims : A → I64)
+    (showCounts : CountArg C I → String) :
     A → Option (CountArg C I) → Option (CountArg C I) → MutationM α Unit :=
-  check requireOneBased isInteger isNegative all any length ndims
+  check requireOneBased isInteger isNegative all any length ndims showCounts
 
 /--
 Julia source: base/abstractarraymath.jl:554-554 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -1013,3 +1023,249 @@ def repeatInnerOuterDispatch {α A E C Ix Selector : Type}
 
 
 end JuliaLean.base.abstractarraymath.RepeatInnerOuter
+
+namespace JuliaLean.Multidim
+
+open JuliaLean
+
+/-- `circshift(A, shifts) = circshift!(similar(A), A, shifts)` for an `Array` of size
+`sz` (`base/abstractarraymath.jl:335-338, 411-413`, `base/multidimensional.jl:1257-1263`).
+`similar` leaves the destination uninitialised (`none`). -/
+def circshift {α : Type} (sz : List Nat) (src : List Int → α) (shifts : List Int) :
+    R (List Int → Option α) :=
+  if sz.any (· == 0) then .ok fun _ => none          -- isempty(src) && return dest
+  else do
+    let sh ← fillToLength shifts sz.length
+    runBlocks (oneAxes sz) (oneAxes sz) src (circBlocks sz sh) fun _ => none
+
+/-- Index tuple built by `selectdim(A, d, i)`, `base/abstractarraymath.jl:327`:
+`_setindex(i, d, map(Slice, axes(A))...)` replaces slot `d` of the `ndims(A)` slices
+(and leaves them unchanged when `d > ndims(A)`). -/
+def selectdimIdxs (sz : List Nat) (d : Nat) (i : Idx) : List Idx :=
+  (List.range sz.length).map fun (j : Nat) => if j + 1 = d then i else .slice (sz.getD j 0)
+
+/-- `selectdim(A, d, i)`, `base/abstractarraymath.jl:327-333`: the index tuple of the
+returned view, after `_selectdim`'s checks and `view`'s. -/
+def selectdim (sz : List Nat) (d : Int) (i : Idx) : R (List Idx) := do
+  if ¬ (d ≥ 1) then throw .argumentError
+  if d > sz.length ∧ !i.eqOne then throw .boundsError
+  let I := selectdimIdxs sz d.toNat i
+  let _ ← view sz I
+  pure I
+
+/-- `Base.checked_mul` on `Int`. -/
+def checkedMul (a b : Int) : R Int :=
+  if IntTy.min .i64 ≤ a * b ∧ a * b ≤ IntTy.max .i64 then .ok (a * b) else .error .overflowError
+
+/-- `_RepeatInnerOuter.check`, `base/abstractarraymath.jl:526-552`, for integer counts. -/
+def repeatCheck (N : Nat) (inner outer : Option (List Int)) : R Unit := do
+  if let some i := inner then
+    if i.any (· < 0) then throw .argumentError
+    if i.length < N then throw .argumentError
+  if let some o := outer then
+    if o.any (· < 0) then throw .argumentError
+    if o.length < N ∧ inner.isSome then throw .argumentError
+
+/-- Pad with ones to length `N` (`fill_to_length(a, 1, Val(N))`). -/
+def padOnes (a : List Int) (N : Nat) : List Int := a ++ List.replicate (N - a.length) 1
+
+/-- Size of `repeat(A; inner, outer)` for an array of size `sz`
+(`base/abstractarraymath.jl:488-612`): `check`, `resolve` (padding to a common length)
+and the `checked_mul` size computations of `repeat_inner`/`repeat_outer`. -/
+def repeatSize (sz : List Int) (inner outer : Option (List Int)) : R (List Int) := do
+  repeatCheck sz.length inner outer
+  let N := max sz.length (max ((inner.map List.length).getD 0) ((outer.map List.length).getD 0))
+  let s := padOnes sz N
+  let s ← match inner with
+    | none => pure s
+    | some i => (s.zip (padOnes i N)).mapM fun (a, b) => checkedMul a b
+  match outer with
+    | none => pure s
+    | some o => (s.zip (padOnes o N)).mapM fun (a, b) => checkedMul a b
+
+end JuliaLean.Multidim
+
+namespace JuliaLean.BroadcastCov.ArrayMath
+
+inductive ArrayError where
+  | argumentError
+  deriving Repr, DecidableEq
+
+abbrev R (α : Type) := Except ArrayError α
+
+abbrev I64 := JInt .i64
+def i64 (x : Int) : I64 := JInt.lit .i64 x
+
+structure ArrayModel where
+  shape : List Nat
+  data : List (I64 × I64)
+  deriving Repr, DecidableEq
+
+/-- `isreal(x::AbstractArray)`, line 5. -/
+def isrealArray (x : ArrayModel) : Bool := x.data.all (fun z => z.2 == i64 0)
+
+/-- `iszero(x::AbstractArray)`, line 6. -/
+def iszeroArray (x : ArrayModel) : Bool := x.data.all (fun z => z == (i64 0, i64 0))
+
+/-- `isreal(x::AbstractArray{<:Real})`, line 7. -/
+def isrealRealArray (_ : List Int) : Bool := true
+
+/-- `vec(a::AbstractArray) = reshape(a, length(a))`, line 41. -/
+def vecArray (x : ArrayModel) : ArrayModel := { x with shape := [x.data.length] }
+
+/-- `vec(a::AbstractVector) = a`, line 42. -/
+def vecVector (x : ArrayModel) : ArrayModel := x
+
+/-- `_sub`, lines 44-46: remove one head from `t` for every head of `s`. -/
+def subTuple : List Nat → List Nat → List Nat
+  | t, [] => t
+  | [], _ :: _ => []
+  | _ :: t, _ :: s => subTuple t s
+
+def noDuplicates : List Nat → Bool
+  | [] => true
+  | d :: ds => !ds.contains d && noDuplicates ds
+
+def eraseDims : List Nat → List Nat → Nat → List Nat
+  | [], _, _ => []
+  | n :: ns, dims, d =>
+      if dims.contains d then eraseDims ns dims (d + 1)
+      else n :: eraseDims ns dims (d + 1)
+
+/-- `_dropdims`, lines 86-103, including range, singleton and uniqueness checks. -/
+def dropDims (x : ArrayModel) (dims : List Nat) : R ArrayModel :=
+  if dims.all (fun d => decide (1 ≤ d ∧ d ≤ x.shape.length)) &&
+      dims.all (fun d => x.shape.getD (d - 1) 0 == 1) && noDuplicates dims then
+    .ok { x with shape := eraseDims x.shape dims 1 }
+  else .error .argumentError
+
+/-- The scalar-dimension `_dropdims` wrapper at line 104. -/
+def dropDim (x : ArrayModel) (dim : Nat) : R ArrayModel := dropDims x [dim]
+
+def buildInserted (shape dims : List Nat) (total source : Nat) : List Nat :=
+  match total with
+  | 0 => []
+  | total + 1 =>
+      let d := shape.length + dims.length - total
+      if dims.contains d then 1 :: buildInserted shape dims total source
+      else shape.getD source 1 :: buildInserted shape dims total (source + 1)
+
+/-- `_insertdims`, lines 147-165, including both bounds and the uniqueness check. -/
+def insertDims (x : ArrayModel) (dims : List Nat) : R ArrayModel :=
+  let total := x.shape.length + dims.length
+  if dims.all (fun d => decide (1 ≤ d ∧ d ≤ total)) && noDuplicates dims then
+    .ok { x with shape := buildInserted x.shape dims total 0 }
+  else .error .argumentError
+
+/-- The scalar-dimension `_insertdims` wrapper at line 166. -/
+def insertDim (x : ArrayModel) (dim : Nat) : R ArrayModel := insertDims x [dim]
+
+/-- `conj!` for numeric arrays and `conj` for general arrays, lines 194 and 220. -/
+def conjugate (x : ArrayModel) : ArrayModel :=
+  { x with data := x.data.map (fun z => (z.1, -z.2)) }
+
+/-- The real-array identity overloads of `conj!`, `conj`, `real`, unary `+` and
+unary `*`, lines 195, 221, 246, 295 and 296. -/
+def identityArray (x : ArrayModel) : ArrayModel := x
+
+/-- Recursive `conj!` at line 196, represented after recursion has reached the
+numeric leaves. -/
+def conjugateNested (xs : List ArrayModel) : List ArrayModel := xs.map conjugate
+
+/-- `real(A)`, line 245. -/
+def realArray (x : ArrayModel) : ArrayModel :=
+  { x with data := x.data.map (fun z => (z.1, i64 0)) }
+
+/-- `imag(A)`, lines 269-270. -/
+def imagArray (x : ArrayModel) : ArrayModel :=
+  { x with data := x.data.map (fun z => (z.2, i64 0)) }
+
+/-- Unary array negation at line 293. -/
+def negateArray (x : ArrayModel) : ArrayModel :=
+  { x with data := x.data.map (fun z => (-z.1, -z.2)) }
+
+/-- The `shiftamt::Real` wrapper at lines 335-337 after `Integer(shiftamt)` has
+succeeded. -/
+def circshiftReal (shape : List Nat) (data : List Int → Int) (shift : Int) :=
+  JuliaLean.Multidim.circshift shape data [shift]
+
+/-- The `DimsInteger` and general tuple wrappers at lines 338 and 411-413. -/
+def circshiftDims (shape : List Nat) (data : List Int → Int) (shifts : List Int) :=
+  JuliaLean.Multidim.circshift shape data shifts
+
+/-- `to_tuple`, lines 494-496. The iterable overload receives its collected values. -/
+def toTuple (xs : List Int) : List Int := xs
+def toTupleInteger (x : Int) : List Int := [x]
+
+/-- Both `pad` overloads, lines 498-505. -/
+def pad2 (a b : List Int) : List Int × List Int :=
+  let n := max a.length b.length
+  (JuliaLean.Multidim.padOnes a n, JuliaLean.Multidim.padOnes b n)
+
+def pad3 (a b c : List Int) : List Int × List Int × List Int :=
+  let n := max a.length (max b.length c.length)
+  (JuliaLean.Multidim.padOnes a n, JuliaLean.Multidim.padOnes b n,
+    JuliaLean.Multidim.padOnes c n)
+
+/-- `repeat_inner_outer`, lines 554-557, at the shape level. -/
+def repeatInnerOuter (shape : List Int) (inner outer : Option (List Int)) :=
+  JuliaLean.Multidim.repeatSize shape inner outer
+
+
+end JuliaLean.BroadcastCov.ArrayMath
+
+namespace JuliaLean.Tuples
+
+variable {α : Type}
+
+/-- `circshift(a::AbstractArray, shiftamt::Real) = circshift!(similar(a), a,
+(Integer(shiftamt),))`, `base/abstractarraymath.jl:335-337` (`Integer(x::Integer) = x`).
+The contents of `similar(a)` are unspecified; this takes `a` itself, and
+`circshiftVectorInto_spec` shows that every initial content gives the same result. -/
+def circshiftVector
+    (circshiftVectorInto : List α → List α → (ty : IntTy) → JInt ty → R (List α))
+    (v : List α) (ty : IntTy) (shift : JInt ty) : R (List α) :=
+  circshiftVectorInto v v ty shift
+
+
+end JuliaLean.Tuples
+
+namespace JuliaLean.ArrayOps
+
+open JuliaLean
+
+variable {α β : Type}
+
+/-- `circshift(a, shift)` for a vector, `base/abstractarraymath.jl:335-337` →
+`circshift!(dest, src, (shift,))`, `base/multidimensional.jl:1257-1299`:
+`s = mod(shift, n)`; `dest[1:s] = src[n-s+1:n]`, `dest[s+1:n] = src[1:n-s]`. -/
+def circshift {t : IntTy} (a : List α) (shift : JInt t) : List α :=
+  if a.isEmpty then a
+  else
+    let s := (modShift shift a.length).toNat
+    let sl := a.length - s
+    a.drop sl ++ a.take sl
+
+/-! ### `repeat` and `fill` -/
+
+/-- `repeat(v::AbstractVector; inner, outer)` with `Int` counts (`none` = `nothing`),
+`base/abstractarraymath.jl:482-614`: `check`, then `repeat_inner` (each entry `inner`
+times, size `checked_mul(length, inner)`), then `repeat_outer`
+(`checked_mul(length, outer)` copies of the whole vector). -/
+def repeatVec (v : List α) (inner outer : Option JInt64) : Jl (List α) := do
+  if (match inner with | some k => decide (k.val < 0) | none => false) then
+    throw (.argumentError "no inner repetition count may be negative")
+  if (match outer with | some k => decide (k.val < 0) | none => false) then
+    throw (.argumentError "no outer repetition count may be negative")
+  let w ← match inner with
+    | none => pure v
+    | some k => do
+      let _ ← checkedMul64 (JInt.wrap .i64 v.length) k
+      pure (v.flatMap fun x => List.replicate k.val.toNat x)
+  match outer with
+  | none => pure w
+  | some m => do
+    let _ ← checkedMul64 (JInt.wrap .i64 w.length) m
+    pure (List.flatten (List.replicate m.val.toNat w))
+
+end JuliaLean.ArrayOps

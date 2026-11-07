@@ -1,0 +1,80 @@
+import JuliaLean.Core
+import JuliaLean.Registry.Types
+import JuliaLean.base.floatfuncs
+import JuliaLean.Proofs.base.floatfuncs.Refuted
+import JuliaLean.Proofs.base.floatfuncs.Props
+import JuliaLean.Proofs.base.float.Next
+import JuliaLean.Proofs.base.floatfuncs.Misc
+import JuliaLean.Proofs.base.float.Trunc
+import JuliaLean.Proofs.base.floatfuncs.Round
+import JuliaLean.Proofs.base.float.RoundInt
+
+/-!
+`base/floatfuncs.jl`, `base/rounding.jl` and the float methods of `base/div.jl`
+(master `bbfa0ce4150`): `round` with every `RoundingMode`, `digits`/`sigdigits`,
+rounding to integer and floating-point types, `isapprox`, `nextfloat`/`prevfloat`,
+`isinteger`, `maxintfloat`.
+
+* `Round`: `round(x, r)` for the seven modes, `_round_digits`, `hidigit`,
+  `round(Float32, x)`.
+* `Isapprox`: Float64 and Int64 `isapprox`.
+* `Refuted`: failing properties with their counterexamples.
+* `Props`: statements proven in `ProofNext`, `ProofMisc`, `ProofTrunc`, `ProofRound`,
+  `ProofRoundInt`.
+-/
+
+namespace JuliaLean.FloatFuncs
+
+open JuliaLean.Registry
+
+/-- `round(T, x, r)` for integer `T` and every mode other than RoundToZero. -/
+theorem roundIntExact_proven : RoundIntExact := roundIntExact_of roundModesExact_proven
+
+/-- Registry entries of this area. -/
+def entries : List Entry := [
+  { id := "floatfuncs-isapprox-symmetric", juliaFile := "base/floatfuncs.jl",
+    juliaFns := ["isapprox(::Float64, ::Float64; atol, rtol, nans)"],
+    statement := "isapprox(x, y; atol, rtol, nans) == isapprox(y, x; atol, rtol, nans) for all Float64 x, y, atol, rtol.",
+    source := "base/floatfuncs.jl:166-170 (symmetric criterion)", status := .proven,
+    prop := ``IsapproxSymmetric, thm := some ``isapproxSymmetric_proven },
+  { id := "floatfuncs-isinteger-exact", juliaFile := "base/floatfuncs.jl",
+    juliaFns := ["isinteger(::Float64)"],
+    statement := "isinteger(x) holds exactly for finite integer-valued Float64 x.",
+    source := "base/number.jl isinteger docstring; base/floatfuncs.jl:51", status := .proven,
+    prop := ``IsintegerExact, thm := some ``isintegerExact_proven },
+  { id := "floatfuncs-round-modes-exact", juliaFile := "base/floatfuncs.jl",
+    juliaFns := ["round(::Float64, ::RoundingMode) for all seven modes"],
+    statement := "round(x, r) of a finite Float64 equals the exact integer rounding of x under r, keeps the sign of x, and is finite, for RoundNearest, RoundNearestTiesAway, RoundNearestTiesUp, RoundToZero, RoundFromZero, RoundUp and RoundDown.",
+    source := "base/rounding.jl:51-110 (mode docstrings), base/rounding.jl:337", status := .proven,
+    prop := ``RoundModesExact, thm := some ``roundModesExact_proven },
+  { id := "floatfuncs-sigdigits-hidigit", juliaFile := "base/floatfuncs.jl",
+    juliaFns := ["round(::Float64, ::RoundingMode; sigdigits)", "Base.hidigit"],
+    statement := "floor(x; sigdigits=1) is nonzero for every Float64 1 <= x < 1e22.",
+    source := "base/rounding.jl:344-345,451-452", status := .refuted,
+    prop := ``FloorSigdigitsNonzero, thm := some ``floorSigdigitsNonzero_refuted,
+    issue := "none found; related #46596 and #33428 (inexact powers of ten, different cause). Searched issues: sigdigits; hidigit; sigdigits log10; floor sigdigits; floor sigdigits zero; sigdigits power of 10; PRs: hidigit; sigdigits",
+    notes := "hidigit(x) = 1 + floor(Int, log10(abs(x))) and log10(prevfloat(1000.0)) == 3.0, so hidigit is 4 and floor(prevfloat(1000.0); sigdigits=1) == 0.0 (also prevfloat(100.0)). round(prevfloat(1000.0); sigdigits=16) == 1000.0. Same in both versions." },
+  { id := "floatfuncs-digits-step-underflow", juliaFile := "base/floatfuncs.jl",
+    juliaFns := ["round(::Float64, ::RoundingMode; digits)", "Base._round_step"],
+    statement := "ceil(x; digits=-k) of a positive finite x is at least 10.0^k (1 <= k <= 22).",
+    source := "base/rounding.jl:341-342,468-474", status := .refuted,
+    prop := ``CeilDigitsAbove, thm := some ``ceilDigitsAbove_refuted,
+    issue := "none found; related #64142 (overflow branch of _round_step) and #63040; open PR #63105 would fix it. Searched issues: ceil digits; round digits subnormal; _round_step; round digits overflow zero; PRs: _round_step; round digits",
+    notes := "ceil(5.0e-324; digits=-1) == 0.0: x/10 underflows to 0.0 before RoundUp is applied. Also floor(-5.0e-324; digits=-1) == -0.0 and ceil(1.0e-30; digits=-300) == 0.0. Same in both versions." },
+  { id := "floatfuncs-isapprox-int-negative-rtol", juliaFile := "base/floatfuncs.jl",
+    juliaFns := ["isapprox(::Int64, ::Int64; atol, rtol)", "Base._scaled_rtol"],
+    statement := "isapprox on Int64 arguments with Int64 atol and rtol returns the documented formula, computed exactly, and never throws.",
+    source := "base/floatfuncs.jl:166-170 (isapprox docstring)", status := .refuted,
+    prop := ``IntIsapproxFormula, thm := some ``intIsapproxFormula_refuted,
+    issue := "none found; introduced by #63022 (Exact integer calculation in isapprox). Searched issues: isapprox; isapprox rtol; isapprox InexactError; isapprox integer; PRs: isapprox integer",
+    notes := "Master only: isapprox(1, 2; rtol=-1) throws InexactError(:convert, (UInt64, -1)) because _scaled_rtol promotes rtol to UInt64. Julia 1.13.2 returns false." },
+  { id := "floatfuncs-sigdigits-idempotent", juliaFile := "base/floatfuncs.jl",
+    juliaFns := ["round(::Float64; sigdigits)", "Base._round_digits"],
+    statement := "round(round(x; sigdigits=s); sigdigits=s) == round(x; sigdigits=s) for finite x and 1 <= s <= 17.",
+    source := "base/rounding.jl:344-345", status := .refuted,
+    prop := ``SigdigitsIdempotent, thm := some ``sigdigitsIdempotent_refuted,
+    issue := "#46596 (same root cause: 10.0^k is inexact for k > 22). Searched issues: sigdigits; round sigdigits idempotent; Rounding to 3 sigdigits",
+    notes := "round(9.526624812270413e-145; sigdigits=1) == 1.0e-144, and round(1.0e-144; sigdigits=1) == 1.0000000000000001e-144: the division by the inexact 10.0^144 moves the result by one ulp. Same in both versions." }
+]
+
+end JuliaLean.FloatFuncs

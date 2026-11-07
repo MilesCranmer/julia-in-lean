@@ -4,7 +4,8 @@ priority: P2
 kind: wrong-exception
 area: IntFuncsCov
 files: [base/intfuncs.jl]
-functions: ["gcd(abc::AbstractArray{<:Integer})"]
+functions: ["gcd(abc::AbstractArray{<:Integer})", "gcd(abc::AbstractArray{<:Real})"]
+covers: [intfuncs-gcd-array-real]
 summary: |
   gcd([typemin(Int), 2]) throws OverflowError, although gcd(typemin(Int), 2) and
   gcd(typemin(Int), 2, 4) both return 2. The array method starts from zero and calls
@@ -66,5 +67,5 @@ duplicates:
     - {number: 59660, state: open, relation: related}
   queries: ["gcd typemin", "gcd array OverflowError", "gcd typemin array"]
 lean:
-  property: JuliaLean.IntFuncsCov.Gcd.GcdArrayRepresentable
-  theorem: JuliaLean.IntFuncsCov.Gcd.gcdArrayRepresentable_refuted
+  property: JuliaLean.Proofs.base.intfuncs.GcdArrayRepresentable
+  theorem: JuliaLean.Proofs.base.intfuncs.gcdArrayRepresentable_refuted

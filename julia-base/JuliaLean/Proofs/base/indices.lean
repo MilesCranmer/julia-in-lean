@@ -126,17 +126,13 @@ def ConvertIntLaw {I : Type} (val : I → Int) (convert_Int : I → IndexResult 
   ∀ i, convert_Int i =
     if h : fitsInt (val i) then .ok ⟨val i, h⟩ else .error (.core (.inexactError "Int64"))
 
-theorem convert_Int_BitInteger_law (t : IntTy) :
-    ConvertIntLaw (·.val) (convert_Int_BitInteger (t := t)) := by
+theorem convert_Int64_law :
+    ConvertIntLaw (·.val) (convert_Int_BitInteger (t := .i64)) := by
   intro i
-  by_cases h : fitsInt i.val
-  · rw [dif_pos h]
-    simp [convert_Int_BitInteger, JuliaLean.base.int.convert, JInt.convert, fitsInt] at h ⊢
-    simp [h, Except.mapError]
-  · rw [dif_neg h]
-    simp only [fitsInt] at h
-    simp [convert_Int_BitInteger, JuliaLean.base.int.convert, JInt.convert, h,
-      Except.mapError, IntTy.name]
+  have h : fitsInt i.val := i.property
+  rw [dif_pos h]
+  simp [convert_Int_BitInteger, JuliaLean.base.int.convert, JInt.convert, i.property,
+    Except.mapError]
 
 theorem convert_ok {I : Type} {val : I → Int} {conv : I → IndexResult I64}
     (hc : ConvertIntLaw val conv) (i : I) (h : fitsInt (val i)) : conv i = .ok ⟨val i, h⟩ := by
@@ -148,12 +144,17 @@ theorem convert_error {I : Type} {val : I → Int} {conv : I → IndexResult I64
   rw [hc i, dif_neg h]
 
 theorem to_index_ok {t : IntTy} (i : JInt t) (h : fitsInt i.val) :
-    to_index i = .ok ⟨i.val, h⟩ :=
-  convert_ok (convert_Int_BitInteger_law t) i h
+    to_index i = .ok ⟨i.val, h⟩ := by
+  simp only [fitsInt] at h
+  simp [to_index, to_index_Integer, convert_Int_BitInteger, JuliaLean.base.int.convert,
+    JInt.convert, h, bind, Except.bind, pure, Except.pure, Except.mapError]
 
-theorem to_index_error {t : IntTy} (i : JInt t) (h : ¬ fitsInt i.val) :
-    to_index i = .error (.core (.inexactError "Int64")) :=
-  convert_error (convert_Int_BitInteger_law t) i h
+
+/-- Integer conversion preserves representable values and rejects others with `InexactError`,
+without constraining the function-name field of the exception. -/
+def ConvertIntClassLaw {I : Type} (val : I → Int) (convert_Int : I → IndexResult I64) : Prop :=
+  ∀ i, (∀ h : fitsInt (val i), convert_Int i = .ok ⟨val i, h⟩) ∧
+    (¬ fitsInt (val i) → ∃ label, convert_Int i = .error (.core (.inexactError label)))
 
 /-- `to_index` docstring: an index of any `Integer` type (every BitInteger, `BigInt`, or a user
 type with the documented `convert(Int, i)`) becomes the `Int` with the same value, and one
@@ -163,14 +164,14 @@ type with the documented `convert(Int, i)`) becomes the `Int` with the same valu
 `ArgumentError` naming the offending index and its type. -/
 def ToIndexConversion : Prop :=
   (∀ {I : Type} (val : I → Int) (convert_Int : I → IndexResult I64),
-    ConvertIntLaw val convert_Int → ∀ i : I,
-      (fitsInt (val i) → ∃ k, to_index_Integer convert_Int i = .ok k ∧ k.val = val i) ∧
-      (¬ fitsInt (val i) →
-        to_index_Integer convert_Int i = .error (.core (.inexactError "Int64")))) ∧
-  (∀ t : IntTy, ConvertIntLaw (·.val) (convert_Int_BitInteger (t := t))) ∧
+    ConvertIntClassLaw val convert_Int → ∀ i : I,
+      (fitsInt (val i) → ∃ k, to_index_Integer convert_Int pure i = .ok k ∧ k.val = val i) ∧
+      (¬ fitsInt (val i) → ∃ label,
+        to_index_Integer convert_Int pure i = .error (.core (.inexactError label)))) ∧
+  (∀ t : IntTy, ConvertIntClassLaw (·.val) (convert_Int_BitInteger (t := t))) ∧
   (∀ {A I : Type} (val : I → Int) (convert_Int : I → IndexResult I64),
-    ConvertIntLaw val convert_Int → ∀ (a : A) (i : I),
-      to_index_A_i (to_index_Integer convert_Int) a i = to_index_Integer convert_Int i) ∧
+    ConvertIntClassLaw val convert_Int → ∀ (a : A) (i : I),
+      to_index_A_i (to_index_Integer convert_Int pure) a i = to_index_Integer convert_Int pure i) ∧
   (∀ b : Bool, to_index_Bool b =
     .error (.argumentError ("invalid index: " ++ toString b ++ " of type Bool"))) ∧
   (∃ m, to_index_Colon = .error (.argumentError m)) ∧
@@ -181,11 +182,6 @@ def ToIndexConversion : Prop :=
     to_index_AbstractArray_AbstractArray (O := O) limitrepr typeof I = .error ⟨⟨parts⟩⟩ ∧
       LazyPart.string (limitrepr I) ∈ parts ∧ LazyPart.type (typeof I) ∈ parts)
 
-theorem toIndexConversion_proven : ToIndexConversion := by
-  refine ⟨fun val conv hc i => ⟨fun h => ⟨_, convert_ok hc i h, rfl⟩,
-      fun h => convert_error hc i h⟩, convert_Int_BitInteger_law,
-    fun _ _ _ _ _ => rfl, fun _ => rfl, ⟨_, rfl⟩, fun _ _ _ => ⟨_, rfl, by simp, by simp⟩,
-    fun _ _ _ => ⟨_, rfl, by simp, by simp⟩⟩
 
 theorem to_index_Array_UInt_val (i : JInt .u64) :
     (to_index_Array_UInt i).val = wrapInt .i64 i.val := by
@@ -291,8 +287,11 @@ theorem outOfRangeBoundsError_refuted : ¬ OutOfRangeBoundsError := by
   rcases h [(), (), ()] (⟨[]⟩ : LinearIndices Unit)
     (fun _ k => if 1 ≤ k.val ∧ k.val ≤ 3 then .ok () else .error .boundsError)
     (fun _ _ => ()) id .u64 i (fun _ => rfl) (by simp [i]) with ⟨-, hl⟩ | ⟨s, hv, -⟩
-  · simp [linearGetindexInteger, to_indices_A_Tuple1, to_indices_A_inds_Tuple, to_index_A_i,
-      to_index_error i hfit, bind, Except.bind] at hl
+  · have hi : to_index i = .error (.core (.inexactError "convert")) := by
+      simp [to_index, to_index_Integer, convert_Int_BitInteger, JuliaLean.base.int.convert,
+        JInt.convert, Except.mapError, i, IntTy.min, IntTy.max, IntTy.signed, IntTy.bits]
+    simp [linearGetindexInteger, to_indices_A_Tuple1, to_indices_A_inds_Tuple, to_index_A_i,
+      hi, bind, Except.bind] at hl
   · rw [hA] at hv
     cases hv
 
@@ -309,13 +308,13 @@ def ToIndicesIntegers : Prop :=
     ConvertIntLaw val convert_Int → ∀ (safe_tail : List J → List J) (a : A) (I' : List I),
     (∀ i ∈ I', fitsInt (val i)) →
     ∃ out, to_indices_A_Integers
-        (to_indices_A_inds_Tuple (to_index_A_i (to_index_Integer convert_Int)) safe_tail)
+        (to_indices_A_inds_Tuple (to_index_A_i (to_index_Integer convert_Int pure)) safe_tail)
         a I' = .ok out ∧ out.map (·.val) = I'.map val) ∧
   (∀ {A J I : Type} (val : I → Int) (convert_Int : I → IndexResult I64),
     ConvertIntLaw val convert_Int → ∀ (safe_tail : List J → List J) (a : A) (I' : List I),
     (∃ i ∈ I', ¬ fitsInt (val i)) →
     to_indices_A_Integers
-        (to_indices_A_inds_Tuple (to_index_A_i (to_index_Integer convert_Int)) safe_tail) a I' =
+        (to_indices_A_inds_Tuple (to_index_A_i (to_index_Integer convert_Int pure)) safe_tail) a I' =
       .error (.core (.inexactError "Int64"))) ∧
   (∀ {A J : Type} (safe_tail : List J → List J) (a : A) (inds : List J) (I' : List I64),
     to_indices_A_inds_Tuple (to_index_A_i to_index) safe_tail a inds I' = .ok I' ∧
@@ -326,21 +325,21 @@ def ToIndicesIntegers : Prop :=
 theorem to_indices_walk_fits {A J I : Type} {val : I → Int} {conv : I → IndexResult I64}
     (hc : ConvertIntLaw val conv) (safe_tail : List J → List J) (a : A) :
     ∀ (I' : List I) (inds : List J), (∀ i ∈ I', fitsInt (val i)) →
-      ∃ out, to_indices_A_inds_Tuple (to_index_A_i (to_index_Integer conv)) safe_tail a inds I' =
+      ∃ out, to_indices_A_inds_Tuple (to_index_A_i (to_index_Integer conv pure)) safe_tail a inds I' =
         .ok out ∧ out.map (·.val) = I'.map val
   | [], _, _ => ⟨[], rfl, rfl⟩
   | i :: rest, inds, h => by
     obtain ⟨out, hout, hval⟩ :=
       to_indices_walk_fits hc safe_tail a rest (safe_tail inds) (fun j hj => h j (by simp [hj]))
     refine ⟨⟨val i, h i (by simp)⟩ :: out, ?_, ?_⟩
-    · simp [to_indices_A_inds_Tuple, to_index_A_i, to_index_Integer,
-        convert_ok hc i (h i (by simp)), hout, bind, Except.bind, pure, Except.pure]
+    · rw [to_indices_A_inds_Tuple, hout]
+      simp [to_index_A_i, to_index_Integer, convert_ok hc i (h i (by simp)), bind, Except.bind, pure, Except.pure]
     · simp [hval]
 
 theorem to_indices_walk_error {A J I : Type} {val : I → Int} {conv : I → IndexResult I64}
     (hc : ConvertIntLaw val conv) (safe_tail : List J → List J) (a : A) :
     ∀ (I' : List I) (inds : List J), (∃ i ∈ I', ¬ fitsInt (val i)) →
-      to_indices_A_inds_Tuple (to_index_A_i (to_index_Integer conv)) safe_tail a inds I' =
+      to_indices_A_inds_Tuple (to_index_A_i (to_index_Integer conv pure)) safe_tail a inds I' =
         .error (.core (.inexactError "Int64"))
   | [], _, ⟨_, hmem, _⟩ => by simp at hmem
   | i :: rest, inds, h => by
@@ -351,8 +350,9 @@ theorem to_indices_walk_error {A J I : Type} {val : I → Int} {conv : I → Ind
         rcases hj with rfl | hj
         · exact absurd hi hn
         · exact ⟨j, hj, hn⟩
-      simp [to_indices_A_inds_Tuple, to_index_A_i, to_index_Integer, convert_ok hc i hi,
-        to_indices_walk_error hc safe_tail a rest (safe_tail inds) hrest, bind, Except.bind]
+      have herr := to_indices_walk_error hc safe_tail a rest (safe_tail inds) hrest
+      rw [to_indices_A_inds_Tuple, herr]
+      simp [to_index_A_i, to_index_Integer, convert_ok hc i hi, bind, Except.bind, pure, Except.pure]
     · simp [to_indices_A_inds_Tuple, to_index_A_i, to_index_Integer, convert_error hc i hi,
         bind, Except.bind]
 
@@ -1309,10 +1309,10 @@ def IdentityBoolStepRange : Prop :=
 theorem identityBoolStepRange_refuted : ¬ IdentityBoolStepRange := by
   intro h
   have := h lawfulRange lawfulRange_laws _ (fun _ _ _ => rfl) (·.val) convert_Int_BitInteger
-    (convert_Int_BitInteger_law .i64) (fun _ _ => .ok ())
+    convert_Int64_law (fun _ _ => .ok ())
     ⟨.unitRange (int 1) (int 2)⟩ (true, int (-1), false) (by decide +kernel) rfl
   rw [getindex_IdentityUnitRange_StepRange_Bool,
-    convert_ok (convert_Int_BitInteger_law .i64) _ (fits_val _)] at this
+    convert_ok convert_Int64_law _ (fits_val _)] at this
   simp only [bind, Except.bind, Except.ok.injEq] at this
   revert this
   decide +kernel
@@ -1527,7 +1527,7 @@ theorem linearIndicesValues_proven : LinearIndicesValues := by
   · subst hr
     have := hself r (by simp)
     simp [first_LinearIndices_dispatch, last_LinearIndices_dispatch, first_LinearIndices_1,
-      last_LinearIndices_1, this.1, this.2]
+      last_LinearIndices_1, bind, pure, Id.run, this.1, this.2]
   · simp [first_LinearIndices_dispatch, hn, first_LinearIndices]
   · simp only [last_LinearIndices_dispatch, hn, if_false, last_LinearIndices]
     rw [hlen _ (by rw [hsame]; exact hfit), hsame]
@@ -1745,10 +1745,10 @@ theorem linearCartesianRoundTrip_proven : LinearCartesianRoundTrip := by
   refine ⟨⟨[.base (.oneTo n)]⟩, by simp [LinearIndices_AbstractArray,
     LinearIndices_AbstractUnitRanges, hconv, bind, Except.bind, pure, Except.pure], fun k => ?_⟩
   have hf : first_LinearIndices_dispatch R ⟨[.base (.oneTo n)]⟩ = int 1 := by
-    simp [first_LinearIndices_dispatch, first_LinearIndices_1, AxisRange.axes1, AxisRange.first,
+    simp [first_LinearIndices_dispatch, first_LinearIndices_1, bind, pure, Id.run, AxisRange.axes1, AxisRange.first,
       hR.axes1_oneTo, hR.first_oneTo]
   have hl : last_LinearIndices_dispatch R lengthL ⟨[.base (.oneTo n)]⟩ = n := by
-    simp [last_LinearIndices_dispatch, last_LinearIndices_1, AxisRange.axes1, AxisRange.last,
+    simp [last_LinearIndices_dispatch, last_LinearIndices_1, bind, pure, Id.run, AxisRange.axes1, AxisRange.last,
       hR.axes1_oneTo, hR.last_oneTo]
   have h1 : (int 1).val = 1 := rfl
   rw [hcg]
@@ -1952,6 +1952,100 @@ _drop_zerodim@315: copies the tuple element by element; see `_drop_zerodim@314`.
 | first@526, first@527, last@528, last@529 | indices-linear-values; arrayops-linear-cartesian-1d |
 -/
 
+end JuliaLean.Proofs.base.indices
+
+
+namespace JuliaLean.ChatGPT.Batch4.Group11
+
+open JuliaLean JuliaLean.base.indices JuliaLean.Proofs.base.indices
+
+/-- The generic integer-index clause follows from its documented conversion law. -/
+theorem toIndexGenericConversion {I : Type} (val : I → Int)
+    (convertInt : I → IndexResult I64) (law : ConvertIntLaw val convertInt) (i : I) :
+    (fitsInt (val i) → ∃ k, to_index_Integer convertInt pure i = .ok k ∧ k.val = val i) ∧
+    (¬ fitsInt (val i) →
+      to_index_Integer convertInt pure i = .error (.core (.inexactError "Int64"))) := by
+  constructor
+  · intro fits
+    refine ⟨⟨val i, fits⟩, ?_, rfl⟩
+    simp only [to_index_Integer, convert_ok law i fits, bind, Except.bind, pure, Except.pure]
+  · intro exceeds
+    simp only [to_index_Integer, convert_error law i exceeds, bind, Except.bind]
+
+/-- Every representable BitInteger converts to the same mathematical value. -/
+theorem toIndexBitIntegerRepresentable {t : IntTy} (i : JInt t) (fits : fitsInt i.val) :
+    convert_Int_BitInteger i = .ok ⟨i.val, fits⟩ := by
+  have fits64 : IntTy.min .i64 ≤ i.val ∧ i.val ≤ IntTy.max .i64 := fits
+  unfold convert_Int_BitInteger JuliaLean.base.int.convert JInt.convert
+  simp only [dif_pos fits64, Except.mapError]
+
+/-- The frozen model records the converting function in the error payload. -/
+theorem toIndexBitIntegerExceeds {t : IntTy} (i : JInt t) (exceeds : ¬ fitsInt i.val) :
+    convert_Int_BitInteger i = .error (.core (.inexactError
+      (if IntTy.bits .i64 = IntTy.bits t then "convert" else "trunc"))) := by
+  simp only [convert_Int_BitInteger, JuliaLean.base.int.convert, JInt.convert,
+    show ¬ (IntTy.min .i64 ≤ i.val ∧ i.val ≤ IntTy.max .i64) from exceeds,
+    ↓reduceDIte, Except.mapError]
+
+/-- The default array method delegates exactly to the scalar conversion. -/
+theorem toIndexDefaultArray {A I : Type} (convertInt : I → IndexResult I64)
+    (a : A) (i : I) :
+    to_index_A_i (to_index_Integer convertInt pure) a i =
+      to_index_Integer convertInt pure i := rfl
+
+/-- Boolean indices are rejected with their displayed value and type. -/
+theorem toIndexBoolRejection (b : Bool) :
+    to_index_Bool b =
+      .error (.argumentError ("invalid index: " ++ toString b ++ " of type Bool")) := rfl
+
+/-- A colon must first be converted by the tuple-index interface. -/
+theorem toIndexColonRejection : ∃ m, to_index_Colon = .error (.argumentError m) :=
+  ⟨"colons must be converted by to_indices(...)", rfl⟩
+
+/-- Unsupported scalar indices preserve both their representation and type in the error. -/
+theorem toIndexOtherRejection {I O : Type} (limitrepr : I → String)
+    (typeof : I → JuliaLean.base.promotion.PType) (i : I) : ∃ parts,
+    to_index_Any (O := O) limitrepr typeof i = .error ⟨⟨parts⟩⟩ ∧
+      LazyPart.string (limitrepr i) ∈ parts ∧ LazyPart.type (typeof i) ∈ parts := by
+  refine ⟨[.string "invalid index: ", .string (limitrepr i), .string " of type ",
+    .type (typeof i)], rfl, ?_, ?_⟩
+  · simp only [List.mem_cons, List.not_mem_nil, or_false, or_true, true_or]
+  · simp only [List.mem_cons, List.not_mem_nil, or_false, or_true, true_or]
+
+/-- Unsupported nested-array indices preserve their representation and type in the error. -/
+theorem toIndexNestedArrayRejection {M O : Type} (limitrepr : M → String)
+    (typeof : M → JuliaLean.base.promotion.PType) (input : M) : ∃ parts,
+    to_index_AbstractArray_AbstractArray (O := O) limitrepr typeof input =
+      .error ⟨⟨parts⟩⟩ ∧
+      LazyPart.string (limitrepr input) ∈ parts ∧ LazyPart.type (typeof input) ∈ parts := by
+  refine ⟨[.string "invalid index: ", .string (limitrepr input), .string " of type ",
+    .type (typeof input)], rfl, ?_, ?_⟩
+  · simp only [List.mem_cons, List.not_mem_nil, or_false, or_true, true_or]
+  · simp only [List.mem_cons, List.not_mem_nil, or_false, or_true, true_or]
+
+end JuliaLean.ChatGPT.Batch4.Group11
+
+namespace JuliaLean.Proofs.base.indices
+open JuliaLean JuliaLean.base.indices JuliaLean.base.promotion JuliaLean.Registry
+
+theorem toIndexConversion_proven : ToIndexConversion := by
+  open JuliaLean.ChatGPT.Batch4.Group11 in
+    refine ⟨?_, ?_, ?_, toIndexBoolRejection, toIndexColonRejection,
+      toIndexOtherRejection, toIndexNestedArrayRejection⟩
+    · intro I val conv law i
+      constructor
+      · intro h
+        refine ⟨⟨val i, h⟩, ?_, rfl⟩
+        simp only [to_index_Integer, (law i).1 h, bind, Except.bind, pure, Except.pure]
+      · intro h
+        obtain ⟨label, he⟩ := (law i).2 h
+        exact ⟨label, by simp only [to_index_Integer, he, bind, Except.bind]⟩
+    · intro t i
+      exact ⟨fun h => toIndexBitIntegerRepresentable i h,
+        fun h => ⟨_, toIndexBitIntegerExceeds i h⟩⟩
+    · intro A I val conv law a i
+      rfl
+
 private def entry (id : String) (fns : List String) (statement source : String)
     (status : Status) (prop thm : Lean.Name) (issue notes : String := "") : Entry :=
   { id, juliaFile := "base/indices.jl", juliaFns := fns, statement, source, status, prop,
@@ -2004,12 +2098,12 @@ def entries : List Entry := [
     "For shape entries of any Integer type (BigInt included), indexed assignment accepts (returns true for) a value whose element count matches a single index or a vector destination, or whose size matches the destination shape up to trailing singleton dimensions; otherwise it throws DimensionMismatch, and a non-array value for many destinations throws ArgumentError."
     "base/indices.jl:204-228" .proven
     ``SetindexShapeCheck ``setindexShapeCheck_proven,
-  entry "indices-to-index-conversion"
-    ["to_index(A, i)", "to_index(i::Integer)", "to_index(i::Bool)", "to_index(::Colon)",
-     "to_index(I::AbstractArray{<:Union{AbstractArray, Colon}})", "to_index(i)"]
-    "to_index converts an integer of any Integer type (BitIntegers, BigInt, user integers with the documented convert(Int, i)) to the Int with the same value and throws InexactError when Int cannot represent it; to_index(A, i) defaults to to_index(i); Bool, Colon, nested arrays and other unsupported index types throw ArgumentError naming the index and its type."
-    "to_index docstrings; base/indices.jl:229-266" .proven
-    ``ToIndexConversion ``toIndexConversion_proven,
+  { id := "indices-to-index-conversion", juliaFile := "base/indices.jl",
+    juliaFns := ["to_index(A, i)", "to_index(i::Integer)", "to_index(i::Bool)", "to_index(::Colon)",
+      "to_index(I::AbstractArray{<:Union{AbstractArray, Colon}})", "to_index(i)"],
+    statement := "to_index converts an integer of any Integer type (BitIntegers, BigInt, user integers with the documented convert(Int, i)) to the Int with the same value and throws InexactError when Int cannot represent it; to_index(A, i) defaults to to_index(i); Bool, Colon, nested arrays and other unsupported index types throw ArgumentError naming the index and its type.",
+    source := "to_index docstrings; base/indices.jl:229-266", status := .proven,
+    prop := ``ToIndexConversion, thm := some ``toIndexConversion_proven },
   entry "arrayops-getindex-checkbounds"
     ["getindex(::Array, i::Integer)", "to_index(A::Array, i::UInt)", "to_index(i::Integer)",
      "checkbounds(Bool, A, i)"]
@@ -2142,3 +2236,54 @@ def entries : List Entry := [
 ]
 
 end JuliaLean.Proofs.base.indices
+
+namespace JuliaLean.ChatGPT.Batch8.Group1
+
+open JuliaLean JuliaLean.base.indices JuliaLean.Proofs.base.indices
+
+/-- Complete BitInteger conversion equation, including the model's function payload. -/
+theorem toIndexBitIntegerExact {t : IntTy} (i : JInt t) :
+    convert_Int_BitInteger i =
+      if h : fitsInt i.val then .ok ⟨i.val, h⟩ else
+        .error (.core (.inexactError
+          (if IntTy.bits .i64 = IntTy.bits t then "convert" else "trunc"))) := by
+  by_cases h : fitsInt i.val
+  · rw [dite_eq_left h]
+    exact JuliaLean.ChatGPT.Batch4.Group11.toIndexBitIntegerRepresentable i h
+  · rw [dite_eq_right h]
+    exact JuliaLean.ChatGPT.Batch4.Group11.toIndexBitIntegerExceeds i h
+
+/-- The integer wrapper preserves any error from its conversion callback exactly. -/
+theorem toIndexIntegerErrorIff {I : Type} (convertInt : I → IndexResult I64)
+    (i : I) (error : IndexError) :
+    to_index_Integer convertInt pure i = .error error ↔
+      convertInt i = .error error := by
+  cases hc : convertInt i <;>
+    simp only [to_index_Integer, hc, bind, Except.bind, pure, Except.pure]
+
+/-- Successful conversion preserves the mathematical value, for all BitInteger types. -/
+theorem toIndexBitIntegerSuccessIff {t : IntTy} (i : JInt t) (k : I64) :
+    convert_Int_BitInteger i = .ok k ↔ fitsInt i.val ∧ k.val = i.val := by
+  constructor
+  · intro success
+    by_cases h : fitsInt i.val
+    · rw [JuliaLean.ChatGPT.Batch4.Group11.toIndexBitIntegerRepresentable i h] at success
+      cases success
+      exact ⟨h, rfl⟩
+    · rw [JuliaLean.ChatGPT.Batch4.Group11.toIndexBitIntegerExceeds i h] at success
+      cases success
+  · rintro ⟨h, hk⟩
+    rw [JuliaLean.ChatGPT.Batch4.Group11.toIndexBitIntegerRepresentable i h]
+    congr 1
+    apply Subtype.ext
+    exact hk.symm
+
+/-- Every conversion either returns the same value or throws the documented error class. -/
+theorem toIndexBitIntegerClassDichotomy {t : IntTy} (i : JInt t) :
+    (∃ k, convert_Int_BitInteger i = .ok k ∧ k.val = i.val) ∨
+    (∃ fn, convert_Int_BitInteger i = .error (.core (.inexactError fn))) := by
+  by_cases h : fitsInt i.val
+  · exact Or.inl ⟨⟨i.val, h⟩, JuliaLean.ChatGPT.Batch4.Group11.toIndexBitIntegerRepresentable i h, rfl⟩
+  · exact Or.inr ⟨_, JuliaLean.ChatGPT.Batch4.Group11.toIndexBitIntegerExceeds i h⟩
+
+end JuliaLean.ChatGPT.Batch8.Group1

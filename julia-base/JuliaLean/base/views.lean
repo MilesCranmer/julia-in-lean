@@ -877,3 +877,55 @@ def viewsMacro {Module : Type} (replaceHooks : ReplaceHooks Module) (rewriteHook
   pure (escapeSyntax rewritten)
 
 end JuliaLean.base.views
+
+namespace JuliaLean.NumMisc
+
+/-! ## `@views` rewriting -/
+
+inductive ViewFn where
+  | maybeview | getindex | other
+  deriving DecidableEq, Repr
+
+inductive ViewExpr where
+  | atom (id : Nat)
+  | ref (array : ViewExpr) (indices : List ViewExpr)
+  | call (fn : ViewFn) (args : List ViewExpr)
+  | assign (lhs rhs : ViewExpr)
+  | block (items : List ViewExpr)
+
+/-- `_views`, `base/views.jl:247-294`, for references, plain assignment, calls,
+blocks, and leaves. -/
+def rewriteViews : ViewExpr → ViewExpr
+  | .atom id => .atom id
+  | .ref a is => .call .maybeview (rewriteViews a :: is.map rewriteViews)
+  | .call fn args => .call fn (args.map rewriteViews)
+  | .assign (.ref a is) rhs =>
+      .assign (.ref (rewriteViews a) (is.map rewriteViews)) (rewriteViews rhs)
+  | .assign lhs rhs => .assign (rewriteViews lhs) (rewriteViews rhs)
+  | .block items => .block (items.map rewriteViews)
+
+end JuliaLean.NumMisc
+
+namespace JuliaLean.NumMisc.Coverage
+
+open JuliaLean
+
+/-! ## `base/views.jl:17-228` -/
+
+inductive BoundaryToken where | first | last | value (n : Int) deriving DecidableEq, Repr
+
+def replaceBoundary (first last : Int) : BoundaryToken → Int
+  | .first => first | .last => last | .value n => n
+
+inductive ViewMacroResult where | invalid | direct | withBindings deriving DecidableEq, Repr
+
+def viewMacroRoute (isReference replacementIsBlock : Bool) : ViewMacroResult :=
+  if !isReference then .invalid else if replacementIsBlock then .withBindings else .direct
+/-! ## `base/views.jl:235-334` -/
+
+inductive MaybeViewRoute where | getindex | view deriving DecidableEq, Repr
+
+def maybeViewRoute (array allScalar : Bool) : MaybeViewRoute :=
+  if array && !allScalar then .view else .getindex
+
+end JuliaLean.NumMisc.Coverage

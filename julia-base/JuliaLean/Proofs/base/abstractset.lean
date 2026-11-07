@@ -1,4 +1,7 @@
+import JuliaLean.Proofs.base.abstractset.collection_bugs
+import JuliaLean.Proofs.base.abstractset.collection_rows
 import JuliaLean.base.abstractset
+import JuliaLean.base.checked
 import JuliaLean.Registry.Types
 
 /-!
@@ -11,6 +14,11 @@ source-mirrored methods. Collection operations from other Base files remain type
 namespace JuliaLean.Proofs.base.abstractset
 
 open JuliaLean JuliaLean.base.abstractset JuliaLean.base.int JuliaLean.Registry
+
+/-- `pure p <&&> pure q` evaluates both sides only through `pure`, so it is `p && q`. -/
+theorem aset_andM_pure {E : Type} (p q : Bool) :
+    ((pure p : Except E Bool) <&&> (pure q : Except E Bool)) = .ok (p && q) := by
+  cases p <;> rfl
 
 /-! ## Independent collection specifications -/
 
@@ -526,7 +534,7 @@ include L
 theorem subsetSetRight_spec (a b : o.C) (r : Bool)
     (h : issubsetSetRight o a b = .ok r) : (r = true ↔ Included o a b) := by
   unfold issubsetSetRight at h
-  simp only [L.length, bind, Except.bind] at h
+  simp only [L.length, bind, Except.bind, aset_andM_pure] at h
   split at h
   · split at h
     · rename_i ht
@@ -549,7 +557,7 @@ theorem subsetSetRight_spec (a b : o.C) (r : Bool)
 theorem subset_spec (a b : o.C) (r : Bool)
     (h : issubset o a b = .ok r) : (r = true ↔ Included o a b) := by
   unfold issubset at h
-  simp only [L.length, bind, Except.bind] at h
+  simp only [L.length, bind, Except.bind, aset_andM_pure] at h
   split at h
   · split at h
     · rename_i ht
@@ -620,7 +628,7 @@ theorem unionGeneric_spec (H : CapacityPremise o L) (s : o.C) (inputs : List o.C
 theorem copyBang_spec (H : CapacityPremise o L) (dst src r : o.C) (hd : o.isAbstractSet dst = true)
     (h : copyBangAbstractSet o false dst src = .ok r) : SameStored o r src := by
   obtain ⟨empty, he, hr⟩ := bind_ok _ _ r h
-  have hm := (unionMany_spec o L H [src] empty r hr).1
+  have hm := (unionIterator_spec o L H (o.elementType empty) empty src r hr).1
   have hem := (L.empty dst empty he).1
   intro x
   simpa [hem x] using hm x
@@ -724,7 +732,7 @@ theorem intersectManyBang_spec (H : CapacityPremise o L) (inputs : List o.C) (s 
 theorem intersectTwo_spec (s itr r : o.C)
     (h : intersectAbstractSetTwo o s itr = .ok r) : IntersectOutput o s [itr] r := by
   unfold intersectAbstractSetTwo at h
-  simp only [L.length, bind, Except.bind] at h
+  simp only [L.length, bind, Except.bind, aset_andM_pure] at h
   split at h
   · obtain ⟨ty, hty, hnext⟩ := bind_ok _ _ r h
     obtain ⟨empty, he, hr⟩ := bind_ok _ _ r hnext
@@ -761,8 +769,8 @@ theorem intersectTail_spec (H : CapacityPremise o L) (s itr : o.C) (inputs : Lis
     obtain ⟨united, hu, hnext4⟩ := bind_ok _ _ r hnext3
     obtain ⟨p, hi, hr⟩ := bind_ok _ _ r hnext4
     obtain ⟨hem, hes⟩ := L.emptyMutable s ty empty he
-    obtain ⟨hum, hus⟩ := unionMany_spec o L H [s] empty united hu
-    obtain ⟨him, his⟩ := intersectIterator_spec o L H united itr p hi
+    obtain ⟨hum, hus⟩ := unionIterator_spec o L H (o.elementType empty) empty s united hu
+    obtain ⟨him, his⟩ := intersectDispatch_spec o L H united itr p hi
     obtain ⟨hfm, hfs⟩ := intersectManyBang_spec o L H inputs p r hr
     refine ⟨?_, fun hs0 => hfs (his (hus (hes hs0)))⟩
     intro z
@@ -949,7 +957,7 @@ theorem properDispatch_spec (a b : o.C) (r : Bool)
 theorem issetequalOtherSet_spec (a b : o.C) (hb : o.isAbstractSet b = true) (r : Bool)
     (h : issetequalOtherAbstractSet o a b = .ok r) : (r = true ↔ SameStored o a b) := by
   unfold issetequalOtherAbstractSet at h
-  simp only [L.length, bind, Except.bind] at h
+  simp only [L.length, bind, Except.bind, aset_andM_pure] at h
   split at h
   · rename_i hlt
     simp only [Bool.and_eq_true, decide_eq_true_eq] at hlt
@@ -1287,30 +1295,47 @@ theorem DictsUnionMaxValuesBreakFinite_proven : DictsUnionMaxValuesBreakFinite :
 /-- The finite-domain or below-capacity premise is explicit; the unrestricted union
 case is covered by the refuted `dicts-union-max-values-break` entry. -/
 def AbstractUnionSpecFinite : Prop :=
-  (∀ (α : Type) [DecidableEq α] (o : Calls α) (L : CollectionLaws o) (H : CapacityPremise o L) (s : o.C)
+  (∀ (α : Type) [DecidableEq α] (calls : Calls α),
+    let o : Calls α := { calls with addWithOverflow := JuliaLean.base.checked.addWithOverflowBits }
+    ∀ (L : CollectionLaws o) (H : CapacityPremise o L) (s : o.C)
       (inputs : List o.C) (r : o.C),
     o.isAbstractSet s = true → unionGeneric o (unionBangAbstractSetMany o) s inputs = .ok r →
     (∀ x, Stored o r x ↔ x ∈ (s :: inputs).flatMap o.elements) ∧
     o.length r = .ok (int (Int.ofNat (distinctCount o.equal ((s :: inputs).flatMap o.elements))))) ∧
-  (∀ (α : Type) [DecidableEq α] (o : Calls α) (L : CollectionLaws o) (H : CapacityPremise o L) (s : o.C)
+  (∀ (α : Type) [DecidableEq α] (calls : Calls α),
+    let o : Calls α := { calls with addWithOverflow := JuliaLean.base.checked.addWithOverflowBits }
+    ∀ (L : CollectionLaws o) (H : CapacityPremise o L) (s : o.C)
       (inputs : List o.C) (r : o.C),
     o.isAbstractSet s = true → unionBangAbstractSetMany o s inputs = .ok r →
     (∀ x, Stored o r x ↔ x ∈ (s :: inputs).flatMap o.elements) ∧
     o.length r = .ok (int (Int.ofNat (distinctCount o.equal ((s :: inputs).flatMap o.elements))))) ∧
-  (∀ (α : Type) [DecidableEq α] (o : Calls α) (L : CollectionLaws o) (s r : o.C),
-    unionAbstractSetUnary o s = .ok r → SameStored o r s) ∧ MaxValuesCapacity
+  (∀ (α : Type) [DecidableEq α] (calls : Calls α),
+    let o : Calls α := { calls with addWithOverflow := JuliaLean.base.checked.addWithOverflowBits }
+    ∀ (L : CollectionLaws o) (s r : o.C),
+      unionAbstractSetUnary o s = .ok r → SameStored o r s) ∧
+  (∀ T, AddWithOverflowLaw JuliaLean.base.checked.addWithOverflowBits →
+    (maxValuesDispatch JuliaLean.base.checked.addWithOverflowBits T).val = maxValuesCapacity T)
 
 theorem AbstractUnionSpecFinite_proven : AbstractUnionSpecFinite := by
-  refine ⟨?_, ?_, ?_, maxValuesCapacity_proven⟩
-  · intro α _ o L H s inputs r hs h
+  refine ⟨?_, ?_, ?_, maxValuesCapacity_proven JuliaLean.base.checked.addWithOverflowBits⟩
+  · intro α _ calls
+    let o : Calls α := { calls with addWithOverflow := JuliaLean.base.checked.addWithOverflowBits }
+    dsimp only
+    intro L H s inputs r hs h
     obtain ⟨hm, hset⟩ := unionGeneric_spec o L H s inputs r h
     exact ⟨hm, L.cardinality r _ (hset hs) hm⟩
-  · intro α _ o L H s inputs r hs h
+  · intro α _ calls
+    let o : Calls α := { calls with addWithOverflow := JuliaLean.base.checked.addWithOverflowBits }
+    dsimp only
+    intro L H s inputs r hs h
     obtain ⟨hm, hset⟩ := unionMany_spec o L H inputs s r h
     have hm' : ∀ x, Stored o r x ↔ x ∈ (s :: inputs).flatMap o.elements := by
       simpa [Stored] using hm
     exact ⟨hm', L.cardinality r _ (hset hs) hm'⟩
-  · intro α _ o L s r h
+  · intro α _ calls
+    let o : Calls α := { calls with addWithOverflow := JuliaLean.base.checked.addWithOverflowBits }
+    dsimp only
+    intro L s r h
     exact (L.copy s r h).1
 
 def DictsSetIntersect : Prop :=
@@ -1766,7 +1791,8 @@ def entries : List Entry := [
     juliaFns := ["union(s, sets...)", "union(s::AbstractSet)", "union!(s::AbstractSet, sets...)", "max_values"],
     statement := "With common equality and the explicit capacity premise, successful unions preserve the union of stored elements and cardinality; unary copy and capacity arithmetic need no capacity premise.",
     source := "base/abstractset.jl:57-112", status := .proven,
-    prop := ``AbstractUnionSpecFinite, thm := some ``AbstractUnionSpecFinite_proven },
+    prop := ``AbstractUnionSpecFinite, thm := some ``AbstractUnionSpecFinite_proven,
+    notes := "Capacity addition uses checked.addWithOverflowBits. No installed Core subtype model on abstractset.JuliaType or Int conversion model with Calls.Error is available; subtype and intLength remain interface inputs." },
 
   { id := "bitsetscov-abstractset-basic", juliaFile := "base/abstractset.jl",
     juliaFns := ["eltype(::Type{<:AbstractSet{T}})", "copy!(::AbstractSet, ::AbstractSet)"],

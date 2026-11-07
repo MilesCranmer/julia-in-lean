@@ -1,29 +1,35 @@
 id: multidimcov-intersect-range-vector
-title: "intersect(r::AbstractRange, v) follows v's order, and intersect(v, r) matches -0.0 with 0.0"
-priority: P2
-kind: wrong-result
+title: intersect documentation omits mixed range/vector ordering and equality behavior
+priority: P3
+kind: documentation
 area: MultidimCov
-files: [base/array.jl]
-functions: ["intersect(v::AbstractVector, r::AbstractRange)", "intersect(r::AbstractRange, v::AbstractVector)"]
+files:
+  - base/array.jl
+  - base/abstractset.jl
+functions:
+  - intersect(v::AbstractVector, r::AbstractRange)
+  - intersect(r::AbstractRange, v::AbstractVector)
 summary: |
-  The mixed vector/range methods disagree with intersecting the collected range.
-  intersect(r, v) just calls intersect(v, r), so the result keeps the order of v:
-  intersect(1:3, [3, 2, 1]) == [3, 2, 1], although intersect(collect(1:3), [3, 2, 1])
-  == [1, 2, 3]. The method also tests membership with in(r), which uses ==, so
-  intersect([-0.0], 0.0:1.0:1.0) == [-0.0] while intersect([-0.0], [0.0, 1.0]) is
-  empty.
+  intersect(1:3, [3, 2, 1]) returns [3, 2, 1], whereas collecting the first
+  argument gives [1, 2, 3]. The docstring says an array first argument preserves
+  first-appearance order, but the mixed range/vector method deliberately scans
+  the vector. A second example shows that range membership includes -0.0 when
+  the range contains 0.0, whereas the collected-range intersection is empty.
 likelihood: |
-  The order difference appears for any range first argument and an unsorted vector,
-  for example intersect(1:n, idx). The signed-zero difference needs float ranges.
+  Intersecting a range with an unsorted vector is common when selecting indices.
+  Callers relying on the stated ordering get a different result. The equality
+  difference additionally affects floating-point ranges containing zero.
 maybe_intended: |
-  Returning the vector's order may be accepted because the result cannot be a range,
-  but the docstring makes the first argument control the order, and every other
-  intersect method compares with isequal.
+  The mixed method was deliberately introduced by merged PR #41769 to avoid
+  scanning potentially enormous ranges. Issue #64265 reports the exact ordering
+  example and was closed with the explicit conclusion that the docstring needs
+  updating. Classify the ordering mismatch as documentation. That discussion
+  does not separately settle the signed-zero equality policy.
 reproducer: |
-  intersect(1:3, [3, 2, 1])            # [3, 2, 1]
-  intersect(collect(1:3), [3, 2, 1])   # [1, 2, 3]
-  intersect([-0.0], 0.0:1.0:1.0)       # [-0.0]
-  intersect([-0.0], [0.0, 1.0])        # Float64[]
+  intersect(1:3, [3, 2, 1])
+  intersect(collect(1:3), [3, 2, 1])
+  intersect([-0.0], 0.0:1.0:1.0)
+  intersect([-0.0], collect(0.0:1.0:1.0))
 output:
   release: |
     intersect(1:3, [3, 2, 1]) = [3, 2, 1]; intersect(collect(1:3), [3, 2, 1]) = [1, 2, 3]
@@ -33,28 +39,55 @@ output:
     intersect(1:3, [3, 2, 1]) = [3, 2, 1]; intersect(collect(1:3), [3, 2, 1]) = [1, 2, 3]
     intersect([-0.0], 0.0:1.0:1.0) = [-0.0]; with the collected range: Float64[]
     REPRODUCED multidimcov-intersect-range-vector
-reproduced: {release: true, nightly: true}
+reproduced:
+  release: true
+  nightly: true
 expected: |
-  intersect(1:3, [3, 2, 1]) == [1, 2, 3] (order of the first argument) and
-  intersect([-0.0], 0.0:1.0:1.0) == Float64[] (isequal membership), the results for
-  the collected range.
+  Document the range/vector exception to first-argument ordering and explain
+  the membership relation for mixed inputs. The present docs suggest [1, 2, 3]
+  for the ordering example. The collected-range comparison also exposes an
+  equality-policy difference, rather than establishing that scanning the range
+  is the intended or practical implementation.
 promised_by: |
-  intersect docstring (base/abstractset.jl:115-121): "Construct the set containing
-  those elements which appear in all of the arguments. The first argument controls
-  what kind of container is returned. If this is an array, it maintains the order in
-  which elements first appear." The example (0, 0.0) ∩ (-0.0, 0) == [0] shows the
-  isequal comparison.
+  base/abstractset.jl:118-121 at f755f49a9e41380d7da126b3c1db9fe7f83dd027:
+  "Construct the set containing those elements which appear in all of the arguments.
+
+  The first argument controls what kind of container is returned.
+  If this is an array, it maintains the order in which elements first appear."
+  The example at lines 146-148 is `(0, 0.0) ∩ (-0.0, 0)` with result
+  `1-element Vector{Real}:` followed by `0`; the docstring does not state a
+  separate equality policy for a range argument.
 cause: |
-  base/array.jl:3221 defines intersect(r, v) = intersect(v, r), so v's order wins.
-  base/array.jl:3217 filters v with in(r), and in on ranges compares with ==, before
-  the Set at base/array.jl:3218 uniquifies with isequal.
+  base/array.jl:3216 swaps a range-first call to intersect(v, r). Lines
+  3210-3214 filter the vector with in(r), then remove duplicates through Set{T}.
+  This keeps vector order in both argument orders. Range membership equates
+  signed zeros before the Set-based duplicate removal takes place.
 possible_fix: |
-  For intersect(r, v), filter r by membership in Set(v); in intersect(v, r), test
-  membership with isequal (for example via a Set built from the matching elements
-  of r).
+  Describe the mixed range/vector ordering exception in the intersect docstring,
+  consistent with #64265. Clarify whether membership should distinguish signed
+  zero in this specialization; any behavior change should preserve the reason
+  for the specialization, which avoids iterating a huge range.
 duplicates:
-  issues: []
-  queries: ["intersect range vector order", "intersect AbstractRange AbstractVector order", "intersect range -0.0", "intersect(r, v)", "intersect range vector", "issues: intersect (title scan)"]
+  issues:
+    - number: 64265
+      state: closed
+      relation: duplicate
+  prs:
+    - number: 41769
+      state: merged
+      relation: related
+  queries:
+    - 'gh search issues --repo JuliaLang/julia intersect range vector order'
+    - 'gh search issues --repo JuliaLang/julia intersect signed zero'
+    - 'gh search issues --repo JuliaLang/julia intersect AbstractRange'
+    - 'gh search prs --repo JuliaLang/julia intersect range vector order'
+    - 'gh search prs --repo JuliaLang/julia intersect signed zero'
+    - 'gh search prs --repo JuliaLang/julia intersect AbstractRange'
+  notes: |
+    Inspected #64265 and its closing comment, which points to PR #41769 and
+    calls this a docstring problem. Inspected #41769's body and discussion;
+    it explicitly adds the argument-swapping mixed method for performance.
+    No targeted documentation fix or separate signed-zero duplicate was found.
 lean:
-  property: JuliaLean.MultidimCov.ArrayV2.P3215
-  theorem: JuliaLean.MultidimCov.ArrayV2.p3215_refuted
+  property: JuliaLean.Proofs.base.array.IntersectRangeVectorOrder
+  theorem: JuliaLean.ChatGPT.Batch4.Group2.MultidimcovIntersectRangeVector_refuted

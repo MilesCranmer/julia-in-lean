@@ -1,207 +1,128 @@
-import JuliaLean.Core
-import JuliaLean.base.abstractdict
-import JuliaLean.base.int
-import JuliaLean.Registry.Types
+import JuliaLean.src.iddict_c
+import JuliaLean.base.dict
 
-/-!
-# Model of `base/iddict.jl`
-
-Typed model of the Julia source at `f755f49a9e41380d7da126b3c1db9fe7f83dd027`.
-Julia `Any` values use a generic carrier, typed keys and values use `K` and
-`V`, and C table and memory operations are typed interfaces.
--/
-
+/-! Native Julia values, IdDict fields, and C table cells use one byte heap.
+Dictionary aliases have the same address. Selected Julia/Core callees
+are explicit Callees fields, without laws. -/
 namespace JuliaLean.base.iddict
-
 open JuliaLean
-
-structure IdDict (K V A HT : Type) where
-  ht : HT
-  count : JInt .i64
-  ndel : JInt .i64
-
-structure CallResult (E S R : Type) where
-  result : Except E R
-  state : S
-structure TableSlot (A : Type) where
-  index : JInt .u64
-  key : A
-  value : A
-
-def slotsIncreasing {A : Type} : List (TableSlot A) → Prop
-  | [] => True
-  | [_] => True
-  | first :: second :: rest =>
-      first.index.val < second.index.val ∧ slotsIncreasing (second :: rest)
-
-structure RuntimeOps (K V A HT E Ptr Preserve : Type) where
-  allocate : Nat → Except E HT
-  sameMemory : HT → HT → Bool
-  copyMemory : HT → Except E HT
-  memoryLength : HT → JInt .i64
-  rehashMemory : {N : Type} → HT → N → Except E HT
-  eqtableGet : HT → A → A → A
-  eqtablePut : HT → A → A → Except E (HT × JInt .i32)
-  eqtablePop : HT → A → A → Except E (HT × A × JInt .i32)
-  eqtableNextind : HT → JInt .u64 → JInt .u64
-  reinterpretInt : JInt .u64 → JInt .i64
-  memoryAt : HT → JInt .i64 → Except E A
-  toUInt : {I : Type} → I → Except E (JInt .u64)
-  isKey : A → Bool
-  isValue : A → Bool
-  convertValue : A → Except E A
-  castKey : A → Except E K
-  castValue : A → Except E V
-  keyToAny : K → A
-  valueToAny : V → A
-  keyTypeError : A → E
-  keyError : A → E
-  secretToken : A
-  sameIdentity : A → A → Bool
-  doubleInteger : {N : Type} → N → Except E N
-  tablesz : {N : Type} → N → Except E (JInt .i64)
-  preserveBegin : HT → Preserve
-  unsafeConvert : HT → Ptr
-  sizeofMemory : HT → JInt .u64
-  memsetZero : HT → Ptr → JInt .u64 → HT
-  preserveEnd : Preserve → Unit
-  tableSlots : HT → List (TableSlot A)
-  tablePairs : HT → List (A × A)
+open JuliaLean.src.identity_runtime (Word Memory Error GC M fail)
 
 inductive IteratorSize where
   | hasLength
   | hasShape
   | unknown
   deriving Repr, DecidableEq
+namespace C
+export JuliaLean.src.iddict_c (jl_idtable_rehash jl_eqtable_put jl_eqtable_get jl_eqtable_pop jl_eqtable_nextind)
+export JuliaLean.src.identity_runtime (allocMemoryAny memoryOwner getWorld modifyWorld
+  loadWord encodeWord datatypeAt typeof gcWriteAtomic)
+export JuliaLean.src.builtins_identity_c (jl_egal_)
+end C
 
-structure IteratorOps (A I E : Type) where
-  size : I → IteratorSize
-  length : I → JInt .i64
-  elements : I → List (A × A)
-  forPairs : {S : Type} → I → (A → A → S → CallResult E S S) → S → CallResult E S S
+structure DictFields where
+  ht : Memory
+  count : JInt .i64
+  ndel : JInt .i64
+  keyType : Word
+  valueType : Word
 
-namespace IteratorOps
+/-- Field views for IdDict{K,V}: Memory{Any}, Int64, Int64 on the target ABI.
+The two type parameters come from the actual datatype's SimpleVector. -/
+def dictionary (address : Word) : M DictFields := do
+  let memoryAddress ← C.loadWord address
+  let memory ← match (← C.getWorld).memories memoryAddress with
+    | none => fail (.undefinedBehavior "IdDict.ht GenericMemory object" memoryAddress)
+    | some memory => pure memory
+  let datatype ← C.datatypeAt (← C.typeof address)
+  let keyType ← C.loadWord (datatype.parameters+8)
+  let valueType ← C.loadWord (datatype.parameters+16)
+  let count ← C.loadWord (address+8)
+  let ndel ← C.loadWord (address+16)
+  return ⟨memory, JInt.wrap .i64 (Int.ofNat count.toNat),
+    JInt.wrap .i64 (Int.ofNat ndel.toNat), keyType, valueType⟩
 
-def Lawful {A I E : Type} (iterator : IteratorOps A I E) : Prop :=
-  ∀ itr,
-    let trace := iterator.forPairs itr
-      (fun key value seen =>
-        ⟨.ok (seen ++ [(key, value)]), seen ++ [(key, value)]⟩) []
-    trace.result = .ok (iterator.elements itr) ∧ trace.state = iterator.elements itr
+def storeHT (address : Word) (memory : Memory) : M Unit := do
+  C.gcWriteAtomic address address (C.memoryOwner memory) .notAtomic
+  let owner := C.memoryOwner memory
+  C.modifyWorld fun world => { world with
+    memories := fun query =>
+      if query == owner then some memory else world.memories query }
 
-end IteratorOps
+def storeIntField (address : Word) (offset : Nat) (value : JInt .i64) : M Unit := do
+  let location := address + UInt64.ofNat offset
+  JuliaLean.src.identity_runtime.requireReadable location 8
+  let bytes := C.encodeWord (UInt64.ofNat (JuliaLean.base.int.remT .u64 value).val.toNat)
+  C.modifyWorld fun world => { world with
+    raw := { world.raw with heap := world.raw.heap.writeBytes location.toNat bytes } }
 
-structure TypePair where
-  key : Type
-  value : Type
+/-- These are Julia/Core callees, not C identity-table replacements. User
+methods may mutate this same heap or throw. The proposal lists each gap. -/
+structure Callees where
+  gc : GC
+  newObject : Word → Word → Memory → JInt .i64 → JInt .i64 → M Word
+  copyMemory : Memory → M Memory
+  isa : Word → Word → M Bool
+  convert : Word → Word → M Word
+  toCsize : Word → M Word
+  doubleInteger : Word → M Word
+  tableSize : Word → M Word
+  lessThanInt : Word → JInt .i64 → M Bool
+  lengthArgument : Nat → M Word
+  newPair : Word → Word → Word → Word → M Word
+  filterInOnePass : (Word → M Word) → Word → M Word
 
-structure RuntimeFamily (A HT E Ptr Preserve : Type) where
-  forTypes : (K V : Type) → RuntimeOps K V A HT E Ptr Preserve
+/--
+Julia source: base/abstractdict.jl:17-17 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+```julia
+const secret_table_token = :__c782dbf1cf4d6a2e5e3865d7e95634f2e09b5902__
+```
+-/
+def secretToken : M Word := do
+  match (← C.getWorld).internedSymbols "__c782dbf1cf4d6a2e5e3865d7e95634f2e09b5902__" with
+  | some value => pure value
+  | none => fail (.undefinedBehavior "Base.secret_table_token interned Symbol" 0)
 
-abbrev PackedIdDict (A HT : Type) := Σ K : Type, Σ V : Type, IdDict K V A HT
-structure IdKeySet (K V A HT : Type) where
-  dict : IdDict K V A HT
+/-- The Any branch is the builtin's universal type, not a caller's success law. -/
+def isa (calls : Callees) (value type : Word) : M Bool := do
+  if type == (← C.getWorld).globals.anyType then pure true
+  else calls.isa value type
 
-/-- Reference lookup uses object identity, the equality relation of `IdDict`. -/
-def referenceLookup {A : Type} (sameIdentity : A → A → Bool) :
-    List (A × A) → A → Option A
-  | [], _ => none
-  | (key, value) :: rest, query =>
-      if sameIdentity query key then some value else referenceLookup sameIdentity rest query
+def assertType (calls : Callees) (value type : Word) : M Word := do
+  if ← isa calls value type then pure value
+  else fail (.typeAssertion type value)
 
-/-- Replace an identity-equal key without changing its stored representative. -/
-def referenceSet {A : Type} (sameIdentity : A → A → Bool) :
-    List (A × A) → A → A → List (A × A)
-  | [], key, value => [(key, value)]
-  | (storedKey, storedValue) :: rest, key, value =>
-      if sameIdentity key storedKey then (storedKey, value) :: rest
-      else (storedKey, storedValue) :: referenceSet sameIdentity rest key value
+def construct (calls : Callees) (keyType valueType : Word) (memory : Memory)
+    (count ndel : JInt .i64) : M Word := do
+  let address ← calls.newObject keyType valueType memory count ndel
+  let owner := C.memoryOwner memory
+  C.modifyWorld fun world => { world with
+    memories := fun query =>
+      if query == owner then some memory else world.memories query }
+  pure address
 
-/-- Remove the first identity-equal key. -/
-def referenceDelete {A : Type} (sameIdentity : A → A → Bool) :
-    List (A × A) → A → List (A × A)
-  | [], _ => []
-  | (storedKey, storedValue) :: rest, key =>
-      if sameIdentity key storedKey then rest
-      else (storedKey, storedValue) :: referenceDelete sameIdentity rest key
-
-def resultWithState {E S R : Type} (result : Except E R) (state : S) : CallResult E S R :=
-  ⟨result, state⟩
-
-
-mutual
 /--
 Julia source: base/iddict.jl:31-31 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 ```julia
     IdDict{K,V}() where {K, V} = new{K,V}(Memory{Any}(undef, 32), 0, 0)
 ```
 -/
-  def emptyTyped {K V A HT E Ptr Preserve : Type}
-      (ops : RuntimeOps K V A HT E Ptr Preserve) : Except E (IdDict K V A HT) := do
-    let ht ← ops.allocate 32
-    .ok ⟨ht, JInt.wrap .i64 0, JInt.wrap .i64 0⟩
+def emptyTyped (calls : Callees) (keyType valueType : Word) : M Word := do
+  let memory ← (C.allocMemoryAny calls.gc 32)
+  construct calls keyType valueType memory (JInt.wrap .i64 0) (JInt.wrap .i64 0)
 
 /--
-Julia source: base/iddict.jl:33-40 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
-```julia
-    function IdDict{K,V}(itr) where {K, V}
-        d = IdDict{K,V}()
-        if IteratorSize(itr) isa Union{HasLength, HasShape}
-            sizehint!(d, length(itr))
-        end
-        for (k,v) in itr; d[k] = v; end
-        d
-    end
-```
--/
-  def fromIterator {K V A HT E Ptr Preserve I : Type}
-      (ops : RuntimeOps K V A HT E Ptr Preserve) (iteratorOps : IteratorOps A I E)
-      (itr : I) : Except E (IdDict K V A HT) := do
-    let d ← emptyTyped ops
-    let d ←
-      if iteratorOps.size itr == .hasLength || iteratorOps.size itr == .hasShape then
-        let hinted := sizehint! ops d (iteratorOps.length itr)
-        match hinted.result with
-        | .error e => .error e
-        | .ok _ => .ok hinted.state
-      else .ok d
-    let iterated := iteratorOps.forPairs itr (fun key value state => setindex! ops state value key) d
-    match iterated.result with
-    | .error e => .error e
-    | .ok _ => .ok iterated.state
-
-/--
-Julia source: base/iddict.jl:42-47 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
-```julia
-    function IdDict{K,V}(pairs::Pair...) where {K, V}
-        d = IdDict{K,V}()
-        sizehint!(d, length(pairs))
-        for (k,v) in pairs; d[k] = v; end
-        d
-    end
-```
--/
-  def fromPairs {K V A HT E Ptr Preserve : Type}
-      (ops : RuntimeOps K V A HT E Ptr Preserve) (pairs : List (A × A)) :
-      Except E (IdDict K V A HT) := do
-    let d ← emptyTyped ops
-    let hinted := sizehint! ops d (JInt.wrap .i64 pairs.length)
-    let d ← match hinted.result with
-      | .error e => .error e
-      | .ok _ => .ok hinted.state
-    insertPairs ops pairs d
-
-/--
-Julia source: base/iddict.jl:49-49 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+Julia source: base/iddict.jl:49-50 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 ```julia
     IdDict{K,V}(d::IdDict{K,V}) where {K, V} = new{K,V}(copy(d.ht), d.count, d.ndel)
+end
 ```
 -/
-  def copyConstruct {K V A HT E Ptr Preserve : Type}
-      (ops : RuntimeOps K V A HT E Ptr Preserve) (d : IdDict K V A HT) :
-      Except E (IdDict K V A HT) := do
-    let ht ← ops.copyMemory d.ht
-    .ok ⟨ht, d.count, d.ndel⟩
+def copyConstruct (calls : Callees) (address : Word) : M Word := do
+  let fields ← dictionary address
+  let memory ← (calls.copyMemory fields.ht)
+  let fields ← dictionary address
+  construct calls fields.keyType fields.valueType memory fields.count fields.ndel
 
 /--
 Julia source: base/iddict.jl:52-52 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -209,9 +130,9 @@ Julia source: base/iddict.jl:52-52 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 IdDict() = IdDict{Any,Any}()
 ```
 -/
-  def emptyAny {A HT E Ptr Preserve : Type}
-      (ops : RuntimeOps A A A HT E Ptr Preserve) : Except E (IdDict A A A HT) :=
-    emptyTyped ops
+def emptyAny (calls : Callees) : M Word := do
+  let anyType := (← C.getWorld).globals.anyType
+  emptyTyped calls anyType anyType
 
 /--
 Julia source: base/iddict.jl:53-53 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -219,69 +140,7 @@ Julia source: base/iddict.jl:53-53 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 IdDict(kv::Tuple{}) = IdDict()
 ```
 -/
-  def emptyTuple {A HT E Ptr Preserve : Type}
-      (ops : RuntimeOps A A A HT E Ptr Preserve) (_kv : Unit) :
-      Except E (IdDict A A A HT) := emptyAny ops
-
-/--
-Julia source: base/iddict.jl:55-55 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
-```julia
-IdDict(ps::Pair{K,V}...)           where {K,V} = IdDict{K,V}(ps)
-```
--/
-  def fromPairsKV {K V A HT E Ptr Preserve : Type}
-      (ops : RuntimeOps K V A HT E Ptr Preserve) (pairs : List (A × A)) :
-      Except E (IdDict K V A HT) := fromPairs ops pairs
-
-/--
-Julia source: base/iddict.jl:56-56 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
-```julia
-IdDict(ps::Pair{K}...)             where {K}   = IdDict{K,Any}(ps)
-```
--/
-  def fromPairsK {K A HT E Ptr Preserve : Type}
-      (ops : RuntimeOps K A A HT E Ptr Preserve) (pairs : List (A × A)) :
-      Except E (IdDict K A A HT) := fromPairs ops pairs
-
-/--
-Julia source: base/iddict.jl:57-57 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
-```julia
-IdDict(ps::(Pair{K,V} where K)...) where {V}   = IdDict{Any,V}(ps)
-```
--/
-  def fromPairsV {V A HT E Ptr Preserve : Type}
-      (ops : RuntimeOps A V A HT E Ptr Preserve) (pairs : List (A × A)) :
-      Except E (IdDict A V A HT) := fromPairs ops pairs
-
-/--
-Julia source: base/iddict.jl:58-58 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
-```julia
-IdDict(ps::Pair...)                            = IdDict{Any,Any}(ps)
-```
--/
-  def fromPairsAny {A HT E Ptr Preserve : Type}
-      (ops : RuntimeOps A A A HT E Ptr Preserve) (pairs : List (A × A)) :
-      Except E (IdDict A A A HT) := fromPairs ops pairs
-
-  def constructForType {I A HT E Ptr Preserve : Type}
-      (family : RuntimeFamily A HT E Ptr Preserve) (iteratorOps : IteratorOps A I E)
-      (types : TypePair) (itr : I) : Except E (PackedIdDict A HT) :=
-    match fromIterator (family.forTypes types.key types.value) iteratorOps itr with
-    | .error e => .error e
-    | .ok dict => .ok ⟨types.key, types.value, dict⟩
-
-/--
-Julia source: base/iddict.jl:60-60 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
-```julia
-IdDict(kv) = dict_with_eltype((K, V) -> IdDict{K, V}, kv, eltype(kv))
-```
--/
-  def fromEltype {I A HT E Ptr Preserve : Type}
-      (family : RuntimeFamily A HT E Ptr Preserve) (iteratorOps : IteratorOps A I E)
-      (dictWithEltype : (TypePair → I → Except E (PackedIdDict A HT)) → I → TypePair →
-        Except E (PackedIdDict A HT)) (kv : I) (eltype : I → TypePair) :
-      Except E (PackedIdDict A HT) :=
-    dictWithEltype (fun types itr => constructForType family iteratorOps types itr) kv (eltype kv)
+def emptyTuple (calls : Callees) (_pairs : Unit) : M Word := emptyAny calls
 
 /--
 Julia source: base/iddict.jl:62-62 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -289,9 +148,8 @@ Julia source: base/iddict.jl:62-62 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 empty(d::IdDict, ::Type{K}, ::Type{V}) where {K, V} = IdDict{K,V}()
 ```
 -/
-  def emptyOf {K V K0 V0 A HT E Ptr Preserve : Type}
-      (ops : RuntimeOps K V A HT E Ptr Preserve) (_d : IdDict K0 V0 A HT) :
-      Except E (IdDict K V A HT) := emptyTyped ops
+def emptyOf (calls : Callees) (_dict keyType valueType : Word) : M Word :=
+  emptyTyped calls keyType valueType
 
 /--
 Julia source: base/iddict.jl:64-67 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -302,19 +160,18 @@ function rehash!(d::IdDict, newsz::Integer = length(d.ht)%UInt)
 end
 ```
 -/
-  def rehash {K V A HT E Ptr Preserve N : Type}
-      (ops : RuntimeOps K V A HT E Ptr Preserve) (d : IdDict K V A HT) (newsz : N) :
-      CallResult E (IdDict K V A HT) (IdDict K V A HT) :=
-    match ops.rehashMemory d.ht newsz with
-    | .error e => resultWithState (.error e) d
-    | .ok ht =>
-        let d := { d with ht := ht }
-        resultWithState (.ok d) d
+def rehashCsize (calls : Callees) (address size : Word) : M Word := do
+  let fields ← dictionary address
+  let memory ← (C.jl_idtable_rehash calls.gc fields.ht size)
+  storeHT address memory
+  pure address
 
-  def rehashDefault {K V A HT E Ptr Preserve : Type}
-      (ops : RuntimeOps K V A HT E Ptr Preserve) (d : IdDict K V A HT) :
-      CallResult E (IdDict K V A HT) (IdDict K V A HT) :=
-    rehash ops d (JuliaLean.base.int.remT .u64 (ops.memoryLength d.ht))
+def rehash (calls : Callees) (address integer : Word) : M Word := do
+  rehashCsize calls address (← (calls.toCsize integer))
+
+def rehashDefault (calls : Callees) (address : Word) : M Word := do
+  let fields ← dictionary address
+  rehashCsize calls address (UInt64.ofNat fields.ht.length)
 
 /--
 Julia source: base/iddict.jl:69-77 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -330,20 +187,14 @@ function sizehint!(d::IdDict, newsz::Integer)
 end
 ```
 -/
-  def sizehint! {K V A HT E Ptr Preserve N : Type}
-      (ops : RuntimeOps K V A HT E Ptr Preserve) (d : IdDict K V A HT) (newsz : N) :
-      CallResult E (IdDict K V A HT) (IdDict K V A HT) :=
-    match ops.doubleInteger newsz with
-    | .error e => resultWithState (.error e) d
-    | .ok doubled =>
-        match ops.tablesz doubled with
-        | .error e => resultWithState (.error e) d
-        | .ok newSize =>
-            let oldSize := ops.memoryLength d.ht
-            let minimumGrowth := JuliaLean.base.int.ashr_int
-              (oldSize * JInt.wrap .i64 5) (JInt.wrap .i64 2)
-            if newSize.val < minimumGrowth.val then resultWithState (.ok d) d
-            else rehash ops d newSize
+def sizehint! (calls : Callees) (address size : Word) : M Word := do
+  let size ← (calls.doubleInteger size)
+  let size ← (calls.tableSize size)
+  let fields ← dictionary address
+  let oldsz := JInt.wrap .i64 (Int.ofNat fields.ht.length)
+  let minimum := JuliaLean.base.int.ashr_int (oldsz * JInt.wrap .i64 5) (JInt.wrap .i64 2)
+  if ← (calls.lessThanInt size minimum) then pure address
+  else rehash calls address size
 
 /--
 Julia source: base/iddict.jl:79-92 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -364,51 +215,27 @@ function setindex!(d::IdDict{K,V}, @nospecialize(val), @nospecialize(key)) where
 end
 ```
 -/
-  def setindex! {K V A HT E Ptr Preserve : Type}
-      (ops : RuntimeOps K V A HT E Ptr Preserve) (d : IdDict K V A HT)
-      (val key : A) : CallResult E (IdDict K V A HT) (IdDict K V A HT) :=
-    if !ops.isKey key then resultWithState (.error (ops.keyTypeError key)) d
-    else
-      match (do
-        let val ← if ops.isValue val then Except.ok val else ops.convertValue val
-        let val ← ops.castValue val
-        .ok (ops.valueToAny val)) with
-      | .error e => resultWithState (.error e) d
-      | .ok val =>
-          let threshold := JuliaLean.base.int.ashr_int
-            (JInt.wrap .i64 3 * ops.memoryLength d.ht) (JInt.wrap .i64 2)
-          let rehashed :=
-            if d.ndel.val ≥ threshold.val then
-              let half := JuliaLean.base.int.lshr_int
-                (JuliaLean.base.int.remT .u64 (ops.memoryLength d.ht)) (JInt.wrap .u64 1)
-              let newSize := if half.val < 32 then JInt.wrap .u64 32 else half
-              let result := rehash ops d newSize
-              match result.result with
-              | .error e => resultWithState (.error e) result.state
-              | .ok d =>
-                  let d := { d with ndel := JInt.wrap .i64 0 }
-                  resultWithState (.ok d) d
-            else resultWithState (.ok d) d
-          match rehashed.result with
-          | .error e => resultWithState (.error e) rehashed.state
-          | .ok d =>
-              match ops.eqtablePut d.ht key val with
-              | .error e => resultWithState (.error e) d
-              | .ok (ht, inserted) =>
-                  let d : IdDict K V A HT :=
-                    ⟨ht, JInt.wrap .i64 (d.count.val + inserted.val), d.ndel⟩
-                  resultWithState (.ok d) d
-
-  def insertPairs {K V A HT E Ptr Preserve : Type}
-      (ops : RuntimeOps K V A HT E Ptr Preserve) (pairs : List (A × A))
-      (d : IdDict K V A HT) : Except E (IdDict K V A HT) := do
-    let (_, d) ← pairs.foldlM (fun (_, d) (key, value) => do
-      let inserted := setindex! ops d value key
-      match inserted.result with
-      | .error e => .error e
-      | .ok _ => .ok ((), inserted.state)) ((), d)
-    .ok d
-end
+def setindex! (calls : Callees) (address value key : Word) : M Word := do
+  let fields ← dictionary address
+  if !(← isa calls key fields.keyType) then fail (.keyTypeError fields.keyType key)
+  let value ← if ← isa calls value fields.valueType then pure value
+    else assertType calls (← (calls.convert fields.valueType value)) fields.valueType
+  let fields ← dictionary address
+  let threshold := JuliaLean.base.int.ashr_int
+    (JInt.wrap .i64 3 * JInt.wrap .i64 (Int.ofNat fields.ht.length)) (JInt.wrap .i64 2)
+  if fields.ndel.val ≥ threshold.val then
+    let half := UInt64.ofNat fields.ht.length >>> 1
+    let _ ← rehashCsize calls address (if half < 32 then 32 else half)
+    storeIntField address 16 (JInt.wrap .i64 0)
+  let fields ← dictionary address
+  let (memory, inserted) ← (C.jl_eqtable_put calls.gc fields.ht key value true)
+  match inserted with
+  | none => fail (.abort "jl_eqtable_put omitted requested Cint output")
+  | some inserted =>
+    storeHT address memory
+    let fields ← dictionary address
+    storeIntField address 8 (fields.count + JInt.wrap .i64 (if inserted then 1 else 0))
+    pure address
 
 /--
 Julia source: base/iddict.jl:94-97 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -419,14 +246,11 @@ function get(d::IdDict{K,V}, @nospecialize(key), @nospecialize(default)) where {
 end
 ```
 -/
-def get {K V A HT E Ptr Preserve : Type}
-    (ops : RuntimeOps K V A HT E Ptr Preserve) (d : IdDict K V A HT)
-    (key default : A) : Except E A := do
-  let val := ops.eqtableGet d.ht key default
-  if ops.sameIdentity val default then .ok default
-  else
-    let value ← ops.castValue val
-    .ok (ops.valueToAny value)
+def get (calls : Callees) (address key fallback : Word) : M Word := do
+  let fields ← dictionary address
+  let value ← (C.jl_eqtable_get fields.ht key fallback)
+  if ← (C.jl_egal_ value fallback) then pure fallback
+  else assertType calls value fields.valueType
 
 /--
 Julia source: base/iddict.jl:99-103 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -438,13 +262,12 @@ function getindex(d::IdDict{K,V}, @nospecialize(key)) where {K, V}
 end
 ```
 -/
-def getindex {K V A HT E Ptr Preserve : Type}
-    (ops : RuntimeOps K V A HT E Ptr Preserve) (d : IdDict K V A HT) (key : A) :
-    Except E A := do
-  let val := ops.eqtableGet d.ht key ops.secretToken
-  if ops.sameIdentity val ops.secretToken then throw (ops.keyError key)
-  let value ← ops.castValue val
-  .ok (ops.valueToAny value)
+def getindex (calls : Callees) (address key : Word) : M Word := do
+  let fields ← dictionary address
+  let token ← secretToken
+  let value ← (C.jl_eqtable_get fields.ht key token)
+  if ← (C.jl_egal_ value token) then fail (.keyError key)
+  assertType calls value fields.valueType
 
 /--
 Julia source: base/iddict.jl:105-115 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -462,20 +285,16 @@ function pop!(d::IdDict{K,V}, @nospecialize(key), @nospecialize(default)) where 
 end
 ```
 -/
-def popDefault {K V A HT E Ptr Preserve : Type}
-    (ops : RuntimeOps K V A HT E Ptr Preserve) (d : IdDict K V A HT)
-    (key default : A) : CallResult E (IdDict K V A HT) A :=
-  match ops.eqtablePop d.ht key default with
-  | .error e => resultWithState (.error e) d
-  | .ok (ht, value, found) =>
-      let d := { d with ht := ht }
-      if found.val == 0 then resultWithState (.ok default) d
-      else
-        let d : IdDict K V A HT :=
-          ⟨ht, d.count - JInt.wrap .i64 1, d.ndel + JInt.wrap .i64 1⟩
-        match ops.castValue value with
-        | .error e => resultWithState (.error e) d
-        | .ok value => resultWithState (.ok (ops.valueToAny value)) d
+def popDefault (calls : Callees) (address key fallback : Word) : M Word := do
+  let fields ← dictionary address
+  let (value, found) ← (C.jl_eqtable_pop fields.ht key fallback true)
+  match found with
+  | none => fail (.abort "jl_eqtable_pop omitted requested Cint output")
+  | some false => pure fallback
+  | some true =>
+    storeIntField address 8 (fields.count - JInt.wrap .i64 1)
+    storeIntField address 16 (fields.ndel + JInt.wrap .i64 1)
+    assertType calls value fields.valueType
 
 /--
 Julia source: base/iddict.jl:117-121 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -487,18 +306,12 @@ function pop!(d::IdDict{K,V}, @nospecialize(key)) where {K, V}
 end
 ```
 -/
-def pop {K V A HT E Ptr Preserve : Type}
-    (ops : RuntimeOps K V A HT E Ptr Preserve) (d : IdDict K V A HT) (key : A) :
-    CallResult E (IdDict K V A HT) A :=
-  let removed := popDefault ops d key ops.secretToken
-  match removed.result with
-  | .error e => resultWithState (.error e) removed.state
-  | .ok value =>
-      if ops.sameIdentity value ops.secretToken then resultWithState (.error (ops.keyError key)) removed.state
-      else
-        match ops.castValue value with
-        | .error e => resultWithState (.error e) removed.state
-        | .ok value => resultWithState (.ok (ops.valueToAny value)) removed.state
+def pop (calls : Callees) (address key : Word) : M Word := do
+  let token ← secretToken
+  let value ← popDefault calls address key token
+  if ← (C.jl_egal_ value token) then fail (.keyError key)
+  let fields ← dictionary address
+  assertType calls value fields.valueType
 
 /--
 Julia source: base/iddict.jl:123-126 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -509,13 +322,9 @@ function delete!(d::IdDict{K}, @nospecialize(key)) where K
 end
 ```
 -/
-def deleteBang {K V A HT E Ptr Preserve : Type}
-    (ops : RuntimeOps K V A HT E Ptr Preserve) (d : IdDict K V A HT) (key : A) :
-    CallResult E (IdDict K V A HT) (IdDict K V A HT) :=
-  let removed := popDefault ops d key ops.secretToken
-  match removed.result with
-  | .error e => resultWithState (.error e) removed.state
-  | .ok _ => resultWithState (.ok removed.state) removed.state
+def deleteBang (calls : Callees) (address key : Word) : M Word := do
+  let _ ← popDefault calls address key (← secretToken)
+  pure address
 
 /--
 Julia source: base/iddict.jl:128-137 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -532,22 +341,21 @@ function empty!(d::IdDict)
 end
 ```
 -/
-def emptyBang {K V A HT E Ptr Preserve : Type}
-    (ops : RuntimeOps K V A HT E Ptr Preserve) (d : IdDict K V A HT) :
-    CallResult E (IdDict K V A HT) (IdDict K V A HT) :=
-  match ops.allocate 32 with
-  | .error e => resultWithState (.error e) d
-  | .ok ht =>
-      let d1 : IdDict K V A HT := ⟨ht, d.count, d.ndel⟩
-      let token := ops.preserveBegin d1.ht
-      let pointer := ops.unsafeConvert d1.ht
-      let cleared := ops.memsetZero d1.ht pointer (ops.sizeofMemory d1.ht)
-      let ended := ops.preserveEnd token
-      let d2 : IdDict K V A HT := ⟨cleared, d1.count, JInt.wrap .i64 0⟩
-      let d3 : IdDict K V A HT := ⟨d2.ht, JInt.wrap .i64 0, d2.ndel⟩
-      let _ := cleared
-      let _ := ended
-      resultWithState (.ok d3) d3
+def emptyBang (calls : Callees) (address : Word) : M Word := do
+  let memory ← (C.allocMemoryAny calls.gc 32)
+  storeHT address memory
+  do
+    let root ← JuliaLean.src.identity_runtime.newLocal (some memory)
+    JuliaLean.src.identity_runtime.pushRoots [root]
+    let bytes := memory.length * 8
+    JuliaLean.src.identity_runtime.requireReadable (UInt64.ofNat memory.ptr) bytes
+    JuliaLean.src.identity_runtime.modifyWorld fun world => { world with
+      raw := { world.raw with
+        heap := world.raw.heap.writeBytes memory.ptr (List.replicate bytes (JInt.wrap .u8 0)) } }
+    JuliaLean.src.identity_runtime.popRoots
+  storeIntField address 16 (JInt.wrap .i64 0)
+  storeIntField address 8 (JInt.wrap .i64 0)
+  pure address
 
 /--
 Julia source: base/iddict.jl:139-139 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -555,9 +363,16 @@ Julia source: base/iddict.jl:139-139 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 _oidd_nextind(a, i) = reinterpret(Int, ccall(:jl_eqtable_nextind, Csize_t, (Any, Csize_t), a, i))
 ```
 -/
-def oiddNextind {K V A HT E Ptr Preserve : Type}
-    (ops : RuntimeOps K V A HT E Ptr Preserve) (a : HT) (i : JInt .u64) : JInt .i64 :=
-  ops.reinterpretInt (ops.eqtableNextind a i)
+def oiddNextind (memory : Memory) (index : Word) : M (JInt .i64) := do
+  let next ← (C.jl_eqtable_nextind memory index)
+  pure (JInt.wrap .i64 (Int.ofNat next.toNat))
+
+/-- essentials.jl:400-404 and builtins.c's boxed memoryrefget path:
+checked, one-based Memory{Any} reads preserve BoundsError and UndefRefError. -/
+def memoryAt (memory : Memory) (index : JInt .i64) : M Word := do
+  if index.val < 1 || index.val.toNat > memory.length then fail (.array .bounds)
+  let value ← JuliaLean.src.identity_runtime.plainReadCell memory (UInt64.ofNat (index.val-1).toNat)
+  if value == 0 then fail (.array .undefinedReference) else pure value
 
 /--
 Julia source: base/iddict.jl:141-145 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -569,21 +384,18 @@ function iterate(d::IdDict{K,V}, idx=0) where {K, V}
 end
 ```
 -/
-def iterate {K V A HT E Ptr Preserve : Type}
-    (ops : RuntimeOps K V A HT E Ptr Preserve) (d : IdDict K V A HT)
-    (cursor : Option (JInt .i64)) :
-    Except E (Option ((K × V) × JInt .i64)) := do
-  let rawIndex ← match cursor with
-    | none => ops.toUInt (JInt.wrap .i64 0)
-    | some index => ops.toUInt index
-  let idx := oiddNextind ops d.ht rawIndex
-  if idx.val == -1 then .ok none
-  else do
-    let rawKey ← ops.memoryAt d.ht (idx + JInt.wrap .i64 1)
-    let key ← ops.castKey rawKey
-    let rawValue ← ops.memoryAt d.ht (idx + JInt.wrap .i64 2)
-    let value ← ops.castValue rawValue
-    .ok (some ((key, value), idx + JInt.wrap .i64 2))
+def iterate (calls : Callees) (address : Word) (cursor : JInt .i64 := JInt.wrap .i64 0) :
+    M (Option (Word × JInt .i64)) := do
+  let fields ← dictionary address
+  let idx ← oiddNextind fields.ht (UInt64.ofNat (JuliaLean.base.int.remT .u64 cursor).val.toNat)
+  if idx.val == -1 then pure none
+  else
+    let rawKey ← memoryAt fields.ht (idx+JInt.wrap .i64 1)
+    let key ← assertType calls rawKey fields.keyType
+    let rawValue ← memoryAt fields.ht (idx+JInt.wrap .i64 2)
+    let value ← assertType calls rawValue fields.valueType
+    let pair ← calls.newPair fields.keyType fields.valueType key value
+    pure (some (pair, idx+JInt.wrap .i64 2))
 
 /--
 Julia source: base/iddict.jl:147-147 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -591,7 +403,7 @@ Julia source: base/iddict.jl:147-147 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 length(d::IdDict) = d.count
 ```
 -/
-def length {K V A HT : Type} (d : IdDict K V A HT) : JInt .i64 := d.count
+def length (address : Word) : M (JInt .i64) := do pure (← dictionary address).count
 
 /--
 Julia source: base/iddict.jl:149-149 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -599,9 +411,7 @@ Julia source: base/iddict.jl:149-149 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 copy(d::IdDict) = typeof(d)(d)
 ```
 -/
-def copyDict {K V A HT E Ptr Preserve : Type}
-    (ops : RuntimeOps K V A HT E Ptr Preserve) (d : IdDict K V A HT) :
-    Except E (IdDict K V A HT) := copyConstruct ops d
+def copyDict (calls : Callees) (address : Word) : M Word := copyConstruct calls address
 
 /--
 Julia source: base/iddict.jl:151-160 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -618,28 +428,16 @@ function get!(d::IdDict{K,V}, @nospecialize(key), @nospecialize(default)) where 
 end
 ```
 -/
-def getBang {K V A HT E Ptr Preserve : Type}
-    (ops : RuntimeOps K V A HT E Ptr Preserve) (d : IdDict K V A HT)
-    (key default : A) : CallResult E (IdDict K V A HT) A :=
-  let value := ops.eqtableGet d.ht key ops.secretToken
-  if ops.sameIdentity value ops.secretToken then
-    let stored :=
-      if ops.isValue default then Except.ok default
-      else do
-        let converted ← ops.convertValue default
-        let converted ← ops.castValue converted
-        .ok (ops.valueToAny converted)
-    match stored with
-    | .error e => resultWithState (.error e) d
-    | .ok value =>
-        let inserted := setindex! ops d value key
-        match inserted.result with
-        | .error e => resultWithState (.error e) inserted.state
-        | .ok _ => resultWithState (.ok value) inserted.state
-  else
-    match ops.castValue value with
-    | .error e => resultWithState (.error e) d
-    | .ok value => resultWithState (.ok (ops.valueToAny value)) d
+def getBang (calls : Callees) (address key fallback : Word) : M Word := do
+  let fields ← dictionary address
+  let token ← secretToken
+  let value ← (C.jl_eqtable_get fields.ht key token)
+  if ← (C.jl_egal_ value token) then
+    let value ← if ← isa calls fallback fields.valueType then pure fallback
+      else assertType calls (← (calls.convert fields.valueType fallback)) fields.valueType
+    let _ ← setindex! calls address value key
+    pure value
+  else assertType calls value fields.valueType
 
 /--
 Julia source: base/iddict.jl:162-169 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -654,14 +452,12 @@ function get(default::Callable, d::IdDict{K,V}, @nospecialize(key)) where {K, V}
 end
 ```
 -/
-def getCallable {K V A HT E Ptr Preserve : Type}
-    (ops : RuntimeOps K V A HT E Ptr Preserve) (d : IdDict K V A HT)
-    (default : Unit → Except E A) (key : A) : Except E A := do
-  let value := ops.eqtableGet d.ht key ops.secretToken
-  if ops.sameIdentity value ops.secretToken then default ()
-  else
-    let value ← ops.castValue value
-    .ok (ops.valueToAny value)
+def getCallable (calls : Callees) (default : Unit → M Word) (address key : Word) : M Word := do
+  let fields ← dictionary address
+  let token ← secretToken
+  let value ← (C.jl_eqtable_get fields.ht key token)
+  if ← (C.jl_egal_ value token) then default ()
+  else assertType calls value fields.valueType
 
 /--
 Julia source: base/iddict.jl:171-183 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -681,31 +477,17 @@ function get!(default::Callable, d::IdDict{K,V}, @nospecialize(key)) where {K, V
 end
 ```
 -/
-def getBangCallable {K V A HT E Ptr Preserve : Type}
-    (ops : RuntimeOps K V A HT E Ptr Preserve) (d : IdDict K V A HT)
-    (default : Unit → Except E A) (key : A) : CallResult E (IdDict K V A HT) A :=
-  let value := ops.eqtableGet d.ht key ops.secretToken
-  if ops.sameIdentity value ops.secretToken then
-    match default () with
-    | .error e => resultWithState (.error e) d
-    | .ok value =>
-        let value :=
-          if ops.isValue value then Except.ok value
-          else do
-            let converted ← ops.convertValue value
-            let converted ← ops.castValue converted
-            .ok (ops.valueToAny converted)
-        match value with
-        | .error e => resultWithState (.error e) d
-        | .ok value =>
-            let inserted := setindex! ops d value key
-            match inserted.result with
-            | .error e => resultWithState (.error e) inserted.state
-            | .ok _ => resultWithState (.ok value) inserted.state
-  else
-    match ops.castValue value with
-    | .error e => resultWithState (.error e) d
-    | .ok value => resultWithState (.ok (ops.valueToAny value)) d
+def getBangCallable (calls : Callees) (default : Unit → M Word) (address key : Word) : M Word := do
+  let fields ← dictionary address
+  let token ← secretToken
+  let value ← (C.jl_eqtable_get fields.ht key token)
+  if ← (C.jl_egal_ value token) then
+    let value ← default ()
+    let value ← if ← isa calls value fields.valueType then pure value
+      else assertType calls (← (calls.convert fields.valueType value)) fields.valueType
+    let _ ← setindex! calls address value key
+    pure value
+  else assertType calls value fields.valueType
 
 /--
 Julia source: base/iddict.jl:185-185 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -713,11 +495,128 @@ Julia source: base/iddict.jl:185-185 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 in(@nospecialize(k), v::KeySet{<:Any,<:IdDict}) = get(v.dict, k, secret_table_token) !== secret_table_token
 ```
 -/
-def inKeySet {K V A HT E Ptr Preserve : Type}
-    (ops : RuntimeOps K V A HT E Ptr Preserve) (v : IdKeySet K V A HT) (key : A) :
-    Except E Bool := do
-  let value ← get ops v.dict key ops.secretToken
-  .ok (!ops.sameIdentity value ops.secretToken)
+def inKeySet (calls : Callees) (address key : Word) : M Bool := do
+  let token ← secretToken
+  let value ← get calls address key token
+  return !(← (C.jl_egal_ value token))
+
+
+def insertPairList (calls : Callees) (address : Word) : List (Word × Word) → M Unit
+  | [] => pure ()
+  | (key, value)::rest => do
+    let _ ← setindex! calls address value key
+    insertPairList calls address rest
+
+/--
+Julia source: base/iddict.jl:42-47 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+```julia
+    function IdDict{K,V}(pairs::Pair...) where {K, V}
+        d = IdDict{K,V}()
+        sizehint!(d, length(pairs))
+        for (k,v) in pairs; d[k] = v; end
+        d
+    end
+```
+-/
+def fromPairs (calls : Callees) (keyType valueType : Word) (pairs : List (Word × Word)) : M Word := do
+  let address ← emptyTyped calls keyType valueType
+  let count ← calls.lengthArgument pairs.length
+  let _ ← sizehint! calls address count
+  insertPairList calls address pairs
+  pure address
+
+/-- The iterator protocol and destructuring calls remain selected Julia methods.
+The loop below consumes exactly their actual results, without an iteration cap. -/
+structure IteratorCalls (I S : Type) where
+  size : I → M JuliaLean.base.iddict.IteratorSize
+  length : I → M Word
+  iterate : I → Option S → M (Option (Word × S))
+  destructure : Word → M (Word × Word)
+
+def insertIterator {I S : Type} (calls : Callees) (iter : IteratorCalls I S)
+    (address : Word) (value : I) (state : Option S) : M Unit := do
+  match ← iter.iterate value state with
+  | none => pure ()
+  | some (item, next) =>
+    let (key, value') ← iter.destructure item
+    let _ ← setindex! calls address value' key
+    insertIterator calls iter address value (some next)
+partial_fixpoint
+
+/--
+Julia source: base/iddict.jl:33-40 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+```julia
+    function IdDict{K,V}(itr) where {K, V}
+        d = IdDict{K,V}()
+        if IteratorSize(itr) isa Union{HasLength, HasShape}
+            sizehint!(d, length(itr))
+        end
+        for (k,v) in itr; d[k] = v; end
+        d
+    end
+```
+-/
+def fromIterator {I S : Type} (calls : Callees) (iter : IteratorCalls I S)
+    (keyType valueType : Word) (value : I) : M Word := do
+  let address ← emptyTyped calls keyType valueType
+  let size ← iter.size value
+  if size == .hasLength || size == .hasShape then
+    let _ ← sizehint! calls address (← iter.length value)
+  insertIterator calls iter address value none
+  pure address
+
+/--
+Julia source: base/iddict.jl:55-55 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+```julia
+IdDict(ps::Pair{K,V}...)           where {K,V} = IdDict{K,V}(ps)
+```
+-/
+def fromPairsKV {I S : Type} (calls : Callees) (iter : IteratorCalls I S)
+    (keyType valueType : Word) (pairs : I) : M Word :=
+  fromIterator calls iter keyType valueType pairs
+
+/--
+Julia source: base/iddict.jl:56-56 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+```julia
+IdDict(ps::Pair{K}...)             where {K}   = IdDict{K,Any}(ps)
+```
+-/
+def fromPairsK {I S : Type} (calls : Callees) (iter : IteratorCalls I S)
+    (keyType : Word) (pairs : I) : M Word := do
+  fromIterator calls iter keyType (← C.getWorld).globals.anyType pairs
+
+/--
+Julia source: base/iddict.jl:57-57 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+```julia
+IdDict(ps::(Pair{K,V} where K)...) where {V}   = IdDict{Any,V}(ps)
+```
+-/
+def fromPairsV {I S : Type} (calls : Callees) (iter : IteratorCalls I S)
+    (valueType : Word) (pairs : I) : M Word := do
+  fromIterator calls iter (← C.getWorld).globals.anyType valueType pairs
+
+/--
+Julia source: base/iddict.jl:58-58 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+```julia
+IdDict(ps::Pair...)                            = IdDict{Any,Any}(ps)
+```
+-/
+def fromPairsAny {I S : Type} (calls : Callees) (iter : IteratorCalls I S) (pairs : I) : M Word := do
+  let anyType := (← C.getWorld).globals.anyType
+  fromIterator calls iter anyType anyType pairs
+
+
+/--
+Julia source: base/iddict.jl:60-60 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+```julia
+IdDict(kv) = dict_with_eltype((K, V) -> IdDict{K, V}, kv, eltype(kv))
+```
+-/
+def fromEltype {I S : Type} (calls : Callees) (iter : IteratorCalls I S)
+    (dictWithEltype : (Word → Word → I → M Word) → I → Word → M Word)
+    (value : I) (eltype : I → Word) : M Word :=
+  dictWithEltype (fun keyType valueType value => fromIterator calls iter keyType valueType value)
+    value (eltype value)
 
 /--
 Julia source: base/iddict.jl:189-189 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -725,195 +624,525 @@ Julia source: base/iddict.jl:189-189 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 filter!(f, d::IdDict) = filter_in_one_pass!(f, d)
 ```
 -/
-def filterBang {T K V A HT : Type}
-    (ops : JuliaLean.base.abstractdict.DictOps T (IdDict K V A HT) K V)
-    (predicate : K × V → Bool) (d : IdDict K V A HT) :
-    JuliaLean.base.abstractdict.Result (IdDict K V A HT) :=
-  JuliaLean.base.abstractdict.filterInOnePassAD ops predicate d
-
-/-- Collect an iterator by repeatedly applying the model of `iterate`. -/
-def iterateAllSteps {K V A HT E Ptr Preserve : Type}
-    (ops : RuntimeOps K V A HT E Ptr Preserve) (d : IdDict K V A HT) :
-    Nat → Option (JInt .i64) → Except E (List (K × V))
-  | 0, _ => .ok []
-  | fuel + 1, cursor => do
-      let stateArg : Option (JInt .i64) := cursor
-      match ← iterate ops d stateArg with
-      | none => .ok []
-      | some (pair, next) =>
-          let rest ← iterateAllSteps ops d fuel (some next)
-          .ok (pair :: rest)
-
-/-- Collect up to one more item than the live count, so an invalid count or iterator is visible. -/
-def iterateAll {K V A HT E Ptr Preserve : Type}
-    (ops : RuntimeOps K V A HT E Ptr Preserve) (d : IdDict K V A HT) :
-    Except E (List (K × V)) :=
-  iterateAllSteps ops d (d.count.val.toNat + 1) none
-
-inductive Operation (A : Type) where
-  | set (key value : A)
-  | delete (key : A)
-  | pop (key : A)
-  | popDefault (key default : A)
-  | getBang (key default : A)
-  | getBangCallable (key value : A)
-  | empty
-  | sizeHint (newSize : JInt .i64)
-  deriving Repr
-
-def applyOperation {K V A HT E Ptr Preserve : Type}
-    (ops : RuntimeOps K V A HT E Ptr Preserve) (d : IdDict K V A HT) :
-    Operation A → IdDict K V A HT
-  | .set key value => (setindex! ops d value key).state
-  | .delete key => (deleteBang ops d key).state
-  | .pop key => (pop ops d key).state
-  | .popDefault key default => (popDefault ops d key default).state
-  | .getBang key default => (getBang ops d key default).state
-  | .getBangCallable key value => (getBangCallable ops d (fun _ => .ok value) key).state
-  | .empty => (emptyBang ops d).state
-  | .sizeHint newSize => (sizehint! ops d newSize).state
-
-def runOperations {K V A HT E Ptr Preserve : Type}
-    (ops : RuntimeOps K V A HT E Ptr Preserve) :
-    List (Operation A) → IdDict K V A HT → IdDict K V A HT
-  | [], d => d
-  | operation :: rest, d => runOperations ops rest (applyOperation ops d operation)
-
-def referenceOperation {K V A HT E Ptr Preserve : Type}
-    (ops : RuntimeOps K V A HT E Ptr Preserve) (entries : List (A × A)) :
-    Operation A → List (A × A)
-  | .set key value =>
-      if !ops.isKey key then entries
-      else
-        match (do
-          let value ← if ops.isValue value then Except.ok value else ops.convertValue value
-          ops.castValue value) with
-        | .error _ => entries
-        | .ok value => referenceSet ops.sameIdentity entries key (ops.valueToAny value)
-  | .delete key => referenceDelete ops.sameIdentity entries key
-  | .pop key => referenceDelete ops.sameIdentity entries key
-  | .popDefault key _ => referenceDelete ops.sameIdentity entries key
-  | .getBang key default =>
-      if (referenceLookup ops.sameIdentity entries key).isSome then entries
-      else if !ops.isKey key then entries
-      else
-        match (do
-          let value ← if ops.isValue default then Except.ok default else ops.convertValue default
-          ops.castValue value) with
-        | .error _ => entries
-        | .ok value => referenceSet ops.sameIdentity entries key (ops.valueToAny value)
-  | .getBangCallable key value =>
-      if (referenceLookup ops.sameIdentity entries key).isSome then entries
-      else if !ops.isKey key then entries
-      else
-        match (do
-          let value ← if ops.isValue value then Except.ok value else ops.convertValue value
-          ops.castValue value) with
-        | .error _ => entries
-        | .ok value => referenceSet ops.sameIdentity entries key (ops.valueToAny value)
-  | .empty => []
-  | .sizeHint _ => entries
-
-def runReference {K V A HT E Ptr Preserve : Type}
-    (ops : RuntimeOps K V A HT E Ptr Preserve) :
-    List (Operation A) → List (A × A) → List (A × A)
-  | [], entries => entries
-  | operation :: rest, entries => runReference ops rest (referenceOperation ops entries operation)
-
-def mapsEquivalent {A : Type} (sameIdentity : A → A → Bool)
-    (left right : List (A × A)) : Prop :=
-  ∀ key, referenceLookup sameIdentity left key = referenceLookup sameIdentity right key
-
-def identityKeysDistinct {A B : Type} (sameIdentity : A → A → Bool) :
-    List (A × B) → Prop
-  | [] => True
-  | (key, _) :: rest =>
-      (∀ pair ∈ rest, sameIdentity key pair.1 = false) ∧
-        identityKeysDistinct sameIdentity rest
-
-def iterateLookup {K V A HT E Ptr Preserve : Type}
-    (ops : RuntimeOps K V A HT E Ptr Preserve) : List (K × V) → A → Option A
-  | [], _ => none
-  | (key, value) :: rest, query =>
-      if ops.sameIdentity query (ops.keyToAny key) then some (ops.valueToAny value)
-      else iterateLookup ops rest query
-
-def iterateKeysDistinct {K V A HT E Ptr Preserve : Type}
-    (ops : RuntimeOps K V A HT E Ptr Preserve) : List (K × V) → Prop
-  | [] => True
-  | (key, _) :: rest =>
-      (∀ pair ∈ rest, ops.sameIdentity (ops.keyToAny key) (ops.keyToAny pair.1) = false) ∧
-        iterateKeysDistinct ops rest
-
-namespace RuntimeOps
-
-/-- Contracts of Julia's identity-table C calls and memory operations. -/
-structure Lawful {K V A HT E Ptr Preserve : Type}
-    (ops : RuntimeOps K V A HT E Ptr Preserve) : Prop where
-  identity_refl : ∀ value, ops.sameIdentity value value = true
-  identity_symm : ∀ a b, ops.sameIdentity a b = ops.sameIdentity b a
-  identity_trans : ∀ a b c, ops.sameIdentity a b = true →
-    ops.sameIdentity b c = true → ops.sameIdentity a c = true
-  table_pairs_distinct : ∀ (d : IdDict K V A HT),
-    identityKeysDistinct ops.sameIdentity (ops.tablePairs d.ht)
-  table_pairs_count : ∀ (d : IdDict K V A HT),
-    d.count.val.toNat = (ops.tablePairs d.ht).length
-  table_keys_typed : ∀ (d : IdDict K V A HT) pair, pair ∈ ops.tablePairs d.ht →
-    ∃ key, ops.castKey pair.1 = .ok key ∧ ops.keyToAny key = pair.1
-  table_values_typed : ∀ (d : IdDict K V A HT) pair, pair ∈ ops.tablePairs d.ht →
-    ∃ value, ops.castValue pair.2 = .ok value ∧ ops.valueToAny value = pair.2
-  value_roundtrip : ∀ value,
-    ops.isValue (ops.valueToAny value) = true ∧
-      ops.castValue (ops.valueToAny value) = .ok value
-  eqtable_get : ∀ ht key default,
-    ops.eqtableGet ht key default =
-      (referenceLookup ops.sameIdentity (ops.tablePairs ht) key).getD default
-  eqtable_put : ∀ ht key value ht' inserted,
-    ops.eqtablePut ht key value = .ok (ht', inserted) →
-    mapsEquivalent ops.sameIdentity (ops.tablePairs ht')
-      (referenceSet ops.sameIdentity (ops.tablePairs ht) key value) ∧
-    inserted.val = if (referenceLookup ops.sameIdentity (ops.tablePairs ht) key).isSome then 0 else 1
-  eqtable_pop : ∀ ht key default ht' value found,
-    ops.eqtablePop ht key default = .ok (ht', value, found) →
-    match referenceLookup ops.sameIdentity (ops.tablePairs ht) key with
-    | none =>
-        value = default ∧ found.val = 0 ∧
-          mapsEquivalent ops.sameIdentity (ops.tablePairs ht') (ops.tablePairs ht)
-    | some stored =>
-        value = stored ∧ found.val ≠ 0 ∧
-          mapsEquivalent ops.sameIdentity (ops.tablePairs ht')
-            (referenceDelete ops.sameIdentity (ops.tablePairs ht) key)
-  allocate_empty : ∀ ht, ops.allocate 32 = .ok ht →
-    ops.memoryLength ht = JInt.wrap .i64 32 ∧ ops.tablePairs ht = []
-  allocate_fresh : ∀ ht (d : IdDict K V A HT),
-    ops.allocate 32 = .ok ht → ops.sameMemory ht d.ht = false
-  copy_preserves : ∀ ht ht', ops.copyMemory ht = .ok ht' →
-    mapsEquivalent ops.sameIdentity (ops.tablePairs ht') (ops.tablePairs ht)
-  copy_fresh : ∀ ht ht', ops.copyMemory ht = .ok ht' → ops.sameMemory ht' ht = false
-  rehash_preserves : ∀ {N : Type} (ht : HT) (size : N) (ht' : HT),
-    ops.rehashMemory ht size = .ok ht' →
-      mapsEquivalent ops.sameIdentity (ops.tablePairs ht') (ops.tablePairs ht)
-  rehash_length : ∀ {N : Type} (ht : HT) (size : N) (ht' : HT) (wordSize : JInt .u64),
-    ops.rehashMemory ht size = .ok ht' → ops.toUInt size = .ok wordSize →
-      ops.memoryLength ht' = JuliaLean.base.int.remT .i64 wordSize
-  clear_memory : ∀ ht ptr size,
-    ops.tablePairs (ops.memsetZero ht ptr size) = [] ∧
-      ops.memoryLength (ops.memsetZero ht ptr size) = ops.memoryLength ht
-  table_slots_ordered : ∀ ht, slotsIncreasing (ops.tableSlots ht)
-  table_slots_pairs : ∀ ht,
-    List.Perm ((ops.tableSlots ht).map fun slot => (slot.key, slot.value)) (ops.tablePairs ht)
-  nextind_layout : ∀ ht start,
-    let aligned := if start.val % 2 = 1 then start + JInt.wrap .u64 1 else start
-    ops.eqtableNextind ht start =
-      match (ops.tableSlots ht).find? (fun slot => decide (aligned.val ≤ slot.index.val)) with
-      | none => JInt.wrap .u64 (-1)
-      | some slot => slot.index
-  slot_key_memory : ∀ ht slot, slot ∈ ops.tableSlots ht →
-    ops.memoryAt ht (ops.reinterpretInt slot.index + JInt.wrap .i64 1) = .ok slot.key
-  slot_value_memory : ∀ ht slot, slot ∈ ops.tableSlots ht →
-    ops.memoryAt ht (ops.reinterpretInt slot.index + JInt.wrap .i64 2) = .ok slot.value
-
-end RuntimeOps
+def filterBang (calls : Callees) (predicate : Word → M Word) (address : Word) : M Word :=
+  calls.filterInOnePass predicate address
 
 end JuliaLean.base.iddict
+/-!
+# Values, `===`, `isequal` and types for the identity collections
 
+`IdDict`, `IdSet` and `WeakValueIdDict` compare keys with `===` (`egal`);
+`Set`, `Dict` and `WeakKeyDict` compare with `isequal`. The bugs of this area
+live in the gap between the two, so the value universe has `===`-distinct
+values that are `isequal`:
+
+* `int n` (`Int64`) and `flt n` (the `Float64` with integral value `n`):
+  `isequal(1, 1.0)`, `1 !== 1.0`;
+* `vec id c` (`Vector{Int}` holding `[c]`) and `fvec id c` (`Vector{Float64}`
+  holding `[c.0]`): mutable, so `===` compares the object identity `id`
+  (together with the constructor), while `isequal` compares contents;
+* `sym s` (`Symbol`) and `str s` (`String`): `===` and `isequal` both
+  compare contents (Julia's egal compares `String` bytes);
+* `nothing`.
+
+No arithmetic is performed on `int n` or `flt n`; they are opaque Julia
+values, so `Int` is enough to name them. `==` (used by `in` on vectors)
+coincides with `isequal` on this universe: it has no `NaN`, `-0.0` or
+`missing`.
+-/
+
+namespace JuliaLean.IdDicts
+
+/-- `===` (`jl_egal`): every constructor argument is part of the identity. -/
+def egal (a b : JVal) : Bool := a == b
+
+/-- `isa(x, T)`. -/
+def isa : JVal → JTy → Bool
+  | _, .any => true
+  | .int _, .int => true
+  | .flt _, .flt => true
+  | .sym _, .sym => true
+  | .str _, .str => true
+  | .vec _ _, .vec => true
+  | .fvec _ _, .fvec => true
+  | .nothing, .nothing => true
+  | _, _ => false
+
+/-- `convert(T, x)` on the universe: identity when `isa(x, T)`, the numeric
+conversions `Int64 ↔ Float64` of integral values, and `Vector{Int} ↔
+Vector{Float64}`, which allocates a new array (modelled as the object with the
+other constructor and the same `id`, `===`-distinct from `x`). Every other
+pair is a `MethodError`. -/
+def convert (T : JTy) (x : JVal) : Except IErr JVal :=
+  if isa x T then .ok x else
+  match T, x with
+  | .int, .flt n => .ok (.int n)
+  | .flt, .int n => .ok (.flt n)
+  | .vec, .fvec i c => .ok (.vec i c)
+  | .fvec, .vec i c => .ok (.fvec i c)
+  | _, _ => .error .methodError
+
+end JuliaLean.IdDicts
+/-!
+# `IdDict`, base/iddict.jl (master `bbfa0ce4150`)
+
+The table `d.ht::Memory{Any}` is manipulated only through the C functions
+`jl_eqtable_put/get/pop/nextind` and `jl_idtable_rehash` (src/iddict.c). They
+are modelled as a primitive map with `===` keys: `Tab` is the list of live
+`(key, value)` pairs in slot order. src/iddict.c implements exactly this: a
+deleted slot holds the tombstone `(nothing, NULL)`, skipped by
+`jl_eqtable_nextind`, and the probe loops continue past tombstones (also for
+the key `nothing`, src/iddict.c:67-71, 128-130).
+
+The Julia wrapper code is mirrored line by line: the `count`/`ndel`
+bookkeeping, the `ndel` rehash trigger, the `secret_table_token` sentinel, the
+type checks and conversions, and the `::K`/`::V` casts.
+
+Modelling decisions:
+* `sz` is `length(d.ht)`. `jl_eqtable_put` may replace the array by a larger
+  one (src/iddict.c:87-103); that growth is not tracked: it preserves the live
+  pairs, and `sz` only decides when `setindex!` rehashes, which also
+  preserves them.
+* `count`, `ndel`, `sz` are `Nat`: on a table that fits in memory the Int
+  arithmetic of base/iddict.jl:84-85,90,111-112 cannot wrap. `sizehint!`, the
+  one place where a user integer enters, uses wrapping `JInt .i64`.
+* Iteration order is the slot order of `Tab`; in Julia it is the hash order.
+  No property depends on the order.
+-/
+
+namespace JuliaLean.IdDicts
+
+/-- The live `(key, value)` pairs of an eqtable, in slot order. -/
+abbrev Tab := List (JVal × JVal)
+
+/-- `jl_eqtable_get(h, key, deflt)`, src/iddict.c:151-156. -/
+def eqtableGet : Tab → JVal → JVal → JVal
+  | [], _, deflt => deflt
+  | (k', v') :: t, k, deflt => if egal k k' then v' else eqtableGet t k deflt
+
+/-- `jl_eqtable_put(h, key, val, &inserted)`, src/iddict.c:140-147: replaces
+the value of a `===` key in place (`inserted = 0`) or fills a free slot
+(`inserted = 1`). -/
+def eqtablePut : Tab → JVal → JVal → Tab × Nat
+  | [], k, v => ([(k, v)], 1)
+  | (k', v') :: t, k, v =>
+      if egal k k' then ((k', v) :: t, 0)
+      else let r := eqtablePut t k v; ((k', v') :: r.1, r.2)
+
+/-- `jl_eqtable_pop(h, key, deflt, &found)`, src/iddict.c:164-176: the value
+(or `deflt`), `found`, and the table with the pair cleared. -/
+def eqtablePop : Tab → JVal → JVal → JVal × Bool × Tab
+  | [], _, deflt => (deflt, false, [])
+  | (k', v') :: t, k, deflt =>
+      if egal k k' then (v', true, t)
+      else let r := eqtablePop t k deflt; (r.1, r.2.1, (k', v') :: r.2.2)
+
+/-- `IdDict{K,V}` fields, base/iddict.jl:27-31. -/
+structure IdDict where
+  K : JTy
+  V : JTy
+  ht : Tab
+  /-- `length(d.ht)` -/
+  sz : Nat
+  count : Nat
+  ndel : Nat
+
+/-- `IdDict{K,V}()`, base/iddict.jl:31: `Memory{Any}(undef, 32)`. -/
+def IdDict.new (K V : JTy) : IdDict := ⟨K, V, [], 32, 0, 0⟩
+
+/-- `rehash!(d, newsz)`, base/iddict.jl:64-67: `jl_idtable_rehash` copies the
+live pairs into a fresh array of `newsz` slots. -/
+def IdDict.rehash (d : IdDict) (newsz : Nat) : IdDict := { d with sz := newsz }
+
+/-- `sizehint!(d, newsz)`, base/iddict.jl:69-77 (`newsz*2` wraps). -/
+def IdDict.sizehint (d : IdDict) (newsz : JInt .i64) : IdDict :=
+  let newsz := JuliaLean.Dicts.tableszI64 (newsz * JInt.lit .i64 2)
+  let oldsz := d.sz
+  if newsz.val < ((oldsz * 5 / 4 : Nat) : Int) then d
+  else d.rehash newsz.val.toNat
+
+/-- `x::T` -/
+def cast (x : JVal) (T : JTy) : Except IErr JVal :=
+  if isa x T then .ok x else .error .typeError
+
+/-- `setindex!(d, val, key)`, base/iddict.jl:79-92. -/
+def IdDict.setindex (d : IdDict) (val key : JVal) : Out IdDict Unit :=
+  if !isa key d.K then (d, .error .typeError) else
+  let val? : Except IErr JVal :=
+    if isa val d.V then .ok val else (convert d.V val).bind (cast · d.V)
+  match val? with
+  | .error e => (d, .error e)
+  | .ok val =>
+    let d := if d.ndel ≥ (3 * d.sz) / 4 then { d.rehash (max (d.sz / 2) 32) with ndel := 0 } else d
+    let r := eqtablePut d.ht key val
+    ({ d with ht := r.1, count := d.count + r.2 }, .ok ())
+
+/-- `get(d, key, default)`, base/iddict.jl:94-97. -/
+def IdDict.get (d : IdDict) (key default : JVal) : Except IErr JVal :=
+  let val := eqtableGet d.ht key default
+  if egal val default then .ok default else cast val d.V
+
+/-- `getindex(d, key)`, base/iddict.jl:99-103. -/
+def IdDict.getindex (d : IdDict) (key : JVal) : Except IErr JVal :=
+  let val := eqtableGet d.ht key token
+  if egal val token then .error .keyError else cast val d.V
+
+/-- `pop!(d, key, default)`, base/iddict.jl:105-115. -/
+def IdDict.pop3 (d : IdDict) (key default : JVal) : Out IdDict JVal :=
+  let r := eqtablePop d.ht key default
+  let d := { d with ht := r.2.2 }
+  if !r.2.1 then (d, .ok default)
+  else ({ d with count := d.count - 1, ndel := d.ndel + 1 }, cast r.1 d.V)
+
+/-- `pop!(d, key)`, base/iddict.jl:117-121. -/
+def IdDict.pop (d : IdDict) (key : JVal) : Out IdDict JVal :=
+  let r := d.pop3 key token
+  match r.2 with
+  | .error e => (r.1, .error e)
+  | .ok val => if egal val token then (r.1, .error .keyError) else (r.1, cast val d.V)
+
+/-- `delete!(d, key)`, base/iddict.jl:123-126. -/
+def IdDict.delete (d : IdDict) (key : JVal) : Out IdDict Unit :=
+  let r := d.pop3 key token
+  (r.1, r.2.map fun _ => ())
+
+/-- `empty!(d)`, base/iddict.jl:128-137. -/
+def IdDict.empty (d : IdDict) : IdDict := { d with ht := [], sz := 32, ndel := 0, count := 0 }
+
+/-- `iterate(d)` to exhaustion, base/iddict.jl:139-145: `_oidd_nextind`
+visits every live pair once; each yields `Pair{K,V}(ht[i]::K, ht[i+1]::V)`. -/
+def IdDict.iterate (d : IdDict) : Except IErr Tab :=
+  d.ht.mapM fun p => do
+    let k ← cast p.1 d.K
+    let v ← cast p.2 d.V
+    pure (k, v)
+
+/-- `length(d) = d.count`, base/iddict.jl:147. -/
+def IdDict.length (d : IdDict) : Nat := d.count
+
+/-- `haskey(d, k) = in(k, keys(d))`, base/abstractdict.jl:19 and
+`in(k, ::KeySet{<:Any,<:IdDict})`, base/iddict.jl:185. -/
+def IdDict.haskey (d : IdDict) (k : JVal) : Except IErr Bool :=
+  (d.get k token).map fun v => !egal v token
+
+/-- `get!(d, key, default)`, base/iddict.jl:151-160. -/
+def IdDict.getBang (d : IdDict) (key default : JVal) : Out IdDict JVal :=
+  let val := eqtableGet d.ht key token
+  if egal val token then
+    let val? : Except IErr JVal :=
+      if isa default d.V then .ok default else (convert d.V default).bind (cast · d.V)
+    match val? with
+    | .error e => (d, .error e)
+    | .ok val =>
+      let r := d.setindex val key
+      (r.1, r.2.map fun _ => val)
+  else (d, cast val d.V)
+
+/-- `get!(default::Callable, d, key)`, base/iddict.jl:171-183, for a `default`
+that returns `fv` without touching `d`. -/
+def IdDict.getBangF (d : IdDict) (fv key : JVal) : Out IdDict JVal :=
+  let val := eqtableGet d.ht key token
+  if egal val token then
+    let val? : Except IErr JVal :=
+      if !isa fv d.V then (convert d.V fv).bind (cast · d.V) else .ok fv
+    match val? with
+    | .error e => (d, .error e)
+    | .ok val =>
+      let r := d.setindex val key
+      (r.1, r.2.map fun _ => val)
+  else (d, cast val d.V)
+
+end JuliaLean.IdDicts
+/-!
+# The `IdDict` hash table slot by slot, `src/iddict.c` and `base/iddict.jl`
+
+`JuliaLean.IdDicts` models `d.ht` as the list of live pairs. Iterating while
+assigning (the generic `map!(f, values(d))` and `mergewith!(f, d, d)`,
+`base/abstractdict.jl:288-293,673-681`) depends on where the pairs sit, so this
+file mirrors the C table functions on the array itself: `ht` is the
+`Memory{Any}` of length `2 * slots` holding key/value pairs; `none` is `NULL`.
+A deleted pair leaves the key `nothing` with a `NULL` value
+(`jl_eqtable_pop`, src/iddict.c:164-176).
+
+Keys and values are `Int`s here (an `IdDict{Int,Int}`); `===` on `Int` is
+equality, and `keyhash` (`jl_object_id_`) is a parameter.
+-/
+
+namespace JuliaLean.DictsCov.EqTable
+
+/-- `jl_alloc_memory_any(n)`: `n` entries, all `NULL` (`n/2` pairs). -/
+def alloc (n : Nat) : Mem := List.replicate (n / 2) (.null, none)
+
+def getSlot (a : Mem) (i : Nat) : KSlot × Option Int := a.getD i (.null, none)
+
+/-- `max_probe(size)`, src/iddict.c:6. -/
+def maxProbe (size : Nat) : Nat := if size ≤ 1024 then 16 else size / 64
+
+/-- The probe loop of `jl_table_assign_bp`, src/iddict.c:50-79, over pair
+indices (`index/2`). Returns `inr ()` when the value of a present key was
+replaced, `inl (some j)` for the first free slot (`NULL` or deleted), `inl none`
+when the table is full. -/
+def probe (a : Mem) (key : Int) (sz : Nat) (orig : Nat) :
+    Nat → Nat → Nat → Option Nat → Sum (Option Nat) Nat
+  | 0, _, _, es => .inl es
+  | fuel + 1, index, iter, es =>
+    let (k2, v2) := getSlot a index
+    if k2 == .null then .inl (if es.isNone then some index else es)
+    else
+      -- `jl_egal(key, k2)` with a present value: replace
+      if k2 == .key key ∧ v2.isSome then .inr index
+      else
+        let es := if es.isNone ∧ v2.isNone then some index else es
+        let index := (index + 1) % sz
+        let iter := iter + 1
+        if iter ≤ maxProbe sz ∧ index ≠ orig then probe a key sz orig fuel index iter es
+        else .inl es
+
+/-- Write pair slot `j`. -/
+def setSlot (a : Mem) (j : Nat) (p : KSlot × Option Int) : Mem := a.set j p
+
+/-- `jl_idtable_rehash(a, newsz)`, src/iddict.c:13-30: re-insert every pair
+with a non-`NULL` value, in index order, into a fresh array of `newsz`
+entries, with the insertion `ins`. -/
+def rehashWith (ins : Mem → Int → Int → Mem) (a : Mem) (newsz : Nat) : Mem :=
+  a.foldl (fun b p => match p with
+    | (.key k, some v) => ins b k v
+    | _ => b) (alloc newsz)
+
+/-- `jl_table_assign_bp(&a, key, val)`, src/iddict.c:32-104: the new array and
+`inserted`. `fuel` bounds the number of growths. -/
+def assign (keyhash : Int → Nat) : Nat → Mem → Int → Int → Mem × Nat
+  | 0, a, _, _ => (a, 0)
+  | fuel + 1, a, key, val =>
+    let a := if a.length = 0 then alloc 32 else a
+    let sz := a.length
+    let index := keyhash key % sz
+    match probe a key sz index (sz + 1) index 0 none with
+    | .inr j => (setSlot a j (.key key, some val), 0)
+    | .inl (some j) => (setSlot a j (.key key, some val), 1)
+    | .inl none =>
+      let len := 2 * sz
+      let newsz := if len < 32 then 32 else if len ≥ 2 ^ 19 ∨ len ≤ 2 ^ 8 then len * 2 else len * 4
+      assign keyhash fuel (rehashWith (fun b k v => (assign keyhash fuel b k v).1) a newsz) key val
+
+/-- `jl_idtable_rehash` with the insertion of `jl_table_assign_bp`. -/
+def rehash (keyhash : Int → Nat) (fuel : Nat) (a : Mem) (newsz : Nat) : Mem :=
+  rehashWith (fun b k v => (assign keyhash fuel b k v).1) a newsz
+
+/-- The probe loop of `jl_table_peek_bp` for an `Int` key, src/iddict.c:118-133. -/
+def peekGo (a : Mem) (key : Int) (sz orig : Nat) : Nat → Nat → Nat → Option Nat
+  | 0, _, _ => none
+  | fuel + 1, index, iter =>
+    let (k2, v2) := getSlot a index
+    if k2 == .null then none
+    else if k2 == .key key then (if v2.isSome then some index else none)
+    else
+      let index := (index + 1) % sz
+      let iter := iter + 1
+      if iter ≤ maxProbe sz ∧ index ≠ orig then peekGo a key sz orig fuel index iter else none
+
+/-- `jl_table_peek_bp(a, key)`, src/iddict.c:108-134: the pair index holding
+`key` with a non-`NULL` value. -/
+def peekH (keyhash : Int → Nat) (a : Mem) (key : Int) : Option Nat :=
+  let sz := a.length
+  if sz = 0 then none else
+  let orig := keyhash key % sz
+  peekGo a key sz orig (sz + 1) orig 0
+
+/-- `IdDict{K,V}()`: `Memory{Any}(undef, 32)`, base/iddict.jl:31. -/
+def IdD.new : IdD := ⟨alloc 32, 0, 0⟩
+
+/-- `length(d.ht)` -/
+def IdD.len (d : IdD) : Nat := 2 * d.ht.length
+
+/-- Enough growths for any table in this file. -/
+def fuel : Nat := 64
+
+/-- `setindex!(d, val, key)`, base/iddict.jl:79-92, for `Int` keys and values. -/
+def IdD.setindex (keyhash : Int → Nat) (d : IdD) (val key : Int) : IdD :=
+  let d := if d.ndel ≥ (3 * d.len) / 4 then
+      { d with ht := rehash keyhash fuel d.ht (max (d.len / 2) 32), ndel := 0 }
+    else d
+  let r := assign keyhash fuel d.ht key val
+  { d with ht := r.1, count := d.count + r.2 }
+
+/-- `delete!(d, key)` = `pop!(d, key, secret_table_token)`, base/iddict.jl:105-126. -/
+def IdD.delete (keyhash : Int → Nat) (d : IdD) (key : Int) : IdD :=
+  match peekH keyhash d.ht key with
+  | some j => { d with ht := setSlot d.ht j (.nothing, none), count := d.count - 1, ndel := d.ndel + 1 }
+  | none => d
+
+/-- `get(d, key, default)`, base/iddict.jl:94-97. -/
+def IdD.get (keyhash : Int → Nat) (d : IdD) (key : Int) : Option Int :=
+  match peekH keyhash d.ht key with
+  | some j => (getSlot d.ht j).2
+  | none => none
+
+/-- `jl_eqtable_nextind(t, i)` on pair indices, src/iddict.c:178-188. -/
+def nextind (a : Mem) : Nat → Nat → Option Nat
+  | 0, _ => none
+  | fuel + 1, j => if j ≥ a.length then none
+    else if (getSlot a j).2.isSome then some j else nextind a fuel (j + 1)
+
+/-- `iterate(d, idx)`, base/iddict.jl:141-145: the pair at the next live slot
+at or after pair index `j`, and the next state (the following slot). -/
+def IdD.iterate (d : IdD) (j : Nat) : Option ((Int × Int) × Nat) :=
+  match nextind d.ht (d.ht.length + 1) j with
+  | none => none
+  | some i => match getSlot d.ht i with
+    | (.key k, some v) => some ((k, v), i + 1)
+    | _ => none
+
+end JuliaLean.DictsCov.EqTable
+
+namespace JuliaLean.DictsCov.IdDictRows
+
+
+abbrev R (α : Type) := Except String α
+
+structure State (K V : Type) where
+  slots : List (Option (K × V))
+  rawWords : Nat
+  count : Int
+  ndel : Int
+  deriving Repr
+
+def emptyState : State K V :=
+  { slots := List.replicate 16 none, rawWords := 32, count := 0, ndel := 0 }
+
+def foldSet (setindex : State K V → K → V → R (State K V)) :
+    State K V → List (K × V) → R (State K V)
+  | state, [] => .ok state
+  | state, (k, v) :: pairs => do
+      let state ← setindex state k v
+      foldSet setindex state pairs
+
+/-- Empty typed constructor, `base/iddict.jl:31`. -/
+def method31 : State K V := emptyState
+
+/-- Iterator constructor, `base/iddict.jl:33-40`. -/
+def method33 (hasLength : Bool) (sizehint : State K V → Nat → State K V)
+    (setindex : State K V → K → V → R (State K V)) (pairs : List (K × V)) : R (State K V) :=
+  let d : State K V := method31
+  let d := if hasLength then sizehint d pairs.length else d
+  foldSet setindex d pairs
+
+/-- Pair-vararg constructor, `base/iddict.jl:42-47`. -/
+def method42 (sizehint : State K V → Nat → State K V)
+    (setindex : State K V → K → V → R (State K V)) (pairs : List (K × V)) : R (State K V) :=
+  let d : State K V := method31
+  let d := sizehint d pairs.length
+  foldSet setindex d pairs
+
+/-- Same-type copy constructor, `base/iddict.jl:49`. -/
+def method49 (copySlots : List (Option (K × V)) → List (Option (K × V)))
+    (d : State K V) : State K V :=
+  { slots := copySlots d.slots, rawWords := d.rawWords, count := d.count, ndel := d.ndel }
+
+/-- Untyped empty constructor, `base/iddict.jl:52`. -/
+def method52 : State K V := method31
+
+/-- Empty-tuple constructor, `base/iddict.jl:53`. -/
+def method53 (_emptyTuple : Unit) : State K V := method52
+
+/-- Fully typed pair-vararg forwarding method, `base/iddict.jl:55`. -/
+def method55 (typed : List (K × V) → R (State K V)) (pairs : List (K × V)) := typed pairs
+
+/-- Key-typed pair-vararg forwarding method, `base/iddict.jl:56`. -/
+def method56 (typed : List (K × V) → R (State K V)) (pairs : List (K × V)) := typed pairs
+
+/-- Value-typed pair-vararg forwarding method, `base/iddict.jl:57`. -/
+def method57 (typed : List (K × V) → R (State K V)) (pairs : List (K × V)) := typed pairs
+
+/-- Any/Any pair-vararg forwarding method, `base/iddict.jl:58`. -/
+def method58 (typed : List (K × V) → R (State K V)) (pairs : List (K × V)) := typed pairs
+
+/-- Eltype-selecting constructor, `base/iddict.jl:60`. -/
+def method60 (eltype : I → T) (dictWithEltype : I → T → R (State K V)) (kv : I) : R (State K V) :=
+  dictWithEltype kv (eltype kv)
+
+/-- `empty` specialization, `base/iddict.jl:62`. -/
+def method62 : State K V := method31
+
+/-- Runtime rehash wrapper, `base/iddict.jl:64-67`. -/
+def method64 (rehash : List (Option (K × V)) → Nat → List (Option (K × V)))
+    (d : State K V) (newsz : Nat) : State K V :=
+  { d with slots := rehash d.slots newsz, rawWords := newsz }
+
+inductive RawGet (V : Type) where
+  | default
+  | value (v : V)
+
+/-- Three-argument `get`, `base/iddict.jl:94-97`. -/
+def method94 (eqtableGet : State K V → Q → V → RawGet V)
+    (d : State K V) (key : Q) (default : V) : V :=
+  match eqtableGet d key default with
+  | .default => default
+  | .value value => value
+
+structure PopResult (V : Type) where
+  value : V
+  found : Bool
+
+/-- Defaulted pop, `base/iddict.jl:105-115`. -/
+def method105 (eqtablePop : State K V → Q → V → PopResult V)
+    (d : State K V) (key : Q) (default : V) : V × State K V :=
+  let result := eqtablePop d key default
+  if result.found then
+    (result.value, { d with count := d.count - 1, ndel := d.ndel + 1 })
+  else (default, d)
+
+inductive Cell (V : Type) where
+  | sentinel
+  | stored (v : V)
+
+/-- Sentinel-checking pop wrapper, `base/iddict.jl:117-121`. -/
+def method117 (popDefault : State K V → Q → Cell V → Cell V × State K V)
+    (d : State K V) (key : Q) : R (V × State K V) :=
+  match popDefault d key .sentinel with
+  | (.sentinel, _) => .error "KeyError"
+  | (.stored value, d) => .ok (value, d)
+
+/-- Runtime next-index wrapper, `base/iddict.jl:139`. -/
+def method139 (eqtableNextind : A → Nat → Nat) (reinterpretInt : Nat → Int) (a : A) (i : Nat) : Int :=
+  reinterpretInt (eqtableNextind a i)
+
+/-- Copy wrapper, `base/iddict.jl:149`. -/
+def method149 (sameTypeConstructor : State K V → State K V) (d : State K V) : State K V :=
+  sameTypeConstructor d
+
+/-- Value-defaulting `get!`, `base/iddict.jl:151-160`. -/
+def method151 (getRaw : State K V → Q → Cell V) (convert : W → R V)
+    (setindex : State K V → Q → V → R (State K V))
+    (d : State K V) (key : Q) (default : W) : R (V × State K V) :=
+  match getRaw d key with
+  | .stored value => .ok (value, d)
+  | .sentinel => do
+      let value ← convert default
+      let d ← setindex d key value
+      return (value, d)
+
+/-- Callable `get`, `base/iddict.jl:162-169`. -/
+def method162 (getRaw : State K V → Q → Cell V) (default : Unit → R V)
+    (d : State K V) (key : Q) : R V :=
+  match getRaw d key with
+  | .sentinel => default ()
+  | .stored value => .ok value
+
+/-- Callable `get!`, `base/iddict.jl:171-183`. -/
+def method171 (getRaw : State K V → Q → Cell V) (default : Unit → R W)
+    (convert : W → R V) (setindex : State K V → Q → V → R (State K V))
+    (d : State K V) (key : Q) : R (V × State K V) :=
+  match getRaw d key with
+  | .stored value => .ok (value, d)
+  | .sentinel => do
+      let raw ← default ()
+      let value ← convert raw
+      let d ← setindex d key value
+      return (value, d)
+
+/-- IdDict filter delegation, `base/iddict.jl:189`. -/
+def method189 (filterOnePass : (K × V → Bool) → State K V → State K V)
+    (f : K × V → Bool) (d : State K V) : State K V := filterOnePass f d
+
+end JuliaLean.DictsCov.IdDictRows

@@ -1,4 +1,5 @@
 import JuliaLean.base.range
+import JuliaLean.Bindings.base.iterators
 import JuliaLean.base.int
 import JuliaLean.base.number
 import JuliaLean.base.checked
@@ -446,12 +447,6 @@ open JuliaLean JuliaLean.base.range JuliaLean.Registry
 open JuliaLean.base.int (add sub mul neg mulSame addWrap subWrap mulWrap lt le eq remT unsigned
   flipsign jmin jmax minType divSame remSame binop lit mod_BitSigned mod_Unsigned)
 
-/-- A `base/int.jl` computation inside a range method: its `JlError` is the range exception. -/
-def liftJl {α : Type} (x : Jl α) : JlX α :=
-  match x with
-  | .ok v => .ok v
-  | .error e => .error (.jl e)
-
 @[simp] theorem liftJl_ok {α : Type} (v : α) : liftJl (.ok v) = .ok v := rfl
 @[simp] theorem liftJl_error {α : Type} (e : JlError) : liftJl (.error e : Jl α) = .error (.jl e) := rfl
 
@@ -521,14 +516,10 @@ instance : JType (JInt t) where
 instance : JEq (JInt s) (JInt t) := ⟨eq⟩
 /-- `x < y` on BitIntegers (`base/int.jl`). -/
 instance : JLt (JInt s) (JInt t) := ⟨lt⟩
-/-- `x <= y` on BitIntegers (`base/int.jl`). -/
-instance : JLe (JInt s) (JInt t) := ⟨le⟩
 /-- `isless(x::Real, y::Real) = x < y` (`operators.jl`). -/
 instance : JIsless (JInt s) (JInt t) := ⟨lt⟩
 /-- `zero(T) = convert(T, 0)` (`number.jl`). -/
 instance : JZero (JInt t) := ⟨lit t 0⟩
-/-- `oneunit(T) = T(one(T))` (`number.jl`). -/
-instance : JOneunit (JInt t) := ⟨lit t 1⟩
 /-- `one(T) = T(1)` (`number.jl`). -/
 instance : JOne (JInt t) := ⟨lit t 1⟩
 /-- `iszero(x) = x == zero(x)` (`number.jl:44`), with `zero(x)` of `base/int.jl` and `==` of
@@ -557,18 +548,12 @@ scoped instance (priority := low) : HMul (JInt s) (JInt t) (JInt (pTy s t)) :=
   ⟨fun x y => castJ (pTy_eq s t).symm (binop mulSame x y)⟩
 /-- `x +% y` (`base/int.jl:93`). -/
 instance : JWrappingAdd (JInt t) (JInt t) (JInt t) := ⟨addWrap⟩
-/-- `x -% y` (`base/int.jl:92`). -/
-instance : JWrappingSub (JInt t) (JInt t) (JInt t) := ⟨subWrap⟩
 /-- `x *% y` (`base/int.jl:94`). -/
 instance : JWrappingMul (JInt t) (JInt t) (JInt t) := ⟨mulWrap⟩
 /-- `_range_wrapping_add(x::_RangeWrappingInteger, y::_RangeWrappingInteger)`, range.jl:34. -/
 instance : JRangeWrappingAdd (JInt t) (JInt t) (JInt t) := ⟨_range_wrapping_add_BitInteger⟩
-/-- range.jl:36. -/
-instance : JRangeWrappingSub (JInt t) (JInt t) (JInt t) := ⟨_range_wrapping_sub_BitInteger⟩
 /-- range.jl:38. -/
 instance : JRangeWrappingMul (JInt t) (JInt t) (JInt t) := ⟨_range_wrapping_mul_BitInteger⟩
-/-- `convert(T, x)` between BitIntegers (`boot.jl` checked conversions, `base/int.jl`). -/
-instance : JConvert (JInt t) (JInt s) := ⟨fun x => liftJl (JuliaLean.base.int.convert t x)⟩
 /-- `T(x)` between BitIntegers is the checked conversion (`boot.jl`). -/
 instance : JCtor (JInt t) (JInt s) := ⟨fun x => liftJl (JuliaLean.base.int.convert t x)⟩
 /-- `Integer(x::Integer) = x` (`boot.jl`). -/
@@ -690,12 +675,13 @@ abbrev lenTy : IntTy → IntTy
 section IntRanges
 
 variable {t : IntTy}
+/- The installed `UnitRange{Int}` bindings take precedence; these fallbacks cover other integer widths. -/
 
-instance : JEltype (UnitRange (JInt t)) (JInt t) := ⟨⟩
+instance (priority := low) : JEltype (UnitRange (JInt t)) (JInt t) := ⟨⟩
 instance : JEltype (StepRange (JInt t) (JInt t)) (JInt t) := ⟨⟩
 instance : JEltype (OneTo (JInt t)) (JInt t) := ⟨⟩
-instance : JFieldStart (UnitRange (JInt t)) (JInt t) := ⟨UnitRange.start⟩
-instance : JFieldStop (UnitRange (JInt t)) (JInt t) := ⟨UnitRange.stop⟩
+instance (priority := low) : JFieldStart (UnitRange (JInt t)) (JInt t) := ⟨UnitRange.start⟩
+instance (priority := low) : JFieldStop (UnitRange (JInt t)) (JInt t) := ⟨UnitRange.stop⟩
 instance : JFieldStart (StepRange (JInt t) (JInt t)) (JInt t) := ⟨StepRange.start⟩
 instance : JFieldStop (StepRange (JInt t) (JInt t)) (JInt t) := ⟨StepRange.stop⟩
 instance : JFieldStop (OneTo (JInt t)) (JInt t) := ⟨OneTo.stop⟩
@@ -707,10 +693,6 @@ instance : JArithmeticStyle (JInt t) ArithmeticWraps := ⟨⟨⟩⟩
 
 /-! ### Construction -/
 
-/-- `unitrange_last(start::Integer, stop::Integer)`, range.jl:439. -/
-instance : JUnitrangeLast (JInt t) (JInt t) := ⟨unitrange_last_Integer⟩
-/-- `UnitRange{T}(start::T, stop::T)`, range.jl:428. -/
-instance : JUnitRangeT (JInt t) (JInt t) (JInt t) := ⟨UnitRange_T_new⟩
 /-- `UnitRange(start::T, stop::T) where {T<:Real}`, range.jl:431. -/
 instance : JUnitRange2 (JInt t) (JInt t) (UnitRange (JInt t)) := ⟨UnitRange_T_T⟩
 /-- `(:)(start::T, stop::T) where {T<:Real}`, range.jl:5. -/
@@ -739,21 +721,21 @@ instance : JOneTo1 (JInt t) (OneTo (JInt t)) := ⟨OneTo_stop⟩
 /-! ### Endpoints, step, emptiness -/
 
 /-- `first(r::OrdinalRange{T})`, range.jl:867. -/
-instance : JFirst (UnitRange (JInt t)) (JInt t) := ⟨first_OrdinalRange⟩
+instance (priority := low) : JFirst (UnitRange (JInt t)) (JInt t) := ⟨first_OrdinalRange⟩
 instance : JFirst (StepRange (JInt t) (JInt t)) (JInt t) := ⟨first_OrdinalRange⟩
 /-- `first(r::OneTo{T})`, range.jl:868. -/
 instance : JFirst (OneTo (JInt t)) (JInt t) := ⟨fun r => pure (first_OneTo r)⟩
 /-- `last(r::OrdinalRange{T})`, range.jl:877. -/
-instance : JLast (UnitRange (JInt t)) (JInt t) := ⟨last_OrdinalRange⟩
+instance (priority := low) : JLast (UnitRange (JInt t)) (JInt t) := ⟨last_OrdinalRange⟩
 instance : JLast (StepRange (JInt t) (JInt t)) (JInt t) := ⟨last_OrdinalRange⟩
 instance : JLast (OneTo (JInt t)) (JInt t) := ⟨last_OrdinalRange⟩
 /-- `isempty(r::AbstractUnitRange)`, range.jl:711. -/
-instance : JIsempty (UnitRange (JInt t)) := ⟨isempty_AbstractUnitRange⟩
+instance (priority := low) : JIsempty (UnitRange (JInt t)) := ⟨isempty_AbstractUnitRange⟩
 instance : JIsempty (OneTo (JInt t)) := ⟨isempty_AbstractUnitRange⟩
 /-- `isempty(r::StepRange)`, range.jl:708. -/
 instance : JIsempty (StepRange (JInt t) (JInt t)) := ⟨fun r => pure (isempty_StepRange r)⟩
 /-- `step(r::AbstractUnitRange{T})`, range.jl:736. -/
-instance : JStep (UnitRange (JInt t)) (JInt t) := ⟨fun r => pure (step_AbstractUnitRange r)⟩
+instance (priority := low) : JStep (UnitRange (JInt t)) (JInt t) := ⟨fun r => pure (step_AbstractUnitRange r)⟩
 instance : JStep (OneTo (JInt t)) (JInt t) := ⟨fun r => pure (step_AbstractUnitRange r)⟩
 /-- `step(r::StepRange)`, range.jl:735. -/
 instance : JStep (StepRange (JInt t) (JInt t)) (JInt t) := ⟨fun r => pure (step_StepRange r)⟩
@@ -762,11 +744,13 @@ instance : JStepHp (UnitRange (JInt t)) (JInt t) := ⟨step_hp_AbstractRange⟩
 instance : JStepHp (OneTo (JInt t)) (JInt t) := ⟨step_hp_AbstractRange⟩
 instance : JStepHp (StepRange (JInt t) (JInt t)) (JInt t) := ⟨step_hp_AbstractRange⟩
 /-- `iterate(r::OrdinalRange)`, range.jl:935. -/
-instance : JIterate1 (UnitRange (JInt t)) (JInt t) (JInt t) := ⟨iterate_OrdinalRange⟩
+instance (priority := low) instJIterate1UnitRangeJInt :
+    JIterate1 (UnitRange (JInt t)) (JInt t) (JInt t) := ⟨iterate_OrdinalRange⟩
 instance : JIterate1 (StepRange (JInt t) (JInt t)) (JInt t) (JInt t) := ⟨iterate_OrdinalRange⟩
 instance : JIterate1 (OneTo (JInt t)) (JInt t) (JInt t) := ⟨iterate_OrdinalRange⟩
 /-- `iterate(r::OrdinalRange{T}, i)`, range.jl:937. -/
-instance : JIterate2 (UnitRange (JInt t)) (JInt t) (JInt t) := ⟨iterate_OrdinalRange_state⟩
+instance (priority := low) instJIterate2UnitRangeJInt :
+    JIterate2 (UnitRange (JInt t)) (JInt t) (JInt t) := ⟨iterate_OrdinalRange_state⟩
 instance : JIterate2 (StepRange (JInt t) (JInt t)) (JInt t) (JInt t) := ⟨iterate_OrdinalRange_state⟩
 instance : JIterate2 (OneTo (JInt t)) (JInt t) (JInt t) := ⟨iterate_OrdinalRange_state⟩
 
@@ -786,10 +770,17 @@ def lengthUnit : {t : IntTy} → UnitRange (JInt t) → JlX (JInt (lenTy t))
   | .u8, r => length_AbstractUnitRange_smallints r
   | .u16, r => length_AbstractUnitRange_smallints r
   | .u32, r => length_AbstractUnitRange_smallints r
-  | .i64, r => length_AbstractUnitRange r
+  | .i64, r =>
+      letI : JInteger JInt64 JInt64 :=
+        ⟨fun x => liftJl (JuliaLean.base.int.convert .i64 x)⟩
+      length_AbstractUnitRange r
   | .u64, r => length_AbstractUnitRange r
   | .i128, r => length_AbstractUnitRange r
   | .u128, r => length_AbstractUnitRange r
+
+@[simp] theorem liftIntegerConvertI64 (x : JInt64) :
+    liftJl (JuliaLean.base.int.convert .i64 x) = .ok x := by
+  simp [liftJl, JuliaLean.base.int.convert, JInt.convert, x.property]
 
 /-- `length(r::OneTo{<:smallints})` (range.jl:860) or `length(r::OneTo{T}) where {T<:bigints}`
 (range.jl:817). -/
@@ -819,7 +810,7 @@ def lengthStep : {t : IntTy} → StepRange (JInt t) (JInt t) → JlX (JInt (lenT
   | .i128, r => length_OrdinalRange_bigints r
   | .u128, r => length_OrdinalRange_bigints r
 
-instance {t : IntTy} : JLength (UnitRange (JInt t)) (JInt (lenTy t)) := ⟨lengthUnit⟩
+instance (priority := low) {t : IntTy} : JLength (UnitRange (JInt t)) (JInt (lenTy t)) := ⟨lengthUnit⟩
 instance {t : IntTy} : JLength (OneTo (JInt t)) (JInt (lenTy t)) := ⟨lengthOneTo⟩
 instance {t : IntTy} : JLength (StepRange (JInt t) (JInt t)) (JInt (lenTy t)) := ⟨lengthStep⟩
 
@@ -1126,6 +1117,7 @@ def toArr {α : Type} (x : JlX α) : JuliaLean.base.abstractarray.Result α :=
   | .error (.jl e) => .error (.julia e)
   | .error (.errorException m) => .error (.errorException m)
   | .error (.dimensionMismatch m) => .error (.dimensionMismatch m)
+  | .error (.showError error) => .error (.showError error)
   | .error .inboundsViolation => .error (.errorException "inbounds violation")
 
 /-- An `abstractarray.jl` computation as a range-file computation. -/
@@ -1134,6 +1126,7 @@ def ofArr {α : Type} (x : JuliaLean.base.abstractarray.Result α) : JlX α :=
   | .ok v => .ok v
   | .error (.julia e) => .error (.jl e)
   | .error (.dimensionMismatch m) => .error (.dimensionMismatch m)
+  | .error (.showError error) => .error (.showError error)
   | .error (.errorException m) => .error (.errorException m)
   | .error _ => .error (.errorException "abstractarray.jl error")
 
@@ -1264,8 +1257,8 @@ theorem wrap_in (t : IntTy) {z : Int} (h1 : t.min ≤ z) (h2 : z ≤ t.max) : wr
 
 theorem convert_iv (x : JInt s) : (JConvert.convert x : JlX (JInt t)) =
     if h : t.min ≤ x.val ∧ x.val ≤ t.max then .ok ⟨x.val, h⟩
-    else .error (.jl (.inexactError t.name)) := by
-  show liftJl (JInt.convert t x.val) = _
+    else .error (.jl (.inexactError (if t.bits = s.bits then "convert" else "trunc"))) := by
+  show liftJl (JInt.convert (if t.bits = s.bits then "convert" else "trunc") t x.val) = _
   unfold JInt.convert
   split <;> rfl
 
@@ -1406,6 +1399,105 @@ theorem iterList_unit (r : UnitRange (JInt t)) (fuel : Nat)
     rw [intsFromTo_cons (show r.start.val ≤ r.stop.val by omega)]
     revert ih
     cases iterFrom r fuel r.start <;> simp [Except.map, pure, Except.pure]
+
+@[simp] theorem first_unit_i64 (r : UnitRange JInt64) : JFirst.first r = .ok r.start := by
+  simp [JFirst.first, first_OrdinalRange, JFieldStart.start]
+@[simp] theorem last_unit_i64 (r : UnitRange JInt64) : JLast.last r = .ok r.stop := by
+  simp [JLast.last, last_OrdinalRange, JFieldStop.stop]
+@[simp] theorem isempty_unit_i64 (r : UnitRange JInt64) :
+    JIsempty.isempty r = .ok (decide (r.stop.val < r.start.val)) := by
+  letI : JLt JInt64 JInt64 := ⟨JuliaLean.base.int.ltSame⟩
+  change isempty_AbstractUnitRange r = .ok (decide (r.stop.val < r.start.val))
+  simp only [isempty_AbstractUnitRange, first_unit_i64, last_unit_i64,
+    bind, Except.bind, pure, Except.pure]
+  change (Except.ok (JuliaLean.base.int.ltSame r.stop r.start) :
+      JuliaLean.base.range.JlX Bool) = Except.ok (decide (r.stop.val < r.start.val))
+  apply congrArg Except.ok
+  exact JuliaLean.Proofs.base.int.ltSame_eq r.stop r.start
+theorem step_unit_i64 (r : UnitRange JInt64) :
+    JStep.step r = .ok (JInt.lit .i64 1) := by
+  change (Except.ok (JuliaLean.base.int.sub_int
+    (JuliaLean.base.int.lit .i64 1) (JuliaLean.base.int.lit .i64 0)) : JlX JInt64) =
+    .ok (JInt.lit .i64 1)
+  apply congrArg Except.ok
+  apply Subtype.ext
+  rw [JuliaLean.Proofs.base.int.sub_int_val, JuliaLean.Proofs.base.int.lit_val,
+    JuliaLean.Proofs.base.int.lit_val]
+  have h1 : wrapInt .i64 1 = 1 := wrapInt_of_inRange .i64 1 (by decide)
+  have h0 : wrapInt .i64 0 = 0 := wrapInt_of_inRange .i64 0 (by decide)
+  simp [h1, h0]
+  change 1 = wrapInt .i64 1
+  exact h1.symm
+
+private theorem iterFrom_congr_of_same_step {R S T : Type}
+    (first second : JIterate2 R S T)
+    (h : ∀ r s, @JIterate2.iterate R S T first r s = @JIterate2.iterate R S T second r s)
+    (r : R) : ∀ fuel s, @iterFrom R S T first r fuel s = @iterFrom R S T second r fuel s := by
+  intro fuel
+  induction fuel with
+  | zero => intro s; rfl
+  | succ fuel ih =>
+    intro s
+    simp [iterFrom, h r s, ih]
+
+private theorem iterList_congr_of_same_iterates {R S T : Type}
+    (first₁ first₂ : JIterate1 R T S) (next₁ next₂ : JIterate2 R S T)
+    (h₁ : ∀ r, @JIterate1.iterate R T S first₁ r = @JIterate1.iterate R T S first₂ r)
+    (h₂ : ∀ r s, @JIterate2.iterate R S T next₁ r s = @JIterate2.iterate R S T next₂ r s)
+    (r : R) (fuel : Nat) :
+    @iterList R S T first₁ next₁ r fuel = @iterList R S T first₂ next₂ r fuel := by
+  simp [iterList, h₁ r, iterFrom_congr_of_same_step next₁ next₂ h₂ r]
+
+private theorem iterList_i64_same (r : UnitRange JInt64) (fuel : Nat) :
+    @iterList (UnitRange JInt64) JInt64 JInt64
+      (inferInstance : JIterate1 (UnitRange JInt64) JInt64 JInt64)
+      (inferInstance : JIterate2 (UnitRange JInt64) JInt64 JInt64) r fuel =
+    @iterList (UnitRange JInt64) JInt64 JInt64
+      (@instJIterate1UnitRangeJInt .i64) (@instJIterate2UnitRangeJInt .i64) r fuel := by
+  let modelFirst : JIterate1 (UnitRange JInt64) JInt64 JInt64 := inferInstance
+  let proofFirst : JIterate1 (UnitRange JInt64) JInt64 JInt64 :=
+    @instJIterate1UnitRangeJInt .i64
+  let modelNext : JIterate2 (UnitRange JInt64) JInt64 JInt64 := inferInstance
+  let proofNext : JIterate2 (UnitRange JInt64) JInt64 JInt64 :=
+    @instJIterate2UnitRangeJInt .i64
+  have h₁ : ∀ r, @JIterate1.iterate _ _ _ modelFirst r =
+      @JIterate1.iterate _ _ _ proofFirst r := by
+    intro r
+    simp [JIterate1.iterate, modelFirst, proofFirst, iterate_OrdinalRange,
+      isempty_unit_i64, first_unit_i64, isempty_unit, first_unit, bind, Except.bind, pure, Except.pure]
+  have h₂ : ∀ r s, @JIterate2.iterate _ _ _ modelNext r s =
+      @JIterate2.iterate _ _ _ proofNext r s := by
+    intro r s
+    letI : JEq JInt64 JInt64 := ⟨JuliaLean.base.int.eqSame⟩
+    letI : HAdd JInt64 JInt64 JInt64 := ⟨JuliaLean.base.int.add_int⟩
+    simp only [JIterate2.iterate, modelNext, proofNext, iterate_OrdinalRange_state]
+    change (do
+      let __do_lift ← JLast.last r
+      if JuliaLean.base.int.eqSame s __do_lift = true then pure none else do
+        let __do_lift ← JStep.step r
+        let next ← JConvert.convert (s + __do_lift)
+        pure (some (next, next))) = _
+    obtain ⟨step, hstep, hstep_val⟩ := step_unit r
+    have hlit : (JInt.lit .i64 1).val = 1 := by
+      change wrapInt .i64 1 = 1
+      exact wrapInt_of_inRange .i64 1 (by decide)
+    have hstep_lit : step = JInt.lit .i64 1 := by
+      apply Subtype.ext
+      exact hstep_val.trans hlit.symm
+    simp [JuliaLean.Proofs.base.int.eqSame_eq, eq_iv, step_unit_i64, hstep,
+      last_unit_i64, last_unit, convert_iv, bind, Except.bind, pure, Except.pure]
+    rw [hstep_lit]
+    rfl
+  change @iterList (UnitRange JInt64) JInt64 JInt64 modelFirst modelNext r fuel =
+    @iterList (UnitRange JInt64) JInt64 JInt64 proofFirst proofNext r fuel
+  exact iterList_congr_of_same_iterates modelFirst proofFirst modelNext proofNext h₁ h₂ r fuel
+
+/-- UnitRange iteration under the installed Int64 callbacks. -/
+theorem iterList_unit_i64 (r : UnitRange JInt64) (fuel : Nat)
+    (hf : (r.stop.val - r.start.val).toNat < fuel) :
+    (iterList r fuel).map vals = .ok (intsFromTo r.start.val r.stop.val) := by
+  rw [iterList_i64_same r fuel]
+  exact iterList_unit r fuel hf
 
 end UnitEval
 
@@ -1583,6 +1675,16 @@ def stepInts (a s b : Int) : List Int :=
 def iterVals {R S : Type} {q : IntTy} [JIterate1 R (JInt q) S] [JIterate2 R S (JInt q)] (r : R)
     (fuel : Nat) : JlX (List Int) :=
   (iterList r fuel).map vals
+private theorem iterVals_i64_same (r : UnitRange JInt64) (fuel : Nat) :
+    iterVals r fuel =
+      @iterVals (UnitRange JInt64) JInt64 .i64
+        (@instJIterate1UnitRangeJInt .i64) (@instJIterate2UnitRangeJInt .i64) r fuel := by
+  change (@iterList (UnitRange JInt64) JInt64 JInt64
+      (inferInstance : JIterate1 (UnitRange JInt64) JInt64 JInt64)
+      (inferInstance : JIterate2 (UnitRange JInt64) JInt64 JInt64) r fuel).map vals =
+    (@iterList (UnitRange JInt64) JInt64 JInt64
+      (@instJIterate1UnitRangeJInt .i64) (@instJIterate2UnitRangeJInt .i64) r fuel).map vals
+  rw [iterList_i64_same r fuel]
 
 /-- `reverse(r)` of a `StepRange{T,T}`: `_reverse(r, :)` (range.jl:1445); `last(r):negate(step(r)):first(r)`
 selects `(:)(start::T, step::T, stop::T)` (range.jl:22) for signed `T` and
@@ -1770,7 +1872,7 @@ theorem unitSlice_refuted : ¬ UnitSlice := by
     ⟨lit .i8 120, lit .i8 127⟩ ⟨lit .i8 8, lit .i8 8⟩ (by decide) (by decide) (by decide) (by decide)
     (by decide)
   have hv : getindex_AbstractUnitRange_AbstractUnitRange (⟨lit .i8 120, lit .i8 127⟩ : UnitRange (JInt .i8))
-      (⟨lit .i8 8, lit .i8 8⟩ : UnitRange (JInt .i8)) = .error (.jl (.inexactError "Int8")) := by decide
+      (⟨lit .i8 8, lit .i8 8⟩ : UnitRange (JInt .i8)) = .error (.jl (.inexactError "trunc")) := by decide
   cases hu.symm.trans hv
 
 /-- Intersecting an integer step range with an empty unit range gives an empty range. -/
@@ -1851,7 +1953,7 @@ theorem stepAwayEmpty_refuted : ¬ StepAwayEmpty := by
   intro h
   obtain ⟨r, hr, _⟩ := h .i64 .u64 (lit .i64 (-5)) (lit .i64 (-10)) (lit .u64 1) (by decide) (by decide)
   have hv : (StepRange_T_S_T (lit .i64 (-5)) (lit .u64 1) (lit .i64 (-10)) :
-      JlX (StepRange (JInt .i64) (JInt .u64))) = .error (.jl (.inexactError "Int64")) := by decide
+      JlX (StepRange (JInt .i64) (JInt .u64))) = .error (.jl (.inexactError "convert")) := by decide
   cases hr.symm.trans hv
 
 /-- Converting an empty integer unit range to `UnitRange{T}` of another non-`Bool` BitInteger
@@ -1865,7 +1967,7 @@ theorem convertEmptyUnit_refuted : ¬ ConvertEmptyUnit := by
   obtain ⟨v, hv, _⟩ := h .i64 .u8 (lit .i64 0) (lit .i64 (-1)) ⟨lit .i64 0, lit .i64 (-1)⟩ (by decide)
     (by decide)
   have he : UnitRange_T_AbstractUnitRange (T := JInt .u8) (⟨lit .i64 0, lit .i64 (-1)⟩ : UnitRange (JInt .i64))
-      = .error (.jl (.inexactError "UInt8")) := by decide
+      = .error (.jl (.inexactError "trunc")) := by decide
   cases hv.symm.trans he
 
 /-- `r1 + r2` of two integer unit ranges of equal length is the range whose `i`-th element is
@@ -2527,7 +2629,8 @@ theorem lengthUnit_colon (a b : JInt t) :
     simp (disch := decide) only [lengthUnit, length_AbstractUnitRange_smallints, length_AbstractUnitRange,
       JLast.last, JFirst.first, last_OrdinalRange, first_OrdinalRange, JFieldStart.start,
       JFieldStop.stop, ctor_iv, convert_self, convert_wide, bind, Except.bind, pure, Except.pure] <;>
-    simp [Except.map, JInteger.integer, pure, Except.pure, JType.isSigned, IntTy.signed, cnt] at * <;>
+    simp [Except.map, JInteger.integer, pure, Except.pure, JType.isSigned, IntTy.signed, cnt,
+      liftIntegerConvertI64] at * <;>
     (by_cases hab : a.val ≤ b.val <;> by_cases h2 : a.val ≤ s.val <;> (try omega) <;>
       simp [hab, h2] at * <;>
       simp [wrapInt, IntTy.min, IntTy.max, IntTy.signed, IntTy.bits] at * <;> omega)
@@ -2659,7 +2762,10 @@ theorem checkedLengthUnit_colon (a b : JInt t) :
   generalize unitStop a b = s at hs hl
   have hsp := bounds_num t s
   cases t
-  case i64 | i128 | u64 | u128 => exact checkedLenAUR a b s hs
+  case i64 =>
+    simpa [checkedLengthUnit, checked_length_AbstractUnitRange, isempty_unit_i64,
+      first_unit_i64, last_unit_i64] using checkedLenAUR a b s hs
+  case i128 | u64 | u128 => exact checkedLenAUR a b s hs
   all_goals
     unfold CountOrOverflow
     simp only [checkedLengthUnit, checked_length_AbstractUnitRange_smallints, JLength.length]
@@ -4587,9 +4693,9 @@ def MixedStepColon : Prop :=
 theorem mixedStepColon_proven : MixedStepColon := by
   intro t s a b st
   refine ⟨fun ha => ?_, fun ha hb => ?_, fun ha hb hz => ?_⟩
-  · refine ⟨(pTy t s).name, ?_⟩
+  · refine ⟨if (pTy t s).bits = t.bits then "convert" else "trunc", ?_⟩
     simp only [colon_T_step_T_Real, _colon_T_step_T, convert_iv, dif_neg ha, bind, Except.bind]
-  · refine ⟨(pTy t s).name, ?_⟩
+  · refine ⟨if (pTy t s).bits = t.bits then "convert" else "trunc", ?_⟩
     simp only [colon_T_step_T_Real, _colon_T_step_T, convert_iv, dif_pos ha, dif_neg hb, bind, Except.bind]
   · simp [colon_T_step_T_Real, _colon_T_step_T, convert_iv, ha, hb, JStepRange3.stepRange,
       StepRange_T_S_T, JStepRangeTS.stepRangeTS, StepRange_TS_new, convert_self, bind, Except.bind,
@@ -4627,7 +4733,9 @@ instance (priority := low) : JNotSametype (JInt s × JInt t) (JInt (pTy s t) × 
 theorem promote_iv (a : JInt s) (b : JInt t) :
     (JPromote2.promote a b : JlX (JInt (pTy s t) × JInt (pTy s t))) =
       if h : InT (pTy s t) a.val ∧ InT (pTy s t) b.val then .ok (⟨a.val, h.1⟩, ⟨b.val, h.2⟩)
-      else .error (.jl (.inexactError (pTy s t).name)) := by
+      else .error (.jl (.inexactError (if InT (pTy s t) a.val then
+        (if (pTy s t).bits = t.bits then "convert" else "trunc")
+        else (if (pTy s t).bits = s.bits then "convert" else "trunc")))) := by
   simp only [JPromote2.promote, JuliaLean.base.promotion.promoteTwoValues,
     JuliaLean.base.promotion.promotePairValues, JuliaLean.base.promotion.notSameTypeDifferent,
     JuliaLean.base.int.convert, JInt.convert]
@@ -4653,7 +4761,9 @@ def MixedUnitColon : Prop :=
 
 theorem mixedUnitColon_proven : MixedUnitColon := by
   intro s t a b
-  refine ⟨fun ha hb => ?_, fun hn => ⟨(pTy s t).name, ?_, ?_⟩⟩
+  refine ⟨fun ha hb => ?_, fun hn => ⟨if InT (pTy s t) a.val then
+    (if (pTy s t).bits = t.bits then "convert" else "trunc")
+    else (if (pTy s t).bits = s.bits then "convert" else "trunc"), ?_, ?_⟩⟩
   · refine ⟨⟨⟨a.val, ha⟩, unitStop ⟨a.val, ha⟩ ⟨b.val, hb⟩⟩, ?_, ?_, by simp [Except.map], ?_, ?_⟩
     · simp only [colon_Real_Real, promote_iv, dif_pos (And.intro ha hb), bind, Except.bind]
       exact colon_unit _ _
@@ -5963,7 +6073,8 @@ theorem iszero_iv (x : JInt t) : JIszero.iszero x = decide (x.val = 0) := by
 /-- `mod1(x::T, y::T) where {T<:Real}` (operators.jl:914) for BitIntegers, with `mod(x::T, y::T)`
 (int.jl:331-351) and `iszero`. -/
 instance : JMod1 (JInt t) (JInt t) (JInt t) := ⟨fun x y =>
-  liftJl (JuliaLean.base.operators.mod1 modJ (fun a => pure (JIszero.iszero a)) x y)⟩
+  liftJl ((JuliaLean.base.operators.mod1 modJ (fun a => pure (JIszero.iszero a)) pure x y).map
+    (Sum.elim id id))⟩
 
 /-- `mod(x::Integer, r::AbstractUnitRange)` docstring (range.jl:1537-1556): "Find `y` in the range
 `r` such that `x ≡ y (mod n)`, where `n = length(r)`", with the example
@@ -5991,16 +6102,18 @@ theorem modOneTo_proven : ModOneTo := by
     by_cases hm0 : i.val.fmod n.val = 0
     · refine ⟨n, ?_, by omega, by omega, ?_⟩
       · simp [mod_Integer_OneTo, last_oneTo, hs, JMod1.mod1, JuliaLean.base.operators.mod1,
-          modJ_ok i n hy, iszero_iv, hm0, bind, Except.bind, pure, Except.pure]
+          modJ_ok i n hy, iszero_iv, hm0, bind, Except.bind, pure, Except.pure, Except.map, Functor.map,
+          Sum.elim]
       · exact ⟨i.val.fdiv n.val - 1, by rw [Int.mul_sub]; omega⟩
     · refine ⟨⟨i.val.fmod n.val, JuliaLean.Proofs.base.int.fmod_fits i n hy⟩, ?_, by
         show 1 ≤ i.val.fmod n.val; omega, by show i.val.fmod n.val ≤ n.val; omega, ?_⟩
       · simp [mod_Integer_OneTo, last_oneTo, hs, JMod1.mod1, JuliaLean.base.operators.mod1,
-          modJ_ok i n hy, iszero_iv, hm0, bind, Except.bind, pure, Except.pure]
+          modJ_ok i n hy, iszero_iv, hm0, bind, Except.bind, pure, Except.pure, Except.map, Functor.map,
+          Sum.elim]
       · exact ⟨i.val.fdiv n.val, by show i.val - i.val.fmod n.val = _; omega⟩
   · have hs : (oneToStop n).val = 0 := by rw [hn]; omega
     simp [mod_Integer_OneTo, last_oneTo, JMod1.mod1, JuliaLean.base.operators.mod1,
-      modJ_zero i _ hs, bind, Except.bind]
+      modJ_zero i _ hs, bind, Except.bind, Except.map, Functor.map]
 
 end T3
 
@@ -7292,7 +7405,8 @@ theorem intersectIntUnit_proven : IntersectIntUnit := by
       rw [if_pos (show JType.isSigned (JInt IntTy.i64) = true from rfl)]
       have hU : (JUnitRange2.unitRange m st : JlX (UnitRange (JInt IntTy.i64))) = .ok u := hT
       rw [hU]
-    · rw [hit fuel (by rw [hw]; cases c <;> simp <;> omega), hw]
+    · rw [iterVals_i64_same u fuel]
+      rw [hit fuel (by rw [hw]; cases c <;> simp <;> omega), hw]
       cases c
       · simp only [Bool.false_eq_true, ite_false]; rw [intsFromTo_empty (by omega)]
       · simp only [ite_true, Int.add_zero]; rw [intsFromTo_cons (Int.le_refl _), intsFromTo_empty (by omega)]
@@ -7338,6 +7452,8 @@ def charExc : CharError → Exc
   | .boundsError => .jl .boundsError
   | .invalidChar _ => .errorException "InvalidCharError"
   | .codePointError _ => .errorException "CodePointError"
+  | .unicodeError _ => .errorException "UnicodeError"
+  | .showError error => .showError error
 
 /-- A `Char` computation as a range-model computation. -/
 def liftChar {α : Type} : CharResult α → JlX α
@@ -7529,7 +7645,7 @@ theorem toVChar_asc {p : Nat} (hp : p < 128) : toVChar (asc p) = .ok (vasc p hp)
   · next e h => rw [charInt_asc hp] at h; cases h
 
 theorem charSub_spec (x y : VChar) :
-    sub_AbstractChar_AbstractChar charInt (· - ·) x.bits y.bits = .ok (x - y) := by
+    sub_AbstractChar_AbstractChar charInt charInt (· - ·) x.bits y.bits = .ok (x - y) := by
   simp [sub_AbstractChar_AbstractChar, x.hcp, y.hcp, bind, Except.bind, pure, Except.pure]; rfl
 
 theorem u32_conv {z : Int} (h0 : 0 ≤ z) (h1 : z < 128) :
@@ -8392,7 +8508,7 @@ theorem vcat_loop2 (fuel : Nat)
     simp only [List.map_cons, List.sum_cons] at hk
     have hfp := hf p (by simp)
     have hus := unitStop_val p.1 p.2
-    have hit := iterList_unit (⟨p.1, unitStop p.1 p.2⟩ : UnitRange JInt64) fuel (by
+    have hit := iterList_unit_i64 (⟨p.1, unitStop p.1 p.2⟩ : UnitRange JInt64) fuel (by
       show (( unitStop p.1 p.2).val - p.1.val).toNat < fuel
       rw [hus]; unfold cnt at hfp; split at hfp <;> split <;> omega)
     obtain ⟨xs, hxs, hxv⟩ : ∃ xs, iterList (⟨p.1, unitStop p.1 p.2⟩ : UnitRange JInt64) fuel = .ok xs ∧
@@ -8686,8 +8802,8 @@ theorem linRangeRangeIndexOrdinary_proven : LinRangeRangeIndexOrdinary := by
   obtain ⟨w, hw, hwf, hwl, hwn, -⟩ := (linRangeFloatConstruct_proven x y m).2.2 (by omega) h1
   have hcb : JCheckbounds.checkbounds r (⟨c, d⟩ : UnitRange JInt64) = .ok () := by
     show checkboundsVectorRange r _ = _
-    rw [checkboundsVectorRange_eq r _ n hrlen hn0 false c d (by rw [isempty_unit]; simp; omega)
-      (first_unit _) (last_unit _)]
+    rw [checkboundsVectorRange_eq r _ n hrlen hn0 false c d
+      (by rw [isempty_unit_i64]; simp; omega) (first_unit_i64 _) (last_unit_i64 _)]
     simp [show 1 ≤ c.val ∧ c.val ≤ n.val by omega, show 1 ≤ d.val ∧ d.val ≤ n.val by omega]
   refine ⟨w, ?_, ?_, by rw [hwf, hgc], by rw [hwl, hgd]⟩
   · unfold getindex_LinRange_OrdinalRange
@@ -9530,7 +9646,7 @@ theorem tupleIdx_collect {α : Type} (t : List α) (a l : JInt64) (fuel : Nat)
     (hf : (l.val - a.val).toNat < fuel) :
     collectIter (⟨a, l⟩ : UnitRange JInt64) (fun ri => (JTupleGetindex.tupleGetindex t ri : JlX α))
       fuel = (intsFromTo a.val l.val).mapM (tget t) := by
-  have hit := iterList_unit (⟨a, l⟩ : UnitRange JInt64) fuel hf
+  have hit := iterList_unit_i64 (⟨a, l⟩ : UnitRange JInt64) fuel hf
   cases h : iterList (⟨a, l⟩ : UnitRange JInt64) fuel with
   | error e => rw [h] at hit; cases hit
   | ok xs =>
@@ -9669,91 +9785,490 @@ theorem tupleUnitRangeIndex_proven : TupleUnitRangeIndex := by
 end TupleIndex
 
 /-! Nothing to promise:
-colon_A_step_C@10: promotes both endpoints to `promote_type(A, C)` and forwards to `(:)(start::T, step, stop::T)`
-colon_T_AbstractFloat_T_Real@16: promotes the three arguments and forwards to the same-type colon
-colon_T_AbstractFloat_T_AbstractFloat@17: converts the step to `T` and forwards to the same-type colon
-colon_T_Real_T_AbstractFloat@18: converts the step to `T` and forwards to the same-type colon
-_range_wrapping_add_Any@35: arithmetic helper `x + y` for non-BitInteger types; its callers state the ranges built
-_range_wrapping_sub_Any@37: arithmetic helper `x - y`; its callers state the ranges built
 _range_wrapping_mul_BitInteger@38: arithmetic helper `x *% y`; its callers state the ranges built
-_range_wrapping_mul_Any@39: arithmetic helper `x * y`; its callers state the ranges built
-JRangeStartKw@165: declaration `function range end` with no body; the methods are covered
-_range_N_A_A_A@182: forwards to `range_step_stop_length(step, stop, len)`
 _range_A_N_A_A@186: forwards to `range_start_stop_length(start, stop, len)`
-range_stop_Any@196: forwards to `range_start_stop(oftype(stop, 1), stop)`
-RangeStepStyle_AbstractRange@285: internal trait constant used for dispatch; no value behaviour
-RangeStepStyle_AbstractRange_Integer@286: internal trait constant used for dispatch; no value behaviour
-convert_Type_AbstractRange@288: returns `r` if it already has type `T`, else forwards to the constructor `T(r)`
-StepRange_T@403: forwards to the constructor `StepRange{T,S}(start, step, stop)` with `S = typeof(step)`
 UnitRange_T@430: converts both endpoints to `T` and forwards to the inner constructor `UnitRange{T}(start::T, stop::T)`
-unitrange@447: convenience conversion; forwards to `UnitRange(x)`
 OneTo_T.throwbool@488: error-message helper; the error is stated by the callers
 OneTo_T_range.throwstart@494: error-message helper; the error is stated by the callers
 OneTo_T_range.throwstep@495: error-message helper; the error is stated by the callers
 OneTo_T_range.throwbool@496: error-message helper; the error is stated by the callers
 unchecked_oneto@503: internal constructor that stores its argument without checks
-OneTo_AbstractRange@506: forwards to `OneTo{T}(r)`
-oneto@507: forwards to `OneTo(r)`
 range_start_stop_length_Any@625: promotes `start` and `stop` to one type and forwards to `range_start_stop_length(start, stop, len)` of that type
-length_AbstractRange@705: abstract fallback that throws "length implementation missing"; no concrete range reaches it
 step_hp_StepRangeLen@743: internal high-precision step accessor
 step_hp_AbstractRange@744: internal high-precision step accessor, `step(r)` for exact ranges
-has_offset_axes_StepRange@747: constant `false` trait for the indexing machinery
-extrema_AbstractRange@920: returns `(minimum(r), maximum(r))`; the two calls carry the behaviour
-copy_AbstractRange@923: returns its argument: ranges are immutable, so the copy is the range itself
-getindex_AbstractRange_Colon@1000: forwards to `copy(r)`, which returns `r`
-intersect_AbstractUnitRange_Integer@1213: forwards to `intersect(i, r)` with the arguments swapped
-el_same_T_T@1331: type-level promotion helper; no value behaviour
-el_same_T_S@1332: type-level promotion helper; no value behaviour
-el_same_S_T@1333: type-level promotion helper; no value behaviour
-el_same_Any@1334: type-level promotion helper; no value behaviour
-promote_rule_UnitRange_UnitRange@1336: type-level promotion rule; no value behaviour
-UnitRange_T_UnitRange_T@1338: identity conversion `UnitRange{T}(r::UnitRange{T}) = r`
-UnitRange_T_UnitRange@1339: forwards to `UnitRange{T}(r.start, r.stop)`
-promote_rule_OneTo_OneTo@1341: type-level promotion rule; no value behaviour
-OneTo_T_OneTo_T@1343: identity conversion `OneTo{T}(r::OneTo{T}) = r`
-OneTo_T_OneTo@1344: forwards to `OneTo{T}(r.stop)`
-promote_rule_OneTo_UR@1346: type-level promotion rule; no value behaviour
-promote_rule_UnitRange_UR@1349: type-level promotion rule; no value behaviour
-AbstractUnitRange_T_AbstractUnitRange_T@1354: identity conversion
-AbstractUnitRange_T_UnitRange@1355: forwards to `UnitRange{T}(r)`
-AbstractUnitRange_T_OneTo@1356: forwards to `OneTo{T}(r)`
-OrdinalRange_TS_OrdinalRange@1358: forwards to `StepRange{T, S}(r)`
-OrdinalRange_TT_AbstractUnitRange@1359: forwards to `AbstractUnitRange{T}(r)`
-promote_rule_StepRange_StepRange@1361: type-level promotion rule; no value behaviour
-StepRange_TS_StepRange_TS@1366: identity conversion
-StepRange_T_StepRange_T@1367: identity conversion
-StepRange_StepRange@1368: identity conversion `StepRange(r::StepRange) = r`
-promote_rule_StepRange_UR@1370: type-level promotion rule; no value behaviour
-StepRange_S_AbstractRange@1376: forwards to `StepRange{eltype(r),T2}(r)`
-StepRange_StepRangeLen@1377: forwards to `StepRange{eltype(r)}(r)`
-StepRange_T_StepRangeLen@1378: forwards to `StepRange{T,S}(r)`
-promote_rule_StepRangeLen_StepRangeLen@1380: type-level promotion rule; no value behaviour
-StepRangeLen_TRSL_same@1384: identity conversion
-promote_rule_StepRangeLen_OR@1390: type-level promotion rule; no value behaviour
-StepRangeLen_AbstractRange@1396: forwards to `StepRangeLen{eltype(r)}(r)`
-promote_rule_LinRange_LinRange@1398: type-level promotion rule; no value behaviour
-LinRange_TL_same@1402: identity conversion
 LinRange_AbstractRange@1405: forwards to `LinRange{T}(r)`
-promote_rule_LinRange_OR@1407: type-level promotion rule; no value behaviour
-promote_rule_LinRange_StepRangeLen@1410: type-level promotion rule; no value behaviour
 sort!_AbstractUnitRange@1461: returns its argument unchanged (a unit range is already sorted)
-in_T_AbstractRange@1487: forwards to `_in_range(x, r)`
-rangeop_promote@1519: promotes both ranges to a common type and forwards to the same-type `+`/`-` method
-minus_StepRangeLen_StepRangeLen@1534: forwards to `+(r1, -r2)`
-logrange@1602: forwards to `LogRange(start, stop, Int(length))`
-logrange_kw@1603: keyword form; forwards to `logrange(start, stop, length)`
-LogRange_T_Real@1687: converts the endpoints to `T` and forwards to the inner constructor
-LogRange_Real@1690: computes the element type and forwards to `LogRange{T}`
-size_LogRange@1695: returns `(r.len,)`, the stored length that `length(r::LogRange)` returns
-_logrange_extra_Real@1701: converts the endpoints with `float` and forwards to the `Float64` method
-_resolve_in_world@1739: internal world-age lookup used when the range operators are defined; no range values
 -/
 
 /-! ## Registry entries -/
 
+
+open JuliaLean JuliaLean.base.range
+
+
+/-- Endpoint promotion failures precede construction of a mixed-endpoint range. -/
+def ColonEndpointConversionError : Prop :=
+  ∀ (A S C P Out : Type) [JPromoteType A C P] [JConvert P A] [JConvert P C]
+    [JColon3 P S P Out] (a : A) (s : S) (b : C) (e : Exc),
+    JConvert.convert (T := P) a = .error e → colon_A_step_C a s b = .error e
+
+/-- A failed common-type conversion cannot be ignored by any floating colon adapter. -/
+def ColonFloatPromotionErrors : Prop :=
+  ∀ (T B P Out : Type) [JPromote3 T B T P] [JColon3 P P P Out]
+    (a c : T) (b : B) (e : Exc),
+    JPromote3.promote a b c = .error e →
+      colon_T_AbstractFloat_T_Real a b c = .error e ∧
+      colon_T_AbstractFloat_T_AbstractFloat a b c = .error e ∧
+      colon_T_Real_T_AbstractFloat a b c = .error e
+
+/-- A failed quotient computation prevents construction in the fallback colon method. -/
+def ColonFallbackQuotientError : Prop :=
+  ∀ (O A T S D Q I J Out : Type) [HSub T T D] [JFld D S Q]
+    [JConvertInteger Q I] [HAdd I JInt64 J] [JStepRangeLen3 T S J Out]
+    (o : O) (style : A) (a b : T) (s : S) (e : Exc),
+    JFld.fld (b - a) s = .error e → _colon_Any_Any o style a s b = .error e
+
+/-- Generic range arithmetic preserves the identities of the selected arithmetic methods. -/
+def WrappingFallbackIdentities : Prop :=
+  ∀ (T : Type) [HAdd T T T] [HSub T T T] [HMul T T T] (zero one : T),
+    (∀ x : T, x + zero = x) → (∀ x : T, x - zero = x) →
+    (∀ x : T, x * one = x) → ∀ x : T,
+      _range_wrapping_add_Any x zero = x ∧
+      _range_wrapping_sub_Any x zero = x ∧
+      _range_wrapping_mul_Any x one = x
+
+/-- Integer ranges and unrestricted ranges produce distinct step-style tags. -/
+def RangeStepStyleTags : Prop :=
+  ∀ R : Type,
+    (Sum.inl (RangeStepStyle_AbstractRange R) : RangeStepIrregular ⊕ RangeStepRegular) ≠
+      Sum.inr (RangeStepStyle_AbstractRange_Integer R)
+
+/-- Converting a range already of the requested type preserves it without construction. -/
+def ConvertRangeSameTypeIdentity : Prop :=
+  ∀ (T : Type) [JIsa T T] [JCtor T T] (r : T),
+    JIsa.isa r = some r → convert_Type_AbstractRange T r = .ok r
+
+/-- Range-stop defaulting propagates a failed conversion of positive one. -/
+def RangeStopUnitConversionError : Prop :=
+  ∀ (T Out : Type) [JConvert T JInt64] [JColon2 T T Out] (stop : T) (e : Exc),
+    JConvert.convert (T := T) (jint 1) = .error e → range_stop_Any stop = .error e
+
+/-- StepRange's partially specified constructor preserves the selected constructor's errors. -/
+def StepRangePartialConstructorError : Prop :=
+  ∀ (T A S B : Type) [JStepRangeTS T S A S B] (a : A) (s : S) (b : B) (e : Exc),
+    JStepRangeTS.stepRangeTS (T := T) (S := S) a s b = .error e →
+      StepRange_T (T := T) a s b = .error e
+
+/-- Convenience constructors preserve errors from their selected conversion method. -/
+def ConvenienceRangeConstructorErrors : Prop :=
+  (∀ (R Out : Type) [JCtor Out R] (r : R) (e : Exc),
+    JCtor.ctor (T := Out) r = .error e → unitrange (ρ := Out) r = .error e) ∧
+  (∀ (T R : Type) [JOneToT T R] (r : R) (e : Exc),
+    JOneToT.oneToT (T := T) r = .error e → OneTo_AbstractRange (T := T) r = .error e) ∧
+  (∀ (R Out : Type) [JOneTo1 R Out] (r : R) (e : Exc),
+    JOneTo1.oneTo r = .error e → oneto r = .error e) ∧
+  (∀ (T L Out : Type) [JLinRange3 T T L Out] (a b : T) (n : L) (e : Exc),
+    JLinRange3.linRange a b n = .error e → range_start_stop_length_T a b n = .error e)
+
+/-- An absent length implementation fails for every attempted result type. -/
+def AbstractRangeLengthError : Prop :=
+  ∀ (R T : Type) (r : R), length_AbstractRange (α := T) r =
+    .error (.errorException "length implementation missing")
+
+/-- StepRange does not acquire offset axes from either endpoint. -/
+def StepRangeNoOffsetAxes : Prop :=
+  ∀ (T S : Type) (r : StepRange T S), has_offset_axes_StepRange r = false
+
+/-- Immutable range copying preserves every observation of the range. -/
+def CopyRangePreservesObservations : Prop :=
+  ∀ (R V : Type) (observe : R → V) (r : R), observe (copy_AbstractRange r) = observe r
+
+/-- Empty-range errors from minimum are not hidden by extrema. -/
+def ExtremaMinimumError : Prop :=
+  ∀ (R A B : Type) [JMinimum R A] [JMaximum R B] (r : R) (e : Exc),
+    JMinimum.minimum r = .error e → extrema_AbstractRange r = .error e
+
+
+open JuliaLean JuliaLean.base.range
+
+/-- Whole-range indexing preserves failed immutable-copy calls. -/
+def ColonIndexCopyError : Prop :=
+  ∀ (R Out : Type) [JCopy R Out] (r : R) (e : Exc),
+    JCopy.copy r = .error e → getindex_AbstractRange_Colon r {} = .error e
+
+/-- Swapping the arguments of integer intersection does not hide its errors. -/
+def IntersectIntegerForwardingError : Prop :=
+  ∀ (R I Out : Type) [JIntersect I R Out] (r : R) (i : I) (e : Exc),
+    JIntersect.intersect i r = .error e → intersect_AbstractUnitRange_Integer r i = .error e
+
+/-- Negating a reference-based range preserves constructor errors. -/
+def NegateStepRangeLenConstructorError : Prop :=
+  ∀ (T R S L : Type) [JNeg R R] [JNeg S S] [JStepRangeLenTRSL T R S L R S L L]
+    (r : StepRangeLen T R S L) (e : Exc),
+    JStepRangeLenTRSL.stepRangeLenTRSL (T := T) (R := R) (S := S) (L := L)
+      (JNeg.neg r.ref) (JNeg.neg r.step) r.len r.offset = .error e →
+    neg_StepRangeLen r = .error e
+
+/-- Selecting an unchanged element type retains that container, and the fallback contains both. -/
+def ElSameContainerPreservation : Prop :=
+  ∀ (T : Type) [JPromoteTypejoinOf T] (contains : T → T → Prop),
+    (∀ a b, contains a (JPromoteTypejoinOf.promoteTypejoinOf a b) ∧
+      contains b (JPromoteTypejoinOf.promoteTypejoinOf a b)) → ∀ target a b : T,
+    el_same_T_T target a a = a ∧ el_same_T_S target a b = a ∧
+      el_same_S_T target a b = b ∧
+      contains a (el_same_Any target a b) ∧ contains b (el_same_Any target a b)
+
+/-- Promotion of identical range type parameters retains their container family. -/
+def PromoteIdenticalRangeTypes : Prop :=
+  ∀ (T : Type) [JRangeTypeOf T] [JPromoteTypeOf T] [JElSameOf T],
+    (∀ t : T, JPromoteTypeOf.promoteTypeOf t t = t) →
+    (∀ t a : T, JElSameOf.elSame t a a = a) → ∀ a s r l : T,
+    promote_rule_UnitRange_UnitRange a a = JRangeTypeOf.unitRange a ∧
+      promote_rule_OneTo_OneTo a a = JRangeTypeOf.oneTo a ∧
+      promote_rule_StepRange_StepRange a s a s = JRangeTypeOf.stepRange a s ∧
+      promote_rule_StepRangeLen_StepRangeLen a r s l a r s l =
+        JRangeTypeOf.stepRangeLen a r s l ∧
+      promote_rule_LinRange_LinRange a l a l = JRangeTypeOf.linRange a l
+
+/-- Conversion to an unchanged range type preserves all of its fields. -/
+def SameRangeConstructorIdentities : Prop :=
+  (∀ (T : Type) (r : UnitRange T), UnitRange_T_UnitRange_T r = r) ∧
+  (∀ (T : Type) (r : OneTo T), OneTo_T_OneTo_T r = r) ∧
+  (∀ (T : Type) (r : T), AbstractUnitRange_T_AbstractUnitRange_T r = r) ∧
+  (∀ (T S : Type) (r : StepRange T S),
+    StepRange_TS_StepRange_TS r = r ∧ StepRange_T_StepRange_T r = r ∧ StepRange_StepRange r = r) ∧
+  (∀ (T R S L : Type) (r : StepRangeLen T R S L), StepRangeLen_TRSL_same r = r) ∧
+  (∀ (T L : Type) (r : LinRange T L), LinRange_TL_same r = r)
+
+/-- The wrappers for converting unit ranges preserve constructor exceptions. -/
+def UnitRangeConversionErrors : Prop :=
+  (∀ (T U : Type) [JUnitRangeT T U U] (r : UnitRange U) (e : Exc),
+    JUnitRangeT.unitRangeT (T := T) r.start r.stop = .error e →
+      UnitRange_T_UnitRange (T := T) r = .error e) ∧
+  (∀ (T U : Type) [JOneToT T U] (r : OneTo U) (e : Exc),
+    JOneToT.oneToT (T := T) r.stop = .error e → OneTo_T_OneTo (T := T) r = .error e) ∧
+  (∀ (T U : Type) [JUnitRangeTOf T (UnitRange U)] (r : UnitRange U) (e : Exc),
+    JUnitRangeTOf.unitRangeTOf (T := T) r = .error e →
+      AbstractUnitRange_T_UnitRange (T := T) r = .error e) ∧
+  (∀ (T U : Type) [JOneToTOf T (OneTo U)] (r : OneTo U) (e : Exc),
+    JOneToTOf.oneToTOf (T := T) r = .error e →
+      AbstractUnitRange_T_OneTo (T := T) r = .error e)
+
+/-- The ordinal and step-range conversion adapters preserve constructor failures. -/
+def OrdinalRangeConversionErrors : Prop :=
+  (∀ (T S R : Type) [JStepRangeTSOf T S R] (r : R) (e : Exc),
+    JStepRangeTSOf.stepRangeTSOf (T := T) (S := S) r = .error e →
+      OrdinalRange_TS_OrdinalRange (T := T) (S := S) r = .error e) ∧
+  (∀ (T R Out : Type) [JAbstractUnitRangeT T R Out] (r : R) (e : Exc),
+    JAbstractUnitRangeT.abstractUnitRangeT (T := T) r = .error e →
+      OrdinalRange_TT_AbstractUnitRange (T := T) r = .error e) ∧
+  (∀ (S R E : Type) [JEltype R E] [JStepRangeTSOf E S R] (r : R) (e : Exc),
+    JStepRangeTSOf.stepRangeTSOf (T := E) (S := S) r = .error e →
+      StepRange_S_AbstractRange (T2 := S) r = .error e) ∧
+  (∀ (T R S L Out : Type) [JStepRangeTOf T (StepRangeLen T R S L) Out]
+    (r : StepRangeLen T R S L) (e : Exc),
+    JStepRangeTOf.stepRangeTOf (T := T) r = .error e → StepRange_StepRangeLen r = .error e) ∧
+  (∀ (T U R S L : Type) [JStepRangeTSOf T S (StepRangeLen U R S L)]
+    (r : StepRangeLen U R S L) (e : Exc),
+    JStepRangeTSOf.stepRangeTSOf (T := T) (S := S) r = .error e →
+      StepRange_T_StepRangeLen (T := T) r = .error e)
+
+
+open JuliaLean JuliaLean.base.range
+
+/-- Mixed-container promotion contains both concrete container descriptors used in dispatch. -/
+def MixedRangePromotionUpperBounds : Prop :=
+  ∀ (T : Type) [JRangeTypeOf T] [JEltypeOf T] [JPromoteRuleOf T]
+    (contains : T → T → Prop),
+    (∀ a b, contains a (JPromoteRuleOf.promoteRule a b) ∧
+      contains b (JPromoteRuleOf.promoteRule a b)) → ∀ a r s l other : T,
+    contains (JRangeTypeOf.unitRange a) (promote_rule_OneTo_UR a other) ∧
+    contains other (promote_rule_OneTo_UR a other) ∧
+    contains (JRangeTypeOf.unitRange a) (promote_rule_UnitRange_UR a other) ∧
+    contains (JRangeTypeOf.unitRange (JEltypeOf.eltypeOf other))
+      (promote_rule_UnitRange_UR a other) ∧
+    contains (JRangeTypeOf.stepRange a s) (promote_rule_StepRange_UR a s other) ∧
+    contains (JRangeTypeOf.stepRange (JEltypeOf.eltypeOf other) (JEltypeOf.eltypeOf other))
+      (promote_rule_StepRange_UR a s other) ∧
+    contains (JRangeTypeOf.stepRangeLen a r s l)
+      (promote_rule_StepRangeLen_OR a r s l other) ∧
+    contains (JRangeTypeOf.stepRangeLen (JEltypeOf.eltypeOf other)
+      (JEltypeOf.eltypeOf other) (JEltypeOf.eltypeOf other) JRangeTypeOf.int)
+      (promote_rule_StepRangeLen_OR a r s l other) ∧
+    contains (JRangeTypeOf.linRange a l) (promote_rule_LinRange_OR a l other) ∧
+    contains (JRangeTypeOf.linRange (JEltypeOf.eltypeOf other) l)
+      (promote_rule_LinRange_OR a l other) ∧
+    contains (JRangeTypeOf.stepRangeLen a a a l)
+      (promote_rule_LinRange_StepRangeLen a l other r s l) ∧
+    contains (JRangeTypeOf.stepRangeLen other r s l)
+      (promote_rule_LinRange_StepRangeLen a l other r s l)
+
+/-- Inferring a reference-based range's element type does not hide conversion errors. -/
+def StepRangeLenInferredConversionError : Prop :=
+  ∀ (R E Out : Type) [JEltype R E] [JStepRangeLenTOf E R Out] (r : R) (e : Exc),
+    JStepRangeLenTOf.stepRangeLenTOf (T := E) r = .error e →
+      StepRangeLen_AbstractRange r = .error e
+
+/-- The membership entry points preserve every failure of their membership computation. -/
+def MembershipAdapterErrors : Prop :=
+  ∀ (X R : Type) [JInRange X R] (x : X) (r : R) (e : Exc),
+    JInRange.inRange x r = .error e →
+      in_Real_AbstractRange x r = .error e ∧ in_T_AbstractRange x r = .error e
+
+/-- Defining a range operation stops after the first failed method installation. -/
+def RangeMethodInstallationErrors : Prop :=
+  ∀ (F : Type) (ops : RangeMethodInstaller F) (f : F) (e : JlError),
+    ops.install f .ordinalRange = .error e → defineRangeOp ops f = .error e
+
+/-- Promotion and negation errors precede arithmetic on reference-based ranges. -/
+def RangeArithmeticAdapterErrors : Prop :=
+  (∀ (F R Q P Out : Type) [JPromoteRanges R Q P] [JRangeOp F P P Out]
+    (r : R) (s : Q) (e : Exc),
+    JPromoteRanges.promoteRanges r s = .error e → rangeop_promote F r s = .error e) ∧
+  (∀ (R Q N Out : Type) [JNegRange Q N] [JRangeOp PlusOp R N Out]
+    (r : R) (s : Q) (e : Exc),
+    JNegRange.negRange s = .error e → minus_StepRangeLen_StepRangeLen r s = .error e)
+
+/-- Logarithmic-range adapters preserve errors before invoking later constructors. -/
+def LogRangeAdapterErrors : Prop :=
+  (∀ (A B L Out : Type) [JCtor JInt64 L] [JLogRange3 A B JInt64 Out]
+    (a : A) (b : B) (n : L) (e : Exc),
+    JCtor.ctor (T := JInt64) n = .error e → logrange a b n = .error e) ∧
+  (∀ (A B L Out : Type) [JLogrange3 A B L Out] (a : A) (b : B) (n : L) (e : Exc),
+    JLogrange3.logrange a b n = .error e → logrange_kw a b n = .error e) ∧
+  (∀ (T A B L Out : Type) [JConvert T A] [JConvert T B] [JConvert JInt64 L]
+    [JLogRangeT T T T JInt64 Out] (a : A) (b : B) (n : L) (e : Exc),
+    JConvert.convert (T := T) a = .error e → LogRange_T_Real (T := T) a b n = .error e) ∧
+  (∀ (A B L P T Out : Type) [JPromoteType A B P] [JFloatType P T] [JConvert T A]
+    [JConvert T B] [JConvert JInt64 L] [JLogRangeT T T T JInt64 Out]
+    (a : A) (b : B) (n : L) (e : Exc),
+    JConvert.convert (T := T) a = .error e → LogRange_Real a b n = .error e)
+
+/-- A LogRange's one-dimensional size agrees with its stored element count. -/
+def LogRangeSizeLength : Prop :=
+  ∀ (T X : Type) (r : LogRange T X), (size_LogRange r).1 = length_LogRange r
+
+/-- The general logarithmic precomputation propagates a failing first logarithm. -/
+def LogRangeExtraLogError : Prop :=
+  ∀ (A B F P Q X : Type) [JFloat64Lit F] [HMul F A P] [JLog P X]
+    [HMul F B Q] [JLog Q X] [HDiv X JInt64 X] (a : A) (b : B) (n : JInt64) (e : Exc),
+    JLog.log ((JFloat64Lit.one : F) * a) = .error e →
+      _logrange_extra_Real (F := F) a b n = .error e
+
+
+open JuliaLean JuliaLean.base.range
+
+/-- A failed binding lookup cannot be hidden by range-based world resolution. -/
+def WorldRangeLookupError : Prop :=
+  ∀ (T E F GR BP Out : Type)
+    (first : UnitRange T → JlX E) (toUIntFirst : E → JlX (JInt .u64))
+    (lookup : JInt .u64 → GR → JlX BP) (maxWorld : BP → JInt .u64)
+    (last : UnitRange T → JlX F) (less : JInt .u64 → F → JlX Bool)
+    (toUIntLast : F → JlX (JInt .u64)) (resolve : JInt .u64 → GR → JlX Out)
+    (worlds : UnitRange T) (gr : GR) (f : E) (u : JInt .u64) (e : Exc),
+    first worlds = .ok f → toUIntFirst f = .ok u → lookup u gr = .error e →
+    resolveInWorldRange first toUIntFirst lookup maxWorld last less toUIntLast resolve worlds gr =
+      .error e
+
+
+theorem colonEndpointConversionError_proven : ColonEndpointConversionError := by
+  intro A S C P Out _ _ _ _ a s b e h
+  simp [colon_A_step_C, h, bind, Except.bind]
+
+theorem colonFloatPromotionErrors_proven : ColonFloatPromotionErrors := by
+  intro T B P Out _ _ a c b e h
+  simp [colon_T_AbstractFloat_T_Real, colon_T_AbstractFloat_T_AbstractFloat,
+    colon_T_Real_T_AbstractFloat, h, bind, Except.bind]
+
+theorem colonFallbackQuotientError_proven : ColonFallbackQuotientError := by
+  intro O A T S D Q I J Out _ _ _ _ _ o style a b s e h
+  simp [_colon_Any_Any, h, bind, Except.bind]
+
+theorem rangeStopUnitConversionError_proven : RangeStopUnitConversionError := by
+  intro T Out _ _ stop e h
+  simp [range_stop_Any, oftype, h, bind, Except.bind]
+
+theorem abstractRangeLengthError_proven : AbstractRangeLengthError := by
+  unfold AbstractRangeLengthError
+  intros
+  rfl
+
+theorem stepRangeNoOffsetAxes_proven : StepRangeNoOffsetAxes := by
+  unfold StepRangeNoOffsetAxes
+  intros
+  rfl
+
+theorem copyRangePreservesObservations_proven : CopyRangePreservesObservations := by
+  unfold CopyRangePreservesObservations
+  intros
+  rfl
+
+theorem extremaMinimumError_proven : ExtremaMinimumError := by
+  intro R A B _ _ r e h
+  simp [extrema_AbstractRange, h, bind, Except.bind]
+
 /-- The registry entries of `base/range.jl`. -/
 def entries : List Entry := [
+  { id := "range-world-range-lookup-error", juliaFile := "base/range.jl"
+    juliaFns := ["_resolve_in_world(worlds::UnitRange, gr::GlobalRef)"]
+    statement := "Range-based world resolution preserves a binding lookup failure before inspecting the partition."
+    source := "base/range.jl:1739 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027"
+    status := .todo, prop := ``WorldRangeLookupError },
+
+  { id := "range-colon-endpoint-conversion-error", juliaFile := "base/range.jl"
+    juliaFns := ["(:)(start::A, step, stop::C) where {A<:Real, C<:Real}"]
+    statement := "Endpoint conversion errors precede construction of a mixed-endpoint range."
+    source := "base/range.jl:10 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027"
+    status := .proven, prop := ``ColonEndpointConversionError,
+    thm := some ``colonEndpointConversionError_proven },
+  { id := "range-colon-float-promotion-errors", juliaFile := "base/range.jl"
+    juliaFns := ["(:)(a::T, b::AbstractFloat, c::T) where {T<:Real}", "(:)(a::T, b::AbstractFloat, c::T) where {T<:AbstractFloat}", "(:)(a::T, b::Real, c::T) where {T<:AbstractFloat}"]
+    statement := "All floating-colon adapters propagate failed common-type conversion."
+    source := "base/range.jl:16,17,18 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027"
+    status := .proven, prop := ``ColonFloatPromotionErrors,
+    thm := some ``colonFloatPromotionErrors_proven },
+  { id := "range-colon-fallback-quotient-error", juliaFile := "base/range.jl"
+    juliaFns := ["_colon(::Any, ::Any, start::T, step, stop::T) where {T}"]
+    statement := "The fallback colon method propagates a failed floor quotient before constructing a range."
+    source := "base/range.jl:28 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027"
+    status := .proven, prop := ``ColonFallbackQuotientError,
+    thm := some ``colonFallbackQuotientError_proven },
+  { id := "range-wrapping-fallback-identities", juliaFile := "base/range.jl"
+    juliaFns := ["_range_wrapping_add(x, y)", "_range_wrapping_sub(x, y)", "_range_wrapping_mul(x, y)"]
+    statement := "Generic range arithmetic preserves additive, subtractive and multiplicative identities of the selected methods."
+    source := "base/range.jl:35,37,39 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027"
+    status := .todo, prop := ``WrappingFallbackIdentities },
+  { id := "range-step-style-tags", juliaFile := "base/range.jl"
+    juliaFns := ["RangeStepStyle(::Type{<:AbstractRange})", "RangeStepStyle(::Type{<:AbstractRange{<:Integer}})"]
+    statement := "Integer and unrestricted range step styles produce distinct dispatch tags."
+    source := "base/range.jl:285,286 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027"
+    status := .todo, prop := ``RangeStepStyleTags },
+  { id := "range-convert-same-type-identity", juliaFile := "base/range.jl"
+    juliaFns := ["convert(::Type{T}, r::AbstractRange) where {T<:AbstractRange}"]
+    statement := "A range already of the target type is preserved without calling a constructor."
+    source := "base/range.jl:288 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027"
+    status := .todo, prop := ``ConvertRangeSameTypeIdentity },
+  { id := "range-stop-unit-conversion-error", juliaFile := "base/range.jl"
+    juliaFns := ["range_stop(stop)"]
+    statement := "Defaulting a range start propagates errors converting positive one."
+    source := "base/range.jl:196 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027"
+    status := .proven, prop := ``RangeStopUnitConversionError,
+    thm := some ``rangeStopUnitConversionError_proven },
+  { id := "range-step-partial-constructor-error", juliaFile := "base/range.jl"
+    juliaFns := ["StepRange{T}(start, step::S, stop) where {T,S}"]
+    statement := "A partially specified step-range constructor preserves inner constructor failures."
+    source := "base/range.jl:403 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027"
+    status := .todo, prop := ``StepRangePartialConstructorError },
+  { id := "range-convenience-constructor-errors", juliaFile := "base/range.jl"
+    juliaFns := ["unitrange(x::AbstractUnitRange)", "OneTo(r::AbstractRange{T}) where {T<:Integer}", "oneto(r)", "range_start_stop_length(start::T, stop::T, len::Integer) where {T}"]
+    statement := "Convenience range constructors preserve failures of the selected constructor."
+    source := "base/range.jl:447,506,507,627 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027"
+    status := .todo, prop := ``ConvenienceRangeConstructorErrors },
+  { id := "range-abstract-length-error", juliaFile := "base/range.jl"
+    juliaFns := ["length(r::AbstractRange)"]
+    statement := "A missing abstract length implementation raises its error for every requested result type."
+    source := "base/range.jl:705 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027"
+    status := .proven, prop := ``AbstractRangeLengthError,
+    thm := some ``abstractRangeLengthError_proven },
+  { id := "range-step-no-offset-axes", juliaFile := "base/range.jl"
+    juliaFns := ["has_offset_axes(::StepRange)"]
+    statement := "A StepRange has no offset axes, independently of its endpoints."
+    source := "base/range.jl:747 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027"
+    status := .proven, prop := ``StepRangeNoOffsetAxes,
+    thm := some ``stepRangeNoOffsetAxes_proven },
+  { id := "range-copy-preserves-observations", juliaFile := "base/range.jl"
+    juliaFns := ["copy(r::AbstractRange)"]
+    statement := "Copying an immutable range preserves every observation of it."
+    source := "base/range.jl:923 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027"
+    status := .proven, prop := ``CopyRangePreservesObservations,
+    thm := some ``copyRangePreservesObservations_proven },
+  { id := "range-extrema-minimum-error", juliaFile := "base/range.jl"
+    juliaFns := ["extrema(r::AbstractRange)"]
+    statement := "A minimum failure is preserved by extrema before maximum is queried."
+    source := "base/range.jl:920 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027"
+    status := .proven, prop := ``ExtremaMinimumError,
+    thm := some ``extremaMinimumError_proven },
+  { id := "range-colon-index-copy-error", juliaFile := "base/range.jl"
+    juliaFns := ["getindex(r::AbstractRange, ::Colon)"]
+    statement := "Whole-range indexing preserves the immutable-copy failure."
+    source := "base/range.jl:1000 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027"
+    status := .todo, prop := ``ColonIndexCopyError },
+  { id := "range-intersect-integer-forwarding-error", juliaFile := "base/range.jl"
+    juliaFns := ["intersect(r::AbstractUnitRange{<:Integer}, i::Integer)"]
+    statement := "Argument swapping for integer intersection preserves the selected method failure."
+    source := "base/range.jl:1213 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027"
+    status := .todo, prop := ``IntersectIntegerForwardingError },
+  { id := "range-negate-srl-constructor-error", juliaFile := "base/range.jl"
+    juliaFns := ["-(r::StepRangeLen{T,R,S,L}) where {T,R,S,L}"]
+    statement := "Negating a reference-based range preserves constructor errors."
+    source := "base/range.jl:1323 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027"
+    status := .todo, prop := ``NegateStepRangeLenConstructorError },
+  { id := "range-element-type-container-preservation", juliaFile := "base/range.jl"
+    juliaFns := ["el_same(::Type{T}, a::Type{<:AbstractArray{T,n}}, b::Type{<:AbstractArray{T,n}}) where {T,n}", "el_same(::Type{T}, a::Type{<:AbstractArray{T,n}}, b::Type{<:AbstractArray{S,n}}) where {T,S,n}", "el_same(::Type{T}, a::Type{<:AbstractArray{S,n}}, b::Type{<:AbstractArray{T,n}}) where {T,S,n}", "el_same(::Type, a, b)"]
+    statement := "Element-type selection preserves an unchanged container and otherwise contains both input container types."
+    source := "base/range.jl:1331,1332,1333,1334 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027"
+    status := .todo, prop := ``ElSameContainerPreservation },
+  { id := "range-promote-identical-types", juliaFile := "base/range.jl"
+    juliaFns := ["promote_rule(a::Type{UnitRange{T1}}, b::Type{UnitRange{T2}}) where {T1,T2}", "promote_rule(a::Type{OneTo{T1}}, b::Type{OneTo{T2}}) where {T1,T2}", "promote_rule(::Type{StepRange{T1a,T1b}}, ::Type{StepRange{T2a,T2b}}) where {T1a,T1b,T2a,T2b}", "promote_rule(::Type{StepRangeLen{T1,R1,S1,L1}},::Type{StepRangeLen{T2,R2,S2,L2}}) where {T1,T2,R1,R2,S1,S2,L1,L2}", "promote_rule(a::Type{LinRange{T1,L1}}, b::Type{LinRange{T2,L2}}) where {T1,T2,L1,L2}"]
+    statement := "Idempotent element and storage promotion retains the family and parameters of identical range types."
+    source := "base/range.jl:1336,1341,1361,1380,1398 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027"
+    status := .todo, prop := ``PromoteIdenticalRangeTypes },
+  { id := "range-same-type-constructor-identities", juliaFile := "base/range.jl"
+    juliaFns := ["UnitRange{T}(r::UnitRange{T}) where {T<:Real}", "OneTo{T}(r::OneTo{T}) where {T<:Integer}", "AbstractUnitRange{T}(r::AbstractUnitRange{T}) where {T}", "StepRange{T1,T2}(r::StepRange{T1,T2}) where {T1,T2}", "StepRange{T}(r::StepRange{T}) where {T}", "StepRange(r::StepRange)", "StepRangeLen{T,R,S,L}(r::StepRangeLen{T,R,S,L}) where {T,R,S,L}", "LinRange{T,L}(r::LinRange{T,L}) where {T,L}"]
+    statement := "Converting to the same range type preserves all fields unchanged."
+    source := "base/range.jl:1338,1343,1354,1366,1367,1368,1384,1402 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027"
+    status := .todo, prop := ``SameRangeConstructorIdentities },
+  { id := "range-unit-conversion-errors", juliaFile := "base/range.jl"
+    juliaFns := ["UnitRange{T}(r::UnitRange) where {T<:Real}", "OneTo{T}(r::OneTo) where {T<:Integer}", "AbstractUnitRange{T}(r::UnitRange) where {T}", "AbstractUnitRange{T}(r::OneTo) where {T}"]
+    statement := "Unit-range conversion adapters preserve the underlying constructor failures."
+    source := "base/range.jl:1339,1344,1355,1356 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027"
+    status := .todo, prop := ``UnitRangeConversionErrors },
+  { id := "range-ordinal-conversion-errors", juliaFile := "base/range.jl"
+    juliaFns := ["OrdinalRange{T, S}(r::OrdinalRange) where {T, S}", "OrdinalRange{T, T}(r::AbstractUnitRange) where {T}", "(StepRange{T1,T2} where T1)(r::AbstractRange) where {T2}", "StepRange(r::StepRangeLen)", "StepRange{T}(r::StepRangeLen{<:Any,<:Any,S}) where {T,S}"]
+    statement := "Ordinal and step-range conversion adapters preserve the underlying constructor failures."
+    source := "base/range.jl:1358,1359,1376,1377,1378 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027"
+    status := .todo, prop := ``OrdinalRangeConversionErrors },
+  { id := "range-mixed-promotion-upper-bounds", juliaFile := "base/range.jl"
+    juliaFns := ["promote_rule(a::Type{OneTo{T1}}, ::Type{UR}) where {T1,UR<:AbstractUnitRange}", "promote_rule(a::Type{UnitRange{T1}}, ::Type{UR}) where {T1,UR<:AbstractUnitRange}", "promote_rule(a::Type{StepRange{T1a,T1b}}, ::Type{UR}) where {T1a,T1b,UR<:AbstractUnitRange}", "promote_rule(a::Type{StepRangeLen{T,R,S,L}}, ::Type{OR}) where {T,R,S,L,OR<:AbstractRange}", "promote_rule(a::Type{LinRange{T,L}}, ::Type{OR}) where {T,L,OR<:OrdinalRange}", "promote_rule(::Type{LinRange{A,L}}, b::Type{StepRangeLen{T2,R2,S2,L2}}) where {A,L,T2,R2,S2,L2}"]
+    statement := "Mixed-container promotion contains both concrete container descriptors selected by the source dispatch."
+    source := "base/range.jl:1346,1349,1370,1390,1407,1410 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027"
+    status := .todo, prop := ``MixedRangePromotionUpperBounds },
+  { id := "range-srl-inferred-conversion-error", juliaFile := "base/range.jl"
+    juliaFns := ["StepRangeLen(r::AbstractRange)"]
+    statement := "Inferring the element type of a reference-based range preserves constructor failure."
+    source := "base/range.jl:1396 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027"
+    status := .todo, prop := ``StepRangeLenInferredConversionError },
+  { id := "range-membership-adapter-errors", juliaFile := "base/range.jl"
+    juliaFns := ["in(x::Real, r::AbstractRange{<:Real})", "in(x::T, r::AbstractRange{T}) where {T}"]
+    statement := "Both membership entry points preserve the membership computation failure."
+    source := "base/range.jl:1484,1487 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027"
+    status := .todo, prop := ``MembershipAdapterErrors },
+  { id := "range-method-installation-error", juliaFile := "base/range.jl"
+    juliaFns := ["_define_range_op(@nospecialize f)"]
+    statement := "A failed first method installation prevents subsequent range-method registrations."
+    source := "base/range.jl:1502 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027"
+    status := .todo, prop := ``RangeMethodInstallationErrors },
+  { id := "range-arithmetic-adapter-errors", juliaFile := "base/range.jl"
+    juliaFns := ["$f(r1::Union{StepRangeLen, OrdinalRange, LinRange}, r2::Union{StepRangeLen, OrdinalRange, LinRange})", "-(r1::StepRangeLen, r2::StepRangeLen)"]
+    statement := "Promotion and negation failures precede arithmetic on reference-based ranges."
+    source := "base/range.jl:1519,1534 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027"
+    status := .todo, prop := ``RangeArithmeticAdapterErrors },
+  { id := "range-log-adapter-errors", juliaFile := "base/range.jl"
+    juliaFns := ["logrange(start::Real, stop::Real, length::Integer)", "logrange(start::Real, stop::Real; length::Integer)", "LogRange{T}(start::Real, stop::Real, len::Integer) where {T}", "LogRange(start::Real, stop::Real, len::Integer)"]
+    statement := "Logarithmic range adapters preserve conversion errors before later construction calls."
+    source := "base/range.jl:1602,1603,1687,1690 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027"
+    status := .todo, prop := ``LogRangeAdapterErrors },
+  { id := "range-log-size-length", juliaFile := "base/range.jl"
+    juliaFns := ["size(r::LogRange)"]
+    statement := "The one-dimensional size of a LogRange agrees with its stored element count."
+    source := "base/range.jl:1695 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027"
+    status := .todo, prop := ``LogRangeSizeLength },
+  { id := "range-log-extra-log-error", juliaFile := "base/range.jl"
+    juliaFns := ["_logrange_extra(a::Real, b::Real, len::Int)"]
+    statement := "General logarithmic precomputation propagates a failing first logarithm."
+    source := "base/range.jl:1701 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027"
+    status := .todo, prop := ``LogRangeExtraLogError },
+
   { id := "rangescov-logrange-endpoints"
     juliaFile := "base/range.jl"
     juliaFns := ["LogRange{T}(start::T, stop::T, len::Int) where {T<:Real}", "_logrange_extra(a::Float64, b::Float64, len::Int)", "getindex(r::LogRange{T}, i::Int) where {T}", "first(r::LogRange)", "last(r::LogRange)", "length(r::LogRange)"]
@@ -9976,14 +10491,6 @@ def entries : List Entry := [
     status := .proven
     prop := ``UnitRangeColon
     thm := some ``unitRangeColon_proven },
-  { id := "ranges-ordinal-invalid-lower-index"
-    juliaFile := "base/range.jl"
-    juliaFns := ["_getindex(v::UnitRange{T}, i::Integer) where {T<:OverflowSafe}", "_in_unit_range(v::UnitRange, val, i::Integer)"]
-    statement := "r[i] of a UnitRange of any BitInteger type with a nonpositive index of any BitInteger type throws BoundsError."
-    source := "checkbounds: the valid indices of a vector are 1:length(v)"
-    status := .proven
-    prop := ``UnitRangeNonposIndex
-    thm := some ``unitRangeNonposIndex_proven },
   { id := "rangescov-length-oneto"
     juliaFile := "base/range.jl"
     juliaFns := ["OneTo(stop::T) where {T<:Integer}", "OneTo{T}(stop) where {T<:Integer}", "first(r::OneTo{T})", "last(r::OrdinalRange{T})", "isempty(r::AbstractUnitRange)", "iterate(r::OrdinalRange)", "iterate(r::OrdinalRange{T}, i)", "length(r::OneTo{<:smallints})", "length(r::OneTo{T}) where {T<:bigints}", "checked_length(r::OneTo{<:smallints})", "checked_length(r::AbstractUnitRange{T})", "unsafe_getindex(v::OneTo{T}, i::Integer)", "_getindex(v::AbstractRange, i::Integer)"]
@@ -10741,14 +11248,6 @@ def entries : List Entry := [
     status := .proven
     prop := ``LinRangeOp
     thm := some ``linRangeOp_proven },
-  { id := "rangescov-colon-any-invariant"
-    juliaFile := "base/range.jl"
-    juliaFns := ["_colon(::Any, ::Any, start::T, step, stop::T) where {T}"]
-    statement := "Whenever the fallback _colon(::Any, ::Any, start, step, stop) returns for Int arguments, the result is a StepRangeLen with reference value start, step step, reference index 1 and a nonnegative length."
-    source := "StepRangeLen docstring, base/range.jl:512-531 (By default ref is the starting value r[1]); base/range.jl:28-29"
-    status := .proven
-    prop := ``FallbackColonInvariant
-    thm := some ``fallbackColonInvariant_proven },
   { id := "rangescov-generic-eq"
     juliaFile := "base/range.jl"
     juliaFns := ["==(r::T, s::T) where {T<:AbstractRange}", "==(r::OrdinalRange, s::OrdinalRange)"]
@@ -10773,14 +11272,6 @@ def entries : List Entry := [
     status := .proven
     prop := ``ShowLinRangeRoundTrip
     thm := some ``showLinRangeRoundTrip_proven },
-  { id := "floatranges-reverse-involution"
-    juliaFile := "base/range.jl"
-    juliaFns := ["_reverse(r::StepRangeLen, ::Colon)"]
-    statement := "reverse(reverse(r)) has exactly the fields of r (ref, step bits, length and offset) for every Float64 StepRangeLen built by StepRangeLen(ref, step, len, offset), including empty ranges."
-    source := "reverse docstring (Return a copy of v reversed from start to stop); base/range.jl:1446-1452"
-    status := .proven
-    prop := ``FloatSRLReverseInvolution
-    thm := some ``floatSRLReverseInvolution_proven },
   { id := "rangescov-srl-convert"
     juliaFile := "base/range.jl"
     juliaFns := ["StepRangeLen{T,R,S,L}(r::StepRangeLen) where {T,R,S,L}", "StepRangeLen{T}(r::StepRangeLen) where {T}"]
@@ -10953,14 +11444,6 @@ def entries : List Entry := [
     status := .proven
     prop := ``RangeIntLength
     thm := some ``rangeIntLength_proven },
-  { id := "rangescov-start-stop-length-dispatch"
-    juliaFile := "base/range.jl"
-    juliaFns := ["range_start_stop_length(start, stop, len::Integer)", "range_start_stop_length(start::T, stop::T, len::Integer) where {T}", "range_start_stop_length(start::T, stop::T, len::Integer) where {T<:Integer}", "_linspace(::Type{T}, start::Integer, stop::Integer, len::Integer) where T"]
-    statement := "range(a, b; length=n) has n elements whenever it returns: for BitInteger endpoints of one or two types through _linspace(Float64, ...) (RangeIntLength); for the generic method range_start_stop_length(start::T, stop::T, len), which is LinRange(start, stop, len) with first element Float64(start), last element Float64(stop) and length len, ArgumentError for a negative length or length 1 with different endpoints (RangeStartStopLengthGeneric); and for the generic integer _linspace(Int, a, b, n) with b - a representable (LinspaceIntGenericOrdinary)."
-    source := "range docstring; LinRange docstring, base/range.jl:555; base/range.jl:625-632"
-    status := .proven
-    prop := ``StartStopLengthDispatch
-    thm := some ``startStopLengthDispatch_proven },
   { id := "range-intersect-ranges-generic"
     juliaFile := "base/range.jl"
     juliaFns := ["intersect(r1::AbstractRange, r2::AbstractRange)", "in(x::Real, r::AbstractRange{T}) where {T<:Integer}", "minimum(r::AbstractRange)", "maximum(r::AbstractRange)"]
@@ -10979,5 +11462,3112 @@ def entries : List Entry := [
     prop := ``TupleUnitRangeIndex
     thm := some ``tupleUnitRangeIndex_proven
     notes := "A differential check compares the statement with nightly for tuple lengths 0-25 and all endpoints near the bounds (3983 cases, no mismatch)." } ]
+
+end JuliaLean.Proofs.base.range
+
+namespace JuliaLean.Proofs.base.range.Models1Group7
+
+open JuliaLean JuliaLean.base.range JuliaLean.base.range.Models1Group7
+
+/-- Independent numerical/error classification: a OneTo represents the nonnegative count n.
+Expected values use mathematical Int, never a copy of the model's max or conversion calls. -/
+def OneToCountResult (target : IntTy) (n : Int)
+    (result : JlX (OneTo (JInt target))) : Prop :=
+  match result with
+  | .ok r => target.min ≤ n ∧ n ≤ target.max ∧ r.stop.val = n
+  | .error (.jl (.inexactError _)) => ¬ (target.min ≤ n ∧ n ≤ target.max)
+  | _ => False
+
+/-- Every pair of the ten machine-integer types, including all source values and target
+conversion failures. OneTo's documented values are 1,...,max(0,stop).
+Julia source: base/range.jl:478-491. The general source also accepts other scalar types;
+this statement is complete for the explicitly closed BitInteger domain only. -/
+def OneToBitIntegerScalarContract : Prop :=
+  ∀ (target source : IntTy) (stop : JInt source),
+    OneToCountResult target (max 0 stop.val) (oneToStopBits target source stop)
+
+/-- The public Bool-target prohibition is independent of the stop magnitude and takes
+precedence over conversion, including source integers other than 0 and 1.
+Julia source: base/range.jl:487-491. -/
+def OneToBoolTargetRejectsBitInteger : Prop :=
+  ∀ (source : IntTy) (stop : JInt source),
+    oneToStopBitsBoolTarget source stop =
+      .error (.jl (.argumentError ("invalid index: " ++ toString stop.val ++ " of type Bool")))
+
+/-- An independently described constructible Int64 StepRange representation.
+For a positive step, its final element is aligned on or above start, or is the adjacent
+empty sentinel start-1. For a negative step the inequalities and sentinel are reversed.
+The JInt64 field bounds make each sentinel representable; hence this excludes impossible
+empty encodings at typemin/typemax without assuming any constructor run succeeded.
+Every included record is obtainable from StepRange(start, step, stop) with these same fields.
+Julia source: base/range.jl:344-399; StepRange docstring at 313-340. -/
+def CanonicalStepRangeI64 (r : StepRange JInt64 JInt64) : Prop :=
+  (0 < r.step.val ∧
+    ((r.start.val ≤ r.stop.val ∧ (r.stop.val - r.start.val) % r.step.val = 0) ∨
+      r.stop.val = r.start.val - 1)) ∨
+  (r.step.val < 0 ∧
+    ((r.stop.val ≤ r.start.val ∧ (r.stop.val - r.start.val) % r.step.val = 0) ∨
+      r.stop.val = r.start.val + 1))
+
+/-- OneTo accepts a constructible Int64 StepRange exactly when its first value and its
+step are 1 and its nonnegative final value fits the chosen machine-integer target.
+A wrong first value has priority over a wrong step or an out-of-range final value.
+No successful-run hypothesis or arithmetic-range hypothesis is imposed.
+Julia source: base/range.jl:493-501. -/
+def OneToI64RangeContract : Prop :=
+  ∀ (target : IntTy) (r : StepRange JInt64 JInt64), CanonicalStepRangeI64 r →
+    (r.start.val ≠ 1 → oneToRangeI64 target r =
+      .error (.jl (.argumentError ("first element must be 1, got " ++ toString r.start.val)))) ∧
+    (r.start.val = 1 → r.step.val ≠ 1 → oneToRangeI64 target r =
+      .error (.jl (.argumentError ("step must be 1, got " ++ toString r.step.val)))) ∧
+    (r.start.val = 1 → r.step.val = 1 →
+      OneToCountResult target (max 0 r.stop.val) (oneToRangeI64 target r))
+
+/-- The Bool-target OneTo constructor first diagnoses an invalid initial value, then an
+invalid step, and rejects Bool only when both range checks pass. Full constructible Int64
+StepRange input domain, including ascending, descending, singleton and empty ranges.
+Julia source: base/range.jl:493-501. -/
+def OneToI64RangeBoolErrorOrder : Prop :=
+  ∀ (r : StepRange JInt64 JInt64), CanonicalStepRangeI64 r →
+    (r.start.val ≠ 1 → oneToRangeI64BoolTarget r =
+      .error (.jl (.argumentError ("first element must be 1, got " ++ toString r.start.val)))) ∧
+    (r.start.val = 1 → r.step.val ≠ 1 → oneToRangeI64BoolTarget r =
+      .error (.jl (.argumentError ("step must be 1, got " ++ toString r.step.val)))) ∧
+    (r.start.val = 1 → r.step.val = 1 → oneToRangeI64BoolTarget r =
+      .error (.jl (.argumentError ("invalid index: " ++ toString r.start.val ++ ":" ++
+        toString r.step.val ++ ":" ++ toString r.stop.val ++ " of type Bool"))))
+
+end JuliaLean.Proofs.base.range.Models1Group7
+
+namespace JuliaLean.Proofs.base.range.Models1Group7
+
+open JuliaLean JuliaLean.base.range JuliaLean.base.range.Models1Group7
+
+/-- Mathematical representability of an integer in a Julia machine type. -/
+def Fits (t : IntTy) (value : Int) : Prop := t.min ≤ value ∧ value ≤ t.max
+
+/-- Independent admissible-input and error classification for the closed machine-integer
+StepRangeLen constructor. This predicate never calls a constructor, conversion, arithmetic
+model, or supplied correctness law. InexactError is permitted only at the first unrepresentable
+field conversion; a negative representable length is diagnosed before offset conversion.
+Julia source: base/range.jl:512-543; conversion-and-promotion.md:99-107. -/
+def StepRangeLenOutcome {t r s l n o : IntTy}
+    (ref : JInt r) (step : JInt s) (len : JInt n) (offset : JInt o)
+    (result : JlX (StepRangeLen (JInt t) (JInt r) (JInt s) (JInt l))) : Prop :=
+  match result with
+  | .ok value =>
+      Fits l len.val ∧ Fits l offset.val ∧ 0 ≤ len.val ∧
+      1 ≤ offset.val ∧ offset.val ≤ max 1 len.val ∧
+      value.ref = ref ∧ value.step = step ∧
+      value.len.val = len.val ∧ value.offset.val = offset.val
+  | .error (.jl (.inexactError _)) =>
+      ¬ Fits l len.val ∨ (Fits l len.val ∧ 0 ≤ len.val ∧ ¬ Fits l offset.val)
+  | .error (.jl (.argumentError _)) =>
+      Fits l len.val ∧
+      (len.val < 0 ∨
+        (0 ≤ len.val ∧ Fits l offset.val ∧
+          (offset.val < 1 ∨ max 1 len.val < offset.val)))
+  | _ => False
+
+/-- Every machine element/reference/step/length/offset type and every value of each type,
+without a successful-run or no-overflow premise. The result preserves the reference and step,
+stores exactly the requested representable nonnegative length and valid offset, and otherwise
+has the documented validation or field-conversion error. The scalar universe is explicitly
+closed to the ten BitInteger types; generic Integer and floating/complex references remain
+outside this completed property domain.
+Julia source: base/range.jl:512-543; doc/src/manual/integers-and-floating-point-numbers.md:231-249. -/
+def StepRangeLenBitIntegerContract : Prop :=
+  ∀ (t r s l n o : IntTy) (ref : JInt r) (step : JInt s)
+    (len : JInt n) (offset : JInt o),
+    StepRangeLenOutcome ref step len offset
+      (stepRangeLenBits t l ref step len offset)
+
+/-- Omitting the offset requests the first position. All machine integer length values and
+conversion/error cases remain included, in particular zero length and negative lengths.
+This uses the independent constructor admissibility specification, not equality to the
+four-argument constructor as its expected answer.
+Julia source: base/range.jl:512-543. -/
+def StepRangeLenBitIntegerDefaultContract : Prop :=
+  ∀ (t r s l n : IntTy) (ref : JInt r) (step : JInt s) (len : JInt n),
+    StepRangeLenOutcome ref step len (jint 1)
+      (stepRangeLenBitsDefault t l ref step len)
+
+/-- Bool is an allowed Integer length type. False requests an empty LinRange and true
+requests one element, which requires equal endpoints. Every Int64 endpoint is included,
+including pairs whose subtraction overflows. A successful result retains both requested
+endpoints and length, and its Bool denominator is positive (hence true). The predicate rules
+out arbitrary failure on admissible inputs and arbitrary success on inconsistent singletons.
+This is complete for Int64 endpoints and Bool lengths, and does not claim the entire source
+signature's endpoint domain.
+Julia source: base/range.jl:555-609; doc/src/manual/integers-and-floating-point-numbers.md:231-249. -/
+def LinRangeBoolLengthContract : Prop :=
+  ∀ (start stop : JInt64) (len : Bool),
+    match linRangeBoolLength start stop len with
+    | .ok value =>
+        (len = false ∨ start.val = stop.val) ∧
+        value.start = start ∧ value.stop = stop ∧ value.len = len ∧ value.lendiv = true
+    | .error (.jl (.argumentError _)) => len = true ∧ start.val ≠ stop.val
+    | _ => False
+
+end JuliaLean.Proofs.base.range.Models1Group7
+
+
+namespace JuliaLean.Proofs.base.range.Models1Group7
+
+open JuliaLean JuliaLean.base.range JuliaLean.base.range.Models1Group7
+
+/-- For every machine-Int input, the empty endpoint is the adjacent integer opposite
+positive traversal, interpreted modulo the machine word. The ignored stop cannot affect it.
+Julia source: base/range.jl:389-398. -/
+def EmptyIntegerEndpointAdjacent : Prop :=
+  letI : JZero JInt64 := ⟨jint 0⟩
+  letI : JLt JInt64 JInt64 := ⟨JuliaLean.base.int.lt⟩
+  letI : JOneunit JInt64 := ⟨jint 1⟩
+  letI : JRangeWrappingSub JInt64 JInt64 JInt64 := ⟨JuliaLean.base.int.subWrap⟩
+  letI : JRangeWrappingAdd JInt64 JInt64 JInt64 := ⟨JuliaLean.base.int.addWrap⟩
+  letI : JConvert JInt64 JInt64 :=
+    ⟨fun x => liftJl (JuliaLean.base.int.convert .i64 x)⟩
+  ∀ (start step stop : JInt64),
+    ∃ endpoint, steprangeLastEmptyInteger start step stop = .ok endpoint ∧
+      (endpoint.val - start.val + (if 0 < step.val then 1 else -1)) %
+        (2 ^ 64 : Int) = 0
+
+/-- The Bool empty sentinel differs from the start exactly for positive steps.
+All starts, Int64 steps (including zero), and ignored stop values of every type are included.
+Julia source: base/range.jl:399. -/
+def EmptyBoolEndpointDirection : Prop :=
+  letI : JZero JInt64 := ⟨jint 0⟩
+  letI : JLt JInt64 JInt64 := ⟨JuliaLean.base.int.lt⟩
+  ∀ (B : Type) (start : Bool) (step : JInt64) (stop : B),
+    ∃ endpoint, steprangeLastEmptyBool start step stop = .ok endpoint ∧
+      (endpoint ≠ start ↔ 0 < step.val)
+
+end JuliaLean.Proofs.base.range.Models1Group7
+
+namespace JuliaLean.ChatGPT.Batch9.Group16
+
+set_option linter.unusedSimpArgs false
+
+open JuliaLean JuliaLean.base.range JuliaLean.Proofs.base.range
+open JuliaLean.base.range.Models1Group7 JuliaLean.Proofs.base.range.Models1Group7
+
+theorem g7LitZero (t : IntTy) : (JuliaLean.base.int.lit t 0).val = 0 := by
+  exact wrap_in t (min_le_zero t) (by have := zero_lt_max t; omega)
+
+theorem g7LitOne (t : IntTy) : (JuliaLean.base.int.lit t 1).val = 1 := by
+  exact wrap_in t (by have := min_le_zero t; omega) (zero_lt_max t)
+
+theorem g7Convert (t : IntTy) {s : IntTy} (x : JInt s) :
+    liftJl (JuliaLean.base.int.convert t x) =
+      if h : t.min ≤ x.val ∧ x.val ≤ t.max then .ok (⟨x.val, h⟩ : JInt t)
+      else .error (.jl (.inexactError (if t.bits = s.bits then "convert" else "trunc"))) := by
+  unfold JuliaLean.base.int.convert JInt.convert
+  split <;> rfl
+
+theorem Models1G7OnetoBitintegerScalar_proven : JuliaLean.Proofs.base.range.Models1Group7.OneToBitIntegerScalarContract := by
+  intro target source stop
+  simp only [oneToStopBits, JuliaLean.base.range.Models1Group7.oneToStop, oneToBitIntegerType, JType.isBool,
+    Bool.false_eq_true, ite_false, JMax.max, JZero.zero, JConvert.convert,
+    pure, Except.pure, bind, Except.bind]
+  rw [g7Convert]
+  simp only [JuliaLean.Proofs.base.int.jmax_val, g7LitZero]
+  by_cases h : target.min ≤ max 0 stop.val ∧ max 0 stop.val ≤ target.max
+  · simp only [dite_eq_left h, bind, Except.bind, pure, Except.pure, OneToCountResult]
+    exact ⟨h.1, h.2, rfl⟩
+  · simp only [dite_eq_right h, bind, Except.bind, OneToCountResult]
+    exact h
+
+theorem Models1G7OnetoBoolTargetScalar_proven : JuliaLean.Proofs.base.range.Models1Group7.OneToBoolTargetRejectsBitInteger := by
+  intro source stop
+  rfl
+
+theorem Models1G7EmptyBoolEndpoint_proven : JuliaLean.Proofs.base.range.Models1Group7.EmptyBoolEndpointDirection := by
+  intro B start step stop
+  change ∃ endpoint,
+    Except.ok (xor start (JuliaLean.base.int.lt (jint 0) step)) = Except.ok endpoint ∧
+    (endpoint ≠ start ↔ 0 < step.val)
+  refine ⟨_, rfl, ?_⟩
+  rw [JuliaLean.Proofs.base.int.lt_eq]
+  change xor start (decide (0 < step.val)) ≠ start ↔ 0 < step.val
+  by_cases h : 0 < step.val <;> cases start <;> simp only [h, decide_true, decide_false,
+    Bool.xor_true, Bool.xor_false, Bool.not_true, Bool.not_false, Bool.false_eq_true,
+    Bool.true_eq_false, not_false_eq_true, ne_eq, not_true_eq_false]
+
+
+theorem g7OneToRangeEval (target : IntTy) (r : StepRange JInt64 JInt64) :
+    oneToRangeI64 target r =
+      if r.start.val = 1 then
+        if r.step.val = 1 then oneToStopBits target .i64 r.stop
+        else .error (.jl (.argumentError ("step must be 1, got " ++ toString r.step.val)))
+      else .error (.jl (.argumentError ("first element must be 1, got " ++ toString r.start.val))) := by
+  simp only [oneToRangeI64, oneToRange, oneToStopBits, JuliaLean.base.range.Models1Group7.oneToStop, oneToBitIntegerType,
+    JType.isBool, JFirst.first, first_OrdinalRange, JLast.last, last_OrdinalRange,
+    JFieldStart.start, JFieldStop.stop, JStep.step, step_StepRange, JConvert.convert,
+    liftIntegerConvertI64, JEq.eq, JuliaLean.Proofs.base.int.eq_eq,
+    show (jint 1).val = 1 from rfl,
+    OneTo_T_range.throwstart, OneTo_T_range.throwstep, JPrint.print,
+    Bool.false_eq_true, ite_false, pure, Except.pure, bind, Except.bind]
+  by_cases ha : r.start.val = 1 <;> by_cases hs : r.step.val = 1 <;>
+    simp only [ha, hs, decide_true, decide_false, Bool.not_true, Bool.not_false,
+      Bool.false_eq_true, ite_true, ite_false, pure, Except.pure, bind, Except.bind,
+      throw, throwThe, MonadExceptOf.throw]
+  rfl
+
+theorem Models1G7OnetoInt64Range_proven : JuliaLean.Proofs.base.range.Models1Group7.OneToI64RangeContract := by
+  intro target r _
+  refine ⟨?_, ?_, ?_⟩
+  · intro ha
+    rw [g7OneToRangeEval, ite_eq_right ha]
+  · intro ha hs
+    rw [g7OneToRangeEval, ite_eq_left ha, ite_eq_right hs]
+  · intro ha hs
+    rw [g7OneToRangeEval, ite_eq_left ha, ite_eq_left hs]
+    exact Models1G7OnetoBitintegerScalar_proven target .i64 r.stop
+
+theorem g7OneToBoolRangeEval (r : StepRange JInt64 JInt64) :
+    oneToRangeI64BoolTarget r =
+      if r.start.val = 1 then
+        if r.step.val = 1 then
+          .error (.jl (.argumentError ("invalid index: " ++ toString r.start.val ++ ":" ++
+            toString r.step.val ++ ":" ++ toString r.stop.val ++ " of type Bool")))
+        else .error (.jl (.argumentError ("step must be 1, got " ++ toString r.step.val)))
+      else .error (.jl (.argumentError ("first element must be 1, got " ++ toString r.start.val))) := by
+  simp only [oneToRangeI64BoolTarget, oneToRange, oneToBoolType,
+    JType.isBool, JFirst.first, first_OrdinalRange,
+    JFieldStart.start, JStep.step, step_StepRange, JConvert.convert,
+    liftIntegerConvertI64, JEq.eq, JuliaLean.Proofs.base.int.eq_eq,
+    show (jint 1).val = 1 from rfl,
+    OneTo_T_range.throwstart, OneTo_T_range.throwstep, OneTo_T_range.throwbool, JPrint.print,
+    Bool.false_eq_true, ite_true, ite_false, pure, Except.pure, bind, Except.bind,
+    throw, throwThe, MonadExceptOf.throw]
+  by_cases ha : r.start.val = 1 <;> by_cases hs : r.step.val = 1 <;>
+    simp only [ha, hs, decide_true, decide_false, Bool.not_true, Bool.not_false,
+      Bool.false_eq_true, ite_true, ite_false, pure, Except.pure, bind, Except.bind,
+      throw, throwThe, MonadExceptOf.throw]
+  simp only [String.append_assoc]
+  rfl
+
+theorem Models1G7OnetoBoolTargetRange_proven : JuliaLean.Proofs.base.range.Models1Group7.OneToI64RangeBoolErrorOrder := by
+  intro r _
+  refine ⟨?_, ?_, ?_⟩
+  · intro ha
+    rw [g7OneToBoolRangeEval, ite_eq_right ha]
+  · intro ha hs
+    rw [g7OneToBoolRangeEval, ite_eq_left ha, ite_eq_right hs]
+  · intro ha hs
+    rw [g7OneToBoolRangeEval, ite_eq_left ha, ite_eq_left hs]
+
+
+theorem Models1G7SteprangelenBitinteger_proven : JuliaLean.Proofs.base.range.Models1Group7.StepRangeLenBitIntegerContract := by
+  intro t r s l n o ref step len offset
+  simp only [stepRangeLenBits, stepRangeLenNew, JType.isInteger, JIsinteger.isinteger,
+    Bool.not_true, Bool.false_eq_true, ite_true, ite_false, JConvert.convert,
+    JLe.le, JZero.zero, JOneunit.oneunit, JMax.max, pure, Except.pure, bind, Except.bind]
+  rw [g7Convert]
+  by_cases hlen : l.min ≤ len.val ∧ len.val ≤ l.max
+  · simp only [dite_eq_left hlen, bind, Except.bind, JuliaLean.Proofs.base.int.le_eq, g7LitZero]
+    by_cases hn : 0 ≤ len.val
+    · simp only [hn, decide_true, Bool.not_true, Bool.false_eq_true, ite_false,
+        pure, Except.pure, bind, Except.bind]
+      rw [g7Convert]
+      by_cases hoff : l.min ≤ offset.val ∧ offset.val ≤ l.max
+      · simp only [dite_eq_left hoff, bind, Except.bind, JuliaLean.Proofs.base.int.le_eq, g7LitOne,
+          JuliaLean.Proofs.base.int.jmax_val, pure, Except.pure]
+        by_cases hlo : 1 ≤ offset.val
+        · simp only [hlo, decide_true, Bool.not_true, Bool.false_eq_true, ite_false,
+            pure, Except.pure, bind, Except.bind]
+          by_cases hhi : offset.val ≤ max 1 len.val
+          · simp only [hhi, decide_true, Bool.not_true, Bool.false_eq_true, ite_false,
+              pure, Except.pure, bind, Except.bind, StepRangeLenOutcome, Fits]
+            exact ⟨hlen, hoff, hn, hlo, True.intro, rfl, rfl, rfl, rfl⟩
+          · simp only [hhi, decide_false, Bool.not_false, ite_true, throw, throwThe, MonadExceptOf.throw,
+              bind, Except.bind, StepRangeLenOutcome, Fits]
+            exact ⟨hlen, Or.inr ⟨hn, hoff, Or.inr (by omega)⟩⟩
+        · simp only [hlo, decide_false, Bool.not_false, ite_true, throw, throwThe, MonadExceptOf.throw,
+            bind, Except.bind, StepRangeLenOutcome, Fits]
+          exact ⟨hlen, Or.inr ⟨hn, hoff, Or.inl (by omega)⟩⟩
+      · simp only [dite_eq_right hoff, bind, Except.bind, StepRangeLenOutcome, Fits]
+        exact Or.inr ⟨hlen, hn, hoff⟩
+    · simp only [hn, decide_false, Bool.not_false, ite_true, throw, throwThe, MonadExceptOf.throw,
+        bind, Except.bind, StepRangeLenOutcome, Fits]
+      exact ⟨hlen, Or.inl (by omega)⟩
+  · simp only [dite_eq_right hlen, bind, Except.bind, StepRangeLenOutcome, Fits]
+    exact Or.inl hlen
+
+theorem Models1G7SteprangelenDefaultOffset_proven : JuliaLean.Proofs.base.range.Models1Group7.StepRangeLenBitIntegerDefaultContract := by
+  intro t r s l n ref step len
+  exact Models1G7SteprangelenBitinteger_proven t r s l n .i64 ref step len (jint 1)
+
+
+theorem Models1G7EmptyIntegerEndpoint_proven : JuliaLean.Proofs.base.range.Models1Group7.EmptyIntegerEndpointAdjacent := by
+  intro start step stop
+  have hs : JuliaLean.base.int.lt (jint 0) step = decide (0 < step.val) :=
+    JuliaLean.Proofs.base.int.lt_eq (jint 0) step
+  by_cases hp : 0 < step.val
+  · refine ⟨JuliaLean.base.int.subWrap start (jint 1), ?_, ?_⟩
+    · simp only [steprangeLastEmptyInteger, JLt.lt, JZero.zero, hs, hp, decide_true,
+        ite_true, JRangeWrappingSub.rangeWrappingSub, JOneunit.oneunit,
+        JConvert.convert, liftIntegerConvertI64]
+    · have hv : (JuliaLean.base.int.subWrap start (jint 1)).val =
+          wrapInt .i64 (start.val - 1) := IntVal.sub_int_val start (jint 1)
+      rw [hv]
+      change (wrapInt .i64 (start.val - 1) - start.val + (if 0 < step.val then 1 else -1)) %
+        (2 ^ 64 : Int) = 0
+      rw [ite_eq_left hp]
+      have hm := IntVal.wrapInt_emod_self .i64 (start.val - 1)
+      change wrapInt .i64 (start.val - 1) % (2 ^ 64 : Int) =
+        (start.val - 1) % (2 ^ 64 : Int) at hm
+      rw [Int.add_emod, Int.sub_emod, hm, ← Int.sub_emod, ← Int.add_emod]
+      omega
+  · refine ⟨JuliaLean.base.int.addWrap start (jint 1), ?_, ?_⟩
+    · simp only [steprangeLastEmptyInteger, JLt.lt, JZero.zero, hs, hp, decide_false,
+        Bool.false_eq_true, ite_false, JRangeWrappingAdd.rangeWrappingAdd, JOneunit.oneunit,
+        JConvert.convert, liftIntegerConvertI64]
+    · have hv : (JuliaLean.base.int.addWrap start (jint 1)).val =
+          wrapInt .i64 (start.val + 1) := IntVal.add_int_val start (jint 1)
+      rw [hv]
+      change (wrapInt .i64 (start.val + 1) - start.val + (if 0 < step.val then 1 else -1)) %
+        (2 ^ 64 : Int) = 0
+      rw [ite_eq_right hp]
+      have hm := IntVal.wrapInt_emod_self .i64 (start.val + 1)
+      change wrapInt .i64 (start.val + 1) % (2 ^ 64 : Int) =
+        (start.val + 1) % (2 ^ 64 : Int) at hm
+      rw [Int.add_emod, Int.sub_emod, hm, ← Int.sub_emod, ← Int.add_emod]
+      omega
+
+theorem g7ModOne (x : JInt64) :
+    JuliaLean.base.int.mod_BitSigned JInt.fld x (jint 1) = .ok (jint 0) := by
+  change modJ x (jint 1) = .ok (jint 0)
+  rw [modJ_ok x (jint 1) (by decide)]
+  congr 1
+  apply Subtype.ext
+  exact Int.fmod_one x.val
+
+theorem Models1G7LinrangeBoolLength_proven : JuliaLean.Proofs.base.range.Models1Group7.LinRangeBoolLengthContract := by
+  intro start stop len
+  cases len
+  · simp only [linRangeBoolLength, linRangeNew, JLe.le, JOneunit.oneunit, JEq.eq,
+      JMax.max, JType.isInteger, JMod.mod, JIszero.iszero, JConvert.convert,
+      HSub.hSub,
+      show JuliaLean.base.int.le (jint 0) (JuliaLean.base.int.ofBool .i64 false) = true from rfl,
+      show (false == true) = false from rfl,
+      show JuliaLean.base.int.jmax (JuliaLean.base.bool.subBool false true)
+        (JuliaLean.base.int.ofBool .i64 true) = jint 1 from rfl,
+      g7ModOne, liftJl, pure, Except.pure, bind, Except.bind,
+      show JuliaLean.base.int.eq (jint 0) (jint 0) = true from rfl,
+      show boolOfBitInteger (jint 1) = .ok true from rfl,
+      Bool.false_eq_true, ite_true, ite_false, true_or, true_and]
+  · by_cases he : start.val = stop.val
+    · simp only [linRangeBoolLength, linRangeNew, JLe.le, JOneunit.oneunit, JEq.eq,
+        show JuliaLean.base.int.le (jint 0) (JuliaLean.base.int.ofBool .i64 true) = true from rfl,
+        show (true == true) = true from rfl,
+        JuliaLean.Proofs.base.int.eq_eq, he, decide_true, pure, Except.pure, bind, Except.bind,
+        Bool.false_eq_true, ite_true, ite_false, or_true, true_and]
+    · simp only [linRangeBoolLength, linRangeNew, JLe.le, JOneunit.oneunit, JEq.eq,
+        show JuliaLean.base.int.le (jint 0) (JuliaLean.base.int.ofBool .i64 true) = true from rfl,
+        show (true == true) = true from rfl,
+        JuliaLean.Proofs.base.int.eq_eq, he, decide_false, pure, Except.pure, bind, Except.bind,
+        throw, throwThe, MonadExceptOf.throw,
+        Bool.false_eq_true, ite_true, ite_false, true_and, ne_eq, he, not_false_eq_true]
+
+end JuliaLean.ChatGPT.Batch9.Group16
+
+namespace JuliaLean.Proofs.base.range
+
+open JuliaLean.Registry
+
+/-- Properties of the group 7 range methods. -/
+def entriesModels1Group7 : List Entry := [
+  { id := "range-empty-integer-endpoint", juliaFile := "base/range.jl",
+    juliaFns := ["steprange_last_empty(start::Integer, step, stop)::typeof(stop)"],
+    statement := "For all Int64 starts, steps and stops, the empty endpoint is adjacent to the start opposite positive traversal, modulo the machine word, independent of the ignored stop.",
+    source := "base/range.jl:389-398 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027",
+    status := .proven, prop := ``JuliaLean.Proofs.base.range.Models1Group7.EmptyIntegerEndpointAdjacent,
+    thm := some ``JuliaLean.ChatGPT.Batch9.Group16.Models1G7EmptyIntegerEndpoint_proven, notes := "Independent helper invariant for the complete closed Int64 argument domain, including zero step and wrapping endpoints." },
+  { id := "range-empty-bool-endpoint", juliaFile := "base/range.jl",
+    juliaFns := ["steprange_last_empty(start::Bool, step, stop)"],
+    statement := "For both Bool starts, every Int64 step and every ignored stop type and value, the empty sentinel differs from start exactly when the step is positive.",
+    source := "base/range.jl:399-399 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027",
+    status := .proven, prop := ``JuliaLean.Proofs.base.range.Models1Group7.EmptyBoolEndpointDirection,
+    thm := some ``JuliaLean.ChatGPT.Batch9.Group16.Models1G7EmptyBoolEndpoint_proven, notes := "Independent helper invariant with closed Int64 comparison semantics and no supplied correctness premise." },
+
+  { id := "range-oneto-bitinteger-scalar", juliaFile := "base/range.jl",
+    juliaFns := ["OneTo{T}(stop) where {T<:Integer}"],
+    statement := "For every BitInteger target and source type and every source value, OneTo stores max(0, stop) exactly when it is representable in the target; otherwise it throws InexactError.",
+    source := "base/range.jl:487-491; range/constructor docstrings and doc/src/manual/conversion-and-promotion.md:99-107 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027",
+    status := .proven, prop := ``JuliaLean.Proofs.base.range.Models1Group7.OneToBitIntegerScalarContract,
+    thm := some ``JuliaLean.ChatGPT.Batch9.Group16.Models1G7OnetoBitintegerScalar_proven, notes := "Closed domain: all ten target/source machine-integer types. BigInt, floating/rational stops and custom scalar domains remain outside this property." },
+  { id := "range-oneto-bool-target-scalar", juliaFile := "base/range.jl",
+    juliaFns := ["OneTo{T}(stop) where {T<:Integer}"],
+    statement := "OneTo with Bool target rejects every BitInteger stop with ArgumentError, including values that would otherwise fail conversion to Bool.",
+    source := "base/range.jl:487-491; range/constructor docstrings and doc/src/manual/conversion-and-promotion.md:99-107 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027",
+    status := .proven, prop := ``JuliaLean.Proofs.base.range.Models1Group7.OneToBoolTargetRejectsBitInteger,
+    thm := some ``JuliaLean.ChatGPT.Batch9.Group16.Models1G7OnetoBoolTargetScalar_proven, notes := "Closed Bool target and all ten source machine-integer types; error text distinguishes the validation path." },
+  { id := "range-oneto-int64-range", juliaFile := "base/range.jl",
+    juliaFns := ["OneTo{T}(r::AbstractRange) where {T<:Integer}"],
+    statement := "For every constructible Int64 StepRange and every BitInteger target, OneTo validates first equal to one before step equal to one, then stores the clamped last value if representable or throws InexactError.",
+    source := "base/range.jl:493-501; range/constructor docstrings and doc/src/manual/conversion-and-promotion.md:99-107 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027",
+    status := .proven, prop := ``JuliaLean.Proofs.base.range.Models1Group7.OneToI64RangeContract,
+    thm := some ``JuliaLean.ChatGPT.Batch9.Group16.Models1G7OnetoInt64Range_proven, notes := "The mathematical representation invariant includes nonzero positive/negative steps, aligned endpoints and representable empty sentinels. It assumes no constructor success." },
+  { id := "range-oneto-bool-target-range", juliaFile := "base/range.jl",
+    juliaFns := ["OneTo{T}(r::AbstractRange) where {T<:Integer}"],
+    statement := "For every constructible Int64 StepRange, the Bool-target OneTo constructor reports a wrong first value first, a wrong step second, and Bool rejection after both range checks pass.",
+    source := "base/range.jl:493-501; range/constructor docstrings and doc/src/manual/conversion-and-promotion.md:99-107 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027",
+    status := .proven, prop := ``JuliaLean.Proofs.base.range.Models1Group7.OneToI64RangeBoolErrorOrder,
+    thm := some ``JuliaLean.ChatGPT.Batch9.Group16.Models1G7OnetoBoolTargetRange_proven, notes := "Full constructible Int64 StepRange domain; does not cover other range families or mutable printing effects." },
+  { id := "range-steprangelen-bitinteger", juliaFile := "base/range.jl",
+    juliaFns := ["StepRangeLen{T,R,S,L}(ref::R, step::S, len::Integer, offset::Integer = 1) where {T,R,S,L}"],
+    statement := "For all machine element, reference, step, stored-length, input-length and offset types and values, StepRangeLen preserves its reference and step and accepts exactly representable nonnegative lengths and valid offsets; conversion and validation errors have the source priority.",
+    source := "base/range.jl:533-543; range/constructor docstrings and doc/src/manual/conversion-and-promotion.md:99-107 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027",
+    status := .proven, prop := ``JuliaLean.Proofs.base.range.Models1Group7.StepRangeLenBitIntegerContract,
+    thm := some ``JuliaLean.ChatGPT.Batch9.Group16.Models1G7SteprangelenBitinteger_proven, notes := "Closed BitInteger domain with no no-overflow or successful-run premise. No correctness laws for supplied operations are assumed." },
+  { id := "range-steprangelen-default-offset", juliaFile := "base/range.jl",
+    juliaFns := ["StepRangeLen{T,R,S,L}(ref::R, step::S, len::Integer, offset::Integer = 1) where {T,R,S,L}"],
+    statement := "The omitted-offset StepRangeLen constructor requests position one and satisfies the independent admissibility and error classification for every machine-integer input length, including zero and negative lengths.",
+    source := "base/range.jl:533-543; range/constructor docstrings and doc/src/manual/conversion-and-promotion.md:99-107 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027",
+    status := .proven, prop := ``JuliaLean.Proofs.base.range.Models1Group7.StepRangeLenBitIntegerDefaultContract,
+    thm := some ``JuliaLean.ChatGPT.Batch9.Group16.Models1G7SteprangelenDefaultOffset_proven, notes := "Expected behavior is expressed by numerical field and error conditions, not equality to another constructor." },
+  { id := "range-linrange-bool-length", juliaFile := "base/range.jl",
+    juliaFns := ["LinRange{T,L}(start::T, stop::T, len::L) where {T,L<:Integer}"],
+    statement := "For all Int64 endpoints and both Bool lengths, false constructs an empty LinRange; true requires equal endpoints. Success preserves endpoints and requested length with positive Bool denominator; inconsistent singleton endpoints throw ArgumentError.",
+    source := "base/range.jl:597-609; range/constructor docstrings and doc/src/manual/conversion-and-promotion.md:99-107 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027",
+    status := .proven, prop := ``JuliaLean.Proofs.base.range.Models1Group7.LinRangeBoolLengthContract,
+    thm := some ``JuliaLean.ChatGPT.Batch9.Group16.Models1G7LinrangeBoolLength_proven, notes := "Includes overflowing endpoint differences. Complete only for Int64 endpoints and Bool length; other endpoint/length types remain explicitly partial." }
+]
+
+end JuliaLean.Proofs.base.range
+
+namespace JuliaLean.Proofs.base.range
+
+open JuliaLean JuliaLean.base.range JuliaLean.Registry
+
+namespace Models1Group8
+
+open JuliaLean.base.range.Models1Group8
+
+/-- Iteration propagates a length-query failure before trying unsafe indexing.
+This unrestricted invariant concerns the caller at its inherited interface boundary;
+it assumes no arithmetic or indexing correctness law.
+Julia source: base/range.jl:928-933 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027. -/
+-- Source: base/range.jl:928-933 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function iterate(r::Union{StepRangeLen,LinRange}, i::Integer=zero(length(r)))
+--     @inline
+--     i += oneunit(i)
+--     length(r) < i && return nothing
+--     unsafe_getindex(r, i), i
+-- end
+-- /Source
+def IterationLengthErrors : Prop :=
+  ∀ (R I J L T : Type) [JOneunit I] [HAdd I I J] [JLength R L]
+    [JLt L J] [JUnsafeGetindex R J T] (r : R) (i : I),
+    match JLength.length r with
+    | .error e => iterateStepRangeLenLinRange (J := J) r i = .error e
+    | .ok _ => True
+
+theorem IterationLengthErrors_proven : IterationLengthErrors := by
+  intro R I J L T _ _ _ _ _ r i
+  cases h : JuliaLean.base.range.JLength.length r <;>
+    simp [iterateStepRangeLenLinRange, h, Bind.bind, Except.bind]
+
+/-- Default iteration propagates an error while obtaining the default state.
+The returned state type is unrestricted and may differ from the length type.
+Julia source: base/range.jl:928-933 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027. -/
+-- Source: base/range.jl:928-933 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function iterate(r::Union{StepRangeLen,LinRange}, i::Integer=zero(length(r)))
+--     @inline
+--     i += oneunit(i)
+--     length(r) < i && return nothing
+--     unsafe_getindex(r, i), i
+-- end
+-- /Source
+def DefaultIterationLengthErrors : Prop :=
+  ∀ (R L J T : Type) [JLength R L] [JZero L] [JOneunit L]
+    [HAdd L L J] [JLt L J] [JUnsafeGetindex R J T] (r : R),
+    match JLength.length r with
+    | .error e => iterateStepRangeLenLinRangeDefault (J := J) r = .error e
+    | .ok _ => True
+
+/-- Bool-state iteration observes the mathematical arithmetic progression, modulo
+Int64, at index 1 or 2. The only premises are the actual StepRangeLen field
+invariants from base/range.jl:534-543; no intermediate nonoverflow premise is used.
+All fields and lengths are machine-sized. This contract covers the complete
+Int64-field/Bool-state specialization, not arbitrary numeric callees.
+Julia source: base/range.jl:928-933 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027. -/
+-- Source: base/range.jl:928-933 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function iterate(r::Union{StepRangeLen,LinRange}, i::Integer=zero(length(r)))
+--     @inline
+--     i += oneunit(i)
+--     length(r) < i && return nothing
+--     unsafe_getindex(r, i), i
+-- end
+-- /Source
+def BoolIterationProgression : Prop :=
+  ∀ (r : StepRangeLen JInt64 JInt64 JInt64 JInt64) (b : Bool),
+    0 ≤ r.len.val → 1 ≤ r.offset.val → r.offset.val ≤ max 1 r.len.val →
+    let k : Int := if b then 2 else 1
+    if r.len.val < k then
+      iterateInt64RangeWithBool r b = .ok none
+    else
+      ∃ (value state : JInt64),
+        iterateInt64RangeWithBool r b = .ok (some (value, state)) ∧
+        state.val = k ∧
+        value.val = wrapInt .i64 (r.ref.val + (k - r.offset.val) * r.step.val)
+
+/-- The empty set is a subset of every set, and evaluation failures retain source
+order: emptiness first, then the left endpoint before the right endpoint. This is
+an unrestricted caller invariant at the existing stateless dispatch boundary.
+Julia source: base/range.jl:1317-1318 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027. -/
+-- Source: base/range.jl:1317-1318 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- issubset(r::AbstractUnitRange{<:Integer}, s::AbstractUnitRange{<:Integer}) =
+--     isempty(r) || (first(r) >= first(s) && last(r) <= last(s))
+-- /Source
+def SubsetEmptyAndErrorOrder : Prop :=
+  ∀ (R Q T U : Type) [JIsempty R] [JFirst R T] [JFirst Q U]
+    [JLe U T] [JLast R T] [JLast Q U] [JLe T U] (r : R) (s : Q),
+    match JIsempty.isempty r with
+    | .error e => issubsetAbstractUnitRange r s = .error e
+    | .ok true => issubsetAbstractUnitRange r s = .ok true
+    | .ok false =>
+        match JFirst.first r with
+        | .error e => issubsetAbstractUnitRange r s = .error e
+        | .ok _ => True
+
+/-- Subset on constructor-normalized integer UnitRanges is mathematical set
+inclusion. Both integer widths/signs range independently over every BitInteger
+type. The endpoint premises are exactly UnitRange normalization (base/range.jl:439).
+The specification quantifies over integers, not over a supplied membership model.
+Julia source: base/range.jl:1317-1318 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027. -/
+-- Source: base/range.jl:1317-1318 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- issubset(r::AbstractUnitRange{<:Integer}, s::AbstractUnitRange{<:Integer}) =
+--     isempty(r) || (first(r) >= first(s) && last(r) <= last(s))
+-- /Source
+def IntegerUnitRangeSetContainment : Prop :=
+  ∀ (t u : IntTy) (r : UnitRange (JInt t)) (s : UnitRange (JInt u)),
+    (r.start.val ≤ r.stop.val ∨ r.stop.val = r.start.val - 1) →
+    (s.start.val ≤ s.stop.val ∨ s.stop.val = s.start.val - 1) →
+    ∃ b : Bool, issubsetIntegerUnitRange r s = .ok b ∧
+      (b = true ↔ ∀ z : Int,
+        r.start.val ≤ z ∧ z ≤ r.stop.val →
+        s.start.val ≤ z ∧ z ≤ s.stop.val)
+
+/-- A failing length query is propagated before inspecting elements or steps.
+All admitted intermediate and branch-result types are independently quantified;
+the invariant does not assume any supplied arithmetic implementation correct.
+Julia source: base/range.jl:1468-1473 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027. -/
+-- Source: base/range.jl:1468-1473 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function sum(r::AbstractRange{<:Real})
+--     l = length(r)
+--     # note that a little care is required to avoid overflow in l*(l-1)/2
+--     return l * first(r) + (iseven(l) ? (step(r) * (l-1)) * (l>>1)
+--                                      : (step(r) * l) * ((l-1)>>1))
+-- end
+-- /Source
+def SumLengthErrors : Prop :=
+  ∀ (R L T S P D H1 H2 A1 A2 B1 B2 C1 C2 : Type)
+    [JLength R L] [JFirst R T] [HMul L T P] [JIseven L] [JStep R S]
+    [HSub L JInt64 D] [HMul S D A1] [JShr L JInt64 H1] [HMul A1 H1 B1]
+    [HMul S L A2] [JShr D JInt64 H2] [HMul A2 H2 B2]
+    [HAdd P B1 C1] [HAdd P B2 C2] (r : R),
+    match JLength.length r with
+    | .error e => sumAbstractRange (C1 := C1) (C2 := C2) r = .error e
+    | .ok _ => True
+
+/-- Sum equals the independently enumerated mathematical sum of the represented
+arithmetic progression, reduced to Int64. The list in the specification enumerates
+mathematical indices only; the modeled Julia range uses JInt64 length/offset fields.
+All constructor-valid fields are covered, including zero length and overflowing
+element arithmetic. No no-overflow or successful-run premise is imposed.
+Julia source: base/range.jl:1468-1473 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027. -/
+-- Source: base/range.jl:1468-1473 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function sum(r::AbstractRange{<:Real})
+--     l = length(r)
+--     # note that a little care is required to avoid overflow in l*(l-1)/2
+--     return l * first(r) + (iseven(l) ? (step(r) * (l-1)) * (l>>1)
+--                                      : (step(r) * l) * ((l-1)>>1))
+-- end
+-- /Source
+def Int64StepRangeLenFiniteSum : Prop :=
+  ∀ (r : StepRangeLen JInt64 JInt64 JInt64 JInt64),
+    0 ≤ r.len.val → 1 ≤ r.offset.val → r.offset.val ≤ max 1 r.len.val →
+    ∃ result : JInt64, sumInt64StepRangeLen r = .ok result ∧
+      result.val = wrapInt .i64
+        (((List.range r.len.val.toNat).map fun k : Nat =>
+          r.ref.val + ((k : Int) + 1 - r.offset.val) * r.step.val).sum)
+
+/-- Generated range addition/subtraction rejects unequal lengths with
+DimensionMismatch before endpoint arithmetic or construction. Both length types
+are independent, and no equality, conversion, or constructor correctness law is
+assumed. The observed equality result classifies the mismatched input branch.
+Julia source: base/range.jl:1502-1526 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027. -/
+-- Source: base/range.jl:1502-1526 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function _define_range_op(@nospecialize f)
+--     @eval begin
+--         function $f(r1::OrdinalRange, r2::OrdinalRange)
+--             r1l = length(r1)
+--             (r1l == length(r2) ||
+--              throw(DimensionMismatch("argument dimensions must match: length of r1 is $r1l, length of r2 is $(length(r2))")))
+--             StepRangeLen($f(first(r1), first(r2)), $f(step(r1), step(r2)), r1l)
+--         end
+-- 
+--         function $f(r1::LinRange{T}, r2::LinRange{T}) where T
+--             len = r1.len
+--             (len == r2.len ||
+--              throw(DimensionMismatch("argument dimensions must match: length of r1 is $len, length of r2 is $(r2.len)")))
+--             LinRange{T}(convert(T, $f(first(r1), first(r2))),
+--                         convert(T, $f(last(r1), last(r2))), len)
+--         end
+-- 
+--         $f(r1::Union{StepRangeLen, OrdinalRange, LinRange},
+--            r2::Union{StepRangeLen, OrdinalRange, LinRange}) =
+--                $f(promote(r1, r2)...)
+--     end
+-- end
+-- _define_range_op(:+)
+-- _define_range_op(:-)
+-- 
+-- /Source
+def LinRangeDimensionMismatch : Prop :=
+  ∀ (F T L1 L2 A Out : Type)
+    [JEq L1 L2] [JPrint L1] [JPrint L2]
+    [JFirst (LinRange T L1) T] [JFirst (LinRange T L2) T]
+    [JLast (LinRange T L1) T] [JLast (LinRange T L2) T]
+    [JScalarOp F T T A] [JConvert T A] [JLinRangeT T T T L1 Out]
+    (r1 : LinRange T L1) (r2 : LinRange T L2),
+    JEq.eq r1.len r2.len = false →
+      ∃ message : String, rangeopLinRange F r1 r2 = .error (.dimensionMismatch message)
+
+/-- Range addition preserves left-to-right length-error precedence and rejects
+unequal successful lengths with DimensionMismatch before first/step operations.
+This quantifies independently over stored step types, observed step types, stored
+length types and observed length types, without a callee correctness hypothesis.
+Julia source: base/range.jl:1527-1532 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027. -/
+-- Source: base/range.jl:1527-1532 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function +(r1::StepRangeLen{T,S}, r2::StepRangeLen{T,S}) where {T,S}
+--     len = length(r1)
+--     (len == length(r2) ||
+--      throw(DimensionMismatch("argument dimensions must match: length of r1 is $len, length of r2 is $(length(r2))")))
+--     StepRangeLen(first(r1)+first(r2), step(r1)+step(r2), len)
+-- end
+-- /Source
+def StepRangeLenAdditionDimensionsAndErrors : Prop :=
+  ∀ (T R S1 L1 S2 L2 N1 N2 U1 U2 A B Out : Type)
+    [JLength (StepRangeLen T R S1 L1) N1]
+    [JLength (StepRangeLen T R S2 L2) N2]
+    [JEq N1 N2] [JPrint N1] [JPrint N2]
+    [JFirst (StepRangeLen T R S1 L1) T]
+    [JFirst (StepRangeLen T R S2 L2) T] [HAdd T T A]
+    [JStep (StepRangeLen T R S1 L1) U1]
+    [JStep (StepRangeLen T R S2 L2) U2] [HAdd U1 U2 B]
+    [JStepRangeLen3 A B N1 Out]
+    (r1 : StepRangeLen T R S1 L1) (r2 : StepRangeLen T R S2 L2),
+    match JLength.length r1 with
+    | .error e => plusStepRangeLen r1 r2 = .error e
+    | .ok n1 =>
+        match JLength.length r2 with
+        | .error e => plusStepRangeLen r1 r2 = .error e
+        | .ok n2 => JEq.eq n1 n2 = false →
+            ∃ message : String, plusStepRangeLen r1 r2 = .error (.dimensionMismatch message)
+
+/-- Unsafe indexing propagates an index-to-offset conversion error before element conversion.
+Julia source: base/range.jl:986 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027. -/
+-- Source: base/range.jl:986-989 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function unsafe_getindex(r::StepRangeLen{T}, i::Integer) where T
+--     u = oftype(r.offset, i) - r.offset
+--     convert(T, (r.ref + u*r.step))
+-- end
+-- /Source
+def UnsafeIndexConversionError : Prop :=
+  ∀ (T R S L I D P E : Type)
+    [JConvert L I] [HSub L L D] [HMul D S P] [HAdd R P E] [JConvert T E]
+    (r : StepRangeLen T R S L) (i : I) (e : Exc),
+    JConvert.convert (T := L) i = .error e →
+      unsafeGetindexStepRangeLen (D := D) (P := P) (E := E) r i = .error e
+
+theorem UnsafeIndexConversionError_proven : UnsafeIndexConversionError := by
+  intro T R S L I D P E _ _ _ _ _ r i e h
+  simp [unsafeGetindexStepRangeLen, JuliaLean.base.range.oftype, h, Bind.bind, Except.bind]
+
+/-- High-precision indexing propagates an index-to-offset conversion error.
+Julia source: base/range.jl:1105 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027. -/
+-- Source: base/range.jl:1105-1108 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function _getindex_hiprec(r::StepRangeLen, i::Integer)  # without rounding by T
+--     u = oftype(r.offset, i) - r.offset
+--     r.ref + u*r.step
+-- end
+-- /Source
+def HiprecIndexConversionError : Prop :=
+  ∀ (T R S L I D P V : Type)
+    [JConvert L I] [HSub L L D] [HMul D S P] [HAdd R P V]
+    (r : StepRangeLen T R S L) (i : I) (e : Exc),
+    JConvert.convert (T := L) i = .error e →
+      getindexHiprec (D := D) (P := P) (V := V) r i = .error e
+
+/-- Ascending-endpoint normalization propagates the first step-query error before querying endpoints.
+Julia source: base/range.jl:1229 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027. -/
+-- Source: base/range.jl:1229-1235 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function first_step_last_ascending(r::StepRange)
+--     if step(r) < zero(step(r))
+--         last(r), -step(r), first(r)
+--     else
+--         first(r), +step(r), last(r)
+--     end
+-- end
+-- /Source
+def AscendingInitialStepError : Prop :=
+  ∀ (T S N P : Type)
+    [JStep (StepRange T S) S] [JZero S] [JLt S S]
+    [JLast (StepRange T S) T] [JNeg S N]
+    [JFirst (StepRange T S) T] [JPos S P]
+    (r : StepRange T S) (e : Exc),
+    JStep.step r = .error e →
+      firstStepLastAscending (N := N) (P := P) r = .error e
+
+/-- Index-of-intersection calculation propagates the first span-endpoint error before querying the input range.
+Julia source: base/range.jl:1296 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027. -/
+-- Source: base/range.jl:1296-1313 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function _findin(r::AbstractRange{<:Integer}, span::AbstractUnitRange{<:Integer})
+--     fspan = first(span)
+--     lspan = last(span)
+--     fr = first(r)
+--     lr = last(r)
+--     sr = step(r)
+--     if sr > 0
+--         ifirst = fr >= fspan ? 1 : cld(fspan-fr, sr)+1
+--         ilast = lr <= lspan ? length(r) : length(r) - cld(lr-lspan, sr)
+--     elseif sr < 0
+--         ifirst = fr <= lspan ? 1 : cld(lspan-fr, sr)+1
+--         ilast = lr >= fspan ? length(r) : length(r) - cld(lr-fspan, sr)
+--     else
+--         ifirst = fr >= fspan ? 1 : length(r)+1
+--         ilast = fr <= lspan ? length(r) : 0
+--     end
+--     r isa AbstractUnitRange ? (ifirst:ilast) : (ifirst:1:ilast)
+-- end
+-- /Source
+def FindinSpanFirstError : Prop :=
+  ∀ (R Q E T S D1 D2 C1 C2 I1 I2 L I3 Out1 Out2 : Type)
+    [JFirst Q T] [JLast Q T] [JFirst R E] [JLast R E] [JStep R S]
+    [JLt JInt64 S] [JLt S JInt64] [JLe T E] [JLe E T]
+    [HSub T E D1] [HSub E T D2] [JCld D1 S C1] [JCld D2 S C2]
+    [HAdd C1 JInt64 I1] [JLength R L] [HSub L C2 I3] [HAdd L JInt64 I2]
+    [JIsAbstractUnitRange R]
+    [JColon2 (JInt64 ⊕ (I1 ⊕ I2)) (L ⊕ (I3 ⊕ JInt64)) Out1]
+    [JColon3 (JInt64 ⊕ (I1 ⊕ I2)) JInt64 (L ⊕ (I3 ⊕ JInt64)) Out2]
+    (r : R) (span : Q) (e : Exc),
+    JFirst.first span = .error e →
+      findin (D1 := D1) (D2 := D2) (C1 := C1) (C2 := C2)
+        (I1 := I1) (I2 := I2) (I3 := I3) (Out1 := Out1) (Out2 := Out2) r span = .error e
+
+/-- StepRangeLen reversal propagates an emptiness-query error before negating the step or constructing a result.
+Julia source: base/range.jl:1446 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027. -/
+-- Source: base/range.jl:1446-1452 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- function _reverse(r::StepRangeLen, ::Colon)
+--     # If `r` is empty, `length(r) - r.offset + 1 will be nonpositive hence
+--     # invalid. As `reverse(r)` is also empty, any offset would work so we keep
+--     # `r.offset`
+--     offset = isempty(r) ? r.offset : length(r)-r.offset+1
+--     return typeof(r)(r.ref, negate(r.step), length(r), offset)
+-- end
+-- /Source
+def ReverseEmptinessError : Prop :=
+  ∀ (T R S L N D O S' : Type)
+    [JIsempty (StepRangeLen T R S L)] [JLength (StepRangeLen T R S L) N]
+    [HSub N L D] [HAdd D JInt64 O] [JNegate S S']
+    [JSameType4 (StepRangeLen T R S L) R S' N L]
+    [JSameType4 (StepRangeLen T R S L) R S' N O]
+    (r : StepRangeLen T R S L) (c : Colon) (e : Exc),
+    JIsempty.isempty r = .error e →
+      reverseStepRangeLen (N := N) (D := D) (O := O) (S' := S') r c = .error e
+
+end Models1Group8
+
+end JuliaLean.Proofs.base.range
+
+namespace JuliaLean.ChatGPT.Batch9.Group16
+open JuliaLean JuliaLean.base.range JuliaLean.base.range.Models1Group8
+open JuliaLean.Proofs.base.range
+
+theorem Models1G8IterateDefaultLengthErrors_proven : JuliaLean.Proofs.base.range.Models1Group8.DefaultIterationLengthErrors := by
+  intro R L J T _ _ _ _ _ _ r
+  cases h : JLength.length r with
+  | error e => simp only [iterateStepRangeLenLinRangeDefault, h, bind, Except.bind]
+  | ok n => trivial
+
+theorem Models1G8SubsetEmptyErrorOrder_proven : JuliaLean.Proofs.base.range.Models1Group8.SubsetEmptyAndErrorOrder := by
+  intro R Q T U _ _ _ _ _ _ _ r s
+  cases he : JIsempty.isempty r with
+  | error e => simp only [issubsetAbstractUnitRange, he, bind, Except.bind]
+  | ok b =>
+    cases b with
+    | true => simp only [issubsetAbstractUnitRange, he, bind, Except.bind, ite_true, pure, Except.pure]
+    | false =>
+      cases hf : JFirst.first r with
+      | error e => simp only [issubsetAbstractUnitRange, he, hf, bind, Except.bind, Bool.false_eq_true, ite_false]
+      | ok a => trivial
+
+theorem Models1G8SumLengthErrors_proven : JuliaLean.Proofs.base.range.Models1Group8.SumLengthErrors := by
+  intro R L T S P D H1 H2 A1 A2 B1 B2 C1 C2 _ _ _ _ _ _ _ _ _ _ _ _ _ _ r
+  cases h : JLength.length r with
+  | error e => simp only [sumAbstractRange, h, bind, Except.bind]
+  | ok n => trivial
+
+theorem Models1G8LinrangeDimensionMismatch_proven : JuliaLean.Proofs.base.range.Models1Group8.LinRangeDimensionMismatch := by
+  intro F T L1 L2 A Out _ _ _ _ _ _ _ _ _ _ r1 r2 h
+  refine ⟨"argument dimensions must match: length of r1 is " ++ JPrint.print r1.len ++ ", length of r2 is " ++ JPrint.print r2.len, ?_⟩
+  simp only [rangeopLinRange, h, Bool.false_eq_true, ite_false]
+  rfl
+
+theorem Models1G8SteprangelenAddDimensionsErrors_proven : JuliaLean.Proofs.base.range.Models1Group8.StepRangeLenAdditionDimensionsAndErrors := by
+  intro T R S1 L1 S2 L2 N1 N2 U1 U2 A B Out _ _ _ _ _ _ _ _ _ _ _ _ r1 r2
+  cases h1 : JLength.length r1 with
+  | error e => simp only [plusStepRangeLen, h1, bind, Except.bind]
+  | ok n1 =>
+    cases h2 : JLength.length r2 with
+    | error e => simp only [plusStepRangeLen, h1, h2, bind, Except.bind]
+    | ok n2 =>
+      intro he
+      refine ⟨"argument dimensions must match: length of r1 is " ++ JPrint.print n1 ++ ", length of r2 is " ++ JPrint.print n2, ?_⟩
+      simp only [plusStepRangeLen, h1, h2, he, Bool.false_eq_true, ite_false, bind, Except.bind]
+      rfl
+
+theorem Models1G8HiprecIndexConversionError_proven : JuliaLean.Proofs.base.range.Models1Group8.HiprecIndexConversionError := by
+  intro T R S L I D P V _ _ _ _ r i e h
+  simp only [getindexHiprec, oftype, h, bind, Except.bind]
+
+theorem Models1G8AscendingInitialStepError_proven : JuliaLean.Proofs.base.range.Models1Group8.AscendingInitialStepError := by
+  intro T S N P _ _ _ _ _ _ _ r e h
+  simp only [firstStepLastAscending, h, bind, Except.bind]
+
+theorem Models1G8FindinSpanFirstError_proven : JuliaLean.Proofs.base.range.Models1Group8.FindinSpanFirstError := by
+  intro R Q E T S D1 D2 C1 C2 I1 I2 L I3 Out1 Out2 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ r span e h
+  simp only [findin, h, bind, Except.bind]
+
+theorem Models1G8ReverseEmptinessError_proven : JuliaLean.Proofs.base.range.Models1Group8.ReverseEmptinessError := by
+  intro T R S L N D O S' _ _ _ _ _ _ _ r c e h
+  simp only [reverseStepRangeLen, h, bind, Except.bind]
+
+
+ theorem G8_integer_subset_eval (t u : IntTy)
+    (r : UnitRange (JInt t)) (s : UnitRange (JInt u)) :
+    issubsetIntegerUnitRange r s =
+      if r.stop.val < r.start.val then .ok true
+      else if s.start.val ≤ r.start.val then .ok (decide (r.stop.val ≤ s.stop.val))
+      else .ok false := by
+  simp only [issubsetIntegerUnitRange, issubsetAbstractUnitRange, JIsempty.isempty,
+    isempty_AbstractUnitRange, JFirst.first, first_OrdinalRange, JLast.last,
+    last_OrdinalRange, JFieldStart.start, JFieldStop.stop, convert_self, JLt.lt, JLe.le,
+    JuliaLean.Proofs.base.int.lt_eq, JuliaLean.Proofs.base.int.le_eq,
+    bind, Except.bind, pure, Except.pure, decide_eq_true_eq]
+  by_cases h0 : r.stop.val < r.start.val
+  · simp only [h0, ite_true]
+  · by_cases h1 : s.start.val ≤ r.start.val <;>
+      simp only [h0, h1, ite_true, ite_false, decide_true, decide_false,
+        Bool.not_true, Bool.not_false, Bool.false_eq_true]
+
+theorem Models1G8SubsetIntegerSetInclusion_proven : JuliaLean.Proofs.base.range.Models1Group8.IntegerUnitRangeSetContainment := by
+  intro t u r s _ _
+  rw [G8_integer_subset_eval]
+  by_cases h0 : r.stop.val < r.start.val
+  · simp only [h0, ite_true]
+    refine ⟨true, rfl, ?_⟩
+    constructor
+    · intro _ z hz
+      omega
+    · intro _
+      rfl
+  · simp only [h0, ite_false]
+    by_cases h1 : s.start.val ≤ r.start.val
+    · simp only [h1, ite_true]
+      refine ⟨decide (r.stop.val ≤ s.stop.val), rfl, ?_⟩
+      rw [decide_eq_true_eq]
+      constructor
+      · intro h2 z hz
+        omega
+      · intro hset
+        have hend := hset r.stop.val (by omega)
+        exact hend.2
+    · simp only [h1, ite_false]
+      refine ⟨false, rfl, ?_⟩
+      constructor
+      · intro h
+        cases h
+      · intro hset
+        have hstart := hset r.start.val (by omega)
+        omega
+
+
+theorem G8_bool_next (b : Bool) :
+    JuliaLean.base.int.addWrap (JuliaLean.base.int.ofBool .i64 b)
+      (JuliaLean.base.int.ofBool .i64 true) = jint (if b then 2 else 1) := by
+  cases b <;> decide
+
+theorem G8_lift_i64_self (x : JInt64) :
+    JuliaLean.base.range.liftJl (JuliaLean.base.int.convert .i64 x) = .ok x := by
+  unfold JuliaLean.base.int.convert JInt.convert
+  rw [dite_eq_left x.property]
+  rfl
+
+theorem G8_i64_read_eval
+    (r : StepRangeLen JInt64 JInt64 JInt64 JInt64) (i : JInt64) :
+    letI : JConvert JInt64 JInt64 := @JuliaLean.base.range.instJConvertJInt .i64 .i64
+    letI : HSub JInt64 JInt64 JInt64 := @instHSub JInt64 (@JInt.instSub .i64)
+    letI : HMul JInt64 JInt64 JInt64 := @instHMul JInt64 (@JInt.instMul .i64)
+    letI : HAdd JInt64 JInt64 JInt64 := @instHAdd JInt64 (@JInt.instAdd .i64)
+    unsafe_getindex_StepRangeLen (P := JInt64) (E := JInt64) r i =
+      .ok (jint (r.ref.val + (i.val - r.offset.val) * r.step.val)) := by
+  simp only [unsafe_getindex_StepRangeLen, oftype, JConvert.convert,
+    G8_lift_i64_self, bind, Except.bind]
+  congr 1
+  apply Subtype.ext
+  change wrapInt .i64 (r.ref.val + wrapInt .i64 (wrapInt .i64 (i.val - r.offset.val) * r.step.val)) = _
+  rw [IntVal.wrapInt_mul_left, IntVal.wrapInt_add_right]
+  rfl
+
+
+theorem G8_bool_iterate_eval
+    (r : StepRangeLen JInt64 JInt64 JInt64 JInt64) (b : Bool) :
+    iterateInt64RangeWithBool r b =
+      if r.len.val < (if b then 2 else 1) then .ok none
+      else .ok (some (jint (r.ref.val + ((if b then 2 else 1) - r.offset.val) * r.step.val),
+        jint (if b then 2 else 1))) := by
+  simp only [iterateInt64RangeWithBool, iterateStepRangeLenLinRange, JOneunit.oneunit,
+    HAdd.hAdd, G8_bool_next, JLength.length, length_StepRangeLen,
+    JLt.lt, JuliaLean.Proofs.base.int.lt_eq, bind, Except.bind, decide_eq_true_eq,
+    JUnsafeGetindex.unsafeGetindex, G8_i64_read_eval, pure, Except.pure]
+  have hk : (jint (if b then 2 else 1)).val = (if b then 2 else 1) := by
+    cases b <;> rfl
+  rw [hk]
+
+theorem Models1G8IterateBoolProgression_proven : JuliaLean.Proofs.base.range.Models1Group8.BoolIterationProgression := by
+  intro r b _ _ _
+  dsimp only
+  rw [G8_bool_iterate_eval]
+  by_cases hn : r.len.val < (if b then 2 else 1)
+  · simp only [hn, ite_true]
+  · simp only [hn, ite_false]
+    refine ⟨jint (r.ref.val + ((if b then 2 else 1) - r.offset.val) * r.step.val),
+      jint (if b then 2 else 1), rfl, ?_, rfl⟩
+    cases b <;> rfl
+
+end JuliaLean.ChatGPT.Batch9.Group16
+
+namespace JuliaLean.Proofs.base.range
+
+open JuliaLean JuliaLean.base.range JuliaLean.Registry
+
+def entriesModels1Group8 : List Entry := [
+  { id := "range-iterate-length-errors", juliaFile := "base/range.jl",
+    juliaFns := ["iterate(r::Union{StepRangeLen,LinRange}, i::Integer)"],
+    statement := "For every admitted range, Integer state, promoted state type and existing dispatch implementation, a failing length query is propagated before unsafe indexing.",
+    source := "base/range.jl:928-933 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027; documented operation or independent caller invariant; see property docstring", status := .proven,
+    prop := ``JuliaLean.Proofs.base.range.Models1Group8.IterationLengthErrors, thm := some ``JuliaLean.Proofs.base.range.Models1Group8.IterationLengthErrors_proven,
+    notes := "Interface contracts assume no callee correctness; concrete contracts identify their exact represented domain." },
+  { id := "range-iterate-default-length-errors", juliaFile := "base/range.jl",
+    juliaFns := ["iterate(r::Union{StepRangeLen,LinRange})"],
+    statement := "The default iteration overload propagates failure of its initial length query before calling the explicit-state body, including when incrementing the default state changes its type.",
+    source := "base/range.jl:928-933 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027; documented operation or independent caller invariant; see property docstring", status := .proven,
+    prop := ``JuliaLean.Proofs.base.range.Models1Group8.DefaultIterationLengthErrors, thm := some ``JuliaLean.ChatGPT.Batch9.Group16.Models1G8IterateDefaultLengthErrors_proven, notes := "Interface contracts assume no callee correctness; concrete contracts identify their exact represented domain." },
+  { id := "range-iterate-bool-progression", juliaFile := "base/range.jl",
+    juliaFns := ["iterate(r::Union{StepRangeLen,LinRange}, i::Integer)"],
+    statement := "For every constructible Int64-field StepRangeLen, Bool state false/true advances to Int64 index 1/2, stops exactly beyond length, and otherwise yields the independently specified modular arithmetic-progression value at that index.",
+    source := "base/range.jl:928-933 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027; documented operation or independent caller invariant; see property docstring", status := .proven,
+    prop := ``JuliaLean.Proofs.base.range.Models1Group8.BoolIterationProgression, thm := some ``JuliaLean.ChatGPT.Batch9.Group16.Models1G8IterateBoolProgression_proven, notes := "Interface contracts assume no callee correctness; concrete contracts identify their exact represented domain." },
+  { id := "range-subset-empty-error-order", juliaFile := "base/range.jl",
+    juliaFns := ["issubset(r::AbstractUnitRange{<:Integer}, s::AbstractUnitRange{<:Integer})"],
+    statement := "For all admitted unit-range interfaces, an empty left input is a subset, emptiness errors propagate, and a failing left first-element query precedes any failure in the right first-element query.",
+    source := "base/range.jl:1317-1318 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027; documented operation or independent caller invariant; see property docstring", status := .proven,
+    prop := ``JuliaLean.Proofs.base.range.Models1Group8.SubsetEmptyAndErrorOrder, thm := some ``JuliaLean.ChatGPT.Batch9.Group16.Models1G8SubsetEmptyErrorOrder_proven, notes := "Interface contracts assume no callee correctness; concrete contracts identify their exact represented domain." },
+  { id := "range-subset-integer-set-inclusion", juliaFile := "base/range.jl",
+    juliaFns := ["issubset(r::AbstractUnitRange{<:Integer}, s::AbstractUnitRange{<:Integer})"],
+    statement := "For every pair of constructible BitInteger UnitRanges, including mixed widths and signedness and empty inputs, issubset terminates successfully and is true exactly for mathematical inclusion of the represented integer sets.",
+    source := "base/range.jl:1317-1318 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027; documented operation or independent caller invariant; see property docstring", status := .proven,
+    prop := ``JuliaLean.Proofs.base.range.Models1Group8.IntegerUnitRangeSetContainment, thm := some ``JuliaLean.ChatGPT.Batch9.Group16.Models1G8SubsetIntegerSetInclusion_proven, notes := "Interface contracts assume no callee correctness; concrete contracts identify their exact represented domain." },
+  { id := "range-sum-length-errors", juliaFile := "base/range.jl",
+    juliaFns := ["sum(r::AbstractRange{<:Real})"],
+    statement := "For all admitted range and arithmetic-result types, failure to obtain the range length is propagated before evaluating its first element or step.",
+    source := "base/range.jl:1468-1473 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027; documented operation or independent caller invariant; see property docstring", status := .proven,
+    prop := ``JuliaLean.Proofs.base.range.Models1Group8.SumLengthErrors, thm := some ``JuliaLean.ChatGPT.Batch9.Group16.Models1G8SumLengthErrors_proven, notes := "Interface contracts assume no callee correctness; concrete contracts identify their exact represented domain." },
+  { id := "range-sum-int64-finite-progression", juliaFile := "base/range.jl",
+    juliaFns := ["sum(r::AbstractRange{<:Real})"],
+    statement := "For every constructible Int64-field StepRangeLen, sum returns the finite mathematical sum of its indexed progression values modulo Int64, including empty ranges and machine overflow; this covers the complete concrete specialization.",
+    source := "base/range.jl:1468-1473 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027; documented operation or independent caller invariant; see property docstring", status := .todo,
+    prop := ``JuliaLean.Proofs.base.range.Models1Group8.Int64StepRangeLenFiniteSum, thm := none,
+    notes := "Interface contracts assume no callee correctness; concrete contracts identify their exact represented domain." },
+  { id := "range-linrange-dimension-mismatch", juliaFile := "base/range.jl",
+    juliaFns := ["+(r1::LinRange{T}, r2::LinRange{T}) where T", "-(r1::LinRange{T}, r2::LinRange{T}) where T"],
+    statement := "Generated LinRange addition and subtraction reject mismatched lengths with DimensionMismatch before inspecting endpoints, even when the two length types differ; the invariant quantifies over every existing scalar/constructor interface.",
+    source := "base/range.jl:1502-1526 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027; documented operation or independent caller invariant; see property docstring", status := .proven,
+    prop := ``JuliaLean.Proofs.base.range.Models1Group8.LinRangeDimensionMismatch, thm := some ``JuliaLean.ChatGPT.Batch9.Group16.Models1G8LinrangeDimensionMismatch_proven, notes := "Interface contracts assume no callee correctness; concrete contracts identify their exact represented domain." },
+  { id := "range-steprangelen-add-dimensions-errors", juliaFile := "base/range.jl",
+    juliaFns := ["+(r1::StepRangeLen{T,S}, r2::StepRangeLen{T,S}) where {T,S}"],
+    statement := "For every admitted pair sharing only element and reference types, addition propagates the left length error first and the right length error second, and unequal successful lengths cause DimensionMismatch before element/step work.",
+    source := "base/range.jl:1527-1532 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027; documented operation or independent caller invariant; see property docstring", status := .proven,
+    prop := ``JuliaLean.Proofs.base.range.Models1Group8.StepRangeLenAdditionDimensionsAndErrors, thm := some ``JuliaLean.ChatGPT.Batch9.Group16.Models1G8SteprangelenAddDimensionsErrors_proven, notes := "Interface contracts assume no callee correctness; concrete contracts identify their exact represented domain." },
+  { id := "range-unsafe-index-conversion-error", juliaFile := "base/range.jl",
+    juliaFns := ["unsafe_getindex(r::StepRangeLen{T}, i::Integer) where T"],
+    statement := "Unsafe indexing propagates an index-to-offset conversion error before element conversion.",
+    source := "base/range.jl:986-989 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027",
+    status := .proven, prop := ``JuliaLean.Proofs.base.range.Models1Group8.UnsafeIndexConversionError, thm := some ``JuliaLean.Proofs.base.range.Models1Group8.UnsafeIndexConversionError_proven,
+    notes := "Independent error-order invariant over the complete existing interface domain; unchecked." },
+  { id := "range-hiprec-index-conversion-error", juliaFile := "base/range.jl",
+    juliaFns := ["_getindex_hiprec(r::StepRangeLen, i::Integer)"],
+    statement := "High-precision indexing propagates an index-to-offset conversion error.",
+    source := "base/range.jl:1105-1108 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027",
+    status := .proven, prop := ``JuliaLean.Proofs.base.range.Models1Group8.HiprecIndexConversionError, thm := some ``JuliaLean.ChatGPT.Batch9.Group16.Models1G8HiprecIndexConversionError_proven, notes := "Independent error-order invariant over the complete existing interface domain." },
+  { id := "range-ascending-initial-step-error", juliaFile := "base/range.jl",
+    juliaFns := ["first_step_last_ascending(r::StepRange)"],
+    statement := "Ascending-endpoint normalization propagates the first step-query error before querying endpoints.",
+    source := "base/range.jl:1229-1235 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027",
+    status := .proven, prop := ``JuliaLean.Proofs.base.range.Models1Group8.AscendingInitialStepError, thm := some ``JuliaLean.ChatGPT.Batch9.Group16.Models1G8AscendingInitialStepError_proven, notes := "Independent error-order invariant over the complete existing interface domain." },
+  { id := "range-findin-span-first-error", juliaFile := "base/range.jl",
+    juliaFns := ["_findin(r::AbstractRange{<:Integer}, span::AbstractUnitRange{<:Integer})"],
+    statement := "Index-of-intersection calculation propagates the first span-endpoint error before querying the input range.",
+    source := "base/range.jl:1296-1313 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027",
+    status := .proven, prop := ``JuliaLean.Proofs.base.range.Models1Group8.FindinSpanFirstError, thm := some ``JuliaLean.ChatGPT.Batch9.Group16.Models1G8FindinSpanFirstError_proven, notes := "Independent error-order invariant over the complete existing interface domain." },
+  { id := "range-reverse-emptiness-error", juliaFile := "base/range.jl",
+    juliaFns := ["_reverse(r::StepRangeLen, ::Colon)"],
+    statement := "StepRangeLen reversal propagates an emptiness-query error before negating the step or constructing a result.",
+    source := "base/range.jl:1446-1452 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027",
+    status := .proven, prop := ``JuliaLean.Proofs.base.range.Models1Group8.ReverseEmptinessError, thm := some ``JuliaLean.ChatGPT.Batch9.Group16.Models1G8ReverseEmptinessError_proven, notes := "Independent error-order invariant over the complete existing interface domain." }
+]
+
+end JuliaLean.Proofs.base.range
+
+
+namespace JuliaLean.Proofs.base.range.Models2Group20
+
+
+open JuliaLean.base.range
+open JuliaLean.base.range.Models2Group20
+open scoped JuliaLean.base.range.Models2Group20
+
+/-- Property-only state/error semantics: mutations survive exceptions and
+`none` represents divergence, as in `JuliaLean.base.io.M`. -/
+abbrev LinShowEffect (Error World A : Type) :=
+  World → Option (Except (Error × World) (A × World))
+
+scoped instance linShowEffectMonad {Error World : Type} : Monad (LinShowEffect Error World) where
+  pure value := fun world => some (.ok (value, world))
+  bind action next := fun world => do
+    match ← action world with
+    | .error failure => pure (.error failure)
+    | .ok (value, world') => next value world'
+
+/-- Observe dataflow, errors and the final result, without specifying the
+complete print sequence. Every dispatched call contributes an event. -/
+inductive LinShowEvent (Stream Context T L Error World Result : Type) where
+  | call
+  | typeShown (stream : Stream)
+  | context (stream : Stream) (key : ContextKey) (context : Context)
+  | endpoint (context : Context) (value : T)
+  | count (stream : Stream) (value : L)
+  | closed (stream : Stream) (character : Char) (value : Result)
+  | failed (error : Error) (world : World)
+
+section LinShowObservationVocabulary
+variable {Stream Context T L PrintResult TypeResult ValueResult LengthResult Result Error World A : Type}
+local notation "Ev" => LinShowEvent Stream Context T L Error World Result
+
+/-- Forward a callee without changing its result, error, or mutable state. -/
+def linShowObserveCall (before : List Ev) (after : A → List Ev)
+    (action : LinShowEffect Error World A) : LinShowEffect Error (World × List Ev) A :=
+  fun (world, trace) =>
+    let trace := trace ++ before
+    match action world with
+    | none => none
+    | some (.error (error, world')) =>
+        some (.error (error, (world', trace ++ [.failed error world'])))
+    | some (.ok (value, world')) =>
+        some (.ok (value, (world', trace ++ after value)))
+
+/-- No laws about any selected printer or context constructor are assumed. -/
+def linShowTraceOps
+    (ops : LinShowOps (LinShowEffect Error World)
+      Stream Context T L PrintResult TypeResult ValueResult LengthResult Result) :
+    LinShowOps (LinShowEffect Error (World × List Ev))
+      Stream Context T L PrintResult TypeResult ValueResult LengthResult Result where
+  printString io text := linShowObserveCall [.call] (fun _ => []) (ops.printString io text)
+  showType io type := linShowObserveCall [.typeShown io] (fun _ => []) (ops.showType io type)
+  context io key type :=
+    linShowObserveCall [.call] (fun ctx => [.context io key ctx]) (ops.context io key type)
+  showValue ctx value := linShowObserveCall [.endpoint ctx value] (fun _ => []) (ops.showValue ctx value)
+  showLength io value := linShowObserveCall [.count io value] (fun _ => []) (ops.showLength io value)
+  printChar io ch := linShowObserveCall [.call] (fun result => [.closed io ch result]) (ops.printChar io ch)
+
+def linShowTypes (trace : List Ev) : List Stream :=
+  trace.filterMap fun event => match event with
+    | .typeShown io => some io
+    | _ => none
+
+def linShowContexts (trace : List Ev) : List (Stream × ContextKey × Context) :=
+  trace.filterMap fun event => match event with
+    | .context io key ctx => some (io, key, ctx)
+    | _ => none
+
+def linShowEndpoints (trace : List Ev) : List (Context × T) :=
+  trace.filterMap fun event => match event with
+    | .endpoint ctx value => some (ctx, value)
+    | _ => none
+
+def linShowCounts (trace : List Ev) : List (Stream × L) :=
+  trace.filterMap fun event => match event with
+    | .count io value => some (io, value)
+    | _ => none
+
+def linShowFailures (trace : List Ev) : List (Error × World) :=
+  trace.filterMap fun event => match event with
+    | .failed error world => some (error, world)
+    | _ => none
+
+def linShowClosingResults (trace : List Ev) : List (Stream × Char × Result) :=
+  trace.filterMap fun event => match event with
+    | .closed io ch value => some (io, ch, value)
+    | _ => none
+
+/-- Interrupted output uses only the stored endpoint values, in endpoint order,
+and the context actually returned for this stream and `:typeinfo`. Length
+rendering uses the original stream after both endpoints have been visited. -/
+def LinShowFieldRouting (io : Stream) (r : LinRange T L) (trace : List Ev) : Prop :=
+  (linShowTypes trace).IsPrefix [io] ∧
+  (match linShowContexts trace with
+  | [] => linShowEndpoints trace = [] ∧ linShowCounts trace = []
+  | [(io', key, ctx)] =>
+      io' = io ∧ key = .typeinfo ∧ linShowTypes trace = [io] ∧
+      (linShowEndpoints trace).IsPrefix [(ctx, r.start), (ctx, r.stop)] ∧
+      (linShowCounts trace).IsPrefix [(io, r.len)] ∧
+      (linShowCounts trace ≠ [] → linShowEndpoints trace = [(ctx, r.start), (ctx, r.stop)])
+  | _ => False)
+
+/-- Successful display visits the represented type, endpoints and length once. -/
+def LinShowCompleteFieldRouting (io : Stream) (r : LinRange T L) (trace : List Ev) : Prop :=
+  linShowTypes trace = [io] ∧
+  ∃ ctx, linShowContexts trace = [(io, .typeinfo, ctx)] ∧
+    linShowEndpoints trace = [(ctx, r.start), (ctx, r.stop)] ∧
+    linShowCounts trace = [(io, r.len)]
+
+def LinShowRoutingObservation (io : Stream) (r : LinRange T L)
+    (result : Option (Except (Error × (World × List Ev)) (Result × (World × List Ev)))) : Prop :=
+  match result with
+  | none => True
+  | some (.error (_, (_, trace))) => LinShowFieldRouting io r trace
+  | some (.ok (value, (_, trace))) =>
+      LinShowCompleteFieldRouting io r trace ∧
+      linShowClosingResults trace = [(io, ')', value)] ∧
+      trace.getLast? = some (.closed io ')' value)
+
+def LinShowFailureObservation
+    (result : Option (Except (Error × (World × List Ev)) (Result × (World × List Ev)))) : Prop :=
+  match result with
+  | none => True
+  | some (.error (error, (world, trace))) =>
+      linShowFailures trace = [(error, world)] ∧
+      trace.getLast? = some (.failed error world) ∧ linShowClosingResults trace = []
+  | some (.ok (_, (_, trace))) => linShowFailures trace = []
+
+end LinShowObservationVocabulary
+
+/-- LinRange display preserves represented data and contextual routing for all
+dispatch targets, including partially failed displays. Successful display sends
+the stored start/stop to the actual returned typeinfo context and stored length
+to the original stream, each once, and returns the closing printer's value.
+
+Julia source: base/range.jl:634-645,808,870,879
+@ f755f49a9e41380d7da126b3c1db9fe7f83dd027.
+Documentation: doc/src/manual/networking-and-streams.md:102-119;
+base/show.jl:384-397; doc/src/manual/types.md:1510-1548.
+Every field, stream, context, world, error and callback result is quantified.
+No callee-correctness, successful-run or purity premise is imposed. The
+instrumentation forwards arbitrary original effects; the expected invariant
+does not copy the model's literal output sequence. -/
+def LinRangeShowFieldRouting : Prop :=
+  ∀ (Error World Stream Context T L PrintResult TypeResult ValueResult LengthResult Result : Type)
+    (ops : LinShowOps (LinShowEffect Error World)
+      Stream Context T L PrintResult TypeResult ValueResult LengthResult Result)
+    (io : Stream) (r : LinRange T L) (world : World),
+    LinShowRoutingObservation io r (showLinRange (linShowTraceOps ops) io r (world, []))
+
+/-- For any stream operations, a failing LinRange display returns the first
+failed callee's exact exception and post-call state, including partial writes,
+and invokes no later operation. Successful display has no hidden caught
+failures. Nontermination is represented separately from Julia exceptions.
+
+Julia source: base/range.jl:634-645
+@ f755f49a9e41380d7da126b3c1db9fe7f83dd027.
+Documentation: doc/src/manual/control-flow.md:830-854 (exception propagation) and
+doc/src/manual/networking-and-streams.md:102-119 (stream output).
+All dispatch targets, arbitrary error classes, mutations, inputs and return
+types are universally quantified; no callee correctness law is assumed. -/
+def LinRangeShowFailurePreservesState : Prop :=
+  ∀ (Error World Stream Context T L PrintResult TypeResult ValueResult LengthResult Result : Type)
+    (ops : LinShowOps (LinShowEffect Error World)
+      Stream Context T L PrintResult TypeResult ValueResult LengthResult Result)
+    (io : Stream) (r : LinRange T L) (world : World),
+    LinShowFailureObservation (showLinRange (linShowTraceOps ops) io r (world, []))
+
+
+open JuliaLean.base.range
+open JuliaLean.base.range.Models2Group20
+
+/-- An arbitrary callee exception is distinct from a caller-introduced
+condition/constructor error. Callees may also throw caller-class exceptions. -/
+inductive PrintRangeTestError (Bad Foreign : Type) where
+  | caller (error : PrintRangeError Bad)
+  | callee (error : Foreign)
+
+scoped instance printRangeTestExcept {Bad Foreign World : Type} :
+    MonadExceptOf (PrintRangeError Bad) (LinShowEffect (PrintRangeTestError Bad Foreign) World) where
+  throw error := fun world => some (.error (.caller error, world))
+  tryCatch action handler := fun world =>
+    match action world with
+    | none => none
+    | some (.ok result) => some (.ok result)
+    | some (.error (.callee error, world')) => some (.error (.callee error, world'))
+    | some (.error (.caller error, world')) => handler error world'
+
+/-- Only direct framing calls are specified; arbitrary callees may themselves
+emit arbitrary output. Row framing also records the passed index and separator. -/
+inductive PrintRangeFrame (Str : Type) where
+  | text (value : Str)
+  | row (index : JInt64) (separator : Str)
+
+inductive PrintRangeEvent (Stream Str Bad Foreign World Result : Type) where
+  | call
+  | context (original : Stream) (key : ContextKey) (flag : Bool) (selected : Stream)
+  | output (stream : Stream) (frame : PrintRangeFrame Str)
+  | printed (stream : Stream) (text : Str) (result : Result)
+  | condition (result : Condition Bad) (world : World)
+  | failed (error : PrintRangeTestError Bad Foreign) (world : World)
+
+section PrintRangeObservationVocabulary
+variable {Stream R Str Size V Cols Cat Slice Matrix Axis Index Align Mapped HasKey Bad Result RowResult Foreign World A : Type}
+local notation "Err" => PrintRangeTestError Bad Foreign
+local notation "Ev" => PrintRangeEvent Stream Str Bad Foreign World Result
+
+/-- Observe calls without changing their values, mutations or exceptions. -/
+def printRangeObserve (before : List Ev) (after : A → World → List Ev)
+    (action : LinShowEffect Err World A) : LinShowEffect Err (World × List Ev) A :=
+  fun (world, trace) =>
+    let trace := trace ++ before
+    match action world with
+    | none => none
+    | some (.error (error, world')) =>
+        some (.error (error, (world', trace ++ [.failed error world'])))
+    | some (.ok (value, world')) =>
+        some (.ok (value, (world', trace ++ after value world')))
+
+/-- Every operation is observed, including arithmetic and array calls between
+output calls. There is no callee-correctness assumption. -/
+def printRangeTraceOps
+    (ops : PrintRangeOps (LinShowEffect Err World)
+      Stream R Str Size V Cols Cat Slice Matrix Axis Index Align Mapped HasKey Bad Result RowResult) :
+    PrintRangeOps (LinShowEffect Err (World × List Ev))
+      Stream R Str Size V Cols Cat Slice Matrix Axis Index Align Mapped HasKey Bad Result RowResult where
+  displaysize io := printRangeObserve [.call] (fun _ _ => []) (ops.displaysize io)
+  haskey io key := printRangeObserve [.call] (fun _ _ => []) (ops.haskey io key)
+  not value := printRangeObserve [.call] (fun c world => [.condition c world]) (ops.not value)
+  context io key flag := printRangeObserve [.call] (fun selected _ => [.context io key flag selected]) (ops.context io key flag)
+  sizeGetindex size i := printRangeObserve [.call] (fun _ _ => []) (ops.sizeGetindex size i)
+  lengthString text := printRangeObserve [.call] (fun _ _ => []) (ops.lengthString text)
+  lengthRange r := printRangeObserve [.call] (fun _ _ => []) (ops.lengthRange r)
+  add a b := printRangeObserve [.call] (fun _ _ => []) (ops.add a b)
+  sub a b := printRangeObserve [.call] (fun _ _ => []) (ops.sub a b)
+  mul a b := printRangeObserve [.call] (fun _ _ => []) (ops.mul a b)
+  div a b := printRangeObserve [.call] (fun _ _ => []) (ops.div a b)
+  le a b := printRangeObserve [.call] (fun c world => [.condition c world]) (ops.le a b)
+  colon2 a b := printRangeObserve [.call] (fun _ _ => []) (ops.colon2 a b)
+  colon3 a step b := printRangeObserve [.call] (fun _ _ => []) (ops.colon3 a step b)
+  vcat a b := printRangeObserve [.call] (fun _ _ => []) (ops.vcat a b)
+  getindex r indices := printRangeObserve [.call] (fun _ _ => []) (ops.getindex r indices)
+  lengthSelection indices := printRangeObserve [.call] (fun _ _ => []) (ops.lengthSelection indices)
+  reshape slice n len := printRangeObserve [.call] (fun _ _ => []) (ops.reshape slice n len)
+  size matrix dim := printRangeObserve [.call] (fun _ _ => []) (ops.size matrix dim)
+  axes matrix dim := printRangeObserve [.call] (fun _ _ => []) (ops.axes matrix dim)
+  lastAxis axis := printRangeObserve [.call] (fun _ _ => []) (ops.lastAxis axis)
+  lengthMatrix matrix := printRangeObserve [.call] (fun _ _ => []) (ops.lengthMatrix matrix)
+  alignment io matrix rows cols complete other sep nrow :=
+    printRangeObserve [.call] (fun _ _ => []) (ops.alignment io matrix rows cols complete other sep nrow)
+  lengthAlignment a := printRangeObserve [.call] (fun _ _ => []) (ops.lengthAlignment a)
+  reverse a := printRangeObserve [.call] (fun _ _ => []) (ops.reverse a)
+  mapSum sum a := printRangeObserve [.call] (fun _ _ => []) (ops.mapSum sum a)
+  sum values := printRangeObserve [.call] (fun _ _ => []) (ops.sum values)
+  print io text :=
+    printRangeObserve [.output io (.text text)] (fun result _ => [.printed io text result])
+      (ops.print io text)
+  printMatrixRow io matrix alignment row cols sep last :=
+    printRangeObserve [.output io (.row row sep)] (fun _ _ => [])
+      (ops.printMatrixRow io matrix alignment row cols sep last)
+
+def printRangeContexts (trace : List Ev) : List (Stream × ContextKey × Bool × Stream) :=
+  trace.filterMap fun event => match event with
+    | .context original key flag selected => some (original, key, flag, selected)
+    | _ => none
+
+def printRangeOutputs (trace : List Ev) : List (Stream × PrintRangeFrame Str) :=
+  trace.filterMap fun event => match event with
+    | .output io frame => some (io, frame)
+    | _ => none
+
+def printRangeFailures (trace : List Ev) : List (Err × World) :=
+  trace.filterMap fun event => match event with
+    | .failed error world => some (error, world)
+    | _ => none
+
+def printRangeBadConditions (trace : List Ev) : List (Bad × World) :=
+  trace.filterMap fun event => match event with
+    | .condition (.other value) world => some (value, world)
+    | _ => none
+
+/-- IOContext is created at most once, for compact output; its actual return
+value is the only alternate stream passed to direct framing calls. -/
+def PrintRangeSelectedStream (original selected : Stream) (trace : List Ev) : Prop :=
+  (printRangeContexts trace = [] ∧ selected = original) ∨
+  printRangeContexts trace = [(original, .compact, true, selected)]
+
+/-- The documented framing alternatives. This specifies no width calculation,
+selected element values, array implementation, or behavior of a printer. -/
+def printRangeFrames (io : Stream) (pre sep post hdots : Str) :
+    List (Stream × PrintRangeFrame Str) × List (Stream × PrintRangeFrame Str) :=
+  ([(io, .text pre), (io, .row (jint 1) sep), (io, .text post)],
+   [(io, .text pre), (io, .row (jint 1) sep), (io, .text hdots),
+    (io, .row (jint 1) sep), (io, .text post)])
+
+def PrintRangeFramingObservation (io : Stream) (pre sep post hdots : Str)
+    (result : Option (Except (Err × (World × List Ev)) (Result × (World × List Ev)))) : Prop :=
+  match result with
+  | none => True
+  | some (.error (_, (_, trace))) =>
+      ∃ selected, PrintRangeSelectedStream io selected trace ∧
+        ((printRangeOutputs trace).IsPrefix (printRangeFrames selected pre sep post hdots).1 ∨
+         (printRangeOutputs trace).IsPrefix (printRangeFrames selected pre sep post hdots).2)
+  | some (.ok (value, (_, trace))) =>
+      ∃ selected, PrintRangeSelectedStream io selected trace ∧
+        (printRangeOutputs trace = (printRangeFrames selected pre sep post hdots).1 ∨
+         printRangeOutputs trace = (printRangeFrames selected pre sep post hdots).2) ∧
+        trace.getLast? = some (.printed selected post value)
+
+/-- The error and world are read independently from the last dispatched-call
+observation, or from the condition value that triggers Julia's Bool check.
+An earlier failed call or non-Bool condition cannot be silently ignored. -/
+def PrintRangeFailureObservation
+    (result : Option (Except (Err × (World × List Ev)) (Result × (World × List Ev)))) : Prop :=
+  match result with
+  | none => True
+  | some (.ok (_, (_, trace))) =>
+      printRangeFailures trace = [] ∧ printRangeBadConditions trace = []
+  | some (.error (error, (world, trace))) =>
+      match trace.getLast? with
+      | some (.failed observed after) =>
+          error = observed ∧ world = after ∧
+          printRangeFailures trace = [(error, world)] ∧ printRangeBadConditions trace = []
+      | some (.condition (.other bad) after) =>
+          error = .caller (.typeError bad) ∧ world = after ∧
+          printRangeFailures trace = [] ∧ printRangeBadConditions trace = [(bad, world)]
+      | _ => False
+
+end PrintRangeObservationVocabulary
+
+/-- `print_range`'s direct framing protocol respects its supplied prefix,
+separator, suffix and optional horizontal ellipsis. All direct output uses the
+original stream or the single compact context actually returned, row rendering
+uses row one, and successful return preserves the final suffix-printer result.
+An interrupted display is a prefix of a permitted framing protocol.
+
+Julia source/documentation: base/range.jl:647-701
+@ f755f49a9e41380d7da126b3c1db9fe7f83dd027, especially the roles of pre/post,
+sep and hdots at 655-659; base/arrayshow.jl:93-98 for row rendering.
+All arbitrary dispatch targets, arrays/strings/IO values, intermediate dynamic
+carriers, errors, mutable worlds and results are universally quantified. No
+width, indexing, printer-correctness, purity or successful-run law is assumed.
+The invariant constrains direct call arguments, not bytes arbitrary user code
+may itself emit. -/
+def PrintRangeFramingProtocol : Prop :=
+  ∀ (Stream R Str Size V Cols Cat Slice Matrix Axis Index Align Mapped HasKey Bad Result RowResult Foreign World : Type)
+    (ops : PrintRangeOps (LinShowEffect (PrintRangeTestError Bad Foreign) World)
+      Stream R Str Size V Cols Cat Slice Matrix Axis Index Align Mapped HasKey Bad Result RowResult)
+    (io : Stream) (r : R) (pre sep post hdots : Str) (world : World),
+    PrintRangeFramingObservation io pre sep post hdots
+      (printRange (printRangeTraceOps ops) io r pre sep post hdots (world, []))
+
+/-- Every terminating `print_range` failure preserves the failed callee's exact
+exception and post-call state, or raises TypeError immediately at a non-Bool
+condition without losing its evaluation's mutations. No later call follows
+either failure; success cannot contain a hidden ignored failure.
+
+Julia source: base/range.jl:660-701
+@ f755f49a9e41380d7da126b3c1db9fe7f83dd027.
+Documentation: doc/src/manual/control-flow.md:176-192 (Bool conditions),
+830-854 (exception propagation). All operations and states are arbitrary,
+without callee laws. Native `1:m` uses installed colon for m=1; it cannot fail.
+`none` denotes divergence separately from exceptions. -/
+def PrintRangeFailurePreservesState : Prop :=
+  ∀ (Stream R Str Size V Cols Cat Slice Matrix Axis Index Align Mapped HasKey Bad Result RowResult Foreign World : Type)
+    (ops : PrintRangeOps (LinShowEffect (PrintRangeTestError Bad Foreign) World)
+      Stream R Str Size V Cols Cat Slice Matrix Axis Index Align Mapped HasKey Bad Result RowResult)
+    (io : Stream) (r : R) (pre sep post hdots : Str) (world : World),
+    PrintRangeFailureObservation
+      (printRange (printRangeTraceOps ops) io r pre sep post hdots (world, []))
+
+
+open JuliaLean JuliaLean.base.range
+open JuliaLean.base.range.Models2Group20
+
+/-- Property-only observations. Every callee contributes a call marker, so
+an invocation after a failed callee is detectable even if it has no other event. -/
+inductive ScalarAudit (Event Error World : Type) where
+  | call
+  | note (event : Event)
+  | failed (error : Error) (world : World)
+
+/-- Forward arbitrary effects and observe their arguments, results and failure
+state. This is instrumentation, not a correctness assumption on a callee. -/
+def scalarObserve {Event Error World A : Type}
+    (before : List Event) (after : A → World → List Event)
+    (action : LinShowEffect Error World A) :
+    LinShowEffect Error (World × List (ScalarAudit Event Error World)) A :=
+  fun (world, trace) =>
+    let trace := trace ++ [.call] ++ before.map ScalarAudit.note
+    match action world with
+    | none => none
+    | some (.error (error, world')) =>
+        some (.error (error, (world', trace ++ [.failed error world'])))
+    | some (.ok (value, world')) =>
+        some (.ok (value, (world', trace ++ (after value world').map ScalarAudit.note)))
+
+def scalarSelect {Event Error World A : Type} (select : Event → Option A)
+    (trace : List (ScalarAudit Event Error World)) : List A :=
+  trace.filterMap fun event => match event with
+    | .note value => select value
+    | _ => none
+
+def scalarFailures {Event Error World : Type}
+    (trace : List (ScalarAudit Event Error World)) : List (Error × World) :=
+  trace.filterMap fun event => match event with
+    | .failed error world => some (error, world)
+    | _ => none
+
+/-- The exact error and changed world must be the sole recorded failure, which
+must be the final event. Success cannot hide a caught or ignored callee failure. -/
+def ScalarFailureObservation {Event Error World Result : Type}
+    (result : Option (Except (Error × (World × List (ScalarAudit Event Error World)))
+      (Result × (World × List (ScalarAudit Event Error World))))) : Prop :=
+  match result with
+  | none => True
+  | some (.error (error, (world, trace))) =>
+      scalarFailures trace = [(error, world)] ∧
+      trace.getLast? = some (.failed error world)
+  | some (.ok (_, (_, trace))) => scalarFailures trace = []
+
+/-- Eagerness and value-routing observations do not interpret comparison
+results as Booleans or assume laws about the supplied comparisons. -/
+inductive StepEmptyEvent (T S Z E D Result : Type) where
+  | endpointComparison (start stop : T)
+  | endpointResult (value : E)
+  | zeroRequest (step : S)
+  | zeroResult (value : Z)
+  | stepComparison (step : S) (zero : Z)
+  | rangeDirection (stop start : T)
+  | directionsResult (value : D)
+  | conjunction (left : E) (right : D)
+  | finished (left : E) (right : D) (value : Result)
+
+section StepEmptyObservations
+variable {T S Z E G H D Result Error World : Type}
+local notation "Ev" => StepEmptyEvent T S Z E D Result
+local notation "Trace" => List (ScalarAudit Ev Error World)
+
+def stepEmptyTraceOps
+    (ops : StepEmptyOps (LinShowEffect Error World) T S Z E G H D Result) :
+    StepEmptyOps (LinShowEffect Error (World × Trace)) T S Z E G H D Result where
+  neEndpoints start stop :=
+    scalarObserve [.endpointComparison start stop] (fun e _ => [.endpointResult e])
+      (ops.neEndpoints start stop)
+  zeroStep step := scalarObserve [.zeroRequest step] (fun z _ => [.zeroResult z]) (ops.zeroStep step)
+  gtStep step zero := scalarObserve [.stepComparison step zero] (fun _ _ => []) (ops.gtStep step zero)
+  gtEndpoints stop start := scalarObserve [.rangeDirection stop start] (fun _ _ => []) (ops.gtEndpoints stop start)
+  neDirections positive increasing :=
+    scalarObserve [] (fun d _ => [.directionsResult d]) (ops.neDirections positive increasing)
+  and left right :=
+    scalarObserve [.conjunction left right] (fun result _ => [.finished left right result]) (ops.and left right)
+
+def stepEmptyEndpointArgs (trace : Trace) : List (T × T) :=
+  scalarSelect (fun event => match event with | .endpointComparison a b => some (a, b) | _ => none) trace
+
+def stepEmptyLeftResults (trace : Trace) : List E :=
+  scalarSelect (fun event => match event with | .endpointResult value => some value | _ => none) trace
+
+def stepEmptyZeroRequests (trace : Trace) : List S :=
+  scalarSelect (fun event => match event with | .zeroRequest value => some value | _ => none) trace
+
+def stepEmptyZeroResults (trace : Trace) : List Z :=
+  scalarSelect (fun event => match event with | .zeroResult value => some value | _ => none) trace
+
+def stepEmptyStepArgs (trace : Trace) : List (S × Z) :=
+  scalarSelect (fun event => match event with | .stepComparison step zero => some (step, zero) | _ => none) trace
+
+def stepEmptyDirectionArgs (trace : Trace) : List (T × T) :=
+  scalarSelect (fun event => match event with | .rangeDirection stop start => some (stop, start) | _ => none) trace
+
+def stepEmptyRightResults (trace : Trace) : List D :=
+  scalarSelect (fun event => match event with | .directionsResult value => some value | _ => none) trace
+
+def stepEmptyConjunctionArgs (trace : Trace) : List (E × D) :=
+  scalarSelect (fun event => match event with | .conjunction left right => some (left, right) | _ => none) trace
+
+/-- A completed left operand always begins the right operand on any terminating
+run, independent of the left value. Endpoint orientation is preserved. -/
+def StepEmptyEagerPrefix (r : StepRange T S) (trace : Trace) : Prop :=
+  stepEmptyEndpointArgs trace = [(r.start, r.stop)] ∧
+  (stepEmptyZeroRequests trace).IsPrefix [r.step] ∧
+  (stepEmptyDirectionArgs trace).IsPrefix [(r.stop, r.start)] ∧
+  (stepEmptyLeftResults trace ≠ [] → stepEmptyZeroRequests trace = [r.step])
+
+/-- Successful execution evaluates both sides, uses the observed zero value
+and returns the selected conjunction's result without coercing it to Bool. -/
+def StepEmptyComplete (r : StepRange T S) (result : Result) (trace : Trace) : Prop :=
+  StepEmptyEagerPrefix r trace ∧
+  ∃ left zero right,
+    stepEmptyLeftResults trace = [left] ∧ stepEmptyZeroResults trace = [zero] ∧
+    stepEmptyStepArgs trace = [(r.step, zero)] ∧
+    stepEmptyDirectionArgs trace = [(r.stop, r.start)] ∧
+    stepEmptyRightResults trace = [right] ∧
+    stepEmptyConjunctionArgs trace = [(left, right)] ∧
+    trace.getLast? = some (.note (.finished left right result))
+
+def StepEmptyEagerObservation (r : StepRange T S)
+    (result : Option (Except (Error × (World × Trace)) (Result × (World × Trace)))) : Prop :=
+  match result with
+  | none => True
+  | some (.error (_, (_, trace))) => StepEmptyEagerPrefix r trace
+  | some (.ok (value, (_, trace))) => StepEmptyComplete r value trace
+
+end StepEmptyObservations
+
+/-- StepRange's emptiness predicate evaluates the right operand of `&` after
+any successful left operand, even when that operand is false or non-Bool.
+Successful calls perform both directional comparisons once, retain the actual
+zero result and pass both observed operands to the selected conjunction.
+Its arbitrary result is returned unchanged. Every failure retains its exact
+exception and mutated world with no subsequent call.
+
+Julia source: base/range.jl:708-710
+@ f755f49a9e41380d7da126b3c1db9fe7f83dd027.
+Documentation: doc/src/manual/control-flow.md:262-280,361-378 (eager `&` versus
+short-circuit logic),769-859 (exception propagation).
+Every field, effectful callee, intermediate result type, error and world is
+quantified without correctness, purity or successful-run assumptions.
+The invariant concerns eagerness, operand routing and failure preservation,
+not a copied Boolean expression or a law assumed of custom operators. -/
+def StepRangeEmptyEagerEffects : Prop :=
+  ∀ (T S Z E G H D Result Error World : Type)
+    (ops : StepEmptyOps (LinShowEffect Error World) T S Z E G H D Result)
+    (r : StepRange T S) (world : World),
+    let observed := isemptyStepRange (stepEmptyTraceOps ops) r (world, [])
+    StepEmptyEagerObservation r observed ∧ ScalarFailureObservation observed
+
+inductive LinStepEvent (T L Difference Result : Type) where
+  | subtraction (stop start : T)
+  | difference (value : Difference)
+  | division (difference : Difference) (divisor : L)
+  | returned (value : Result)
+
+section LinStepObservations
+variable {T L Difference Result Error World : Type}
+local notation "Ev" => LinStepEvent T L Difference Result
+local notation "Trace" => List (ScalarAudit Ev Error World)
+
+def linStepTraceOps (ops : LinStepOps (LinShowEffect Error World) T L Difference Result) :
+    LinStepOps (LinShowEffect Error (World × Trace)) T L Difference Result where
+  sub stop start :=
+    scalarObserve [.subtraction stop start] (fun d _ => [.difference d]) (ops.sub stop start)
+  div difference divisor :=
+    scalarObserve [.division difference divisor] (fun result _ => [.returned result])
+      (ops.div difference divisor)
+
+def linStepSubtractions (trace : Trace) : List (T × T) :=
+  scalarSelect (fun event => match event with | .subtraction stop start => some (stop, start) | _ => none) trace
+
+def linStepDifferences (trace : Trace) : List Difference :=
+  scalarSelect (fun event => match event with | .difference value => some value | _ => none) trace
+
+def linStepDivisions (trace : Trace) : List (Difference × L) :=
+  scalarSelect (fun event => match event with | .division d divisor => some (d, divisor) | _ => none) trace
+
+/-- The observed endpoint difference reaches division exactly once with the
+stored spacing divisor; subtraction failure prevents any division attempt. -/
+def LinStepFieldRouting (r : LinRange T L) (trace : Trace) : Prop :=
+  linStepSubtractions trace = [(r.stop, r.start)] ∧
+  match linStepDifferences trace with
+  | [] => linStepDivisions trace = []
+  | [difference] => linStepDivisions trace = [(difference, r.lendiv)]
+  | _ => False
+
+def LinStepObservation (r : LinRange T L)
+    (result : Option (Except (Error × (World × Trace)) (Result × (World × Trace)))) : Prop :=
+  match result with
+  | none => True
+  | some (.error (_, (_, trace))) => LinStepFieldRouting r trace
+  | some (.ok (value, (_, trace))) =>
+      LinStepFieldRouting r trace ∧ linStepDifferences trace ≠ [] ∧
+      trace.getLast? = some (.note (.returned value))
+
+end LinStepObservations
+
+/-- LinRange spacing uses the stored endpoint difference and spacing divisor,
+not the number of elements. Arithmetic failures, including checked Rational
+subtraction, retain the exact exception and post-call state; division cannot
+run after a failed subtraction. Successful return retains the selected division's
+arbitrary result.
+
+Julia source/documentation: base/range.jl:715-740,870,879
+@ f755f49a9e41380d7da126b3c1db9fe7f83dd027; doc/src/manual/control-flow.md:769-859.
+All endpoints, length types, arithmetic targets, errors and states are quantified.
+No arithmetic-correctness or successful-run premise is imposed. The observations
+refer to stored data and actual call outcomes, not a supplied law for a callee. -/
+def LinRangeStepArithmeticEffects : Prop :=
+  ∀ (T L Difference Result Error World : Type)
+    (ops : LinStepOps (LinShowEffect Error World) T L Difference Result)
+    (r : LinRange T L) (world : World),
+    let observed := stepLinRange (linStepTraceOps ops) r (world, [])
+    LinStepObservation r observed ∧ ScalarFailureObservation observed
+
+/-- The count field has no influence on this method once endpoint and spacing
+fields are fixed. This read-independence invariant is meaningful even for
+erroring, mutating and diverging arithmetic; it detects replacing lendiv by len.
+Julia source: base/range.jl:740,870,879
+@ f755f49a9e41380d7da126b3c1db9fe7f83dd027.
+The claim ranges over every representation, hence in particular every
+constructible LinRange, and assumes no correctness law about arithmetic. -/
+def LinRangeStepCountIndependent : Prop :=
+  ∀ (T L Difference Result Error World : Type)
+    (ops : LinStepOps (LinShowEffect Error World) T L Difference Result)
+    (start stop : T) (count₁ count₂ divisor : L) (world : World),
+    stepLinRange ops ⟨start, stop, count₁, divisor⟩ world =
+      stepLinRange ops ⟨start, stop, count₂, divisor⟩ world
+
+/-- Caller errors and arbitrary dispatch exceptions remain distinguishable.
+A callee may itself throw an exception of the caller's class. -/
+inductive UnitLengthTestError (Bad Foreign : Type) where
+  | caller (error : PrintRangeError Bad)
+  | callee (error : Foreign)
+
+scoped instance unitLengthTestExcept {Bad Foreign World : Type} :
+    MonadExceptOf (PrintRangeError Bad) (LinShowEffect (UnitLengthTestError Bad Foreign) World) where
+  throw error := fun world => some (.error (.caller error, world))
+  tryCatch action handler := fun world =>
+    match action world with
+    | none => none
+    | some (.ok result) => some (.ok result)
+    | some (.error (.callee error, world')) => some (.error (.callee error, world'))
+    | some (.error (.caller error, world')) => handler error world'
+
+/-- The observations expose scale formation and branch effects without
+specifying any arithmetic answer for arbitrary custom numbers. -/
+inductive UnitLengthEvent (First Last Signed Other Bad Result World : Type) where
+  | firstValue (value : First)
+  | lastValue (value : Last)
+  | zeroOfFirst (value : First)
+  | zeroOfLast (value : Last)
+  | zeroDifference
+  | unit (value : Sum Signed Other)
+  | comparison (stop : Last) (start : First)
+  | condition (value : Condition Bad) (world : World)
+  | subtraction (stop : Last) (start : First)
+  | addUnit (value : Sum Signed Other)
+  | zeroUnit (value : Other)
+  | integerUpdated
+  | integerEmpty
+  | result (value : Result)
+
+section UnitLengthObservations
+variable {R First Last ZeroLast ZeroFirst ZeroDiff Signed Other Diff Updated Empty Result Bad Foreign World : Type}
+local notation "Err" => UnitLengthTestError Bad Foreign
+local notation "Ev" => UnitLengthEvent First Last Signed Other Bad Result World
+local notation "Trace" => List (ScalarAudit Ev Err World)
+
+def unitLengthTraceOps
+    (ops : UnitLengthOps (LinShowEffect Err World)
+      R First Last ZeroLast ZeroFirst ZeroDiff Signed Other Diff Updated Empty Result Bad) :
+    UnitLengthOps (LinShowEffect Err (World × Trace))
+      R First Last ZeroLast ZeroFirst ZeroDiff Signed Other Diff Updated Empty Result Bad where
+  first r := scalarObserve [] (fun value _ => [.firstValue value]) (ops.first r)
+  last r := scalarObserve [] (fun value _ => [.lastValue value]) (ops.last r)
+  zeroLast value := scalarObserve [.zeroOfLast value] (fun _ _ => []) (ops.zeroLast value)
+  zeroFirst value := scalarObserve [.zeroOfFirst value] (fun _ _ => []) (ops.zeroFirst value)
+  subZeros stop start := scalarObserve [.zeroDifference] (fun _ _ => []) (ops.subZeros stop start)
+  oneunit value := scalarObserve [] (fun unit _ => [.unit unit]) (ops.oneunit value)
+  ge stop start :=
+    scalarObserve [.comparison stop start] (fun condition world => [.condition condition world]) (ops.ge stop start)
+  subEndpoints stop start := scalarObserve [.subtraction stop start] (fun _ _ => []) (ops.subEndpoints stop start)
+  add unit difference := scalarObserve [.addUnit unit] (fun _ _ => []) (ops.add unit difference)
+  zeroOther other := scalarObserve [.zeroUnit other] (fun _ _ => []) (ops.zeroOther other)
+  integerUpdated value := scalarObserve [.integerUpdated] (fun result _ => [.result result]) (ops.integerUpdated value)
+  integerEmpty value := scalarObserve [.integerEmpty] (fun result _ => [.result result]) (ops.integerEmpty value)
+
+def unitLengthFirsts (trace : Trace) : List First :=
+  scalarSelect (fun event => match event with | .firstValue value => some value | _ => none) trace
+
+def unitLengthLasts (trace : Trace) : List Last :=
+  scalarSelect (fun event => match event with | .lastValue value => some value | _ => none) trace
+
+def unitLengthFirstZeros (trace : Trace) : List First :=
+  scalarSelect (fun event => match event with | .zeroOfFirst value => some value | _ => none) trace
+
+def unitLengthLastZeros (trace : Trace) : List Last :=
+  scalarSelect (fun event => match event with | .zeroOfLast value => some value | _ => none) trace
+
+def unitLengthZeroDifferences (trace : Trace) : List Unit :=
+  scalarSelect (fun event => match event with | .zeroDifference => some () | _ => none) trace
+
+def unitLengthUnits (trace : Trace) : List (Sum Signed Other) :=
+  scalarSelect (fun event => match event with | .unit value => some value | _ => none) trace
+
+def unitLengthComparisons (trace : Trace) : List (Last × First) :=
+  scalarSelect (fun event => match event with | .comparison stop start => some (stop, start) | _ => none) trace
+
+def unitLengthConditions (trace : Trace) : List (Condition Bad × World) :=
+  scalarSelect (fun event => match event with | .condition value world => some (value, world) | _ => none) trace
+
+def unitLengthSubtractions (trace : Trace) : List (Last × First) :=
+  scalarSelect (fun event => match event with | .subtraction stop start => some (stop, start) | _ => none) trace
+
+def unitLengthAdditions (trace : Trace) : List (Sum Signed Other) :=
+  scalarSelect (fun event => match event with | .addUnit value => some value | _ => none) trace
+
+def unitLengthEmptyUnits (trace : Trace) : List Other :=
+  scalarSelect (fun event => match event with | .zeroUnit value => some value | _ => none) trace
+
+def unitLengthUpdateConversions (trace : Trace) : List Unit :=
+  scalarSelect (fun event => match event with | .integerUpdated => some () | _ => none) trace
+
+def unitLengthEmptyConversions (trace : Trace) : List Unit :=
+  scalarSelect (fun event => match event with | .integerEmpty => some () | _ => none) trace
+
+/-- The Signed tag suppresses comparison even on interrupted runs. A false
+unsigned comparison avoids subtracting endpoints, so unsigned underflow is not
+introduced by this caller. No branch body starts after a non-Bool condition. -/
+def UnitLengthBranchIsolation (trace : Trace) : Prop :=
+  match unitLengthUnits trace with
+  | [] => unitLengthComparisons trace = [] ∧ unitLengthSubtractions trace = [] ∧
+      unitLengthAdditions trace = [] ∧ unitLengthEmptyUnits trace = []
+  | [.inl signed] => unitLengthComparisons trace = [] ∧ unitLengthConditions trace = [] ∧
+      unitLengthEmptyUnits trace = [] ∧ unitLengthEmptyConversions trace = [] ∧
+      (unitLengthAdditions trace).IsPrefix [.inl signed]
+  | [.inr other] =>
+      (match unitLengthConditions trace with
+      | [] => unitLengthSubtractions trace = [] ∧ unitLengthAdditions trace = [] ∧
+          unitLengthEmptyUnits trace = []
+      | [(.bool true, _)] => unitLengthEmptyUnits trace = [] ∧ unitLengthEmptyConversions trace = [] ∧
+          (unitLengthAdditions trace).IsPrefix [.inr other]
+      | [(.bool false, _)] => unitLengthSubtractions trace = [] ∧ unitLengthAdditions trace = [] ∧
+          unitLengthUpdateConversions trace = [] ∧ (unitLengthEmptyUnits trace).IsPrefix [other]
+      | [(.other _, _)] => unitLengthSubtractions trace = [] ∧ unitLengthAdditions trace = [] ∧
+          unitLengthEmptyUnits trace = [] ∧ unitLengthUpdateConversions trace = [] ∧
+          unitLengthEmptyConversions trace = []
+      | _ => False)
+  | _ => False
+
+/-- A successful length derives a scale from the actual endpoints and selects
+exactly one arithmetic/Integer-conversion route. Its value is the conversion's
+observed return, with no assumptions about its mathematical meaning. -/
+def UnitLengthComplete (value : Result) (trace : Trace) : Prop :=
+  UnitLengthBranchIsolation trace ∧
+  ∃ start stop unit,
+    unitLengthFirsts trace = [start] ∧ unitLengthLasts trace = [stop] ∧
+    unitLengthFirstZeros trace = [start] ∧ unitLengthLastZeros trace = [stop] ∧
+    unitLengthZeroDifferences trace = [()] ∧ unitLengthUnits trace = [unit] ∧
+    trace.getLast? = some (.note (.result value)) ∧
+    (match unit with
+    | .inl signed =>
+        unitLengthSubtractions trace = [(stop, start)] ∧ unitLengthAdditions trace = [.inl signed] ∧
+        unitLengthUpdateConversions trace = [()]
+    | .inr other =>
+        unitLengthComparisons trace = [(stop, start)] ∧
+        ((∃ world, unitLengthConditions trace = [(.bool true, world)] ∧
+          unitLengthSubtractions trace = [(stop, start)] ∧ unitLengthAdditions trace = [.inr other] ∧
+          unitLengthUpdateConversions trace = [()]) ∨
+         (∃ world, unitLengthConditions trace = [(.bool false, world)] ∧
+          unitLengthEmptyUnits trace = [other] ∧ unitLengthEmptyConversions trace = [()])))
+
+def UnitLengthBranchObservation
+    (result : Option (Except (Err × (World × Trace)) (Result × (World × Trace)))) : Prop :=
+  match result with
+  | none => True
+  | some (.error (_, (_, trace))) => UnitLengthBranchIsolation trace
+  | some (.ok (value, (_, trace))) => UnitLengthComplete value trace
+
+/-- Source-created TypeError is distinguished from a selected callee failure.
+Both preserve the exact state at their throw point, without a later call. -/
+def UnitLengthFailureObservation
+    (result : Option (Except (Err × (World × Trace)) (Result × (World × Trace)))) : Prop :=
+  match result with
+  | none => True
+  | some (.ok (_, (_, trace))) =>
+      scalarFailures trace = [] ∧
+      ∀ bad world, (.other bad, world) ∉ unitLengthConditions trace
+  | some (.error (error, (world, trace))) =>
+      match trace.getLast? with
+      | some (.failed observed after) =>
+          error = observed ∧ world = after ∧ scalarFailures trace = [(error, world)] ∧
+          ∀ bad failureWorld, (.other bad, failureWorld) ∉ unitLengthConditions trace
+      | some (.note (.condition (.other bad) after)) =>
+          error = .caller (.typeError bad) ∧ world = after ∧ scalarFailures trace = [] ∧
+          unitLengthConditions trace = [(.other bad, world)]
+      | _ => False
+
+end UnitLengthObservations
+
+/-- Generic unit-range length forms its unit from value-sensitive endpoint
+zeros. A Signed unit never evaluates endpoint ordering; a false non-Signed
+comparison takes the zero route without endpoint subtraction or addition.
+Successful execution selects exactly one Integer-conversion route and returns
+its observed value. These branch invariants also apply to interrupted runs.
+
+Julia source: base/range.jl:794-804, especially the explicit signed/unsigned
+underflow distinction at 798-801
+@ f755f49a9e41380d7da126b3c1db9fe7f83dd027.
+Documentation: doc/src/manual/control-flow.md:262-280 (short-circuit `||`).
+All ranges, first/last results, intermediate types, runtime Signed tags,
+comparison values, arithmetic targets, errors and states are quantified.
+No arithmetic, representation-normalization or callee-correctness law is assumed.
+This is an effect/branch invariant, not an unconditional cardinality claim for
+arbitrary user-defined operations. -/
+def UnitRangeLengthSignedBranch : Prop :=
+  ∀ (R First Last ZeroLast ZeroFirst ZeroDiff Signed Other Diff Updated Empty Result Bad Foreign World : Type)
+    (ops : UnitLengthOps (LinShowEffect (UnitLengthTestError Bad Foreign) World)
+      R First Last ZeroLast ZeroFirst ZeroDiff Signed Other Diff Updated Empty Result Bad)
+    (r : R) (world : World),
+    UnitLengthBranchObservation (lengthAbstractUnitRange (unitLengthTraceOps ops) r (world, []))
+
+/-- Generic unit-range length preserves the first selected callee's exception
+and mutated state, or raises TypeError exactly after a non-Bool ordering value.
+No operation follows either failure, and success has no hidden failure.
+
+Julia source: base/range.jl:794-804
+@ f755f49a9e41380d7da126b3c1db9fe7f83dd027.
+Documentation: doc/src/manual/control-flow.md:183-192 (Boolean conditions),
+769-859 (exception propagation). Every operation, input and state is arbitrary;
+no purity, successful-run or arithmetic-correctness premise is imposed. -/
+def UnitRangeLengthFailurePreservesState : Prop :=
+  ∀ (R First Last ZeroLast ZeroFirst ZeroDiff Signed Other Diff Updated Empty Result Bad Foreign World : Type)
+    (ops : UnitLengthOps (LinShowEffect (UnitLengthTestError Bad Foreign) World)
+      R First Last ZeroLast ZeroFirst ZeroDiff Signed Other Diff Updated Empty Result Bad)
+    (r : R) (world : World),
+    UnitLengthFailureObservation (lengthAbstractUnitRange (unitLengthTraceOps ops) r (world, []))
+
+
+open JuliaLean.base.range
+open JuliaLean.base.range.Models2Group20
+
+inductive AbstractShowEvent (Stream R First Step Last FirstText StepText LastText Result : Type) where
+  | firstRequest (range : R)
+  | firstValue (value : First)
+  | reprFirst (value : First)
+  | firstText (value : FirstText)
+  | stepRequest (range : R)
+  | stepValue (value : Step)
+  | reprStep (value : Step)
+  | stepText (value : StepText)
+  | lastRequest (range : R)
+  | lastValue (value : Last)
+  | reprLast (value : Last)
+  | lastText (value : LastText)
+  | printing (io : Stream) (first : FirstText) (separator1 : Char)
+      (step : StepText) (separator2 : Char) (last : LastText)
+  | returned (value : Result)
+
+section AbstractShowObservations
+variable {Stream R First Step Last FirstText StepText LastText Result Error World : Type}
+local notation "Ev" => AbstractShowEvent Stream R First Step Last FirstText StepText LastText Result
+local notation "Trace" => List (ScalarAudit Ev Error World)
+
+def abstractShowTraceOps
+    (ops : AbstractShowOps (LinShowEffect Error World)
+      Stream R First Step Last FirstText StepText LastText Result) :
+    AbstractShowOps (LinShowEffect Error (World × Trace))
+      Stream R First Step Last FirstText StepText LastText Result where
+  first r := scalarObserve [.firstRequest r] (fun value _ => [.firstValue value]) (ops.first r)
+  reprFirst value := scalarObserve [.reprFirst value] (fun text _ => [.firstText text]) (ops.reprFirst value)
+  step r := scalarObserve [.stepRequest r] (fun value _ => [.stepValue value]) (ops.step r)
+  reprStep value := scalarObserve [.reprStep value] (fun text _ => [.stepText text]) (ops.reprStep value)
+  last r := scalarObserve [.lastRequest r] (fun value _ => [.lastValue value]) (ops.last r)
+  reprLast value := scalarObserve [.reprLast value] (fun text _ => [.lastText text]) (ops.reprLast value)
+  print5 io first colon1 step colon2 last :=
+    scalarObserve [.printing io first colon1 step colon2 last] (fun result _ => [.returned result])
+      (ops.print5 io first colon1 step colon2 last)
+
+def abstractShowFirstRequests (trace : Trace) : List R :=
+  scalarSelect (fun event => match event with | .firstRequest r => some r | _ => none) trace
+def abstractShowStepRequests (trace : Trace) : List R :=
+  scalarSelect (fun event => match event with | .stepRequest r => some r | _ => none) trace
+def abstractShowLastRequests (trace : Trace) : List R :=
+  scalarSelect (fun event => match event with | .lastRequest r => some r | _ => none) trace
+def abstractShowFirstValues (trace : Trace) : List First :=
+  scalarSelect (fun event => match event with | .firstValue x => some x | _ => none) trace
+def abstractShowStepValues (trace : Trace) : List Step :=
+  scalarSelect (fun event => match event with | .stepValue x => some x | _ => none) trace
+def abstractShowLastValues (trace : Trace) : List Last :=
+  scalarSelect (fun event => match event with | .lastValue x => some x | _ => none) trace
+def abstractShowFirstReprs (trace : Trace) : List First :=
+  scalarSelect (fun event => match event with | .reprFirst x => some x | _ => none) trace
+def abstractShowStepReprs (trace : Trace) : List Step :=
+  scalarSelect (fun event => match event with | .reprStep x => some x | _ => none) trace
+def abstractShowLastReprs (trace : Trace) : List Last :=
+  scalarSelect (fun event => match event with | .reprLast x => some x | _ => none) trace
+def abstractShowFirstTexts (trace : Trace) : List FirstText :=
+  scalarSelect (fun event => match event with | .firstText x => some x | _ => none) trace
+def abstractShowStepTexts (trace : Trace) : List StepText :=
+  scalarSelect (fun event => match event with | .stepText x => some x | _ => none) trace
+def abstractShowLastTexts (trace : Trace) : List LastText :=
+  scalarSelect (fun event => match event with | .lastText x => some x | _ => none) trace
+def abstractShowPrintArgs (trace : Trace) : List (Stream × FirstText × Char × StepText × Char × LastText) :=
+  scalarSelect (fun event => match event with
+    | .printing io first c1 step c2 last => some (io, first, c1, step, c2, last)
+    | _ => none) trace
+
+/-- Accessors read only the original range; repr receives the actual accessor
+values, including arbitrary runtime-type-changing results. The single output
+call is deferred until every representation exists and carries those results
+unchanged between colon separators. No repr correctness law is assumed. -/
+def AbstractShowDataflow (io : Stream) (r : R) (trace : Trace) : Prop :=
+  abstractShowFirstRequests trace = [r] ∧
+  (abstractShowStepRequests trace).IsPrefix [r] ∧
+  (abstractShowLastRequests trace).IsPrefix [r] ∧
+  abstractShowFirstReprs trace = abstractShowFirstValues trace ∧
+  abstractShowStepReprs trace = abstractShowStepValues trace ∧
+  abstractShowLastReprs trace = abstractShowLastValues trace ∧
+  (abstractShowFirstTexts trace ≠ [] → abstractShowStepRequests trace = [r]) ∧
+  (abstractShowStepTexts trace ≠ [] → abstractShowLastRequests trace = [r]) ∧
+  (match abstractShowFirstTexts trace, abstractShowStepTexts trace, abstractShowLastTexts trace with
+  | [], [], [] => abstractShowPrintArgs trace = []
+  | [_], [], [] => abstractShowPrintArgs trace = []
+  | [_], [_], [] => abstractShowPrintArgs trace = []
+  | [first], [step], [last] =>
+      abstractShowPrintArgs trace = [(io, first, ':', step, ':', last)]
+  | _, _, _ => False)
+
+def AbstractShowObservation (io : Stream) (r : R)
+    (result : Option (Except (Error × (World × Trace)) (Result × (World × Trace)))) : Prop :=
+  match result with
+  | none => True
+  | some (.error (_, (_, trace))) => AbstractShowDataflow io r trace
+  | some (.ok (value, (_, trace))) =>
+      AbstractShowDataflow io r trace ∧ abstractShowPrintArgs trace ≠ [] ∧
+      trace.getLast? = some (.note (.returned value))
+
+end AbstractShowObservations
+
+/-- Generic range display passes the actually computed first/step/last
+representations, in their respective roles, to one variadic print on the
+original stream. It does not issue that print before all representations are
+available. Every failure retains its exact exception and mutated world and
+prevents later calls; success preserves the printer's arbitrary return value.
+
+Julia source: base/range.jl:1135
+@ f755f49a9e41380d7da126b3c1db9fe7f83dd027.
+Documentation: doc/src/manual/types.md:1510-1548 (custom display),
+doc/src/manual/networking-and-streams.md:102-119 (stream output),
+doc/src/manual/control-flow.md:830-854 (exception propagation).
+All ranges, streams, intermediate types, callees, errors and mutable worlds
+are arbitrary. This is a representation-dataflow/effect invariant; it makes
+no parseability or correctness assumption about a user repr or printer. -/
+def AbstractRangeShowDataflowEffects : Prop :=
+  ∀ (Stream R First Step Last FirstText StepText LastText Result Error World : Type)
+    (ops : AbstractShowOps (LinShowEffect Error World)
+      Stream R First Step Last FirstText StepText LastText Result)
+    (io : Stream) (r : R) (world : World),
+    let observed := showAbstractRange (abstractShowTraceOps ops) io r (world, [])
+    AbstractShowObservation io r observed ∧ ScalarFailureObservation observed
+
+inductive UnitShowEvent (Stream T Converted Result : Type) where
+  | conversion (value : T)
+  | converted (value : Converted)
+  | showing (io : Stream) (value : Converted)
+  | shown (result : Result)
+  | separator (io : Stream) (value : Char)
+  | separatorDone
+
+section UnitShowObservations
+variable {Stream T Converted ColonResult Result Error World : Type}
+local notation "Ev" => UnitShowEvent Stream T Converted Result
+local notation "Trace" => List (ScalarAudit Ev Error World)
+
+def unitShowTraceOps (ops : UnitShowOps (LinShowEffect Error World) Stream T Converted ColonResult Result) :
+    UnitShowOps (LinShowEffect Error (World × Trace)) Stream T Converted ColonResult Result where
+  convert target value :=
+    scalarObserve [.conversion value] (fun converted _ => [.converted converted]) (ops.convert target value)
+  showValue io value := scalarObserve [.showing io value] (fun result _ => [.shown result]) (ops.showValue io value)
+  printChar io value := scalarObserve [.separator io value] (fun _ _ => [.separatorDone]) (ops.printChar io value)
+
+def unitShowConversionArgs (trace : Trace) : List T :=
+  scalarSelect (fun event => match event with | .conversion value => some value | _ => none) trace
+def unitShowConverted (trace : Trace) : List Converted :=
+  scalarSelect (fun event => match event with | .converted value => some value | _ => none) trace
+def unitShowArgs (trace : Trace) : List (Stream × Converted) :=
+  scalarSelect (fun event => match event with | .showing io value => some (io, value) | _ => none) trace
+def unitShowResults (trace : Trace) : List Result :=
+  scalarSelect (fun event => match event with | .shown value => some value | _ => none) trace
+def unitShowSeparators (trace : Trace) : List (Stream × Char) :=
+  scalarSelect (fun event => match event with | .separator io value => some (io, value) | _ => none) trace
+def unitShowCompletedSeparators (trace : Trace) : List Unit :=
+  scalarSelect (fun event => match event with | .separatorDone => some () | _ => none) trace
+
+/-- Only the stored endpoints enter conversion, and only the resulting values
+enter show. The second endpoint conversion is deferred until the colon print
+has succeeded; the original stream is used throughout. -/
+def UnitShowDataflow (io : Stream) (r : UnitRange T) (trace : Trace) : Prop :=
+  (unitShowConversionArgs trace).IsPrefix [r.start, r.stop] ∧
+  unitShowConversionArgs trace ≠ [] ∧
+  unitShowArgs trace = (unitShowConverted trace).map (fun value => (io, value)) ∧
+  (unitShowSeparators trace).IsPrefix [(io, ':')] ∧
+  (unitShowResults trace ≠ [] → unitShowSeparators trace = [(io, ':')]) ∧
+  (unitShowConversionArgs trace = [r.start, r.stop] →
+    unitShowCompletedSeparators trace = [()])
+
+def UnitShowObservation (io : Stream) (r : UnitRange T)
+    (result : Option (Except (Error × (World × Trace)) (Result × (World × Trace)))) : Prop :=
+  match result with
+  | none => True
+  | some (.error (_, (_, trace))) => UnitShowDataflow io r trace
+  | some (.ok (value, (_, trace))) =>
+      UnitShowDataflow io r trace ∧ unitShowConversionArgs trace = [r.start, r.stop] ∧
+      (unitShowConverted trace).length = 2 ∧
+      ∃ ignored, unitShowResults trace = [ignored, value] ∧
+        trace.getLast? = some (.note (.shown value))
+
+end UnitShowObservations
+
+/-- UnitRange display converts its stored endpoints at their source points,
+shows the actual conversion outputs on the original stream, and completes the
+first show and colon before converting the stop. Failures preserve partial
+writes and the exact exception/state; the final show result is returned.
+
+Julia source: base/range.jl:1136-1140,867,877
+@ f755f49a9e41380d7da126b3c1db9fe7f83dd027.
+Documentation: doc/src/manual/types.md:1510-1548;
+doc/src/manual/networking-and-streams.md:102-119;
+doc/src/manual/control-flow.md:830-854.
+All stored endpoints, conversion results (including changed runtime types),
+callee effects and errors are arbitrary; conversion correctness is not assumed.
+This registered public property executes both `unitRangeFirstEffectful` and
+`unitRangeLastEffectful` through the actual display model, providing their
+dependency coverage. The expected values are stored fields and observed callee
+outputs, not a parallel display implementation. -/
+def UnitRangeShowConvertedEndpoints : Prop :=
+  ∀ (Stream T Converted ColonResult Result Error World : Type)
+    (ops : UnitShowOps (LinShowEffect Error World) Stream T Converted ColonResult Result)
+    (io : Stream) (r : UnitRange T) (world : World),
+    let observed := showUnitRange (unitShowTraceOps ops) io r (world, [])
+    UnitShowObservation io r observed ∧ ScalarFailureObservation observed
+
+inductive OneToShowEvent (Stream T Result : Type) where
+  | printing (io : Stream) (opening : String) (storedStop : T) (suffix : String)
+  | returned (result : Result)
+
+section OneToShowObservations
+variable {Stream T Result Error World : Type}
+local notation "Ev" => OneToShowEvent Stream T Result
+local notation "Trace" => List (ScalarAudit Ev Error World)
+
+def oneToShowTraceOps (ops : OneToShowOps (LinShowEffect Error World) Stream T Result) :
+    OneToShowOps (LinShowEffect Error (World × Trace)) Stream T Result where
+  print3 io opening stop suffix :=
+    scalarObserve [.printing io opening stop suffix] (fun result _ => [.returned result])
+      (ops.print3 io opening stop suffix)
+
+def oneToShowArgs (trace : Trace) : List (Stream × String × T × String) :=
+  scalarSelect (fun event => match event with
+    | .printing io opening stop suffix => some (io, opening, stop, suffix)
+    | _ => none) trace
+
+def OneToShowObservation (io : Stream) (r : OneTo T)
+    (result : Option (Except (Error × (World × Trace)) (Result × (World × Trace)))) : Prop :=
+  match result with
+  | none => True
+  | some (.error (_, (_, trace))) =>
+      oneToShowArgs trace = [(io, "Base.OneTo(", r.stop, ")")]
+  | some (.ok (value, (_, trace))) =>
+      oneToShowArgs trace = [(io, "Base.OneTo(", r.stop, ")")] ∧
+      trace.getLast? = some (.note (.returned value))
+
+end OneToShowObservations
+
+/-- OneTo display passes its actual stored stop exactly once to one variadic
+print on the requested stream, framed as a Base.OneTo constructor. Arbitrary
+printer results are retained and arbitrary partial-write failures preserve
+their exact exception and final mutable state, with no later call.
+
+Julia source: base/range.jl:1141
+@ f755f49a9e41380d7da126b3c1db9fe7f83dd027.
+Documentation: doc/src/manual/types.md:1510-1548;
+doc/src/manual/networking-and-streams.md:102-119;
+doc/src/manual/control-flow.md:830-854.
+The property quantifies all stored values, streams, printers, errors and worlds.
+It does not assume printing or conversion correctness, split a variadic print
+into separate calls, or claim parseability of arbitrary custom output. -/
+def OneToShowStoredStopEffects : Prop :=
+  ∀ (Stream T Result Error World : Type)
+    (ops : OneToShowOps (LinShowEffect Error World) Stream T Result)
+    (io : Stream) (r : OneTo T) (world : World),
+    let observed := showOneTo (oneToShowTraceOps ops) io r (world, [])
+    OneToShowObservation io r observed ∧ ScalarFailureObservation observed
+
+
+open JuliaLean JuliaLean.base.range
+open JuliaLean.base.range.Models2Group20
+
+/-- Arbitrary selected-callee errors remain separate from the concrete caller's
+condition and positional-field errors; a callee may also throw a caller-class error. -/
+inductive StepLenTestError (Bad Foreign : Type) where
+  | caller (error : StepLenError Bad)
+  | callee (error : Foreign)
+
+scoped instance stepLenTestExcept {Bad Foreign World : Type} :
+    MonadExceptOf (StepLenError Bad) (LinShowEffect (StepLenTestError Bad Foreign) World) where
+  throw error := fun world => some (.error (.caller error, world))
+  tryCatch action handler := fun world =>
+    match action world with
+    | none => none
+    | some (.ok result) => some (.ok result)
+    | some (.error (.callee error, world')) => some (.error (.callee error, world'))
+    | some (.error (.caller error, world')) => handler error world'
+
+/-- Observe boundary values and the state at native checks. Every operation,
+including otherwise uninteresting arithmetic, also receives ScalarAudit.call. -/
+inductive StepLenShowEvent (R S L F G V A Bad P Stream Output World : Type) where
+  | offset (value : L) (index : Sum JInt64 L)
+  | offsetResult (value : V)
+  | subtraction (left right : StepLenScalar R S L F G V)
+  | subtractionResult (value : V)
+  | multiplication (left right : StepLenScalar R S L F G V)
+  | multiplicationResult (value : V)
+  | addition (left right : StepLenScalar R S L F G V)
+  | additionResult (value : V)
+  | convertRequest (value : V)
+  | constructRequest (value : StepLenScalar R S L F G V)
+  | add12 (reference : F) (shift : V)
+  | add12Result (value : A)
+  | converted (value : V)
+  | constructed (input : StepLenScalar R S L F G V) (value : V)
+  | indexedFirst (value : A) (index : JInt64)
+  | indexedFirstResult (value : A) (object : StepLenIndexedObject V) (world : World)
+  | indexedNext (value : A) (index : JInt64) (state : V)
+  | indexedNextResult (object : StepLenIndexedObject V) (world : World)
+  | zero (value : StepLenScalar R S L F G V)
+  | condition (value : Condition Bad) (world : World)
+  | repr (value : StepLenScalar R S L F G V)
+  | reprResult (value : P)
+  | print (stream : Stream) (arguments : List (StepLenPrintArg P))
+  | done (stream : Stream) (arguments : List (StepLenPrintArg P)) (value : Output)
+
+section StepLenObservations
+variable {T R S L F G V A Z Bad P Stream Output Foreign World : Type}
+local notation "Err" => StepLenTestError Bad Foreign
+local notation "Scalar" => StepLenScalar R S L F G V
+local notation "Ev" => StepLenShowEvent R S L F G V A Bad P Stream Output World
+local notation "Trace" => List (ScalarAudit Ev Err World)
+
+def stepLenTraceOps
+    (ops : StepLenShowOps (LinShowEffect Err World) T R S L F G V A Z Bad P Stream Output) :
+    StepLenShowOps (LinShowEffect Err (World × Trace)) T R S L F G V A Z Bad P Stream Output where
+  oftype offset index :=
+    scalarObserve [.offset offset index] (fun value _ => [.offsetResult value]) (ops.oftype offset index)
+  sub left right :=
+    scalarObserve [.subtraction left right] (fun value _ => [.subtractionResult value]) (ops.sub left right)
+  mul left right :=
+    scalarObserve [.multiplication left right] (fun result _ => [.multiplicationResult result]) (ops.mul left right)
+  add left right :=
+    scalarObserve [.addition left right] (fun result _ => [.additionResult result]) (ops.add left right)
+  convertElement type value :=
+    scalarObserve [.convertRequest value] (fun value _ => [.converted value]) (ops.convertElement type value)
+  constructElement type value :=
+    scalarObserve [.constructRequest value] (fun result _ => [.constructed value result]) (ops.constructElement type value)
+  add12 reference shift :=
+    scalarObserve [.add12 reference shift] (fun result _ => [.add12Result result]) (ops.add12 reference shift)
+  indexedIterateFirst value index :=
+    scalarObserve [.indexedFirst value index] (fun object world => [.indexedFirstResult value object world])
+      (ops.indexedIterateFirst value index)
+  indexedIterateNext value index state :=
+    scalarObserve [.indexedNext value index state] (fun object world => [.indexedNextResult object world])
+      (ops.indexedIterateNext value index state)
+  iszero value := scalarObserve [.zero value] (fun _ _ => []) (ops.iszero value)
+  not value := scalarObserve [] (fun result world => [.condition result world]) (ops.not value)
+  repr value := scalarObserve [.repr value] (fun result _ => [.reprResult result]) (ops.repr value)
+  print io arguments :=
+    scalarObserve [.print io arguments] (fun result _ => [.done io arguments result]) (ops.print io arguments)
+
+/-- Expected observations use represented fields, independently of accessor code. -/
+def stepLenExpectedOffset (r : StepLenArgument T R S L F G) : L :=
+  match r with
+  | .ordinaryStored r | .ordinaryConverted r => r.offset
+  | .twiceStored r | .twiceConverted r => r.offset
+
+def stepLenExpectedLength (r : StepLenArgument T R S L F G) : L :=
+  match r with
+  | .ordinaryStored r | .ordinaryConverted r => r.len
+  | .twiceStored r | .twiceConverted r => r.len
+
+def stepLenExpectedStep (r : StepLenArgument T R S L F G) : Scalar :=
+  match r with
+  | .ordinaryStored r | .ordinaryConverted r => .step r.step
+  | .twiceStored r | .twiceConverted r => .twiceStep r.step
+
+def stepLenConstructsStep (r : StepLenArgument T R S L F G) : Bool :=
+  match r with
+  | .ordinaryStored _ | .twiceStored _ => false
+  | .ordinaryConverted _ | .twiceConverted _ => true
+
+def stepLenOffsetCalls (trace : Trace) : List (L × Sum JInt64 L) :=
+  scalarSelect (fun event => match event with | .offset value index => some (value, index) | _ => none) trace
+
+def stepLenOffsetResults (trace : Trace) : List V :=
+  scalarSelect (fun event => match event with | .offsetResult value => some value | _ => none) trace
+
+def stepLenSubtractions (trace : Trace) : List (Scalar × Scalar) :=
+  scalarSelect (fun event => match event with | .subtraction a b => some (a, b) | _ => none) trace
+
+def stepLenSubtractionResults (trace : Trace) : List V :=
+  scalarSelect (fun event => match event with | .subtractionResult value => some value | _ => none) trace
+
+def stepLenMultiplications (trace : Trace) : List (Scalar × Scalar) :=
+  scalarSelect (fun event => match event with | .multiplication a b => some (a, b) | _ => none) trace
+
+def stepLenExpectedMultiplications (r : StepLenArgument T R S L F G)
+    (offsets : List V) : List (Scalar × Scalar) :=
+  match r with
+  | .ordinaryStored r | .ordinaryConverted r => offsets.map fun value => (.dynamic value, .step r.step)
+  | .twiceStored r | .twiceConverted r =>
+      offsets.flatMap fun value => [(.dynamic value, .stepPart r.step.1), (.dynamic value, .stepPart r.step.2)]
+
+def stepLenStepConstructions (trace : Trace) : List (Scalar × V) :=
+  scalarSelect (fun event => match event with
+    | .constructed (.step value) result => some (.step value, result)
+    | .constructed (.twiceStep value) result => some (.twiceStep value, result)
+    | _ => none) trace
+
+def stepLenEndpointResults (trace : Trace) : List V :=
+  scalarSelect (fun event => match event with
+    | .converted value => some value
+    | .constructed (.dynamic _) value => some value
+    | _ => none) trace
+
+def stepLenZeroCalls (trace : Trace) : List Scalar :=
+  scalarSelect (fun event => match event with | .zero value => some value | _ => none) trace
+
+def stepLenConditions (trace : Trace) : List (Condition Bad) :=
+  scalarSelect (fun event => match event with | .condition value _ => some value | _ => none) trace
+
+def stepLenReprCalls (trace : Trace) : List Scalar :=
+  scalarSelect (fun event => match event with | .repr value => some value | _ => none) trace
+
+def stepLenReprResults (trace : Trace) : List P :=
+  scalarSelect (fun event => match event with | .reprResult value => some value | _ => none) trace
+
+def stepLenPrintCalls (trace : Trace) : List (Stream × List (StepLenPrintArg P)) :=
+  scalarSelect (fun event => match event with | .print io args => some (io, args) | _ => none) trace
+
+def stepLenFinished (trace : Trace) : List (Stream × List (StepLenPrintArg P) × Output) :=
+  scalarSelect (fun event => match event with | .done io args value => some (io, args, value) | _ => none) trace
+
+def stepLenNextCalls (trace : Trace) : List (A × JInt64 × V) :=
+  scalarSelect (fun event => match event with
+    | .indexedNext value index state => some (value, index, state)
+    | _ => none) trace
+
+/-- A next-step state exists only after both first indexed_iterate fields were
+present and defined. It is the stored second field, not a guessed numeric state. -/
+def stepLenExpectedNextCalls (trace : Trace) : List (A × JInt64 × V) :=
+  scalarSelect (fun event => match event with
+    | .indexedFirstResult value (.fields count (some _) (some state)) _ =>
+        if 2 ≤ count.val then some (value, jint 2, state) else none
+    | _ => none) trace
+
+/-- Output syntax is checked against the observed repr values, not their
+meaning. It does not constrain any custom repr or print implementation. -/
+def StepLenPrintUsesRepresentations (io : Stream) (trace : Trace) : Prop :=
+  ∀ printedIO arguments, (printedIO, arguments) ∈ stepLenPrintCalls trace →
+    printedIO = io ∧ ∃ first step last,
+      stepLenReprResults trace = [first, step, last] ∧
+      ((stepLenConditions trace = [.bool true] ∧
+        arguments = [.rendered first, .char ':', .rendered step, .char ':', .rendered last]) ∨
+       (stepLenConditions trace = [.bool false] ∧
+        arguments = [.text "StepRangeLen(", .rendered first, .text ", ", .rendered step,
+          .text ", ", .rendered last, .text ")"]))
+
+def stepLenMultiplicationResults (trace : Trace) : List V :=
+  scalarSelect (fun event => match event with | .multiplicationResult value => some value | _ => none) trace
+
+def stepLenAdditionCalls (trace : Trace) : List (Scalar × Scalar) :=
+  scalarSelect (fun event => match event with | .addition left right => some (left, right) | _ => none) trace
+
+def stepLenAdditionResults (trace : Trace) : List V :=
+  scalarSelect (fun event => match event with | .additionResult value => some value | _ => none) trace
+
+def stepLenEndpointConversionCalls (trace : Trace) : List V :=
+  scalarSelect (fun event => match event with
+    | .convertRequest value | .constructRequest (.dynamic value) => some value
+    | _ => none) trace
+
+def stepLenAdd12Calls (trace : Trace) : List (F × V) :=
+  scalarSelect (fun event => match event with | .add12 reference shift => some (reference, shift) | _ => none) trace
+
+def stepLenAdd12Results (trace : Trace) : List A :=
+  scalarSelect (fun event => match event with | .add12Result value => some value | _ => none) trace
+
+def stepLenFirstIterationCalls (trace : Trace) : List (A × JInt64) :=
+  scalarSelect (fun event => match event with | .indexedFirst value index => some (value, index) | _ => none) trace
+
+def stepLenHighFields (trace : Trace) : List V :=
+  scalarSelect (fun event => match event with
+    | .indexedFirstResult _ (.fields count (some high) _) _ =>
+        if 1 ≤ count.val then some high else none
+    | _ => none) trace
+
+def stepLenLowFields (trace : Trace) : List V :=
+  scalarSelect (fun event => match event with
+    | .indexedNextResult (.fields count (some low) _) _ =>
+        if 1 ≤ count.val then some low else none
+    | _ => none) trace
+
+/-- Each observed arithmetic call consumes previously returned values and the
+appropriate stored range fields. The mathematical list positions only locate
+observations; they do not replace Julia integer arithmetic in the model. -/
+def StepLenArithmeticRouting (r : StepLenArgument T R S L F G) (trace : Trace) : Prop :=
+  let products := stepLenMultiplicationResults trace
+  let additions := stepLenAdditionCalls trace
+  let sums := stepLenAdditionResults trace
+  match r with
+  | .ordinaryStored r | .ordinaryConverted r =>
+      additions.IsPrefix (products.map fun value => (.reference r.ref, .dynamic value)) ∧
+      (stepLenEndpointConversionCalls trace).IsPrefix sums ∧
+      stepLenAdd12Calls trace = [] ∧ stepLenFirstIterationCalls trace = [] ∧ stepLenNextCalls trace = []
+  | .twiceStored r | .twiceConverted r =>
+      (stepLenAdd12Calls trace).IsPrefix
+        (products.zipIdx |>.filterMap fun (value, index) => if index % 2 = 0 then some (r.ref.1, value) else none) ∧
+      (stepLenFirstIterationCalls trace).IsPrefix
+        ((stepLenAdd12Results trace).map fun value => (value, jint 1)) ∧
+      (stepLenEndpointConversionCalls trace).IsPrefix
+        (sums.zipIdx |>.filterMap fun (value, index) => if index % 3 = 2 then some value else none) ∧
+      ∀ index left right, additions[index]? = some (left, right) →
+        if index % 3 = 0 then
+          ∃ shift, products[2 * (index / 3) + 1]? = some shift ∧
+            left = .dynamic shift ∧ right = .referencePart r.ref.2
+        else if index % 3 = 1 then
+          ∃ low sum, (stepLenLowFields trace)[index / 3]? = some low ∧ sums[index - 1]? = some sum ∧
+            left = .dynamic low ∧ right = .dynamic sum
+        else
+          ∃ high sum, (stepLenHighFields trace)[index / 3]? = some high ∧ sums[index - 1]? = some sum ∧
+            left = .dynamic high ∧ right = .dynamic sum
+
+/-- Field, scalar-result, iterator-state, and output-argument routing are
+invariants of interrupted as well as successful displays. No equality with an
+arithmetic algorithm or a supplied callee law appears in the specification. -/
+def StepLenPrefixRouting (io : Stream) (r : StepLenArgument T R S L F G) (trace : Trace) : Prop :=
+  let offset := stepLenExpectedOffset r
+  let length := stepLenExpectedLength r
+  let stored := stepLenExpectedStep r
+  let constructions := stepLenStepConstructions trace
+  let steps := if stepLenConstructsStep r then constructions.map (fun entry => (StepLenScalar.dynamic entry.2 : Scalar))
+    else [stored, stored]
+  (stepLenOffsetCalls trace).IsPrefix [(offset, .inl (jint 1)), (offset, .inr length)] ∧
+  (stepLenSubtractions trace).IsPrefix
+    ((stepLenOffsetResults trace).map fun value => (.dynamic value, .length offset)) ∧
+  (stepLenMultiplications trace).IsPrefix
+    (stepLenExpectedMultiplications r (stepLenSubtractionResults trace)) ∧
+  (stepLenNextCalls trace).IsPrefix (stepLenExpectedNextCalls trace) ∧
+  (constructions.map Prod.fst).IsPrefix [stored, stored] ∧
+  (stepLenConstructsStep r = false → constructions = []) ∧
+  (stepLenZeroCalls trace).IsPrefix (steps.take 1) ∧
+  (stepLenReprCalls trace).length ≤ 3 ∧
+  ((stepLenReprCalls trace).take 1).IsPrefix
+    ((stepLenEndpointResults trace).take 1 |>.map (fun value => (StepLenScalar.dynamic value : Scalar))) ∧
+  ((stepLenReprCalls trace).drop 1 |>.take 1).IsPrefix (steps.drop 1 |>.take 1) ∧
+  (stepLenConditions trace = [.bool true] →
+    ((stepLenReprCalls trace).drop 2).IsPrefix
+      ((stepLenEndpointResults trace).drop 1 |>.map (fun value => (StepLenScalar.dynamic value : Scalar)))) ∧
+  (stepLenConditions trace = [.bool false] →
+    (stepLenOffsetCalls trace).IsPrefix [(offset, .inl (jint 1))] ∧
+    ((stepLenReprCalls trace).drop 2).IsPrefix [.length length]) ∧
+  (stepLenPrintCalls trace).length ≤ 1 ∧
+  StepLenPrintUsesRepresentations io trace ∧
+  StepLenArithmeticRouting r trace
+
+def StepLenRoutingObservation (io : Stream) (r : StepLenArgument T R S L F G)
+    (result : Option (Except (Err × (World × Trace)) (Output × (World × Trace)))) : Prop :=
+  match result with
+  | none => True
+  | some (.error (_, (_, trace))) => StepLenPrefixRouting io r trace
+  | some (.ok (value, (_, trace))) =>
+      StepLenPrefixRouting io r trace ∧
+      (stepLenReprCalls trace).length = 3 ∧
+      ∃ nonzero arguments,
+        stepLenConditions trace = [.bool nonzero] ∧
+        stepLenOffsetCalls trace =
+          (if nonzero then
+            [(stepLenExpectedOffset r, .inl (jint 1)), (stepLenExpectedOffset r, .inr (stepLenExpectedLength r))]
+          else [(stepLenExpectedOffset r, .inl (jint 1))]) ∧
+        (stepLenConstructsStep r = true → (stepLenStepConstructions trace).length = 2) ∧
+        stepLenPrintCalls trace = [(io, arguments)] ∧
+        stepLenFinished trace = [(io, arguments, value)] ∧
+        trace.getLast? = some (.note (.done io arguments value))
+
+/-- Independent diagnostic for a single native numbered-field failure. Field
+existence comes from actual count metadata; undefinedness is the stored slot. -/
+def StepLenProjectionFailure (object : StepLenIndexedObject V)
+    (position : StepLenProjection) (error : StepLenError Bad) : Prop :=
+  match object with
+  | .moduleValue => error = .getfieldTypeError
+  | .fields count first second =>
+      match position with
+      | .first =>
+          if count.val < 1 then error = .jl .boundsError
+          else first = none ∧ error = .undefRefError
+      | .second =>
+          if count.val < 2 then error = .jl .boundsError
+          else second = none ∧ error = .undefRefError
+
+def StepLenFirstFieldDefined (object : StepLenIndexedObject V) : Prop :=
+  match object with
+  | .moduleValue => False
+  | .fields count first _ => 1 ≤ count.val ∧ first.isSome = true
+
+/-- Native checks cannot change the world between a completed selected call
+and their exception. Their exact diagnosis must be justified by its observed
+value or field view, with no later selected operation. -/
+def StepLenCallerFailureAtEnd (error : StepLenError Bad) (world : World) (trace : Trace) : Prop :=
+  match trace.getLast? with
+  | some (.note (.condition (.other bad) observedWorld)) =>
+      error = .conditionTypeError bad ∧ world = observedWorld
+  | some (.note (.indexedFirstResult _ object observedWorld)) =>
+      world = observedWorld ∧
+      (StepLenProjectionFailure object .first error ∨
+        (StepLenFirstFieldDefined object ∧ StepLenProjectionFailure object .second error))
+  | some (.note (.indexedNextResult object observedWorld)) =>
+      world = observedWorld ∧ StepLenProjectionFailure object .first error
+  | _ => False
+
+def StepLenFailureObservation
+    (result : Option (Except (Err × (World × Trace)) (Output × (World × Trace)))) : Prop :=
+  match result with
+  | none => True
+  | some (.ok (_, (_, trace))) => scalarFailures trace = []
+  | some (.error (error, (world, trace))) =>
+      (scalarFailures trace = [(error, world)] ∧ trace.getLast? = some (.failed error world)) ∨
+      (scalarFailures trace = [] ∧ ∃ native,
+        error = .caller native ∧ StepLenCallerFailureAtEnd native world trace)
+
+end StepLenObservations
+
+/-- StepRangeLen show routes endpoint indexing through native one and the
+stored count, uses the actual stored offset and step parts in arithmetic, and
+passes the observed indexed_iterate state onward unchanged. The step used for
+rendering is independently evaluated. The final variadic printer receives the
+three actual repr results in their documented positions and its result is
+returned unchanged; all these routing exclusions survive partial failure.
+
+Julia source: base/range.jl:738-739,807,869,878,986-989,1142-1149;
+base/twiceprecision.jl:438-439,480-486
+@ f755f49a9e41380d7da126b3c1db9fe7f83dd027.
+Documentation: base/range.jl:511-525 (reference, offset and count);
+base/twiceprecision.jl:174-194 (high/low step representation);
+doc/src/manual/functions.md:399-470 (destructuring).
+The full represented input and all open callees, changing runtime result types,
+exceptions, mutable states and divergence are quantified without correctness laws.
+The property depends on all closed first/last/step/length and indexing helpers. -/
+def StepRangeLenShowAccessorRouting : Prop :=
+  ∀ (T R S L F G V A Z Bad P Stream Output Foreign World : Type)
+    (ops : StepLenShowOps (LinShowEffect (StepLenTestError Bad Foreign) World)
+      T R S L F G V A Z Bad P Stream Output)
+    (io : Stream) (r : StepLenArgument T R S L F G) (world : World),
+    StepLenRoutingObservation io r (showStepRangeLen (stepLenTraceOps ops) io r (world, []))
+
+/-- Every selected-callee failure is propagated with its exact error and changed
+world and stops all later operations. Non-Bool conditions and malformed
+indexed_iterate objects fail immediately at the appropriate native check, with
+TypeError, BoundsError, or UndefRefError justified by observed runtime metadata.
+No helper invents fuel failures or hides a caught exception.
+
+Julia source: base/range.jl:1142-1149 and base/twiceprecision.jl:480-486
+@ f755f49a9e41380d7da126b3c1db9fe7f83dd027.
+Documentation: base/docs/basedocs.jl:2609-2620; base/tuple.jl:159-172;
+doc/src/manual/control-flow.md:183-192,769-859.
+All dispatch targets and their states/results are arbitrary. The independent
+native-error diagnosis uses actual field counts/definedness, not the helper body. -/
+def StepRangeLenShowFailurePreservesState : Prop :=
+  ∀ (T R S L F G V A Z Bad P Stream Output Foreign World : Type)
+    (ops : StepLenShowOps (LinShowEffect (StepLenTestError Bad Foreign) World)
+      T R S L F G V A Z Bad P Stream Output)
+    (io : Stream) (r : StepLenArgument T R S L F G) (world : World),
+    StepLenFailureObservation (showStepRangeLen (stepLenTraceOps ops) io r (world, []))
+
+
+open JuliaLean JuliaLean.base.range
+open JuliaLean.base.range.Models2Group20
+
+/-- The three logically different comparison results used by the caller. -/
+inductive EqualityConditionKind where
+  | lengthDifferent
+  | lengthZero
+  | elements
+  deriving DecidableEq, Repr
+
+/-- Property-only observations of arbitrary dynamic values. An iteration
+request carries none for the initial call and some state for a subsequent call;
+a yielded none is the actual Julia nothing result. -/
+inductive EqualityEvent (R S V World : Type) where
+  | leftLength (range : R) (value : V)
+  | rightLength (range : S) (value : V)
+  | lengthOperands (left right : V)
+  | condition (kind : EqualityConditionKind) (value : Condition V) (world : World)
+  | leftCall (range : R) (state : Option V)
+  | rightCall (range : S) (state : Option V)
+  | leftYield (value : Option V) (world : World)
+  | rightYield (value : Option V) (world : World)
+  | indexCall (object : V) (index : JInt64)
+  | indexed (object : V) (index : JInt64) (value : V) (world : World)
+  | elementOperands (left right : V)
+
+section EqualityObservations
+variable {R S V Foreign World : Type}
+local notation "Err" => EqualityError V Foreign
+local notation "Ev" => EqualityEvent R S V World
+local notation "Trace" => List (ScalarAudit Ev Err World)
+
+/-- The observer forwards every selected call unchanged. Every invocation has
+a call marker, even when it throws; its dynamic tag and mutable state are
+preserved. There is no tuple-shape, iterator-correctness or termination law. -/
+def equalityTraceOps
+    (ops : RangeEqualityOps (RangeEffect Err World) R S V) :
+    RangeEqualityOps (RangeEffect Err (World × Trace)) R S V where
+  lengthR r := scalarObserve [] (fun value _ => [.leftLength r value]) (ops.lengthR r)
+  lengthS s := scalarObserve [] (fun value _ => [.rightLength s value]) (ops.lengthS s)
+  ne left right :=
+    scalarObserve [.lengthOperands left right]
+      (fun value world => [.condition .lengthDifferent value world]) (ops.ne left right)
+  iszero value :=
+    scalarObserve [] (fun result world => [.condition .lengthZero result world]) (ops.iszero value)
+  iterateR r := scalarObserve [.leftCall r none] (fun value world => [.leftYield value world]) (ops.iterateR r)
+  iterateS s := scalarObserve [.rightCall s none] (fun value world => [.rightYield value world]) (ops.iterateS s)
+  getindex object index :=
+    scalarObserve [.indexCall object index] (fun value world => [.indexed object index value world])
+      (ops.getindex object index)
+  eq left right :=
+    scalarObserve [.elementOperands left right]
+      (fun value world => [.condition .elements value world]) (ops.eq left right)
+  nextR r state :=
+    scalarObserve [.leftCall r (some state)] (fun value world => [.leftYield value world]) (ops.nextR r state)
+  nextS s state :=
+    scalarObserve [.rightCall s (some state)] (fun value world => [.rightYield value world]) (ops.nextS s state)
+
+def equalityConditions (kind : EqualityConditionKind) (trace : Trace) : List (Condition V) :=
+  scalarSelect (fun event => match event with
+    | .condition observed value _ => if observed = kind then some value else none
+    | _ => none) trace
+
+def equalityBadConditions (trace : Trace) : List (V × World) :=
+  scalarSelect (fun event => match event with
+    | .condition _ (.other bad) world => some (bad, world)
+    | _ => none) trace
+
+def equalityLeftYields (trace : Trace) : List (Option V) :=
+  scalarSelect (fun event => match event with | .leftYield value _ => some value | _ => none) trace
+
+def equalityRightYields (trace : Trace) : List (Option V) :=
+  scalarSelect (fun event => match event with | .rightYield value _ => some value | _ => none) trace
+
+def equalityIterationWork (trace : Trace) : List Unit :=
+  scalarSelect (fun event => match event with
+    | .leftCall _ _ | .rightCall _ _ | .indexCall _ _ | .elementOperands _ _ => some ()
+    | _ => none) trace
+
+/-- The caller must stop when a condition decides the answer or is not Bool. -/
+def EqualityStopSignal (kind : EqualityConditionKind) (value : Condition V) : Prop :=
+  match value with
+  | .other _ => True
+  | .bool result =>
+      match kind with
+      | .lengthDifferent | .lengthZero => result = true
+      | .elements => result = false
+
+/-- A decision or invalid condition is terminal: even a later call that returns
+without a semantic event would leave a call marker and violate this invariant. -/
+def EqualityTerminalSignals (trace : Trace) : Prop :=
+  ∀ kind value world,
+    ScalarAudit.note (EqualityEvent.condition kind value world) ∈ trace →
+    EqualityStopSignal kind value →
+    trace.getLast? = some (.note (.condition kind value world))
+
+/-- Each successful false result has an observed mismatch; each successful true
+result has either a zero-length decision or actual left-iterator exhaustion.
+In the exhaustion case every completed element comparison was true. -/
+def EqualityDecisionWitness (answer : Bool) (world : World) (trace : Trace) : Prop :=
+  if answer then
+    ((equalityConditions .lengthDifferent trace = [.bool false] ∧
+      equalityConditions .lengthZero trace = [.bool true] ∧
+      equalityIterationWork trace = [] ∧
+      trace.getLast? = some (.note (.condition .lengthZero (.bool true) world))) ∨
+     (equalityConditions .lengthDifferent trace = [.bool false] ∧
+      equalityConditions .lengthZero trace = [.bool false] ∧
+      (equalityLeftYields trace).getLast? = some none ∧
+      (equalityRightYields trace).length = (equalityLeftYields trace).length ∧
+      (∀ value ∈ equalityConditions .elements trace, value = .bool true) ∧
+      ∃ yielded, trace.getLast? = some (.note (.rightYield yielded world))))
+  else
+    ((equalityConditions .lengthDifferent trace = [.bool true] ∧
+      equalityConditions .lengthZero trace = [] ∧ equalityIterationWork trace = [] ∧
+      trace.getLast? = some (.note (.condition .lengthDifferent (.bool true) world))) ∨
+     (equalityConditions .lengthDifferent trace = [.bool false] ∧
+      equalityConditions .lengthZero trace = [.bool false] ∧
+      (∃ preceding, (∀ value ∈ preceding, value = Condition.bool true) ∧
+        equalityConditions .elements trace = preceding ++ [.bool false]) ∧
+      trace.getLast? = some (.note (.condition .elements (.bool false) world))))
+
+def EqualityDecisionObservation
+    (result : Option (Except (Err × (World × Trace)) (Bool × (World × Trace)))) : Prop :=
+  match result with
+  | none => True
+  | some (.error (_, (_, trace))) => EqualityTerminalSignals trace
+  | some (.ok (answer, (world, trace))) =>
+      EqualityTerminalSignals trace ∧ EqualityDecisionWitness answer world trace
+
+/-- Failures come from a recorded selected call, an invalid Boolean condition,
+or indexing the exhausted right iterator after the left element was read.
+The last case preserves that read's state; it cannot silently return false. -/
+def EqualityFailureObservation
+    (result : Option (Except (Err × (World × Trace)) (Bool × (World × Trace)))) : Prop :=
+  match result with
+  | none => True
+  | some (.ok (_, (_, trace))) => scalarFailures trace = [] ∧ equalityBadConditions trace = []
+  | some (.error (error, (world, trace))) =>
+      match trace.getLast? with
+      | some (.failed observed after) =>
+          error = observed ∧ world = after ∧ scalarFailures trace = [(error, world)] ∧
+          equalityBadConditions trace = []
+      | some (.note (.condition _ (.other bad) after)) =>
+          error = .typeError bad ∧ world = after ∧ scalarFailures trace = [] ∧
+          equalityBadConditions trace = [(bad, world)]
+      | some (.note (.indexed object index _ after)) =>
+          error = .base (.jl (.methodError "getindex")) ∧ world = after ∧
+          index = jint 1 ∧ scalarFailures trace = [] ∧ equalityBadConditions trace = [] ∧
+          (equalityLeftYields trace).getLast? = some (some object) ∧
+          (equalityRightYields trace).getLast? = some none
+      | _ => False
+
+/-- State payloads really returned by index two; tags may change every time. -/
+def equalityIndexedStates (trace : Trace) : List V :=
+  scalarSelect (fun event => match event with
+    | .indexed _ index value _ => if index = jint 2 then some value else none
+    | _ => none) trace
+
+/-- Arguments actually supplied to every non-initial iterate call. -/
+def equalityAdvanceArguments (trace : Trace) : List V :=
+  scalarSelect (fun event => match event with
+    | .leftCall _ (some state) | .rightCall _ (some state) => some state
+    | _ => none) trace
+
+def equalityIndexedElements (trace : Trace) : List V :=
+  scalarSelect (fun event => match event with
+    | .indexed _ index value _ => if index = jint 1 then some value else none
+    | _ => none) trace
+
+/-- Compare arguments in call order, without assuming an element equality law. -/
+def equalityComparedElements (trace : Trace) : List V :=
+  (scalarSelect (fun event => match event with
+    | .elementOperands left right => some [left, right]
+    | _ => none) trace).flatten
+
+def equalityLeftRequests (trace : Trace) : List R :=
+  scalarSelect (fun event => match event with | .leftCall r _ => some r | _ => none) trace
+
+def equalityRightRequests (trace : Trace) : List S :=
+  scalarSelect (fun event => match event with | .rightCall s _ => some s | _ => none) trace
+
+/-- An interrupted comparison may have read an element whose partner read
+failed. It never compares an invented/replaced element or changes an iterator
+state before passing it on. Both original range objects are retained. -/
+def EqualityIterationDataflow (r : R) (s : S) (trace : Trace) : Prop :=
+  equalityAdvanceArguments trace = equalityIndexedStates trace ∧
+  (equalityComparedElements trace).IsPrefix (equalityIndexedElements trace) ∧
+  (∀ range ∈ equalityLeftRequests trace, range = r) ∧
+  (∀ range ∈ equalityRightRequests trace, range = s)
+
+def EqualityDataflowObservation (r : R) (s : S)
+    (result : Option (Except (Err × (World × Trace)) (Bool × (World × Trace)))) : Prop :=
+  match result with
+  | none => True
+  | some (.error (_, (_, trace))) => EqualityIterationDataflow r s trace
+  | some (.ok (_, (_, trace))) =>
+      EqualityIterationDataflow r s trace ∧
+      equalityComparedElements trace = equalityIndexedElements trace
+
+end EqualityObservations
+
+/-- Generic range equality's terminating decisions have independent evidence:
+false requires an observed length/element mismatch, while true requires an
+observed zero length or left exhaustion after only true element comparisons.
+A decision or non-Bool condition prevents every later call. Successful return
+preserves the state at its deciding observation. No consistency between custom
+lengths and iterators is assumed; the left iterator controls exhaustion.
+
+Julia source: base/range.jl:1180-1193
+@ f755f49a9e41380d7da126b3c1db9fe7f83dd027.
+Documentation: doc/src/manual/interfaces.md:29-53 (iteration/exhaustion);
+doc/src/manual/control-flow.md:262-280,378-390 (short-circuit conditions).
+All dynamic type families, range objects, callees, results and worlds are
+quantified, without iterator correctness, equality laws or termination laws.
+The statement specifies decision evidence, not a second copy of the loop.
+Registered dependencies: equalityIteration and equalityWhile are executed by
+eqAbstractRange in the observation below. -/
+def RangeEqualityDecisionEvidence : Prop :=
+  ∀ (R S Code Foreign World : Type) (Value : Code → Type)
+    (ops : RangeEqualityOps
+      (RangeEffect (EqualityError (Dynamic Code Value) Foreign) World)
+      R S (Dynamic Code Value)) (r : R) (s : S) (world : World),
+    EqualityDecisionObservation (eqAbstractRange (equalityTraceOps ops) r s (world, []))
+
+/-- Generic range equality preserves the first selected callee's exact exception
+and changed world. It raises TypeError exactly at a non-Bool condition, and a
+prematurely exhausted right iterator raises getindex MethodError only after
+reading the left element, retaining that read's mutations. There is no hidden
+synthetic fuel failure, ignored error or subsequent call after failure.
+
+Julia source: base/range.jl:1180-1193
+@ f755f49a9e41380d7da126b3c1db9fe7f83dd027.
+Documentation: doc/src/manual/control-flow.md:183-192,769-859; the concrete
+getindex-on-nothing boundary is the method lookup failure at range.jl:1189.
+All selected operations, arbitrary foreign errors, dynamic values and mutable
+worlds are universally quantified. Divergence is distinct from a Julia error.
+Registered dependencies: the actual equalityIteration/equalityWhile loop. -/
+def RangeEqualityFailurePreservesState : Prop :=
+  ∀ (R S Code Foreign World : Type) (Value : Code → Type)
+    (ops : RangeEqualityOps
+      (RangeEffect (EqualityError (Dynamic Code Value) Foreign) World)
+      R S (Dynamic Code Value)) (r : R) (s : S) (world : World),
+    EqualityFailureObservation (eqAbstractRange (equalityTraceOps ops) r s (world, []))
+
+/-- Every subsequent iterate receives exactly the dynamic state returned by
+index two, retaining its actual runtime tag; comparisons receive the values
+returned by index one. The original left/right range objects are never replaced.
+On interruption, only a prefix of successfully indexed elements may have been
+compared. Successful completion leaves no indexed element unconsumed.
+
+Julia source: base/range.jl:1187-1192
+@ f755f49a9e41380d7da126b3c1db9fe7f83dd027.
+Documentation: doc/src/manual/interfaces.md:29-53 (opaque iterator state is
+passed back to iterate). This invariant allows the state type to change at
+every iteration and makes no tuple-shape, element-comparison or iteration law
+assumption. All custom calls and effects are quantified.
+Registered dependencies: equalityIteration and fuel-free equalityWhile. -/
+def RangeEqualityIterationDataflow : Prop :=
+  ∀ (R S Code Foreign World : Type) (Value : Code → Type)
+    (ops : RangeEqualityOps
+      (RangeEffect (EqualityError (Dynamic Code Value) Foreign) World)
+      R S (Dynamic Code Value)) (r : R) (s : S) (world : World),
+    EqualityDataflowObservation r s (eqAbstractRange (equalityTraceOps ops) r s (world, []))
+
+
+open JuliaLean JuliaLean.base.range
+open JuliaLean.base.range.Models2Group20
+
+inductive ManyIntersectEvent (R1 R2 R3 RV AV : Type) where
+  | first (left : R1) (right : R2)
+  | third (acc : AV) (range : R3)
+  | next (acc : AV) (range : RV)
+  | result (value : AV)
+
+section ManyIntersectionObservations
+variable {R1 R2 R3 RV AV Error World : Type}
+local notation "Ev" => ManyIntersectEvent R1 R2 R3 RV AV
+local notation "Trace" => List (ScalarAudit Ev Error World)
+
+/-- Forward arbitrary selected intersections; observe only input consumption,
+accumulator continuity, returns and failure states, not set-theoretic laws. -/
+def manyIntersectTraceOps
+    (ops : IntersectManyOps (LinShowEffect Error World) R1 R2 R3 RV AV) :
+    IntersectManyOps (LinShowEffect Error (World × Trace)) R1 R2 R3 RV AV where
+  firstTwo a b := scalarObserve [.first a b] (fun value _ => [.result value]) (ops.firstTwo a b)
+  third acc r := scalarObserve [.third acc r] (fun value _ => [.result value]) (ops.third acc r)
+  next acc r := scalarObserve [.next acc r] (fun value _ => [.result value]) (ops.next acc r)
+
+def manyFirstArgs (trace : Trace) : List (R1 × R2) :=
+  scalarSelect (fun e => match e with | .first a b => some (a,b) | _ => none) trace
+
+def manyThirdArgs (trace : Trace) : List R3 :=
+  scalarSelect (fun e => match e with | .third _ r => some r | _ => none) trace
+
+def manyTailArgs (trace : Trace) : List RV :=
+  scalarSelect (fun e => match e with | .next _ r => some r | _ => none) trace
+
+def manyAccumulatorArgs (trace : Trace) : List AV :=
+  scalarSelect (fun e => match e with
+    | .third a _ => some a | .next a _ => some a | _ => none) trace
+
+def manyResults (trace : Trace) : List AV :=
+  scalarSelect (fun e => match e with | .result value => some value | _ => none) trace
+
+/-- Every supplied range is consumed once in argument order, up to the first
+failure, and each new call receives the previous call's actual result. -/
+def ManyIntersectionPrefix (r1 : R1) (r2 : R2) (r3 : R3) (rest : List RV)
+    (trace : Trace) : Prop :=
+  manyFirstArgs trace = [(r1, r2)] ∧
+  (manyThirdArgs trace).IsPrefix [r3] ∧
+  (manyTailArgs trace).IsPrefix rest ∧
+  (manyAccumulatorArgs trace).IsPrefix (manyResults trace) ∧
+  (manyResults trace ≠ [] → manyThirdArgs trace = [r3]) ∧
+  (manyTailArgs trace ≠ [] → manyThirdArgs trace = [r3])
+
+def ManyIntersectionObservation (r1 : R1) (r2 : R2) (r3 : R3) (rest : List RV)
+    (result : Option (Except (Error × (World × Trace)) (AV × (World × Trace)))) : Prop :=
+  match result with
+  | none => True
+  | some (.error (_, (_, trace))) => ManyIntersectionPrefix r1 r2 r3 rest trace
+  | some (.ok (value, (_, trace))) =>
+      ManyIntersectionPrefix r1 r2 r3 rest trace ∧
+      manyThirdArgs trace = [r3] ∧ manyTailArgs trace = rest ∧
+      (manyResults trace).length = rest.length + 2 ∧
+      (manyResults trace).getLast? = some value ∧
+      trace.getLast? = some (.note (.result value))
+
+end ManyIntersectionObservations
+
+/-- Multi-range intersection consumes all arguments once in source argument
+order, passes each actual result to the next binary intersection, and returns
+the final result, including when its runtime type changes. Interrupted calls
+consume a prefix and preserve the exact first exception and post-call world.
+
+Julia source: base/range.jl:1287-1293
+@ f755f49a9e41380d7da126b3c1db9fe7f83dd027.
+Documentation: doc/src/manual/functions.md (varargs and heterogeneous tuples),
+doc/src/manual/interfaces.md:7-51 (iteration), and
+doc/src/manual/control-flow.md:830-854 (exception propagation).
+The tuple field count fits UInt32 layout metadata; its length and terminal
+iterator index are constructible Julia Int values.
+Both tuple members and accumulators are tagged dependent sums, with arbitrary
+selected operations and no set-intersection, purity or callee-correctness laws.
+This input-consumption and result-continuity invariant depends on the actual
+intersectManyTail recursion, rangeArgumentsLength and rangeArgumentsIterate;
+it does not duplicate the loop as an expected model. -/
+def ManyRangeIntersectionArgumentContinuity : Prop :=
+  ∀ (R1 R2 R3 RangeCode AccCode Error World : Type)
+    (RangeValue : RangeCode → Type) (AccValue : AccCode → Type)
+    (ops : IntersectManyOps (LinShowEffect Error World) R1 R2 R3
+      (Dynamic RangeCode RangeValue) (Dynamic AccCode AccValue))
+    (r1 : R1) (r2 : R2) (r3 : R3) (rest : RangeArguments RangeCode RangeValue) (world : World),
+    let observed := intersectRangesMany (manyIntersectTraceOps ops) r1 r2 r3 rest (world, [])
+    ManyIntersectionObservation r1 r2 r3 rest.values observed ∧ ScalarFailureObservation observed
+
+
+open JuliaLean JuliaLean.base.range
+open JuliaLean.base.range.Models2Group20
+
+section LogShowObservations
+variable {Stream Context T OpeningResult PrintResult ValueResult LengthResult Result Error World : Type}
+local notation "Ev" => LinShowEvent Stream Context T JInt64 Error World Result
+
+/-- Reuse the data-routing observer vocabulary for LogRange; no other range's
+show model is invoked. The opening variadic printer remains one observed call. -/
+def logShowTraceOps
+    (ops : LogShowOps (LinShowEffect Error World)
+      Stream Context T OpeningResult PrintResult ValueResult LengthResult Result) :
+    LogShowOps (LinShowEffect Error (World × List Ev))
+      Stream Context T OpeningResult PrintResult ValueResult LengthResult Result where
+  printType io opening type closing :=
+    linShowObserveCall [.typeShown io] (fun _ => []) (ops.printType io opening type closing)
+  context io key type :=
+    linShowObserveCall [.call] (fun context => [.context io key context]) (ops.context io key type)
+  showValue context value :=
+    linShowObserveCall [.endpoint context value] (fun _ => []) (ops.showValue context value)
+  printString io text := linShowObserveCall [.call] (fun _ => []) (ops.printString io text)
+  showLength io count := linShowObserveCall [.count io count] (fun _ => []) (ops.showLength io count)
+  printChar io character :=
+    linShowObserveCall [.call] (fun result => [.closed io character result]) (ops.printChar io character)
+
+end LogShowObservations
+
+/-- LogRange display preserves its stored endpoint/count data and actual
+typeinfo-context routing. All successful displays visit the represented fields
+once and return the closing printer's result; interrupted displays preserve
+field routing and the first failing callee's exact error and changed state,
+with no later call.
+
+Julia source: base/range.jl:1726-1735,1696,1698-1699
+@ f755f49a9e41380d7da126b3c1db9fe7f83dd027.
+Documentation: base/range.jl:1610-1616 (stored endpoints),
+doc/src/manual/networking-and-streams.md:102-119, and
+doc/src/manual/control-flow.md:830-854.
+Every stream, context, endpoint, cached-log type, result, exception and world is
+quantified without callee correctness assumptions. `fieldView` is only a record
+of the three expected stored fields for the existing pure routing predicate;
+it is never passed to another executable range model. The predicate has no
+claim about parseability or qualification of the printed constructor name. -/
+def LogRangeShowStoredFieldsAndEffects : Prop :=
+  ∀ (Stream Context T X OpeningResult PrintResult ValueResult LengthResult Result Error World : Type)
+    (ops : LogShowOps (LinShowEffect Error World)
+      Stream Context T OpeningResult PrintResult ValueResult LengthResult Result)
+    (io : Stream) (r : LogRange T X) (world : World),
+    let fieldView : LinRange T JInt64 := ⟨r.start, r.stop, r.len, jint 0⟩
+    let observed := showLogRange (logShowTraceOps ops) io r (world, [])
+    LinShowRoutingObservation io fieldView observed ∧ LinShowFailureObservation observed
+
+end JuliaLean.Proofs.base.range.Models2Group20
+
+namespace JuliaLean.Proofs.base.range
+open JuliaLean.Registry
+
+def entriesModels2Group20 : List Entry := [
+{ id := "range-linrange-show-routing", juliaFile := "base/range.jl",
+  juliaFns := ["show(io::IO, r::LinRange{T}) where {T}"],
+  statement := "LinRange display routes stored endpoints through the actual returned typeinfo context, shows stored length on the original stream, visits each represented field once on success, and returns the closing printer's result unchanged; partial failures preserve field and context routing.",
+  source := "base/range.jl:634-645,808,870,879; doc/src/manual/networking-and-streams.md:102-119; base/show.jl:384-397 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027",
+  status := .todo,
+  prop := ``JuliaLean.Proofs.base.range.Models2Group20.LinRangeShowFieldRouting,
+  thm := none,
+  notes := "Independent dataflow invariant over arbitrary effectful dispatch operations, errors and mutable worlds; no renderer correctness assumptions or proof." },
+{ id := "range-linrange-show-failure-state", juliaFile := "base/range.jl",
+  juliaFns := ["show(io::IO, r::LinRange{T}) where {T}"],
+  statement := "A failing LinRange display preserves the first failed callee's exact exception and mutated state, including partial writes, and performs no subsequent operation. A successful display has no hidden caught failure.",
+  source := "base/range.jl:634-645; doc/src/manual/control-flow.md:830-854 (exception propagation); doc/src/manual/networking-and-streams.md:102-119 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027",
+  status := .todo,
+  prop := ``JuliaLean.Proofs.base.range.Models2Group20.LinRangeShowFailurePreservesState,
+  thm := none,
+  notes := "Every dispatch target, error class and mutable state is quantified without correctness assumptions. All calls are observed so absence of calls after failure is checked; no proof." },
+{ id := "range-print-range-framing", juliaFile := "base/range.jl",
+  juliaFns := ["print_range(io::IO, r::AbstractArray, pre::AbstractString, sep::AbstractString, post::AbstractString, hdots::AbstractString)"],
+  statement := "Direct range-display framing calls are prefix,row,suffix or prefix,row,ellipsis,row,suffix, with failure prefixes, the supplied separator and row one. They all use the original stream or its single returned compact context, and success returns the final suffix printer's result unchanged.",
+  source := "base/range.jl:647-701; base/arrayshow.jl:93-98 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027",
+  status := .todo,
+  prop := ``JuliaLean.Proofs.base.range.Models2Group20.PrintRangeFramingProtocol,
+  thm := none,
+  notes := "Independent framing protocol over all effectful dispatch targets, including arbitrary array/IO/string types, errors and states. No width, indexing or renderer-correctness law; no proof." },
+{ id := "range-print-range-failure-state", juliaFile := "base/range.jl",
+  juliaFns := ["print_range(io::IO, r::AbstractArray, pre::AbstractString, sep::AbstractString, post::AbstractString, hdots::AbstractString)"],
+  statement := "A terminating print_range failure propagates the exact first callee exception with its mutated world, or raises TypeError immediately after a non-Bool condition with that evaluation's state intact. No later operation occurs; successful execution has no ignored failure.",
+  source := "base/range.jl:660-701; doc/src/manual/control-flow.md:176-192,830-854 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027",
+  status := .todo,
+  prop := ``JuliaLean.Proofs.base.range.Models2Group20.PrintRangeFailurePreservesState,
+  thm := none,
+  notes := "Callee errors, condition values and mutable states are arbitrary. The observer records every operation and state without correctness assumptions. Divergence is distinct from exceptions; no proof." },
+{ id := "range-steprange-isempty-eager-effects", juliaFile := "base/range.jl",
+  juliaFns := ["isempty(r::StepRange)"],
+  statement := "StepRange emptiness eagerly begins the right operand after a successful left operand, irrespective of its value. Successful calls preserve the observed zero and conjunction operands, perform both directional comparisons once, and return the dispatched conjunction result unchanged. Failures retain the exact first callee exception and mutated state with no later call.",
+  source := "base/range.jl:708-710; doc/src/manual/control-flow.md:262-280,361-378,769-859 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027",
+  status := .todo,
+  prop := ``JuliaLean.Proofs.base.range.Models2Group20.StepRangeEmptyEagerEffects,
+  thm := none,
+  notes := "Independent eager-evaluation, data-routing and failure invariants. All comparison/conjunction result types and effectful callees are arbitrary, including non-Bool values, exceptions and mutation. No callee laws or proof." },
+{ id := "range-linrange-step-arithmetic-effects", juliaFile := "base/range.jl",
+  juliaFns := ["step(r::LinRange)"],
+  statement := "LinRange spacing passes the stored stop and start to subtraction, and its observed result to division with stored lendiv. A failed subtraction prevents division; any failure preserves the first exact exception and mutated state. Successful return preserves the dispatched division result.",
+  source := "base/range.jl:715-740,870,879; doc/src/manual/control-flow.md:769-859 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027",
+  status := .todo,
+  prop := ``JuliaLean.Proofs.base.range.Models2Group20.LinRangeStepArithmeticEffects,
+  thm := none,
+  notes := "Independent stored-field routing and exception-state invariant over every effectful subtraction/division target and intermediate/result type. Concrete range accessors reuse installed models; no arithmetic correctness assumptions or proof." },
+{ id := "range-linrange-step-count-independent", juliaFile := "base/range.jl",
+  juliaFns := ["step(r::LinRange)"],
+  statement := "For fixed endpoints and spacing divisor, changing the stored count cannot change LinRange step's result, failure state or divergence.",
+  source := "base/range.jl:740,870,879 (stored-field read independence) @ f755f49a9e41380d7da126b3c1db9fe7f83dd027",
+  status := .todo,
+  prop := ``JuliaLean.Proofs.base.range.Models2Group20.LinRangeStepCountIndependent,
+  thm := none,
+  notes := "Independent noninterference property over all fields, arbitrary arithmetic effects and states. In particular it detects using len instead of lendiv. Stronger than the constructible subset; no premises or proof." },
+{ id := "range-unitrange-length-signed-branch", juliaFile := "base/range.jl",
+  juliaFns := ["length(r::AbstractUnitRange{T}) where T"],
+  statement := "Generic unit-range length evaluates zero at both actual endpoints and invokes zero subtraction before selecting the Signed/non-Signed branch. Signed units skip endpoint comparison; a false non-Signed comparison skips endpoint subtraction and addition. Successful execution selects exactly one Integer-conversion route and returns its observed result, with the branch exclusions preserved on interrupted runs.",
+  source := "base/range.jl:794-804; doc/src/manual/control-flow.md:262-280 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027",
+  status := .todo,
+  prop := ``JuliaLean.Proofs.base.range.Models2Group20.UnitRangeLengthSignedBranch,
+  thm := none,
+  notes := "Independent scale/effect and branch-isolation invariant, not an unconditional cardinality law for arbitrary user-defined arithmetic. All callback values and result carriers are quantified without laws. Signed is runtime value metadata; no proof." },
+{ id := "range-unitrange-length-failure-state", juliaFile := "base/range.jl",
+  juliaFns := ["length(r::AbstractUnitRange{T}) where T"],
+  statement := "Generic unit-range length propagates the first callee's exact exception and changed state, or raises TypeError immediately after a non-Bool ordering condition with that condition evaluation's state intact. No subsequent operation follows either failure and success contains no hidden failure.",
+  source := "base/range.jl:794-804; doc/src/manual/control-flow.md:183-192,769-859 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027",
+  status := .todo,
+  prop := ``JuliaLean.Proofs.base.range.Models2Group20.UnitRangeLengthFailurePreservesState,
+  thm := none,
+  notes := "All input types, custom dispatch targets, arbitrary exception classes and mutable states are quantified. The observer records every call and its failure point; divergence is separate from exceptions. No callee assumptions or proof." },
+{ id := "range-abstract-range-show-effects", juliaFile := "base/range.jl",
+  juliaFns := ["show(io::IO, r::AbstractRange)"],
+  statement := "AbstractRange display routes the actually obtained first, step and last values through their repr calls, waits for all representations before one variadic print with colon separators on the requested stream, preserves its result, and preserves every failed callee's exact exception and mutated state without later calls.",
+  source := "base/range.jl:1135; doc/src/manual/types.md:1510-1548; doc/src/manual/networking-and-streams.md:102-119; doc/src/manual/control-flow.md:830-854 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027",
+  status := .todo,
+  prop := ``JuliaLean.Proofs.base.range.Models2Group20.AbstractRangeShowDataflowEffects,
+  thm := none,
+  notes := "All accessor/repr result types, effects, errors and mutable worlds are quantified independently. No repr/printer correctness law and no proof." },
+{ id := "range-unit-range-show-effects", juliaFile := "base/range.jl",
+  juliaFns := ["show(io::IO, r::UnitRange)", "first(r::OrdinalRange{T}) where {T}", "last(r::OrdinalRange{T}) where {T}"],
+  statement := "UnitRange display converts only its stored endpoints, shows the actual conversion results on the original stream, and defers stop conversion until the first show and colon print succeed. It preserves the final show result and every partial-write error/state, with no later calls.",
+  source := "base/range.jl:1136-1140,867,877; doc/src/manual/types.md:1510-1548; doc/src/manual/control-flow.md:830-854 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027",
+  status := .todo,
+  prop := ``JuliaLean.Proofs.base.range.Models2Group20.UnitRangeShowConvertedEndpoints,
+  thm := none,
+  notes := "Registered dependency coverage for unitRangeFirstEffectful and unitRangeLastEffectful, the necessary UnitRange specializations of the ordinal accessors. Conversion outcomes may have arbitrary runtime types; no correctness law or proof." },
+{ id := "range-oneto-show-effects", juliaFile := "base/range.jl",
+  juliaFns := ["show(io::IO, r::OneTo)"],
+  statement := "OneTo display supplies its stored stop exactly once to a single variadic print framed as Base.OneTo on the original stream, preserves the printer's result, and retains arbitrary partial-write errors and their final mutable states without later calls.",
+  source := "base/range.jl:1141; doc/src/manual/types.md:1510-1548; doc/src/manual/networking-and-streams.md:102-119; doc/src/manual/control-flow.md:830-854 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027",
+  status := .todo,
+  prop := ``JuliaLean.Proofs.base.range.Models2Group20.OneToShowStoredStopEffects,
+  thm := none,
+  notes := "All streams, stored stop values, effectful printer results, errors and worlds are quantified. No pre-rendering, conversion assumption, printer correctness law or proof." },
+{ id := "range-steprangelen-show-accessor-routing", juliaFile := "base/range.jl",
+  juliaFns := ["show(io::IO, r::StepRangeLen)", "step(r::StepRangeLen)", "step(r::StepRangeLen{T}) where {T<:AbstractFloat}", "length(r::StepRangeLen)", "first(r::StepRangeLen)", "last(r::StepRangeLen)", "unsafe_getindex(r::StepRangeLen{T}, i::Integer) where T"],
+  statement := "StepRangeLen display routes native one and the stored length through the actual ordinary or TwicePrecision indexing body, preserves stored offset/step/high/low fields and all intermediate arithmetic/iterator-state dataflow, independently evaluates the rendering step, and passes the three actual repr results to one variadic print with the selected syntax and original stream, returning its result. Routing invariants also hold on partial failure.",
+  source := "base/range.jl:738-739,807,869,878,986-989,1142-1149; base/twiceprecision.jl:438-439,480-486; doc/src/manual/functions.md:399-470 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027",
+  status := .todo,
+  prop := ``JuliaLean.Proofs.base.range.Models2Group20.StepRangeLenShowAccessorRouting,
+  thm := none,
+  notes := "Registered dependency coverage for stepLenLength, stepLenStep, stepLenUnsafeOrdinary, stepLenUnsafeTwice, stepLenUnsafeIndex, stepLenFirst, stepLenLast, stepLenDestructure and stepLenIndexedField. Includes independent reference/step TwicePrecision scalar types and matched nonfloating T step construction. All open callees, arbitrary result types, mutable worlds and errors are quantified without laws; no proof." },
+{ id := "range-steprangelen-show-failure-state", juliaFile := "base/range.jl",
+  juliaFns := ["show(io::IO, r::StepRangeLen)", "unsafe_getindex(r::StepRangeLen{T,<:TwicePrecision,<:TwicePrecision}, i::Integer) where T"],
+  statement := "Every failing selected operation in StepRangeLen display preserves its exact exception and mutated state and stops later calls. Non-Bool conditions and malformed indexed_iterate results fail at their native check with the TypeError, BoundsError or UndefRefError independently justified by observed runtime metadata, without changing the state after that observation.",
+  source := "base/range.jl:1142-1149; base/twiceprecision.jl:480-486; base/tuple.jl:159-172; base/docs/basedocs.jl:2609-2620; doc/src/manual/control-flow.md:183-192,769-859 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027",
+  status := .todo,
+  prop := ``JuliaLean.Proofs.base.range.Models2Group20.StepRangeLenShowFailurePreservesState,
+  thm := none,
+  notes := "Registered error coverage includes concrete add12-result destructuring: arbitrary indexed_iterate dispatch, bounded field-count/defined-slot metadata, Module positional-field rejection, and immediate failure before any later selected call. No tuple-return assumption or callee-correctness law; no proof." },
+{ id := "range-equality-decision-evidence", juliaFile := "base/range.jl",
+  juliaFns := ["==(r::AbstractRange, s::AbstractRange)"],
+  statement := "Every terminating false result has an observed length or element mismatch. Every true result has an observed zero length or actual left-iterator exhaustion after only true element comparisons. A deciding or non-Bool condition prevents every later call, and successful return retains the deciding observation's world.",
+  source := "base/range.jl:1180-1193; doc/src/manual/interfaces.md:29-53; doc/src/manual/control-flow.md:262-280,378-390 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027",
+  status := .todo,
+  prop := ``JuliaLean.Proofs.base.range.Models2Group20.RangeEqualityDecisionEvidence,
+  thm := none,
+  notes := "Independent decision-evidence invariant over arbitrary dynamic type families and effectful dispatch operations; no iteration/equality/length-consistency or termination law. Public property executes and covers Models2Group20.equalityIteration and equalityWhile through eqAbstractRange. No proof." },
+{ id := "range-equality-failure-state", juliaFile := "base/range.jl",
+  juliaFns := ["==(r::AbstractRange, s::AbstractRange)"],
+  statement := "Generic range equality retains the first callee's exact exception and mutated world, raises TypeError at a non-Bool condition, or raises getindex MethodError for premature right exhaustion only after reading the current left element and preserving that read's state. No later call follows failure and no synthetic fuel error is introduced.",
+  source := "base/range.jl:1180-1193; doc/src/manual/control-flow.md:183-192,769-859 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027",
+  status := .todo,
+  prop := ``JuliaLean.Proofs.base.range.Models2Group20.RangeEqualityFailurePreservesState,
+  thm := none,
+  notes := "All dynamic values, selected calls, foreign errors and worlds are quantified without correctness laws. Divergence is represented separately. Covers equalityIteration and equalityWhile as actual public-call dependencies; no proof." },
+{ id := "range-equality-iteration-dataflow", juliaFile := "base/range.jl",
+  juliaFns := ["==(r::AbstractRange, s::AbstractRange)"],
+  statement := "Subsequent iterate calls receive exactly the runtime-tagged state values returned by index two, and element comparisons receive the values returned by index one. The original ranges are retained. Interrupted comparison consumes a prefix of indexed elements; successful completion leaves none unconsumed.",
+  source := "base/range.jl:1187-1192; doc/src/manual/interfaces.md:29-53 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027",
+  status := .todo,
+  prop := ``JuliaLean.Proofs.base.range.Models2Group20.RangeEqualityIterationDataflow,
+  thm := none,
+  notes := "Independent data-routing invariant allows changing state types and arbitrary non-tuple iterate results; actual indexing remains observable. All effects and callees are arbitrary. Covers equalityIteration and equalityWhile through eqAbstractRange; no proof." },
+{ id := "range-intersect-many-argument-continuity", juliaFile := "base/range.jl",
+  juliaFns := ["intersect(r1::AbstractRange, r2::AbstractRange, r3::AbstractRange, r::AbstractRange...)"],
+  statement := "Multi-range intersection consumes the heterogeneous range arguments once in order, threads each actual possibly type-changing result into the next call, and returns the final result. Failure consumes a prefix and retains the exact exception and mutated state without later calls.",
+  source := "base/range.jl:1287-1293; doc/src/manual/interfaces.md:7-51; doc/src/manual/control-flow.md:830-854 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027",
+  status := .todo,
+  prop := ``JuliaLean.Proofs.base.range.Models2Group20.ManyRangeIntersectionArgumentContinuity,
+  thm := none,
+  notes := "All selected binary intersections are arbitrary and no correctness law is assumed. The bounded tuple representation has machine-sized length and terminal iteration state. Covers the faithful intersectManyTail helper through this public property; unproved." },
+
+
+{ id := "range-logrange-show-stored-fields-effects", juliaFile := "base/range.jl",
+  juliaFns := ["show(io::IO, r::LogRange{T}) where {T}"],
+  statement := "LogRange display sends the stored endpoints to the actual returned typeinfo context and the stored count to the original stream, visits them once on success and returns the closing printer's result. Interrupted displays preserve field routing, the exact first exception and post-call state, and issue no later call.",
+  source := "base/range.jl:1726-1735,1696,1698-1699; doc/src/manual/networking-and-streams.md:102-119; doc/src/manual/control-flow.md:830-854 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027",
+  status := .todo,
+  prop := ``JuliaLean.Proofs.base.range.Models2Group20.LogRangeShowStoredFieldsAndEffects,
+  thm := none,
+  notes := "Arbitrary effectful IO/context/renderer targets, errors and worlds; no callee laws. Uses installed LogRange accessors and does not repurpose the frozen qualified-name property. No proof." }
+]
 
 end JuliaLean.Proofs.base.range

@@ -1,69 +1,61 @@
 id: dictscov-immutable-filter-copy
-title: "filter and copy throw MethodError for ImmutableDict and PersistentDict"
-priority: P2
-kind: wrong-exception
-area: DictsCov
-files: [base/abstractdict.jl, base/dict.jl]
-functions: ["filter(f, d::AbstractDict)", "copy(a::AbstractDict)", "empty(::ImmutableDict, K, V)", "empty(::PersistentDict, K, V)"]
+title: "filter and copy of a nonempty ImmutableDict throw MethodError"
+priority: "P2"
+kind: "wrong-exception"
+area: "DictsCov"
+files:
+  - "base/abstractdict.jl"
+  - "base/dict.jl"
+functions:
+  - "filter(f, d::AbstractDict)"
+  - "copy(a::AbstractDict)"
 summary: |
-  The generic filter(f, d::AbstractDict) and copy(a::AbstractDict) build
-  their result with empty(d) and assign `df[k] = v`. For ImmutableDict and
-  PersistentDict, empty(d) is again an ImmutableDict / PersistentDict, which
-  has no setindex!, so filter(p -> true, d) and copy(d) throw MethodError for
-  every non-empty d. map!(f, values(d)) fails the same way, as expected for
-  an immutable dictionary.
+  The nonmutating filter and copy methods allocate empty(d) and then assign into it. For Base.ImmutableDict(:a => 1), empty(d) is immutable and the retained pair triggers MethodError. The reproducer uses filter only.
 likelihood: |
-  Any filter or copy of a non-empty ImmutableDict (e.g. the dict of an
-  IOContext) or PersistentDict. Both types are internal, so direct use is
-  uncommon.
+  Direct use of a nonempty internal ImmutableDict with filter or copy. Immutable dictionaries also occur in IOContext properties.
 maybe_intended: |
-  Both types are immutable and not public (#53982 asks whether
-  PersistentDict should be); a MethodError may be considered acceptable.
-  But filter is documented to return a copy, not to mutate.
+  ImmutableDict is internal and has no mutating setindex! method. Unsupported mutation is expected; failure of the documented nonmutating operation is the disputed behavior.
 reproducer: |
-  filter(p -> true, Base.ImmutableDict(:a => 1))   # MethodError: setindex!
-  copy(Base.PersistentDict(:a => 1))               # MethodError: setindex!
+  d = Base.ImmutableDict(:a => 1)
+  for op in (d -> filter(_ -> true, d), copy)
+      try
+          @show op(d)
+      catch err
+          @show typeof(err)
+      end
+  end
 output:
   release: |
-    filter(p -> true, ImmutableDict(:a => 1)) -> MethodError: no method matching setindex!(::Base.ImmutableDict{Symbol, Int64}, ::Int64, ::Symbol)
-    The function
-    copy(ImmutableDict(:a => 1)) -> MethodError: no method matching setindex!(::Base.ImmutableDict{Symbol, Int64}, ::Int64, ::Symbol)
-    The function
-    filter(p -> true, PersistentDict(:a => 1)) -> MethodError: no method matching setindex!(::Base.PersistentDict{Symbol, Int64}, ::Int64, ::Symbol)
-    The functio
-    copy(PersistentDict(:a => 1)) -> MethodError: no method matching setindex!(::Base.PersistentDict{Symbol, Int64}, ::Int64, ::Symbol)
-    The functio
     REPRODUCED dictscov-immutable-filter-copy
   nightly: |
-    filter(p -> true, ImmutableDict(:a => 1)) -> MethodError: no method matching setindex!(::Base.ImmutableDict{Symbol, Int64}, ::Int64, ::Symbol)
-    The function
-    copy(ImmutableDict(:a => 1)) -> MethodError: no method matching setindex!(::Base.ImmutableDict{Symbol, Int64}, ::Int64, ::Symbol)
-    The function
-    filter(p -> true, PersistentDict(:a => 1)) -> MethodError: no method matching setindex!(::Base.PersistentDict{Symbol, Int64}, ::Int64, ::Symbol)
-    The functio
-    copy(PersistentDict(:a => 1)) -> MethodError: no method matching setindex!(::Base.PersistentDict{Symbol, Int64}, ::Int64, ::Symbol)
-    The functio
     REPRODUCED dictscov-immutable-filter-copy
-reproduced: {release: true, nightly: true}
+reproduced:
+  release: true
+  nightly: true
 expected: |
-  filter returns a dictionary of the pairs satisfying f (for example an
-  ImmutableDict / PersistentDict built with ImmutableDict(d, k => v) /
-  PersistentDict(d, k => v)), and copy returns d itself or an equal
-  dictionary.
+  filter(_ -> true, d) and copy(d) should return a dictionary containing the source entry, or the documented AbstractDict contract should state this restriction.
 promised_by: |
-  filter docstring, base/abstractdict.jl:464: "Return a copy of d,
-  removing elements for which f is false." copy docstring (base/array.jl):
-  "Create a shallow copy of x".
+  base/abstractdict.jl:462-465 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027:
+  "filter(f, d::AbstractDict)"
+  "Return a copy of `d`, removing elements for which `f` is `false`."
+  "The function `f` is passed `key=>value` pairs."
+  base/abstractdict.jl:197 defines copy(a::AbstractDict) = merge!(empty(a), a).
 cause: |
-  base/abstractdict.jl:479-488 (filter) and base/abstractdict.jl:197 (copy
-  via merge!) assign into empty(d); base/dict.jl:866 and base/dict.jl:1067
-  make empty return the immutable type, which defines no setindex!.
+  base/abstractdict.jl:479-488 inserts accepted pairs into empty(d). The generic copy at line 197 calls merge!, whose lines 224-235 assign entries. base/dict.jl:866 returns an empty ImmutableDict, which lacks setindex!.
 possible_fix: |
-  Define filter and copy for ImmutableDict and PersistentDict by rebuilding
-  with their persistent constructors (copy can return d).
+  Provide nonmutating filter and copy methods for ImmutableDict using its persistent constructor, or clarify the accepted dictionary types.
 duplicates:
-  issues: []
-  queries: ["ImmutableDict filter", "ImmutableDict copy", "PersistentDict filter", "filter AbstractDict setindex", "ImmutableDict"]
+  issues:
+    - number: 53982
+      state: open
+      relation: related
+  prs: []
+  queries:
+    - "ImmutableDict filter"
+    - "ImmutableDict copy"
+    - "filter AbstractDict MethodError"
+  search_evidence: |
+    No exact duplicate issue or PR is known.
 lean:
-  property: JuliaLean.DictsCov.FilterCopyNothrow
-  theorem: JuliaLean.DictsCov.filterCopyNothrow_refuted
+  property: JuliaLean.Proofs.base.abstractdict.FilterCopyNothrowSpec
+  theorem: JuliaLean.ChatGPT.Batch4.Group15.DictscovImmutableFilterCopy_refuted

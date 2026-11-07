@@ -1,0 +1,60 @@
+id: intarith-round-unsigned-rational-infinity
+title: "round on unsigned rational infinity raises OverflowError"
+priority: P2
+kind: wrong-exception
+area: IntArith
+files: [base/rational.jl, base/number.jl]
+functions: ["round(x::Rational, r::RoundingMode=RoundNearest)"]
+summary: |
+  round(UInt8(1)//UInt8(0), RoundNearest) raises OverflowError instead of
+  preserving the constructible positive rational infinity.
+likelihood: |
+  Affects unsigned-component rational infinities, including ordinary UInt8 values.
+maybe_intended: |
+  Negative infinity cannot be represented with unsigned components, but this
+  input is positive and the requested output has the original input type.
+reproducer: |
+  Stored at repro/intarith-round-unsigned-rational-infinity.jl.
+  x = UInt8(1) // UInt8(0)
+  round(x, RoundNearest)
+output:
+  release: |
+    REPRODUCED intarith-round-unsigned-rational-infinity
+  nightly: |
+    REPRODUCED intarith-round-unsigned-rational-infinity
+reproduced: {release: true, nightly: true}
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: true
+  output: |
+    JULIA_VERSION 1.15.0-DEV.unknown
+    JULIA_COMMIT f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    GMP_VERSION 6.3.0
+    round_unsigned_explicit THROW OverflowError: OverflowError: cannot negate unsigned number
+    round_unsigned_default THROW OverflowError: OverflowError: cannot negate unsigned number
+    REPRODUCED intarith-round-unsigned-rational-infinity
+    REPRODUCED rational-default-rounding-selected
+expected: |
+  Return UInt8(1)//UInt8(0), preserving positive infinity.
+promised_by: |
+  base/rational.jl:612 forwards to rounding in the original rational type.
+  The infinity branch at base/rational.jl:615-616 explicitly preserves sign
+  for noninteger targets. The exact positive infinity remains representable.
+cause: |
+  base/rational.jl:616 calls copysign on a freshly constructed positive rational
+  infinity. The inherited Real method at base/number.jl:271 uses eager ifelse,
+  so its -x argument negates an unsigned rational even when the sign is positive.
+possible_fix: |
+  Avoid evaluating an unneeded negation when selecting the sign of an unsigned
+  rational, for example with a conditional sign branch.
+duplicates:
+  issues: []
+  prs:
+    - {number: 34658, state: closed, relation: related, url: "https://github.com/JuliaLang/julia/pull/34658"}
+  queries:
+    - "GitHub issues and PRs: repo:JuliaLang/julia rational round infinity"
+    - "Web: site:github.com/JuliaLang/julia Rational unsigned infinity round OverflowError"
+lean:
+  property: JuliaLean.Proofs.base.rational.Models1Group20.RoundNativeDefaultCorrect
+  theorem: JuliaLean.ChatGPT.Batch10.Group2.Models1G20RoundNativeDefault_refuted
+covers: [rational-default-rounding-selected]

@@ -5,6 +5,8 @@ namespace JuliaLean.CRuntime.WorldStop
 
 open Memory
 
+-- Serialize certificate reductions to keep their kernel caches from overlapping.
+set_option Elab.async false
 set_option maxRecDepth 50000
 set_option maxHeartbeats 2000000
 set_option synthInstance.maxSize 65536

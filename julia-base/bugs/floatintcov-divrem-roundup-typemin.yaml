@@ -9,10 +9,17 @@ summary: |
   rem(Int8(-127), typemin(Int8), RoundUp) returns -127 because the implementation
   negates typemin and wraps back to -128. divrem returns the correct pair (1, 1),
   so it also contradicts the documented equivalence to separate div and rem calls.
+  Unsigned inputs expose the same divisor-negation problem on ordinary values.
+  On Julia 1.13.2 and pinned nightly f755f49, rem(UInt8(1), UInt8(2), RoundUp)
+  returns 0x01, while divrem returns (0x01, 0xff); RoundFromZero gives the
+  same results. base/div.jl:129 calls mod(x, -y), and base/int.jl:86 negates
+  within UInt8, so -0x02 is positive 0xfe. base/int.jl:351-352 therefore
+  returns the unsigned truncated remainder 0x01. The RoundUp branch at
+  base/div.jl:301-304 computes the wrapped x - y*q remainder 0xff instead.
 likelihood: |
-  This requires a signed typemin divisor, but those values arise naturally at
-  integer boundaries. Every signed fixed-width type is affected, and callers
-  silently receive a remainder that does not reconstruct the dividend.
+  The signed case occurs at integer boundaries in every fixed-width signed type.
+  The unsigned case also occurs on ordinary small inputs, silently breaking the
+  documented agreement between rem and divrem.
 maybe_intended: ""
 reproducer: |
   x = Int8(-127)
@@ -71,5 +78,6 @@ duplicates:
     - "issues and prs: mod typemin unary minus"
     - "issues and prs: RoundUp remainder"
 lean:
-  property: JuliaLean.FloatIntCov.Div.DivremProjectionConsistency
-  theorem: JuliaLean.FloatIntCov.Div.divremProjectionConsistency_refuted
+  property: JuliaLean.Proofs.base.div.BitIntegerDivremProjection
+  theorem: JuliaLean.Proofs.base.div.bitIntegerDivremProjection_refuted
+covers: [div-bitinteger-remainder-equation]

@@ -1,30 +1,32 @@
 id: tuples-findall-in-isequal
-title: "`findall(in(b), x)` matches with isequal, disagreeing with `x[i] in b` for -0.0, NaN and missing"
+title: findall(in(b), tuple) changes membership equality for signed zero and NaN
 priority: P2
 kind: wrong-result
 area: Tuples
-files: [base/array.jl]
-functions: ["findall(pred::Fix2{typeof(in)}, x::Tuple)", "findall(pred::Fix2{typeof(in)}, x::AbstractArray)", "_findin", "_sortedfindin"]
+files:
+  - base/array.jl
+  - base/operators.jl
+functions:
+  - findall(pred::Fix2{typeof(in)}, x::Tuple)
+  - _findin
 summary: |
-  The specialised methods findall(in(b), x) for tuples and arrays convert b to a
-  Set (or, for sorted real arrays, merge with isless), so membership is tested
-  with isequal. in itself compares with ==. The results differ for signed zeros,
-  NaN and missing: findall(in([0.0]), (-0.0,)) == Int[] although -0.0 in [0.0],
-  and findall(in([NaN]), (NaN,)) == [1] although NaN in [NaN] is false.
+  findall(in([0.0]), (-0.0,)) returns Int64[] although applying the predicate
+  directly returns [1]. For NaN the discrepancy reverses: the optimized call
+  returns [1] while the equivalent anonymous predicate returns Int64[]. The
+  optimization changes membership from == to isequal by building a Set.
 likelihood: |
-  Moderate for floating-point data: -0.0 is produced by ordinary arithmetic
-  (rounding, negation, products with negative numbers), and findall(in(b), x) is
-  the idiomatic way to look up a set of values. The result silently depends on
-  whether the predicate is written in(b) or x -> x in b.
+  Signed zero and NaN arise in ordinary floating-point data. A caller can change
+  the answer merely by replacing x -> x in b with the documented equivalent in(b).
 maybe_intended: |
-  Set-based matching with isequal could be deliberate for performance, and
-  isequal semantics are arguably better for NaN; but neither the findall nor the
-  in docstring mentions it, and the generic findall(f, x) gives the == result.
+  Hash-based lookup is a deliberate optimization, but it cannot preserve the
+  documented predicate equivalence when == and isequal disagree. Issue #64153
+  explicitly covers this tuple example. The report does not require changing
+  Set membership itself.
 reproducer: |
-  findall(in([0.0]), (-0.0,))        # Int64[]
-  findall(x -> x in [0.0], (-0.0,))  # [1]
-  findall(in([NaN]), (NaN,))         # [1]
-  findall(x -> x in [NaN], (NaN,))   # Int64[]
+  findall(in([0.0]), (-0.0,))
+  findall(x -> x in [0.0], (-0.0,))
+  findall(in([NaN]), (NaN,))
+  findall(x -> x in [NaN], (NaN,))
 output:
   release: |
     Int64[] [1] [1] Int64[] true false
@@ -32,27 +34,57 @@ output:
   nightly: |
     Int64[] [1] [1] Int64[] true false
     REPRODUCED tuples-findall-in-isequal
-reproduced: {release: true, nightly: true}
+reproduced:
+  release: true
+  nightly: true
 expected: |
-  findall(in(b), x) == findall(y -> y in b, x): [1] for the -0.0 case and
-  Int64[] for the NaN case.
+  Both predicate spellings should return [1] for -0.0 in [0.0] and Int64[] for
+  NaN in [NaN].
 promised_by: |
-  in(x) docstring (base/operators.jl): "Create a function that checks whether
-  its argument is in x, i.e. a function equivalent to y -> y in x"; in uses ==.
-  findall(f, A) docstring (base/array.jl): the indices i where f(A[i]) is true.
+  base/operators.jl:1446-1448 at f755f49a9e41380d7da126b3c1db9fe7f83dd027:
+  "Create a function that checks whether its argument is [`in`](@ref) `collection`, i.e.
+  a function equivalent to `y -> y in collection`. See also [`insorted`](@ref) for use
+  with sorted collections."
+  base/array.jl:2736-2737:
+  "Return a vector `I` of the indices or keys of `A` where `f(A[I])` returns `true`.
+  If there are no such elements of `A`, return an empty array."
 cause: |
-  base/array.jl:2964-2967 dispatch findall(pred::Fix2{typeof(in)}, x) to
-  _findin(x, pred.x); _findin converts b with Set(b) (base/array.jl:2910) and
-  tests ai in Set, which uses hash and isequal. The sorted path
-  (base/array.jl:2954-2960, _sortedfindin) compares with isless.
+  base/array.jl:2962 calls _findin(x, pred.x). The fallback at line 2905 converts
+  the collection to Set(b); lines 2898-2904 test membership in that Set rather
+  than evaluating the original predicate. Set lookup distinguishes signed zeros
+  and equates NaNs, while in(x, itr::Any) at base/operators.jl:1455 uses ==.
 possible_fix: |
-  Use the specialised paths only when isequal and == agree on the element types
-  (e.g. not for AbstractFloat or Missing), or document the isequal semantics.
+  Preserve the predicate's membership relation. Restrict the Set optimization to
+  cases where that equivalence is guaranteed, and evaluate the original predicate
+  otherwise. Documenting a different findall predicate would require changing
+  the existing in(collection) equivalence as well.
 duplicates:
   issues:
-    - {number: 29124, state: open, relation: related}
-    - {number: 52639, state: closed, relation: related}
-  queries: ["issues: _findin", "issues: findall in", "issues: findall in isequal", "issues: findall in Set isequal", "issues: findall in NaN", "issues: findall in -0.0", "issues: findall in signed zero", "prs: _findin", "prs: findall in"]
+    - number: 64153
+      state: open
+      relation: duplicate
+    - number: 29124
+      state: open
+      relation: related
+    - number: 52639
+      state: closed
+      relation: related
+  prs:
+    - number: 46222
+      state: open
+      relation: related
+  queries:
+    - 'gh search issues --repo JuliaLang/julia findall isequal'
+    - 'gh search issues --repo JuliaLang/julia findall NaN'
+    - 'gh search issues --repo JuliaLang/julia findall tuple'
+    - 'gh search prs --repo JuliaLang/julia findall isequal'
+    - 'gh search prs --repo JuliaLang/julia findall NaN'
+    - 'gh search prs --repo JuliaLang/julia findall tuple'
+  notes: |
+    Inspected #64153, which contains the same tuple signed-zero and NaN examples.
+    #29124 and #52639 concern the same optimization assuming a finite iterable,
+    rather than its equality semantics. PR #46222 changes _sortedfindin dispatch;
+    it does not fix the Set-based tuple witness. No fixing PR was identified.
 lean:
-  property: JuliaLean.Tuples.FindallInAgrees
-  theorem: JuliaLean.Tuples.findallInAgrees_refuted
+  property: JuliaLean.Proofs.base.array.TupleMembershipAgreement
+  theorem: JuliaLean.ChatGPT.Batch4.Group2.TuplesFindallInIsequal_refuted

@@ -26,16 +26,20 @@ reproducer: |
   depot = mktempdir()
   project = joinpath(depot, "environments", "scripts", "Project.toml")
   mkpath(dirname(project)); write(project, "")
-  empty!(DEPOT_PATH); push!(DEPOT_PATH, depot)
-  Base.load_path_expand("@scripts")   # nothing, expected `project`
+  code = "println(Base.active_project())"
+  cmd = addenv(`$(Base.julia_cmd()) --startup-file=no --project=@scripts -e $code`, "JULIA_DEPOT_PATH" => depot)
+  active = strip(read(cmd, String))
+  println("named environment file = ", project)
+  println("--project=@scripts active project = ", repr(active))
+  active != project && println("REPRODUCED runtimecov-load-path-expand-script-prefix")
 output:
   release: |
-    named environment file: <temp>/environments/scripts/Project.toml
-    load_path_expand("@scripts") = nothing
+    named environment file = /tmp/jl_3VuibT/environments/scripts/Project.toml
+    --project=@scripts active project = "/tmp/jl_3VuibT/environments/v1.13/Project.toml"
     REPRODUCED runtimecov-load-path-expand-script-prefix
   nightly: |
-    named environment file: <temp>/environments/scripts/Project.toml
-    load_path_expand("@scripts") = nothing
+    named environment file = /tmp/jl_H8LPoY/environments/scripts/Project.toml
+    --project=@scripts active project = "/tmp/jl_H8LPoY/environments/v1.15/Project.toml"
     REPRODUCED runtimecov-load-path-expand-script-prefix
 reproduced: {release: true, nightly: true}
 expected: |

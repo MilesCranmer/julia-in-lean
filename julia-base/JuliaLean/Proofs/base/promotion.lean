@@ -26,34 +26,49 @@ open JuliaLean.base.promotion
 open JuliaLean.Registry
 
 /-! Nothing to promise: _has_ancestor_typename@25: private name lookup used by the binary typejoin method. -/
-/-! Nothing to promise: typejoin@22: n-ary fold adapter over the binary typejoin method. -/
-/-! Nothing to promise: typejoin@23: vararg fold adapter over the binary typejoin method. -/
 /-! Nothing to promise: _promote_typesubtract@202: private Nothing/Missing cleanup used by promote_typejoin. -/
-/-! Nothing to promise: promote_typejoin_union@209: private recursive union normalization helper. -/
-/-! Nothing to promise: typejoin_union_tuple@226: private tuple-union normalization helper. -/
-/-! Nothing to promise: full_va_len@256: private tuple-length helper. -/
-/-! Nothing to promise: tailjoin@270: private tuple-tail helper used by typejoin. -/
-/-! Nothing to promise: promote_typeof@402: one-argument form returning `typeof(x)`; the two-, three- and n-argument forms are covered with `_promote`. -/
-/-! Nothing to promise: promote@435: n-ary wrapper; conversion and same-type checks belong to `_promote` and `not_sametype`. -/
-/-! Nothing to promise: +@454: generic forwarding method; addition semantics belong to the selected numeric method. -/
-/-! Nothing to promise: *@455: generic forwarding method; multiplication semantics belong to the selected numeric method. -/
-/-! Nothing to promise: -@456: generic forwarding method; subtraction semantics belong to the selected numeric method. -/
-/-! Nothing to promise: /@457: generic forwarding method; division semantics belong to the selected numeric method. -/
-/-! Nothing to promise: +%@459: generic forwarding method; wrapping addition semantics belong to the selected numeric method. -/
-/-! Nothing to promise: *%@460: generic forwarding method; wrapping multiplication semantics belong to the selected numeric method. -/
-/-! Nothing to promise: -%@461: generic forwarding method; wrapping subtraction semantics belong to the selected numeric method. -/
-/-! Nothing to promise: ^@507: generic forwarding method; power semantics belong to the selected numeric method. -/
-/-! Nothing to promise: fma@509: generic forwarding method; fused multiply-add semantics belong to the selected numeric method. -/
-/-! Nothing to promise: ==@516: generic forwarding method; equality semantics belong to the selected numeric method. -/
-/-! Nothing to promise: <@517: generic forwarding method; ordering semantics belong to the selected numeric method. -/
-/-! Nothing to promise: <=@518: generic forwarding method; ordering semantics belong to the selected numeric method. -/
-/-! Nothing to promise: rem@520: generic forwarding method; remainder semantics belong to the selected numeric method. -/
-/-! Nothing to promise: mod@521: generic forwarding method; modulus semantics belong to the selected numeric method. -/
-/-! Nothing to promise: mod1@522: generic forwarding method; mod1 semantics belong to the selected numeric method. -/
-/-! Nothing to promise: fld1@523: generic forwarding method; fld1 semantics belong to the selected numeric method. -/
-/-! Nothing to promise: max@525: generic forwarding method; maximum semantics belong to the selected numeric method. -/
-/-! Nothing to promise: min@526: generic forwarding method; minimum semantics belong to the selected numeric method. -/
-/-! Nothing to promise: minmax@527: generic forwarding method; extrema semantics belong to the selected numeric method. -/
+
+/-- A numeric operation cannot run when conversion to a common type fails. -/
+def ArithmeticPromotionErrors : Prop :=
+  ∀ (α β γ : Type) (promote : α → α → Jl (β × β))
+    (op : β → β → Jl γ) (x y : α) (e : JlError),
+    promote x y = .error e →
+      plusNumber promote op x y = .error e ∧
+      timesNumber promote op x y = .error e ∧
+      minusNumber promote op x y = .error e ∧
+      divideNumber promote op x y = .error e ∧
+      plusWrapNumber promote op x y = .error e ∧
+      timesWrapNumber promote op x y = .error e ∧
+      minusWrapNumber promote op x y = .error e ∧
+      powerNumber promote op x y = .error e ∧
+      equalNumber promote op x y = .error e ∧
+      lessNumber promote op x y = .error e ∧
+      lessEqualNumber promote op x y = .error e ∧
+      remNumber promote op x y = .error e ∧
+      modNumber promote op x y = .error e ∧
+      mod1Number promote op x y = .error e ∧
+      fld1Number promote op x y = .error e ∧
+      maxNumber promote op x y = .error e ∧
+      minNumber promote op x y = .error e ∧
+      minmaxNumber promote op x y = .error e
+
+/-- Three-argument numeric operations preserve failed common-type conversions. -/
+def FmaPromotionErrors : Prop :=
+  ∀ (α β γ : Type) (promote : α → α → α → Jl (β × β × β))
+    (op : β → β → β → Jl γ) (x y z : α) (e : JlError),
+    promote x y z = .error e → fmaNumber promote op x y z = .error e
+
+/-- Runtime type lookup is independent of the value's representation. -/
+def PromoteTypeofSingleTag : Prop :=
+  ∀ (α : Type) (typeOf : α → PType) (x : α) (T : PType),
+    typeOf x = T → promoteTypeofOne typeOf x = T
+
+/-- The variadic wrapper raises the failed-promotion error after its conversion succeeds. -/
+def PromoteManyRejectsUnchanged : Prop :=
+  ∀ (α : Type) (x y z : α) (rest : List (Sigma (fun _ : Unit => α)))
+    (converted : (α × α) × List α) (e : JlError),
+    promoteManyValues (m := Jl) (V := fun _ : Unit => α)
+      (fun _ _ _ _ => pure converted) (fun _ _ => .error e) x y z rest = .error e
 
 /-! ## Type identity -/
 
@@ -474,7 +489,7 @@ theorem typejoinPair_top (join : PType → PType → Option PType) {a b : PType}
       some (if pEqual a b = true then a else if pSubtype a b = true then b else a) := by
   rcases ha with _ | ha | ⟨_, _⟩ <;> (try rcases ha with _ | ⟨_, _, _, _⟩) <;>
     rcases hb with _ | hb | ⟨_, _⟩ <;> (try rcases hb with _ | ⟨_, _, _, _⟩) <;>
-    simp only [typejoinPair, sourcePTypeOps, pIsType, Bool.not_true, Bool.or_false,
+    simp only [typejoinPair, typejoinPairMethod, sourcePTypeOps, pIsType, Bool.not_true, Bool.or_false,
       Bool.false_eq_true, ite_false] <;>
     (repeat' split) <;> simp_all
 
@@ -486,8 +501,8 @@ theorem typejoinPair_union_left (join : PType → PType → Option PType) {x y b
   · simp [pSubtype_bottom_left] at h3
   · rcases hb with _ | ⟨_, _, _, _⟩
     · simp [pSubtype_any_right] at h2
-    · simp [typejoinPair, sourcePTypeOps, pIsType, h1, h2, h3]
-  · simp [typejoinPair, sourcePTypeOps, pIsType, h1, h2, h3]
+    · simp [typejoinPair, typejoinPairMethod, sourcePTypeOps, pIsType, h1, h2, h3]
+  · simp [typejoinPair, typejoinPairMethod, sourcePTypeOps, pIsType, h1, h2, h3]
 
 theorem typejoinPair_union_right (join : PType → PType → Option PType) {a x y : PType}
     (ha : Nominal env a) (h1 : pEqual a (.union x y) = false)
@@ -495,7 +510,7 @@ theorem typejoinPair_union_right (join : PType → PType → Option PType) {a x 
     typejoinPair sourcePTypeOps join a (.union x y) = join x y >>= fun c => join a c := by
   rcases ha with _ | ⟨_, _, _, _⟩
   · simp [pSubtype_any_right] at h3
-  · simp [typejoinPair, sourcePTypeOps, pIsType, h1, h2, h3]
+  · simp [typejoinPair, typejoinPairMethod, sourcePTypeOps, pIsType, h1, h2, h3]
 
 theorem typejoinPair_nominal (join : PType → PType → Option PType) {a b : PType}
     (ha : Nominal env a) (hb : Nominal env b) (h1 : pEqual a b = false)
@@ -505,7 +520,7 @@ theorem typejoinPair_nominal (join : PType → PType → Option PType) {a b : PT
   · simp [pSubtype_any_right] at h3
   · rcases hb with _ | ⟨_, hbt, _, _⟩
     · simp [pSubtype_any_right] at h2
-    · simp [typejoinPair, sourcePTypeOps, pIsType, h1, h2, h3, hat, hbt]
+    · simp [typejoinPair, typejoinPairMethod, sourcePTypeOps, pIsType, h1, h2, h3, hat, hbt]
 
 theorem typejoin_simple_aux :
     ∀ (n : Nat) (a b : PType), pUnions a + pUnions b < n →
@@ -628,7 +643,7 @@ theorem typejoinIdempotent_proven : TypejoinIdempotent := by
   rw [typejoin_unfold]
   cases t with
   | typeVar i u => exact absurd rfl (ht i u)
-  | _ => simp [typejoinPair, sourcePTypeOps, pEqual_refl]
+  | _ => simp [typejoinPair, typejoinPairMethod, sourcePTypeOps, pEqual_refl]
 
 /-! ## `typesplit` -/
 
@@ -1724,9 +1739,208 @@ theorem numericFallbackErrors_proven : NumericFallbackErrors := by
     powerFallback, fmaFallback, andFallback, orFallback, xorFallback,
     lessFallback, remFallback, modFallback, flipsignFallback, noOpErr]
 
+/-- The closest-common-ancestor promise extends to every input of the n-ary forms. -/
+def TypejoinNaryUpperBound : Prop :=
+  ∀ (env : TypeEnv) (a b c : PType) (rest : List PType),
+    (∀ t ∈ a :: b :: c :: rest, SimpleUnion env t) →
+    ∃ r, typejoinThree typejoin a b c = some r ∧
+      (∀ t ∈ [a, b, c], pSubtype t r = true) ∧
+      ∃ s, typejoinMany typejoin a b c rest = some s ∧
+        ∀ t ∈ a :: b :: c :: rest, pSubtype t s = true
+
+/-- Union normalization preserves every value admitted by the input type. -/
+def NormalizeUnionUpperBound : Prop :=
+  ∀ (T : PType) (normalize : PType → Jl PType) (r : PType),
+    (∀ a s, normalize a = .ok s → pSubtype a s = true) →
+    promoteTypejoinUnionMethod
+      (fun a b => match primitivePromoteTypejoinDispatch a b with
+        | some t => .ok t
+        | none => .error (.argumentError "typejoin did not return"))
+      normalize normalize (fun s => .error (.argumentError s)) T = .ok r →
+    pSubtype T r = true
+
+/-- Tuple union normalization does not discard any possible input tuple. -/
+def NormalizeTupleUpperBound : Prop :=
+  ∀ (T : PType) (join : PType → PType → Jl PType)
+    (normalize : PType → Jl PType) (r : PType),
+    (∃ wrapper params super, T = .data tupleTypeName wrapper params super) →
+    (∀ a b s, join a b = .ok s → pSubtype a s = true ∧ pSubtype b s = true) →
+    (∀ a s, normalize a = .ok s → pSubtype a s = true) →
+    typejoinUnionTupleMethod join normalize
+      (fun _ ps => .data tupleTypeName "Tuple" ps (some .any))
+      (fun _ => .error (.methodError "typejoin_union_tuple")) T = .ok r →
+    pSubtype T r = true
+
+/-- A tuple without a variadic field has exactly its parameter count. -/
+def FullVaLenFixedTuple : Prop :=
+  ∀ ps : List PType, (∀ p ∈ ps, pIsVararg p = false) →
+    (fullVaLen ps).1 = ps.length ∧ (fullVaLen ps).2 = true
+
+/-- Joining a nonempty tuple tail contains each type in that tail. -/
+def TailjoinUpperBound : Prop :=
+  ∀ (env : TypeEnv) (ps : List PType) (i : Int),
+    1 ≤ i → i ≤ Int.ofNat ps.length →
+    (∀ p ∈ ps, SimpleUnion env p) →
+    ∃ r, tailjoin (m := JlPartial) (fun a b => ExceptT.lift (typejoin a b)) ps i =
+      ExceptT.lift (some r) ∧
+      ∀ p ∈ ps.drop (i.toNat - 1), pSubtype p r = true
+
+theorem arithmeticPromotionErrors_proven : ArithmeticPromotionErrors := by
+  intro α β γ promote op x y e h
+  simp [plusNumber, timesNumber, minusNumber, divideNumber, plusWrapNumber,
+    timesWrapNumber, minusWrapNumber, powerNumber, equalNumber, lessNumber,
+    lessEqualNumber, remNumber, modNumber, mod1Number, fld1Number, maxNumber,
+    minNumber, minmaxNumber, h, Bind.bind, Except.bind]
+
+theorem fmaPromotionErrors_proven : FmaPromotionErrors := by
+  intro α β γ promote op x y z e h
+  simp [fmaNumber, h, Bind.bind, Except.bind]
+
+theorem promoteTypeofSingleTag_proven : PromoteTypeofSingleTag := by
+  intro α typeOf x T h
+  exact h
+
+theorem promoteManyRejectsUnchanged_proven : PromoteManyRejectsUnchanged := by
+  intro α x y z rest converted e
+  simp [promoteManyValues, Bind.bind, Except.bind, Pure.pure, Except.pure]
+
+theorem fullVaLenFixedTuple_proven : FullVaLenFixedTuple := by
+  intro ps hall
+  cases ps with
+  | nil => simp [fullVaLen]
+  | cons p ps =>
+    have lastMem : ∀ (q : PType) (qs : List PType), (q :: qs).getLast! ∈ q :: qs := by
+      intro q qs
+      induction qs generalizing q with
+      | nil => simp
+      | cons r rs ih =>
+        change (r :: rs).getLast! ∈ q :: r :: rs
+        exact List.mem_cons_of_mem q (ih r)
+    have hlast := hall ((p :: ps).getLast!) (lastMem p ps)
+    cases h : (p :: ps).getLast! <;>
+      simp_all [fullVaLen, pIsVararg]
+
+private theorem typejoin_fold_upper {env : TypeEnv} (ps : List PType) (a : PType)
+    (ha : SimpleUnion env a) (hps : ∀ p ∈ ps, SimpleUnion env p) :
+    ∃ r, ps.foldlM typejoin a = some r ∧ SimpleUnion env r ∧
+      pSubtype a r = true ∧ ∀ p ∈ ps, pSubtype p r = true := by
+  induction ps generalizing a with
+  | nil => exact ⟨a, rfl, ha, simple_subtype_refl ha, by simp⟩
+  | cons p ps ih =>
+    have hp := hps p (by simp)
+    obtain ⟨b, hab, hb, _, hleft, hright, _⟩ := typejoin_simple ha hp
+    obtain ⟨r, hr, hsr, hbr, hrest⟩ := ih b hb (by
+      intro q hq
+      exact hps q (by simp [hq]))
+    refine ⟨r, ?_, hsr, simple_subtype_trans ha hb hsr hleft hbr, ?_⟩
+    · simp [List.foldlM_cons, hab, hr]
+    · intro q hq
+      rcases List.mem_cons.mp hq with rfl | hq
+      · exact simple_subtype_trans hp hb hsr hright hbr
+      · exact hrest q hq
+
+theorem typejoinNaryUpperBound_proven : TypejoinNaryUpperBound := by
+  intro env a b c rest hall
+  have ha := hall a (by simp)
+  have hb := hall b (by simp)
+  have hc := hall c (by simp)
+  obtain ⟨ab, hab, hsab, _, har, hbr, _⟩ := typejoin_simple ha hb
+  obtain ⟨r, hr, hsr, _, habr, hcr, _⟩ := typejoin_simple hsab hc
+  have hthree : typejoinThree typejoin a b c = some r := by
+    simp [typejoinThree, hab, hr]
+  have hmem : ∀ t ∈ [a, b, c], pSubtype t r = true := by
+    intro t ht
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at ht
+    rcases ht with rfl | rfl | rfl
+    · exact simple_subtype_trans ha hsab hsr har habr
+    · exact simple_subtype_trans hb hsab hsr hbr habr
+    · exact hcr
+  obtain ⟨s, hs, hss, hrs, hrest⟩ := typejoin_fold_upper rest r hsr (by
+    intro t ht
+    exact hall t (by simp [ht]))
+  refine ⟨r, hthree, hmem, s, ?_, ?_⟩
+  · simp [typejoinMany, hthree, hs]
+  · intro t ht
+    have ht' : t ∈ [a, b, c] ∨ t ∈ rest := by simpa [or_assoc] using ht
+    rcases ht' with ht' | ht'
+    · exact simple_subtype_trans (hall t ht) hsr hss (hmem t ht') hrs
+    · exact hrest t ht'
+
+private theorem simple_unwrapVa {env : TypeEnv} {p : PType} (hp : SimpleUnion env p) :
+    pUnwrapVa p = p := by
+  cases hp with
+  | bottom => rfl
+  | union _ _ => rfl
+  | leaf h => cases h <;> rfl
+
+private theorem tailjoin_fold_upper {env : TypeEnv} (ps : List PType) (a : PType)
+    (ha : SimpleUnion env a) (hps : ∀ p ∈ ps, SimpleUnion env p) :
+    ∃ r, ps.foldlM (m := JlPartial)
+        (fun t p => ExceptT.lift (typejoin t (pUnwrapVa p))) a = pure r ∧
+      SimpleUnion env r ∧ pSubtype a r = true ∧
+      ∀ p ∈ ps, pSubtype p r = true := by
+  induction ps generalizing a with
+  | nil => exact ⟨a, rfl, ha, simple_subtype_refl ha, by simp⟩
+  | cons p ps ih =>
+    have hp := hps p (by simp)
+    obtain ⟨b, hab, hb, _, hleft, hright, _⟩ := typejoin_simple ha hp
+    obtain ⟨r, hr, hsr, hbr, hrest⟩ := ih b hb (by
+      intro q hq
+      exact hps q (by simp [hq]))
+    refine ⟨r, ?_, hsr, simple_subtype_trans ha hb hsr hleft hbr, ?_⟩
+    · simp only [List.foldlM_cons, simple_unwrapVa hp, hab]
+      exact hr
+    · intro q hq
+      rcases List.mem_cons.mp hq with rfl | hq
+      · exact simple_subtype_trans hp hb hsr hright hbr
+      · exact hrest q hq
+
+theorem tailjoinUpperBound_proven : TailjoinUpperBound := by
+  intro env ps i hi hlen hall
+  obtain ⟨r, hr, _, _, hrest⟩ := tailjoin_fold_upper
+    (ps.drop (i.toNat - 1)) .bottom (SimpleUnion.bottom : SimpleUnion env .bottom) (by
+      intro p hp
+      exact hall p (List.mem_of_mem_drop hp))
+  refine ⟨r, ?_, hrest⟩
+  unfold tailjoin
+  rw [if_neg (by omega), if_neg (by omega)]
+  exact hr
+
 /-! ## Registry -/
 
 def entries : List Entry := [
+  { id := "promotion-typesplit-removes-subtype", juliaFile := "base/promotion.jl"
+    juliaFns := ["typesplit(a, b)"]
+    statement := "Removing a simple subtype preserves the upper bound and the union with the removed type."
+    source := "base/promotion.jl:162-177"
+    status := .proven, prop := ``TypesplitRemovesSubtype, thm := some ``typesplitRemovesSubtype_proven },
+  { id := "promotion-typejoin-nary-upper-bound", juliaFile := "base/promotion.jl"
+    juliaFns := ["typejoin(t, s, u)", "typejoin(t, s, u, ts...)"]
+    statement := "The three-argument and variadic joins contain every input type."
+    source := "typejoin docstring; base/promotion.jl:22-23"
+    status := .proven, prop := ``TypejoinNaryUpperBound, thm := some ``typejoinNaryUpperBound_proven },
+  { id := "promotion-normalize-union-upper-bound", juliaFile := "base/promotion.jl"
+    juliaFns := ["promote_typejoin_union(::Type{T})"]
+    statement := "Union normalization preserves all values admitted by the input type."
+    source := "base/promotion.jl:209-224; promote_op extended help"
+    status := .todo, prop := ``NormalizeUnionUpperBound,
+    notes := "The arbitrary normalizer may return types outside SimpleUnion; the installed promote_typejoin upper-bound theorem currently covers only SimpleUnion inputs." },
+  { id := "promotion-normalize-tuple-upper-bound", juliaFile := "base/promotion.jl"
+    juliaFns := ["typejoin_union_tuple(T::DataType)"]
+    statement := "Normalizing tuple field unions retains every possible input tuple."
+    source := "base/promotion.jl:226-253; promote_op extended help"
+    status := .todo, prop := ``NormalizeTupleUpperBound,
+    notes := "Requires relating fieldwise tuple normalization and variadic reconstruction to pSubtype's parameter-list equality; that model does not yet express general tuple covariance." },
+  { id := "promotion-full-va-len-fixed-tuple", juliaFile := "base/promotion.jl"
+    juliaFns := ["full_va_len(p::Core.SimpleVector)"]
+    statement := "Without a variadic parameter the length is fixed and equals the parameter count."
+    source := "base/promotion.jl:255-267"
+    status := .proven, prop := ``FullVaLenFixedTuple, thm := some ``fullVaLenFixedTuple_proven },
+  { id := "promotion-tailjoin-upper-bound", juliaFile := "base/promotion.jl"
+    juliaFns := ["tailjoin(A::SimpleVector, i::Int)"]
+    statement := "The joined tail contains each type at or after its valid starting index."
+    source := "base/promotion.jl:269-280; typejoin docstring"
+    status := .proven, prop := ``TailjoinUpperBound, thm := some ``tailjoinUpperBound_proven },
   { id := "promotion-promote-type-table", juliaFile := "base/promotion.jl"
     juliaFns := ["promote_type(::Type{T}, ::Type{S})", "promote_result(::Type,::Type,::Type{T},::Type{S})"]
     statement := "For primitive numeric types, promote_type returns the documented Boolean, integer-width, and Float16/32/64 promotion table type in either argument order."
@@ -1767,11 +1981,6 @@ def entries : List Entry := [
     statement := "promote(x, y, z) returns the three values converted to promote_type of their three types, or raises the same-type promotion error when no value's type changed."
     source := "manual: Conversion and Promotion; base/promotion.jl:404-410,429-434,445"
     status := .proven, prop := ``PromoteTripleCommonType, thm := some ``promoteTripleCommonType_proven },
-  { id := "promotion-promote-rest-conversions", juliaFile := "base/promotion.jl"
-    juliaFns := ["_promote(x, y, zs...)", "promote_typeof(x, y, z, a...)", "promote_typeof(x, y, z)", "promote_typeof(x, y)"]
-    statement := "_promote(x, y, zs...) converts every value, of any type, to the one type R = promote_typeof(x, y, zs...), given that convert returns values of its target type; for numbers, promote_typeof returns the promotion table folded over the values' types from left to right."
-    source := "manual: Conversion and Promotion; promote and convert docstrings; base/promotion.jl:403-405,411-415"
-    status := .proven, prop := ``PromoteRestConversions, thm := some ``promoteRestConversions_proven },
   { id := "promotion-promote-same-type-identity", juliaFile := "base/promotion.jl"
     juliaFns := ["promote()", "promote(x)", "promote(x::T, y::T, zs::T...)", "_promote(x, y, zs...)"]
     statement := "Values that already share one type are returned unchanged by promote, by the generic conversion path and by the same-type method alike."
@@ -1802,11 +2011,6 @@ def entries : List Entry := [
     statement := "For every pair of primitive numeric types, typejoin returns their closest common ancestor in the numeric type hierarchy."
     source := "typejoin docstring; base/promotion.jl:37-160"
     status := .proven, prop := ``TypejoinPrimitiveUpperBound, thm := some ``typejoinPrimitiveUpperBound_proven },
-  { id := "promotion-typesplit-removes-subtype", juliaFile := "base/promotion.jl"
-    juliaFns := ["typesplit(a, b)"]
-    statement := "For unions of simple types, typesplit(a, b) is a subtype of a, and Union{typesplit(a, b), b} == Union{a, b}."
-    source := "base/promotion.jl:162-177 (source comment)"
-    status := .proven, prop := ``TypesplitRemovesSubtype, thm := some ``typesplitRemovesSubtype_proven },
   { id := "promotion-promote-typejoin-union-membership", juliaFile := "base/promotion.jl"
     juliaFns := ["promote_typejoin(@nospecialize(a), @nospecialize(b))", "_promote_typesubtract(@nospecialize(a))"]
     statement := "On declared types and their unions, promote_typejoin(T, S) returns a supertype of both T and S, which is equivalent to typejoin(T, S) when neither contains Nothing or Missing."
@@ -1836,7 +2040,32 @@ def entries : List Entry := [
     juliaFns := ["no_op_err(name, T)", "+(x::T,y::T)", "*(x::T,y::T)", "-(x::T,y::T)", "/(x::T,y::T)", "^(x::T,y::T)", "fma(x::T,y::T,z::T)", "&(x::T,y::T)", "|(x::T,y::T)", "xor(x::T,y::T)", "<(x::T,y::T)", "rem(x::T,y::T)", "mod(x::T,y::T)", "flipsign(x::T,y::T)"]
     statement := "Unsupported generic numeric operations call the error handler with a message naming the operation and numeric type."
     source := "base/promotion.jl:650-680"
-    status := .proven, prop := ``NumericFallbackErrors, thm := some ``numericFallbackErrors_proven }
+    status := .proven, prop := ``NumericFallbackErrors, thm := some ``numericFallbackErrors_proven } ,
+  { id := "promotion-arithmetic-promotion-errors", juliaFile := "base/promotion.jl"
+    juliaFns := ["+(x::Number, y::Number)", "*(x::Number, y::Number)", "-(x::Number, y::Number)", "/(x::Number, y::Number)", "+%(x::Number, y::Number)", "*%(x::Number, y::Number)", "-%(x::Number, y::Number)", "^(x::Number, y::Number)", "==(x::Number, y::Number)", "<(x::Real, y::Real)", "<=(x::Real, y::Real)", "rem(x::Real, y::Real)", "mod(x::Real, y::Real)", "mod1(x::Real, y::Real)", "fld1(x::Real, y::Real)", "max(x::Real, y::Real)", "min(x::Real, y::Real)", "minmax(x::Real, y::Real)"]
+    statement := "Numeric arithmetic, comparisons and extrema preserve the first failed conversion to a common type."
+    source := "promote docstring; base/promotion.jl:454-527"
+    status := .proven, prop := ``ArithmeticPromotionErrors, thm := some ``arithmeticPromotionErrors_proven },
+  { id := "promotion-fma-promotion-errors", juliaFile := "base/promotion.jl"
+    juliaFns := ["fma(x::Number, y::Number, z::Number)"]
+    statement := "Fused multiply-add preserves failed conversion of its three arguments to a common type."
+    source := "promote and fma docstrings; base/promotion.jl:509"
+    status := .proven, prop := ``FmaPromotionErrors, thm := some ``fmaPromotionErrors_proven },
+  { id := "promotion-typeof-single-tag", juliaFile := "base/promotion.jl"
+    juliaFns := ["promote_typeof(x)"]
+    statement := "One-argument runtime type lookup returns the value's unchanged type tag."
+    source := "base/promotion.jl:402"
+    status := .proven, prop := ``PromoteTypeofSingleTag, thm := some ``promoteTypeofSingleTag_proven },
+  { id := "promotion-many-rejects-unchanged", juliaFile := "base/promotion.jl"
+    juliaFns := ["promote(x, y, z, a...)"]
+    statement := "Variadic promotion propagates its failed-promotion check after converting all arguments."
+    source := "promote docstring; base/promotion.jl:435-439"
+    status := .proven, prop := ``PromoteManyRejectsUnchanged, thm := some ``promoteManyRejectsUnchanged_proven },
+  { id := "promotion-rest-common-type", juliaFile := "base/promotion.jl"
+    juliaFns := ["_promote(x, y, zs...)", "promote_typeof(x, y, z, a...)"]
+    statement := "Variadic conversion preserves tuple length, converts every element to the computed common type, and folds primitive type promotion in argument order."
+    source := "promote docstring; base/promotion.jl:405,411-415"
+    status := .proven, prop := ``PromoteRestConversions, thm := some ``promoteRestConversions_proven }
 ]
 
 end JuliaLean.Proofs.base.promotion

@@ -1,0 +1,90 @@
+id: array-findall-in-array-isequal
+title: findall(in(b), array) replaces the supplied membership predicate with Set equality
+priority: P2
+kind: wrong-result
+area: Array
+files:
+  - base/array.jl
+  - base/operators.jl
+functions:
+  - findall(pred::Fix2{typeof(in)}, x::AbstractArray)
+  - _findin(a::Union{AbstractArray, Tuple}, b::AbstractSet)
+  - _findin(a::Union{AbstractArray, Tuple}, b)
+summary: |
+  findall(in((0.0,)), [-0.0]) returns Int64[] while the equivalent anonymous
+  predicate returns [1]. For NaN, findall(in((NaN,)), [NaN]) returns [1]
+  although NaN in (NaN,) is false. A tuple membership collection selects the
+  general array specialization, independently of the sorted real-array path.
+likelihood: |
+  A caller searching floating-point data can get a different answer after
+  replacing y -> y in b with in(b). Signed zero and NaN are ordinary values
+  for which the Set-based optimization changes equality.
+maybe_intended: |
+  Converting the membership collection to a Set improves lookup performance.
+  However, the public in(collection) docstring explicitly promises an equivalent
+  predicate, so the optimization cannot silently change its truth values.
+  Issue #64153 covers both tuple and array forms of this problem.
+reproducer: |
+  x = [-0.0]
+  findall(in((0.0,)), x)
+  findall(y -> y in (0.0,), x)
+  findall(in((NaN,)), [NaN])
+  NaN in (NaN,)
+output:
+  release: |
+    JULIA 1.13.2 COMMIT 45b6d15e34bbd2003a31acce0b1847b63dad029c
+    REPRODUCED array-findall-in-array-isequal
+  nightly: |
+    JULIA 1.15.0-DEV.unknown COMMIT f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    REPRODUCED array-findall-in-array-isequal
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  The signed-zero call returns [1], and the NaN call returns Int64[], just as
+  direct evaluation of the predicate does.
+promised_by: |
+  base/operators.jl:1446-1448 at f755f49a9e41380d7da126b3c1db9fe7f83dd027:
+  "Create a function that checks whether its argument is [`in`](@ref) `collection`, i.e.
+  a function equivalent to `y -> y in collection`. See also [`insorted`](@ref) for use
+  with sorted collections."
+  base/array.jl:2736-2737:
+  "Return a vector `I` of the indices or keys of `A` where `f(A[I])` returns `true`.
+  If there are no such elements of `A`, return an empty array."
+cause: |
+  base/array.jl:2961 calls _findin(x, pred.x). The fallback at line 2905
+  converts the tuple to Set(b), then lines 2898-2904 test ai in that Set.
+  Set lookup uses isequal; ordinary iterable membership at
+  base/operators.jl:1455 uses any(==(x), itr). Those relations distinguish
+  signed zero and NaN differently.
+possible_fix: |
+  Evaluate the original predicate unless the optimized membership lookup is
+  guaranteed to preserve its equality relation. Keep the fast Set path for
+  collections whose membership already uses matching key semantics.
+duplicates:
+  issues:
+    - number: 64153
+      state: open
+      relation: duplicate
+    - number: 29124
+      state: open
+      relation: related
+    - number: 52639
+      state: closed
+      relation: related
+  prs: []
+  queries:
+    - 'gh search issues --repo JuliaLang/julia findall in signed zero'
+    - 'gh search issues --repo JuliaLang/julia findall isequal Set'
+    - 'gh search issues --repo JuliaLang/julia findall NaN predicate'
+    - 'gh search prs --repo JuliaLang/julia findall in signed zero'
+    - 'gh search prs --repo JuliaLang/julia findall isequal Set'
+    - 'gh search prs --repo JuliaLang/julia findall NaN predicate'
+  notes: |
+    Issue #64153 explicitly describes tuple and array Set conversion changing
+    equality. Issues #29124 and #52639 concern the same optimization assuming
+    finite iterability, and are related rather than duplicates. No fixing PR
+    is known.
+lean:
+  property: JuliaLean.Proofs.base.array.ArrayMembershipAgreement
+  theorem: JuliaLean.ChatGPT.Batch4.Group2.ArrayFindallInArrayIsequal_refuted

@@ -5,6 +5,7 @@ kind: wrong-result
 area: MissingChar
 files: [base/char.jl, base/strings/unicode.jl]
 functions: ["ismalformed(::Char)", "isvalid(::Char)", "codepoint(::Char)"]
+covers: [stringscovb-unicode-isvalid]
 summary: |
   Base.ismalformed only checks that the bytes after the lead byte are
   continuation bytes and that there are not too few of them; it accepts a Char

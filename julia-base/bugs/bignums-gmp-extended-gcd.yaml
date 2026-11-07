@@ -1,0 +1,81 @@
+id: bignums-gmp-extended-gcd
+covers:
+  - gmp-bezout-and-minimal-coefficients
+title: BigInt gcdx's documented strict coefficient bounds fail for equal unit inputs
+priority: P3
+kind: documentation
+area: BigNums
+files:
+  - base/gmp.jl
+  - base/intfuncs.jl
+functions:
+  - gcdx(::BigInt, ::BigInt)
+summary: |
+  gcdx(BigInt(1), BigInt(1)) returns (1, 0, 1). The result satisfies the Bezout
+  identity, but its v coefficient violates the documented strict bound abs(v) <
+  abs(a/d), because both sides are 1. The documented strict bounds are
+  consequently too strong.
+likelihood: |
+  Equal nonzero arguments are ordinary inputs. The numerical result remains
+  correct; the problem affects readers and programs relying on the documented
+  strict coefficient inequalities as universal guarantees.
+maybe_intended: |
+  The coefficients are valid. For a = b = 1, both strict bounds would force
+  u = v = 0, making u*a + v*b = 1 impossible. This is a documentation defect,
+  not an arithmetic failure or an opportunity to choose better coefficients.
+  Upstream issue 64141 describes the same defect, and merged PR 64497 has
+  already corrected the bounds. This report concerns the pinned source docs.
+reproducer: |
+  a, b = BigInt(1), BigInt(1)
+  g, u, v = gcdx(a, b)
+  @assert g == 1 && u == 0 && v == 1 && !(abs(v) * g < abs(a))
+  println("REPRODUCED bignums-gmp-extended-gcd")
+output:
+  release: |
+    REPRODUCED bignums-gmp-extended-gcd
+  nightly: |
+    REPRODUCED bignums-gmp-extended-gcd
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  Keep the valid Bezout result and qualify the coefficient bounds for cases
+  where an input's magnitude equals the gcd, including equal nonzero inputs.
+  The docstring should use those qualified bounds.
+promised_by: |
+  Pinned source f755f49a9e41380d7da126b3c1db9fe7f83dd027.
+  base/intfuncs.jl:228-230 (gcdx docstring):
+  "For signed integers, these coefficients `u` and `v` are minimal in
+  the sense that ``|u| < |b/d|`` and ``|v| < |a/d|``. Furthermore,
+  the signs of `u` and `v` are chosen so that `d` is positive."
+  BigInt is a signed integer, and d is positive in this counterexample.
+cause: |
+  base/gmp.jl:676-687 gets valid coefficients from MPZ.gcdext and normalizes
+  equal-input cases to put the nonzero coefficient second. No coefficient pair
+  could satisfy both strict inequalities for this input. The error is the
+  missing exception in the shared gcdx docstring, copied into the BigInt
+  method's documentation.
+possible_fix: |
+  Use the documentation correction from merged PR 64497, allowing non-strict
+  inequalities when abs(a) = d or abs(b) = d. Apply those exceptions wherever
+  the bounds are stated, without changing valid gcdx arithmetic.
+duplicates:
+  issues:
+    - number: 64141
+      state: closed
+      relation: duplicate
+      detail: Reports the impossible strict bounds for equal nonzero inputs.
+      url: https://github.com/JuliaLang/julia/issues/64141
+  prs:
+    - number: 64497
+      state: merged
+      relation: duplicate
+      detail: Fixes issue 64141 by qualifying the coefficient bounds; merged 2026-10-30.
+      url: https://github.com/JuliaLang/julia/pull/64497
+  queries:
+    - 'issues and PRs: gcdx minimal coefficients'
+    - 'issues and PRs: gcdx bounds'
+    - 'issues and PRs: gcdx'
+lean:
+  property: JuliaLean.Proofs.base.gmp.Round1.ExtendedGCDExactAndMinimal
+  theorem: JuliaLean.ChatGPT.Batch4.Group7.BignumsGmpExtendedGcd_refuted

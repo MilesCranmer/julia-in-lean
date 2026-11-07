@@ -1,11 +1,31 @@
 import JuliaLean.Core
 import JuliaLean.base.int
+import JuliaLean.Runtime.Strings
+import JuliaLean.stdlib.Base64.src.Base64
 
 /-!
 # Model of `base/char.jl`
 
 `JChar` is the 32-bit storage pattern of a Julia `Char`; integer arguments use their Julia integer types. Julia dispatch is represented by typed operation parameters where a method calls an extensible or later-loaded function.
 -/
+
+namespace JuliaLean.base.strings.unicode
+
+open JuliaLean
+
+inductive UnicodeError where
+  | invalidChar
+  | codePointError
+  | jl (error : JlError)
+  | string (error : JuliaLean.Strings.SErr)
+  | errorException (message : String)
+  | argumentError (message : String)
+  | methodError
+  | typeError
+  | boundsError
+  | showError (error : JuliaLean.Strings.ShowErrorKind)
+
+end JuliaLean.base.strings.unicode
 
 namespace JuliaLean.base.char
 
@@ -17,8 +37,10 @@ abbrev JInt64 := JInt .i64
 inductive CharError where
   | invalidChar {C : Type} (c : C)
   | codePointError {N : Type} (u : N)
+  | unicodeError (error : JuliaLean.base.strings.unicode.UnicodeError)
   | boundsError
   | foreign (error : JlError)
+  | showError (error : JuliaLean.Strings.ShowErrorKind)
 
 abbrev CharResult (α : Type) := Except CharError α
 
@@ -42,7 +64,7 @@ def shl32 (x : JChar) (k : Nat) : JChar :=
   if k < 32 then x <<< UInt32.ofNat k else 0
 
 def exactUInt32 (x : Int) : CharResult JChar :=
-  match JInt.convert .u32 x with
+  match JInt.convert (IntTy.u32.name) .u32 x with
   | .ok u => .ok (UInt32.ofNat u.val.toNat)
   | .error e => .error (.foreign e)
 
@@ -464,8 +486,8 @@ convert(::Type{T}, c::AbstractChar) where {T<:AbstractChar} = T(c)::T
 ```
 -/
 
-def convert_TypeAbstractChar_AbstractChar {C : Type}
-    (construct : C → CharResult C) (c : C) : CharResult C :=
+def convert_TypeAbstractChar_AbstractChar {C D : Type}
+    (construct : C → CharResult D) (c : C) : CharResult D :=
   construct c
 
 
@@ -692,7 +714,8 @@ in(x::AbstractChar, y::AbstractChar) = x == y
 ```
 -/
 
-def in_AbstractChar {C : Type} (equal : C → C → Bool) (x y : C) : Bool :=
+def in_AbstractChar {C D : Type} (equal : C → D → CharResult Bool) (x : C) (y : D) :
+    CharResult Bool :=
   equal x y
 
 
@@ -735,10 +758,10 @@ isless(x::AbstractChar, y::AbstractChar) = isless(Char(x)::Char, Char(y)::Char)
 ```
 -/
 
-def isless_AbstractChar {C : Type}
-    (toChar : C → CharResult JChar) (islessChar : JChar → JChar → Bool)
-    (x y : C) : CharResult Bool := do
-  pure (islessChar (← toChar x) (← toChar y))
+def isless_AbstractChar {C D : Type}
+    (toCharX : C → CharResult JChar) (toCharY : D → CharResult JChar)
+    (islessChar : JChar → JChar → Bool) (x : C) (y : D) : CharResult Bool := do
+  pure (islessChar (← toCharX x) (← toCharY y))
 
 
 /--
@@ -748,10 +771,10 @@ Julia source: base/char.jl:270-270 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 ```
 -/
 
-def eq_AbstractChar {C : Type}
-    (toChar : C → CharResult JChar) (equalChar : JChar → JChar → Bool)
-    (x y : C) : CharResult Bool := do
-  pure (equalChar (← toChar x) (← toChar y))
+def eq_AbstractChar {C D : Type}
+    (toCharX : C → CharResult JChar) (toCharY : D → CharResult JChar)
+    (equalChar : JChar → JChar → Bool) (x : C) (y : D) : CharResult Bool := do
+  pure (equalChar (← toCharX x) (← toCharY y))
 
 
 /--
@@ -784,10 +807,10 @@ Julia source: base/char.jl:274-274 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 ```
 -/
 
-def subWrap_AbstractChar_AbstractChar {C : Type}
-    (toInt : C → CharResult JInt64) (subWrap : JInt64 → JInt64 → JInt64)
-    (x y : C) : CharResult JInt64 := do
-  pure (subWrap (← toInt x) (← toInt y))
+def subWrap_AbstractChar_AbstractChar {C D : Type}
+    (toIntX : C → CharResult JInt64) (toIntY : D → CharResult JInt64)
+    (subWrap : JInt64 → JInt64 → JInt64) (x : C) (y : D) : CharResult JInt64 := do
+  pure (subWrap (← toIntX x) (← toIntY y))
 
 
 /--
@@ -797,10 +820,10 @@ Julia source: base/char.jl:275-275 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 ```
 -/
 
-def sub_AbstractChar_AbstractChar {C : Type}
-    (toInt : C → CharResult JInt64) (subInt : JInt64 → JInt64 → JInt64)
-    (x y : C) : CharResult JInt64 := do
-  pure (subInt (← toInt x) (← toInt y))
+def sub_AbstractChar_AbstractChar {C D : Type}
+    (toIntX : C → CharResult JInt64) (toIntY : D → CharResult JInt64)
+    (subInt : JInt64 → JInt64 → JInt64) (x : C) (y : D) : CharResult JInt64 := do
+  pure (subInt (← toIntX x) (← toIntY y))
 
 
 structure CharIntegerOps (C I P : Type) where
@@ -945,7 +968,7 @@ def charToInt32 (c : JChar) : CharResult Int32 := do
   pure (Int32.ofInt value.val)
 
 def int64ToInt32 (x : JInt64) : CharResult Int32 := do
-  let value ← liftJl (JInt.convert .i32 x.val)
+  let value ← liftJl (JInt.convert (IntTy.i32.name) .i32 x.val)
   pure (Int32.ofInt value.val)
 
 def int64PromoteInt32 (x : Int32) : JInt64 := JInt.lit .i64 x.toInt
@@ -974,6 +997,87 @@ def charIntegerOps : CharIntegerOps JChar JInt64 JInt64 :=
     rawChar := rawCharIdentity
     charFromUInt32 := char_UInt32
     fromInt32 := charFromInt32 }
+
+def uint32OfInteger {t : IntTy} (x : JInt t) : CharResult JChar := exactUInt32 x.val
+
+def isAsciiSmall {t : IntTy} (b : JInt t) : Bool :=
+  lePromote (JInt.lit .i64 0) b && lePromote b (JInt.lit .u8 0x7f)
+
+def smallBitsUInt32 {t : IntTy} (b : JInt t) : JChar := UInt32.ofNat (remT .u32 b).val.toNat
+
+def charOfInteger : (t : IntTy) → JInt t → CharResult JChar
+  | .u32, x => char_UInt32 (UInt32.ofNat x.val.toNat)
+  | .u8, x => char_SmallInteger isAsciiSmall smallBitsUInt32 uint32OfInteger x
+  | .i8, x => char_SmallInteger isAsciiSmall smallBitsUInt32 uint32OfInteger x
+  | .i16, x => constructor_Number_AbstractChar uint32OfInteger char_UInt32 x
+  | .i32, x => constructor_Number_AbstractChar uint32OfInteger char_UInt32 x
+  | .i64, x => constructor_Number_AbstractChar uint32OfInteger char_UInt32 x
+  | .i128, x => constructor_Number_AbstractChar uint32OfInteger char_UInt32 x
+  | .u16, x => constructor_Number_AbstractChar uint32OfInteger char_UInt32 x
+  | .u64, x => constructor_Number_AbstractChar uint32OfInteger char_UInt32 x
+  | .u128, x => constructor_Number_AbstractChar uint32OfInteger char_UInt32 x
+
+def charOfAbstractChar {C : Type} {t : IntTy} (codepoint : C → CharResult (JInt t)) (x : C) :
+    CharResult JChar :=
+  constructor_AbstractChar_AbstractChar codepoint (charOfInteger t) x
+
+def charOfChar (x : JChar) : CharResult JChar := .ok (constructor_Same_AbstractChar x)
+
+def promoteWithInt32 (t : IntTy) : IntTy :=
+  if t.bits < 32 then .i32 else if t = .u32 then .u32 else if t.bits = 32 then .i32 else t
+
+def charIntegerOpsFor (t : IntTy) : CharIntegerOps JChar (JInt t) (JInt (promoteWithInt32 t)) :=
+  { isChar := true
+    charBits := rawCharIdentity
+    int32OfChar := charToInt32
+    int32OfInteger := fun y => do
+      let v ← liftJl (convert .i32 y); pure (Int32.ofInt v.val)
+    promoteInt32 := fun u => JInt.lit (promoteWithInt32 t) u.toInt
+    promoteInteger := fun y => JInt.lit (promoteWithInt32 t) y.val
+    addPromoted := add
+    subPromoted := sub
+    nonnegative := fun z => lePromote (JInt.lit .i64 0) z
+    belowAscii := fun z => ltPromote z (JInt.lit .u8 0x80)
+    toUInt32 := fun z => exactUInt32 z.val
+    rawChar := rawCharIdentity
+    charFromUInt32 := char_UInt32
+    fromInt32 := charFromInt32 }
+
+def charIntegerOpsBool : CharIntegerOps JChar Bool (JInt .i32) :=
+  { isChar := true
+    charBits := rawCharIdentity
+    int32OfChar := charToInt32
+    int32OfInteger := fun b => .ok (if b then 1 else 0)
+    promoteInt32 := fun u => JInt.lit .i32 u.toInt
+    promoteInteger := fun b => JInt.lit .i32 (if b then 1 else 0)
+    addPromoted := add
+    subPromoted := sub
+    nonnegative := fun z => lePromote (JInt.lit .i64 0) z
+    belowAscii := fun z => ltPromote z (JInt.lit .u8 0x80)
+    toUInt32 := fun z => exactUInt32 z.val
+    rawChar := rawCharIdentity
+    charFromUInt32 := char_UInt32
+    fromInt32 := charFromInt32 }
+
+def abstractCharIntegerOps {C : Type} (t : IntTy) (int32OfChar : C → CharResult Int32)
+    (fromInt32 : Int32 → CharResult C) (fromUInt32 : JChar → CharResult C)
+    (charBits : C → JChar) (rawChar : JChar → C) :
+    CharIntegerOps C (JInt t) (JInt (promoteWithInt32 t)) :=
+  { isChar := false
+    charBits := charBits
+    int32OfChar := int32OfChar
+    int32OfInteger := fun y => do
+      let v ← liftJl (convert .i32 y); pure (Int32.ofInt v.val)
+    promoteInt32 := fun u => JInt.lit (promoteWithInt32 t) u.toInt
+    promoteInteger := fun y => JInt.lit (promoteWithInt32 t) y.val
+    addPromoted := add
+    subPromoted := sub
+    nonnegative := fun z => lePromote (JInt.lit .i64 0) z
+    belowAscii := fun z => ltPromote z (JInt.lit .u8 0x80)
+    toUInt32 := fun z => exactUInt32 z.val
+    rawChar := rawChar
+    charFromUInt32 := fromUInt32
+    fromInt32 := fromInt32 }
 
 
 /--
@@ -1055,21 +1159,22 @@ def show_invalid_Char {IO : Type}
 
 
 structure CharShowOps (C IO N : Type) where
-  lessEqualBackslash : C → Bool
-  equalChar : C → JChar → Bool
-  isOverlong : C → Bool
-  isMalformed : C → Bool
+  lessEqualBackslash : C → CharResult Bool
+  equalChar : C → JChar → CharResult Bool
+  isOverlong : C → CharResult Bool
+  isMalformed : C → CharResult Bool
   showInvalid : IO → C → CharResult (IO × JInt64)
-  isPrint : C → Bool
+  isPrint : C → CharResult Bool
   writeBytes : IO → List UInt8 → CharResult (IO × JInt64)
   printChar : IO → C → CharResult (IO × Unit)
   codepoint : C → CharResult N
-  numLe : N → N → Bool
-  numLiteral : Int → N
+  leAscii : N → Bool
+  leBmp : N → Bool
   leadingZeros : N → JInt64
   numRightShift : N → JInt64 → N
   numAnd : N → N → N
   numAdd : N → N → N
+  numLiteral : Int → N
   toNat : N → Nat
 
 def showHexDigits {C IO N : Type} (ops : CharShowOps C IO N) : Nat → IO → N → CharResult IO
@@ -1126,34 +1231,34 @@ end
 
 def show_AbstractChar {C IO N : Type} (ops : CharShowOps C IO N)
     (io : IO) (c : C) : CharResult (IO × Unit) := do
-  if ops.lessEqualBackslash c then
-    let b : UInt8 :=
-      if ops.equalChar c 0x00000000 then 0x30 else
-      if ops.equalChar c 0x07000000 then 0x61 else
-      if ops.equalChar c 0x08000000 then 0x62 else
-      if ops.equalChar c 0x09000000 then 0x74 else
-      if ops.equalChar c 0x0a000000 then 0x6e else
-      if ops.equalChar c 0x0b000000 then 0x76 else
-      if ops.equalChar c 0x0c000000 then 0x66 else
-      if ops.equalChar c 0x0d000000 then 0x72 else
-      if ops.equalChar c 0x1b000000 then 0x65 else
-      if ops.equalChar c 0x27000000 then 0x27 else
-      if ops.equalChar c 0x5c000000 then 0x5c else 0xff
+  if ← ops.lessEqualBackslash c then
+    let b : UInt8 ←
+      (do if ← ops.equalChar c 0x00000000 then pure 0x30 else
+          if ← ops.equalChar c 0x07000000 then pure 0x61 else
+          if ← ops.equalChar c 0x08000000 then pure 0x62 else
+          if ← ops.equalChar c 0x09000000 then pure 0x74 else
+          if ← ops.equalChar c 0x0a000000 then pure 0x6e else
+          if ← ops.equalChar c 0x0b000000 then pure 0x76 else
+          if ← ops.equalChar c 0x0c000000 then pure 0x66 else
+          if ← ops.equalChar c 0x0d000000 then pure 0x72 else
+          if ← ops.equalChar c 0x1b000000 then pure 0x65 else
+          if ← ops.equalChar c 0x27000000 then pure 0x27 else
+          if ← ops.equalChar c 0x5c000000 then pure 0x5c else pure 0xff : CharResult UInt8)
     if b != 0xff then
       let (io, _) ← ops.writeBytes io [0x27, 0x5c, b, 0x27]
       return (io, ())
-  if ops.isOverlong c || ops.isMalformed c then
+  let invalid ← if ← ops.isOverlong c then pure true else ops.isMalformed c
+  if invalid then
     let (io, _) ← ops.showInvalid io c
     return (io, ())
-  else if ops.isPrint c then
+  else if ← ops.isPrint c then
     let (io, _) ← ops.writeBytes io [0x27]
     let (io, _) ← ops.printChar io c
     let (io, _) ← ops.writeBytes io [0x27]
     return (io, ())
   else
     let u ← ops.codepoint c
-    let tag : UInt8 := if ops.numLe u (ops.numLiteral 0x7f) then 0x78 else
-      if ops.numLe u (ops.numLiteral 0xffff) then 0x75 else 0x55
+    let tag : UInt8 := if ops.leAscii u then 0x78 else if ops.leBmp u then 0x75 else 0x55
     let leading := ops.leadingZeros u
     let digitCount := JInt.lit .i64 8 - ashr_int leading (JInt.lit .i64 2)
     let digits := Nat.max 2 digitCount.val.toNat
@@ -1212,13 +1317,14 @@ def show_MIMETextPlain {C IO N : Type} (ops : CharPlainShowOps C IO N)
   if ← ops.compact io then return (io, ())
   let (io, c) ← if !ops.isMalformed c then do
     let (io, _) ← ops.printStrings io [": "]
-    let (c, u) ← if ops.isOverlong c then do
+    let (io, c, u) ← if ops.isOverlong c then do
       let (io, _) ← ops.printStrings io ["[overlong] "]
       let u ← ops.decodeOverlong c
       let c ← ops.constructFromNumber u
-      pure (c, u)
-    else
-      pure (c, ← ops.codepoint c)
+      pure (io, c, u)
+    else do
+      let u ← ops.codepoint c
+      pure (io, c, u)
     let h ← ops.stringBase16Pad4 u
     let h := ops.uppercase h
     let (io, _) ← ops.printStrings io
@@ -1251,25 +1357,52 @@ def showInvalidTrace (io : List CharOutput) (c : JChar) : CharResult (List CharO
 def printCharTrace (io : List CharOutput) (c : JChar) : CharResult (List CharOutput × Unit) :=
   print_Char writeCharTrace io c
 
+def charShowOpsAbstract {C IO : Type} {t : IntTy} (codepoint : C → CharResult (JInt t))
+    (isOverlong isMalformed isPrint : C → CharResult Bool)
+    (showInvalid : IO → C → CharResult (IO × JInt64))
+    (writeBytes : IO → List UInt8 → CharResult (IO × JInt64))
+    (printChar : IO → JChar → CharResult (IO × Unit)) : CharShowOps C IO (JInt t) :=
+  { lessEqualBackslash := fun c => do
+      let lt ← isless_AbstractChar (charOfAbstractChar codepoint) charOfChar isless_Char c 0x5c000000
+      let eq ← eq_AbstractChar (charOfAbstractChar codepoint) charOfChar eq_Char c 0x5c000000
+      pure (lt || eq)
+    equalChar := fun c d => eq_AbstractChar (charOfAbstractChar codepoint) charOfChar eq_Char c d
+    isOverlong := isOverlong
+    isMalformed := isMalformed
+    showInvalid := showInvalid
+    isPrint := isPrint
+    writeBytes := writeBytes
+    printChar := fun io c => print_AbstractChar (charOfAbstractChar codepoint) printChar io c
+    codepoint := codepoint
+    leAscii := fun u => lePromote u (JInt.lit .u8 0x7f)
+    leBmp := fun u => lePromote u (JInt.lit .u16 0xffff)
+    leadingZeros := leading_zeros
+    numRightShift := shr_Int
+    numAnd := band
+    numAdd := add
+    numLiteral := JInt.lit t
+    toNat := fun x => x.val.toNat }
+
 def charShowOpsFor {IO : Type} (isPrint : JChar → Bool)
     (writeBytes : IO → List UInt8 → CharResult (IO × JInt64))
     (showInvalid : IO → JChar → CharResult (IO × JInt64))
     (printChar : IO → JChar → CharResult (IO × Unit)) : CharShowOps JChar IO JChar :=
-  { lessEqualBackslash := lessEqualBackslashChar
-    equalChar := eq_Char
-    isOverlong := isoverlong_Char
-    isMalformed := ismalformedChar
+  { lessEqualBackslash := fun c => .ok (lessEqualBackslashChar c)
+    equalChar := fun c d => .ok (eq_Char c d)
+    isOverlong := fun c => .ok (isoverlong_Char c)
+    isMalformed := fun c => .ok (ismalformedChar c)
     showInvalid := showInvalid
-    isPrint := isPrint
+    isPrint := fun c => .ok (isPrint c)
     writeBytes := writeBytes
     printChar := printChar
     codepoint := codepointChar
-    numLe := lessEqualUInt32
-    numLiteral := numLiteralUInt32
+    leAscii := fun u => lessEqualUInt32 u 0x7f
+    leBmp := fun u => lessEqualUInt32 u 0xffff
     leadingZeros := leadingZerosUInt32
     numRightShift := numRightShiftUInt32
     numAnd := numAndUInt32
     numAdd := numAddUInt32
+    numLiteral := numLiteralUInt32
     toNat := UInt32.toNat }
 
 def charShowOps (isPrint : JChar → Bool) : CharShowOps JChar (List CharOutput) JChar :=
@@ -1304,3 +1437,355 @@ def charPlainShowOps {IO : Type}
 
 
 end JuliaLean.base.char
+
+namespace JuliaLean.Base64Uuid
+
+open JuliaLean JuliaLean.ParsePrint
+
+/-- `hex_chars`, `base/char.jl:308-311`: `'0':'9'` then `'a':'z'`. -/
+def hex_chars : List Byte :=
+  ((List.range 10).map (fun i => b8 (48 + i))) ++ ((List.range 26).map (fun i => b8 (97 + i)))
+
+/-- UTF-8 encoding of a code point `n ≤ 0x10ffff`, as `print(io, Char(n))` writes it
+(`Char(::UInt32)`, `base/char.jl`); surrogates get their three-byte encoding. -/
+def utf8Enc (n : Nat) : List Byte :=
+  if n < 0x80 then [b8 n]
+  else if n < 0x800 then [b8 (0xc0 + n / 64), b8 (0x80 + n % 64)]
+  else if n < 0x10000 then [b8 (0xe0 + n / 4096), b8 (0x80 + n / 64 % 64), b8 (0x80 + n % 64)]
+  else [b8 (0xf0 + n / 262144), b8 (0x80 + n / 4096 % 64), b8 (0x80 + n / 64 % 64), b8 (0x80 + n % 64)]
+
+end JuliaLean.Base64Uuid
+/-!
+# `Char` encoding, `base/char.jl`
+
+A `Char` is its `UInt32` bit pattern (`bitcast(UInt32, c)`): the UTF-8 bytes
+left-aligned, so `'a'` is `0x61000000` and `'é'` is `0xc3a90000`.
+-/
+
+namespace JuliaLean.Strings
+
+/-- `leading_zeros(x::UInt32)`. -/
+def clz32 (x : UInt32) : Nat := if x = 0 then 32 else 31 - Nat.log2 x.toNat
+
+/-- `leading_ones(x) = leading_zeros(~x)`. -/
+def clo32 (x : UInt32) : Nat := clz32 (~~~x)
+
+def ctzAux (x : Nat) : Nat → Nat
+  | 0 => 0
+  | k + 1 => if x % 2 = 1 then 0 else 1 + ctzAux (x / 2) k
+
+/-- `trailing_zeros(x::UInt32)`. -/
+def ctz32 (x : UInt32) : Nat := if x = 0 then 32 else ctzAux x.toNat 32
+
+/-- `x >> k` for `x::UInt32` and `k ≥ 0`: Julia yields `0` once `k ≥ 32`. -/
+def ushr32 (x : UInt32) (k : Nat) : UInt32 := if k < 32 then x >>> k.toUInt32 else 0
+
+/-- `bswap(x::UInt32)`. -/
+def bswap32 (x : UInt32) : UInt32 :=
+  ((x &&& 0xff) <<< 24) ||| (((x >>> 8) &&& 0xff) <<< 16) |||
+    (((x >>> 16) &&& 0xff) <<< 8) ||| (x >>> 24)
+
+/-- `x & 56` on a small nonnegative `Int`. -/
+def land56 (x : Nat) : Nat := Nat.land x 56
+
+/-- `ismalformed(c::Char)`, `base/char.jl:111-117`. `l1` and `t0` are `Int`. -/
+def ismalformed (c : UInt32) : Bool :=
+  let l1 := ix (Int.ofNat (clo32 c) * 8)
+  let t0 := land56 (ctz32 c)
+  decide (l1.val = 8) || decide ((l1 + ix t0).val > 32) ||
+    (ushr32 ((c &&& 0x00c0c0c0) ^^^ 0x00808080) t0 != 0)
+
+/-- `is_overlong_enc(u)`, `base/char.jl:119`. -/
+def isOverlongEnc (u : UInt32) : Bool :=
+  (u >>> 25 == 0x60) || (u >>> 21 == 0x0704) || (u >>> 20 == 0x0f08)
+
+/-- `isoverlong(c::Char)`, `base/char.jl:121-124`. -/
+def isoverlong (c : UInt32) : Bool := isOverlongEnc c
+
+/-- `UInt32(c::Char)`, `base/char.jl:158-171`; `codepoint(c) = UInt32(c)` (`:100`). -/
+def codepoint (c : UInt32) : SJl UInt32 :=
+  let u := c
+  if u < 0x80000000 then .ok (u >>> 24)
+  else
+    let l1 := clo32 u
+    let t0 := land56 (ctz32 u)
+    if decide (l1 = 1) || decide ((ix (8 * Int.ofNat l1) + ix t0).val > 32) ||
+        (ushr32 ((u &&& 0x00c0c0c0) ^^^ 0x00808080) t0 != 0) then .error (.invalidChar c)
+    else
+      let u := u &&& ushr32 0xffffffff l1
+      let u := ushr32 u t0
+      .ok (((u &&& 0x0000007f) >>> 0) ||| ((u &&& 0x00007f00) >>> 2) |||
+        ((u &&& 0x007f0000) >>> 4) ||| ((u &&& 0x7f000000) >>> 6))
+
+/-- `Char(u::UInt32)`, `base/char.jl:211-220`. -/
+def charOfU32 (u : UInt32) : SJl UInt32 :=
+  if u < 0x80 then .ok (u <<< 24)
+  else if !decide (u < 0x00200000) then .error (.codePointError u)
+  else
+    let c : UInt32 := ((u <<< (0 : UInt32)) &&& (0x0000003f : UInt32)) |||
+      ((u <<< (2 : UInt32)) &&& (0x00003f00 : UInt32)) |||
+      ((u <<< (4 : UInt32)) &&& (0x003f0000 : UInt32)) |||
+      ((u <<< (6 : UInt32)) &&& (0x3f000000 : UInt32))
+    .ok (if u < 0x00000800 then (c <<< (16 : UInt32)) ||| (0xc0800000 : UInt32)
+      else if u < 0x00010000 then (c <<< (8 : UInt32)) ||| (0xe0808000 : UInt32)
+      else c ||| (0xf0808080 : UInt32))
+
+/-- `isvalid(c::AbstractChar)`, `base/strings/unicode.jl:58`, with Char `≤` the
+bit-pattern comparison (`base/char.jl:264`): `'\ud7ff'` is `0xed9fbf00`,
+`'\ue000'` is `0xee808000`, `'\U10ffff'` is `0xf48fbfbf`. -/
+def isvalidChar (c : UInt32) : Bool :=
+  !ismalformed c && !isoverlong c &&
+    (decide (c ≤ 0xed9fbf00) || (decide (0xee808000 ≤ c) && decide (c ≤ 0xf48fbfbf)))
+
+/-- `ncodeunits(c::Char)`, `base/char.jl:71-78`. -/
+def ncodeunitsChar (c : UInt32) : Nat :=
+  4 - ctz32 c / 8 + (if c = 0 then 1 else 0)
+
+/-- The bytes `__unsafe_string!(out, c, offs)` stores, `base/strings/substring.jl:215-231`:
+the low bytes of `bswap(c)` in order, `ncodeunits(c)` of them. -/
+def charBytes (c : UInt32) : List UInt8 :=
+  let x := bswap32 c
+  [x.toUInt8, (x >>> 8).toUInt8, (x >>> 16).toUInt8, (x >>> 24).toUInt8].take (ncodeunitsChar c)
+
+/-- `isascii(c::Char) = bswap(reinterpret(UInt32, c)) < 0x80`, `base/strings/basic.jl:618`. -/
+def isasciiChar (c : UInt32) : Bool := decide (bswap32 c < 0x80)
+
+/-- `string(cs::Char...)` = `_string`, `base/strings/substring.jl:256-283`: the
+total size is the sum of `ncodeunits`, then each char's bytes are stored. -/
+def stringOfChars (cs : List UInt32) : SJl JStr :=
+  let bs := cs.flatMap charBytes
+  if h : bs.length < 2 ^ 62 then .ok ⟨bs, h⟩ else .error .outOfMemory
+
+end JuliaLean.Strings
+
+namespace JuliaLean.Show
+
+open JuliaLean JuliaLean.Strings
+
+/-- The bytes of a list of ASCII characters (used for literal byte strings). -/
+def asc (cs : List Char) : List UInt8 := cs.map (fun c => c.toNat.toUInt8)
+
+/-- The `Char` whose code point is the ASCII value `b`: bit pattern `UInt32(b) << 24`. -/
+abbrev ac (b : Nat) : UInt32 := b.toUInt32 <<< 24
+
+/-- `UInt32(c)` (`base/char.jl:158-171`) at the call sites below, all of which
+have established that `c` is not malformed, where `codepoint` cannot throw
+(`codepoint_ok` in `EscapeProofs.lean`). -/
+def cpOf (c : UInt32) : UInt32 :=
+  match codepoint c with
+  | .ok u => u
+  | .error _ => 0
+
+/-- `Char(u)` for `u < 0x200000` (`base/char.jl:211-220`), which cannot throw
+(`charOfU32_ok` in `EscapeProofs.lean`). -/
+def charOfCp (u : Nat) : UInt32 :=
+  match charOfU32 u.toUInt32 with
+  | .ok c => c
+  | .error _ => 0
+
+/-- A lowercase hex digit: `d + ifelse(d > 0x9, 0x57, 0x30)`, `base/intfuncs.jl:1029-1030`;
+also `hex_chars[d + 1]`, `base/char.jl:308-311`. -/
+def hexDigit (d : Nat) : UInt8 := (d + if d > 9 then 0x57 else 0x30).toUInt8
+
+/-- The loop of `show_invalid(io, c)`, `base/char.jl:313-323`: `\x` and the top
+byte of `u` as two hex digits, then `u <<= 8`, until `u` is zero. -/
+def showInvalidAux : Nat → UInt32 → List UInt8
+  | 0, _ => []
+  | k + 1, u => [0x5c, 0x78, hexDigit ((u >>> 28) &&& 0xf).toNat, hexDigit ((u >>> 24) &&& 0xf).toNat] ++
+      (if u <<< 8 = 0 then [] else showInvalidAux k (u <<< 8))
+
+/-- `show_invalid(io, c)`, `base/char.jl:313-323`. -/
+def showInvalid (c : UInt32) : List UInt8 := [0x27] ++ showInvalidAux 4 c ++ [0x27]
+
+/-- The escape byte `b` chosen for `c <= '\\'` in `show(io, c)`, `base/char.jl:338-348`. -/
+def showEscByte (c : UInt32) : UInt8 :=
+  if c = ac 0 then 0x30
+  else if c = ac 0x07 then 0x61
+  else if c = ac 0x08 then 0x62
+  else if c = ac 0x09 then 0x74
+  else if c = ac 0x0a then 0x6e
+  else if c = ac 0x0b then 0x76
+  else if c = ac 0x0c then 0x66
+  else if c = ac 0x0d then 0x72
+  else if c = ac 0x1b then 0x65
+  else if c = ac 0x27 then 0x27
+  else if c = ac 0x5c then 0x5c
+  else 0xff
+
+/-- `show(io, c::AbstractChar)` for `c::Char`, `base/char.jl:336-370`: the bytes of
+`repr(c)`. `d = max(2, 8 - (leading_zeros(u) >> 2))` hex digits are printed,
+most significant first. -/
+def showChar (isPrintable : UInt32 → Bool) (writeChar : UInt32 → List UInt8) (c : UInt32) : List UInt8 :=
+  if c ≤ ac 0x5c ∧ showEscByte c ≠ 0xff then [0x27, 0x5c, showEscByte c, 0x27]
+  else if isoverlong c || ismalformed c then showInvalid c
+  else if isPrintable c then [0x27] ++ writeChar c ++ [0x27]
+  else
+    let u := cpOf c
+    let nd := max 2 (8 - clz32 u / 4)
+    [0x27, 0x5c, if u ≤ 0x7f then 0x78 else if u ≤ 0xffff then 0x75 else 0x55] ++
+      (List.range nd).reverse.map (fun i => hexDigit (u.toNat / 16 ^ i % 16)) ++ [0x27]
+
+end JuliaLean.Show
+
+namespace JuliaLean.MissingChar
+
+open JuliaLean.Strings (SErr SJl codepoint charOfU32 ismalformed isoverlong isvalidChar
+  ncodeunitsChar clz32 clo32 ctz32 ushr32 bswap32 land56 ix)
+
+/-- `Int32(x::Char) = codepoint(x) % Int32`, `base/char.jl:57`. -/
+def int32OfChar (c : UInt32) : SJl (JInt .i32) := do
+  let u ← codepoint c
+  .ok (JInt.lit .i32 u.toNat)
+
+/-- `Char(x::Int32)`: `Char(UInt32(x))` (`base/char.jl:54`), `InexactError` for
+negative `x`. -/
+def charOfInt (z : Int) : SJl UInt32 :=
+  if 0 ≤ z ∧ z < 2 ^ 32 then charOfU32 (UInt32.ofNat z.toNat)
+  else .error (.jl (.inexactError "UInt32"))
+
+/-- `c + y` for `c::Char`, `y::Int64`: `+(x::AbstractChar, y::Integer) = x +% y`
+(`base/char.jl:299`), `+%` at `:286-295`: the ASCII fast path computes
+`z = u + y` in `Int64`, otherwise `Char(Int32(x) + Int32(y))` with `Int32(y)` a
+checked conversion and `+` wrapping in `Int32`. -/
+def charAdd (c : UInt32) (y : JInt64) : SJl UInt32 :=
+  let u : JInt .i32 := JInt.lit .i32 ((c >>> 24).toUInt8.toInt8.toInt)
+  if 0 ≤ u.val then
+    let z : JInt64 := JInt.lit .i64 u.val + y
+    if 0 ≤ z.val ∧ z.val < 0x80 then .ok (UInt32.ofNat z.val.toNat <<< 24)
+    else charOfInt z.val
+  else do
+    let x ← int32OfChar c
+    let y32 ← match JInt.convert (IntTy.i32.name) .i32 y.val with
+      | .ok v => Except.ok v
+      | .error e => Except.error (SErr.jl e)
+    charOfInt (x + y32).val
+/-- `unsafe_codepoint(c::Char)`, `base/char.jl:184-192`. -/
+def unsafeCodepoint (c : UInt32) : UInt32 :=
+  if c < 0x80000000 then c >>> 24
+  else
+    let l1 := clo32 c
+    let t0 := land56 (ctz32 c)
+    let u := c &&& ushr32 0xffffffff l1
+    let u := ushr32 u t0
+    ((u &&& 0x0000007f) >>> 0) ||| ((u &&& 0x00007f00) >>> 2) |||
+      ((u &&& 0x007f0000) >>> 4) ||| ((u &&& 0x7f000000) >>> 6)
+/-- `hex_chars[d + 1]` for a digit `d < 16`, `base/char.jl:308-311`. -/
+def hexChar (d : UInt32) : UInt8 :=
+  if d < 10 then (0x30 + d).toUInt8 else (0x61 + d - 10).toUInt8
+
+/-- The loop of `show_invalid(io, c::Char)`, `base/char.jl:316-321`. Bound: 4
+iterations (a `UInt32` is zero after four shifts by 8). -/
+def showInvalidLoop : Nat → UInt32 → List UInt8
+  | 0, _ => []
+  | fuel + 1, u =>
+    let a := hexChar ((u >>> 28) &&& 0xf)
+    let b := hexChar ((u >>> 24) &&& 0xf)
+    [0x5c, 0x78, a, b] ++ (if u <<< 8 = 0 then [] else showInvalidLoop fuel (u <<< 8))
+
+/-- `show_invalid(io, c::Char)`, `base/char.jl:313-323`. -/
+def showInvalid (c : UInt32) : List UInt8 := [0x27] ++ showInvalidLoop 4 c ++ [0x27]
+
+/-- The hex-digit loop of `show`, `base/char.jl:363-366`: digits `d-1, ..., 0`. -/
+def hexDigits (u : UInt32) : Nat → List UInt8
+  | 0 => []
+  | d + 1 => hexChar ((u >>> (UInt32.ofNat d <<< 2)) &&& 0xf) :: hexDigits u d
+end JuliaLean.MissingChar
+
+namespace JuliaLean.IntFuncsCov.Char
+
+open JuliaLean
+open JuliaLean.MissingChar
+open JuliaLean.Strings
+
+
+def sgetD {ε α : Type} (x : Except ε α) (d : α) : α :=
+  match x with
+  | .ok a => a
+  | .error _ => d
+
+/-! ## Construction, decoding, and conversion, lines 54-239 -/
+
+def int8OfChar (signed : Bool) (c : UInt32) : Jl Int :=
+  let i := c.toInt32
+  if 0 ≤ i then
+    let byte := (c >>> 24).toUInt8.toNat
+    if signed then .ok (UInt8.ofNat byte).toInt8.toInt else .ok byte
+  else match Strings.codepoint c with
+    | .error _ => .error (.argumentError "invalid character")
+    | .ok u =>
+      if signed then JInt.convert (IntTy.i8.name) .i8 u.toNat |>.map Subtype.val
+      else JInt.convert (IntTy.u8.name) .u8 u.toNat |>.map Subtype.val
+
+/-! ## Scalar collection interface and comparisons, lines 241-300 -/
+
+def charSizeDim (d : Int) : Jl Nat := if d < 1 then .error .boundsError else .ok 1
+
+def charGet (c : UInt32) (indices : List Int) : Jl UInt32 :=
+  if indices.all (· = 1) then .ok c else .error .boundsError
+
+def charIter (c : UInt32) (done : Bool) : Option (UInt32 × Bool) :=
+  if done then none else some (c, true)
+
+def charSub (x y : UInt32) : Strings.SJl Int := do
+  let a ← Strings.codepoint x
+  let b ← Strings.codepoint y
+  pure ((a.toNat : Int) - b.toNat)
+
+/-! ## Printing, lines 305-392 -/
+
+structure PlainDisplay where
+  literal : List UInt8
+  malformed : Bool
+  overlong : Bool
+  codepoint : Option UInt32
+  compact : Bool
+  deriving DecidableEq
+
+def plainDisplay (literal : List UInt8) (c : UInt32) (compact : Bool) : PlainDisplay :=
+  { literal := literal
+    malformed := Strings.ismalformed c
+    overlong := Strings.isoverlong c
+    codepoint := if Strings.ismalformed c then none else (Strings.codepoint c).toOption
+    compact := compact }
+end JuliaLean.IntFuncsCov.Char
+
+namespace JuliaLean.ParsePrint.IntParse
+
+open JuliaLean JuliaLean.ParsePrint
+
+/-! ### Characters -/
+
+/-- `leading_ones(u::UInt32)`. -/
+def leadingOnes32 (u : Nat) : Nat :=
+  ((List.range 32).find? fun k => (u / 2 ^ (31 - k)) % 2 == 0).getD 32
+
+/-- `trailing_zeros(u::UInt32)`, 32 for zero. -/
+def trailingZeros32 (u : Nat) : Nat :=
+  ((List.range 32).find? fun k => (u / 2 ^ k) % 2 == 1).getD 32
+
+/-- `ismalformed(c::Char)` on the raw `UInt32` of `c`, `base/char.jl:111-117`. -/
+def ismalformed (u : Nat) : Bool :=
+  let l1 := leadingOnes32 u * 8
+  let t0 := Nat.land (trailingZeros32 u) 56
+  l1 == 8 || l1 + t0 > 32 || (Nat.xor (Nat.land u 0x00c0c0c0) 0x00808080) / 2 ^ t0 != 0
+
+/-- `unsafe_codepoint(c::Char)`, `base/char.jl:184-192`. -/
+def unsafeCodepoint (u : Nat) : Nat :=
+  if u < 0x80000000 then u / 2 ^ 24 else
+    let l1 := leadingOnes32 u
+    let t0 := Nat.land (trailingZeros32 u) 56
+    let u := Nat.land u (0xffffffff / 2 ^ l1)
+    let u := u / 2 ^ t0
+    Nat.lor (Nat.lor (Nat.land u 0x7f) (Nat.land u 0x7f00 / 4))
+      (Nat.lor (Nat.land u 0x7f0000 / 16) (Nat.land u 0x7f000000 / 64))
+
+end JuliaLean.ParsePrint.IntParse
+
+namespace JuliaLean.ShellCmd
+
+open JuliaLean
+
+/-- `ncodeunits(c::Char)`, `base/char.jl:71-78`. -/
+def ncuC (c : JC) : Nat := Strings.ncodeunitsChar c
+
+end JuliaLean.ShellCmd

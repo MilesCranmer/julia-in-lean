@@ -1,0 +1,77 @@
+id: bignumscov-mpfr-467-v2
+title: BigInt rounding of BigFloat positive zero rejects RoundNearestTiesAway
+priority: P2
+kind: wrong-exception
+area: BigNums
+files:
+  - base/mpfr.jl
+  - base/rounding.jl
+functions:
+  - round(::Type{BigInt}, ::BigFloat, ::RoundingMode)
+summary: |
+  With the ambient mode set to RoundNearest, rounding an exactly represented
+  positive BigFloat zero to BigInt with RoundNearestTiesAway throws MethodError.
+  Zero is representable by BigInt and does not require any tie-breaking.
+likelihood: |
+  Generic integer-rounding code can receive BigFloat inputs and choose this
+  documented tie rule. The failure also affects inputs with no fractional part.
+maybe_intended: |
+  MPFR has no direct nearest-ties-away mode, but this call requests integer
+  rounding rather than a default arithmetic mode. The round API documents the
+  tie rule and does not exclude BigFloat-to-BigInt conversion. This is the same
+  defect as the existing bignums-round-ties-away report, with a zero input.
+reproducer: |
+  setrounding(BigFloat, RoundNearest)
+  x = BigFloat(0; precision=64)
+  try
+      round(BigInt, x, RoundNearestTiesAway)
+  catch err
+      err isa MethodError || rethrow()
+      println("REPRODUCED bignumscov-mpfr-467-v2")
+  end
+output:
+  release: |
+    REPRODUCED bignumscov-mpfr-467-v2
+  nightly: |
+    REPRODUCED bignumscov-mpfr-467-v2
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  Return BigInt(0) under the explicitly requested tie rule.
+promised_by: |
+  At pinned source f755f49a9e41380d7da126b3c1db9fe7f83dd027,
+  base/rounding.jl:337-339 says:
+  "Without keyword arguments, `x` is rounded to an integer value, returning a value of type
+  `T`, or of the same type of `x` if no `T` is provided. An [`InexactError`](@ref) will be
+  thrown if the value is not representable by `T`, similar to [`convert`](@ref)."
+  base/rounding.jl:99-100 says:
+  "Rounds to nearest integer, with ties rounded away from zero (C/C++
+  [`round`](@ref) behaviour)."
+  The ambient-mode caveat at base/rounding.jl:349-350 is respected by the reproducer.
+cause: |
+  base/mpfr.jl:467-468 invokes the BigInt overload at lines 458-463.
+  Its _unchecked_cast call reaches line 428, which converts the explicit tag
+  to MPFRRoundingMode. Lines 75-79 define only the five MPFR-compatible modes,
+  so the tie-rule conversion fails before the input value is rounded.
+possible_fix: |
+  Implement the tie modes for rounding to integers using Julia's integral
+  BigFloat rounding path before conversion to BigInt, preserving nonfinite
+  checks.
+duplicates:
+  issues:
+    - number: 64178
+      state: open
+      relation: duplicate
+  queries:
+    - tool: gh search issues --repo JuliaLang/julia
+      query: BigFloat RoundNearestTiesAway
+    - tool: gh search issues --repo JuliaLang/julia
+      query: RoundNearestTiesUp BigFloat
+    - tool: gh search prs --repo JuliaLang/julia
+      query: BigFloat RoundNearestTiesAway
+    - tool: gh search prs --repo JuliaLang/julia
+      query: round BigFloat integer
+lean:
+  property: JuliaLean.Proofs.base.mpfr.Round1.RoundBigIntPublicCorrect
+  theorem: JuliaLean.ChatGPT.Batch4.Group3.BignumscovMpfr467V2_refuted

@@ -54,7 +54,9 @@ possible_fix: |
   Decode bytes directly as the UTF-16 method does, mapping each byte of a
   malformed sequence to its own code unit.
 duplicates:
-  issues: []
+  issues:
+    - {number: 25452, state: closed, relation: related}
+    - {number: 27810, state: merged, relation: related}
   queries:
     - "issues: transcode"
     - "issues: transcode UInt32 invalid"
@@ -64,6 +66,7 @@ duplicates:
     - "issues: Cwstring invalid UTF-8"
     - "issues: transcode always succeeds"
     - "prs: transcode"
+    - "prs: transcode UInt32"
 lean:
-  property: JuliaLean.Transcode.Utf8ToUtf32Total
-  theorem: JuliaLean.Transcode.utf8ToUtf32Total_refuted
+  property: JuliaLean.Proofs.base.strings.cstring.Utf32StringTotalSpec
+  theorem: JuliaLean.Proofs.base.strings.cstring.utf32StringTotal_refuted

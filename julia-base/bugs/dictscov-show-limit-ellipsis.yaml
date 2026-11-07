@@ -1,22 +1,30 @@
 id: dictscov-show-limit-ellipsis
-title: "show(::AbstractDict) with :limit prints an ellipsis for a dict with exactly 10 entries"
+title: Limited dictionary display adds an ellipsis without omitting any pair
 priority: P3
 kind: wrong-result
 area: DictsCov
-files: [base/dict.jl]
-functions: ["show(io::IO, t::AbstractDict)"]
+files:
+  - base/dict.jl
+  - base/show.jl
+functions:
+  - show(io::IO, t::AbstractDict)
 summary: |
-  The compact show of an AbstractDict under :limit => true prints at most 10
-  pairs and then "…". The check `limit && n >= 10 && (print(io, "…"); break)`
-  runs after printing each pair, so a dictionary with exactly 10 entries is
-  printed in full and still followed by "…", which suggests omitted entries.
+  Limited compact display prints all ten entries of a ten-entry dictionary,
+  then appends an ellipsis. The ellipsis suggests omitted data although the
+  displayed pair count already equals the dictionary length.
 likelihood: |
-  Any dict with exactly 10 entries shown with :limit (repr with context,
-  string interpolation of nested containers in the REPL, logging). Cosmetic.
-maybe_intended: ""
+  Any ten-entry dictionary displayed with :limit => true reaches the boundary.
+  The result affects display and logging, rather than dictionary contents.
+maybe_intended: |
+  A fixed ten-entry display budget is reasonable. The extra ellipsis follows
+  the implementation's unconditional boundary check. The IOContext docstring
+  describes an ellipsis in place of elements, but does not explicitly promise
+  that an ellipsis appears exactly when pairs are omitted.
 reproducer: |
-  repr(Dict(i => i for i in 1:10); context = :limit => true)
-  # "Dict(3 => 3, ..., 10 => 10…)"  all 10 pairs plus "…"
+  d = Dict(i => i for i in 1:10)
+  s = repr(d; context = :limit => true)
+  @assert count("=>", s) == length(d)
+  @assert endswith(s, "…)")
 output:
   release: |
     Dict(3 => 3, 2 => 2, 1 => 1, 4 => 4, 5 => 5, 6 => 6, 8 => 8, 7 => 7, 9 => 9, 10 => 10…)
@@ -28,23 +36,35 @@ output:
     pairs shown: 10 of 10; ends with an ellipsis: true
     Dict(3 => 3, 2 => 2, 1 => 1, 4 => 4, 5 => 5, 6 => 6, 8 => 8, 7 => 7, 9 => 9)
     REPRODUCED dictscov-show-limit-ellipsis
-reproduced: {release: true, nightly: true}
+reproduced:
+  release: true
+  nightly: true
 expected: |
-  Dict(3 => 3, 2 => 2, 1 => 1, 4 => 4, 5 => 5, 6 => 6, 8 => 8, 7 => 7, 9 => 9, 10 => 10)
-  with no ellipsis, since no entry is omitted.
+  Display all ten pairs without an ellipsis when no pair is omitted. The
+  output also includes a nine-entry control case.
 promised_by: |
-  Invariant of limited printing: an ellipsis marks omitted elements (IOContext
-  docstring, base/show.jl:397-398: ":limit: Boolean specifying that containers
-  should be truncated, e.g. showing … in place of most elements").
+  Pinned source f755f49a9e41380d7da126b3c1db9fe7f83dd027.
+  base/show.jl:397-398: "- `:limit`: Boolean specifying that containers should be truncated, e.g. showing `…` in
+  place of most elements."
+  This motivates the display convention; the stronger "exactly when" claim is not stated in the docs.
 cause: |
-  base/dict.jl:19: `limit && n >= 10 && (print(io, "…"); break)` tests the
-  count after printing the n-th pair instead of before printing the next one.
+  base/dict.jl:17-19 prints the current pair, increments n, and checks
+  limit && n >= 10. It does not check whether iteration has another pair
+  before printing the ellipsis and breaking.
 possible_fix: |
-  Check before printing a pair: `if limit && n >= 10; print(io, "…"); break;
-  end` at the top of the loop body.
+  Emit the ellipsis only after discovering an eleventh pair, before displaying
+  that pair. This distinguishes an exhausted ten-entry iterator from a
+  truncated iterator.
 duplicates:
   issues: []
-  queries: ["Dict show limit ellipsis", "show Dict limit 10 entries", "show dict truncation", "ellipsis in:title", "show Dict in:title"]
+  prs: []
+  queries:
+    - 'gh search issues --repo JuliaLang/julia "Dict show ellipsis"'
+    - 'gh search issues --repo JuliaLang/julia "Dict limit 10"'
+    - 'gh search issues --repo JuliaLang/julia "dictionary truncation"'
+    - 'gh search prs --repo JuliaLang/julia "Dict show ellipsis"'
+    - 'gh search prs --repo JuliaLang/julia "Dict limit 10"'
+    - 'gh search prs --repo JuliaLang/julia "dictionary truncation"'
 lean:
-  property: JuliaLean.DictsCov.ShowEllipsisOmits
-  theorem: JuliaLean.DictsCov.showEllipsisOmits_refuted
+  property: JuliaLean.Proofs.base.dict.DictShowLimitEllipsis
+  theorem: JuliaLean.ChatGPT.Batch4.Group1.DictscovShowLimitEllipsis_refuted

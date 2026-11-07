@@ -68,5 +68,5 @@ duplicates:
     - "pull requests: negative base"
     - "pull requests: negative base string"
 lean:
-  property: JuliaLean.ParsePrint.IntPrint.StringNegativeBase
-  theorem: JuliaLean.ParsePrint.IntPrint.stringNegativeBase_refuted
+  property: JuliaLean.Proofs.base.intfuncs.StringNegativeBase
+  theorem: JuliaLean.Proofs.base.intfuncs.stringNegativeBase_refuted

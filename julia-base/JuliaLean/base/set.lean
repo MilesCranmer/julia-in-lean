@@ -1,10 +1,13 @@
 import JuliaLean.Core
+import JuliaLean.Runtime.Float
 import JuliaLean.base.dict
 import JuliaLean.base.int
-import JuliaLean.base.abstractset
 import JuliaLean.base.array
 import JuliaLean.base.iterators
 import JuliaLean.base.tuple
+import JuliaLean.base.idset
+import JuliaLean.base.range
+import JuliaLean.base.operators
 import JuliaLean.Registry.Types
 
 /-!
@@ -40,7 +43,7 @@ structure DictRuntime (K : Type) where
   equal : K → K → Bool
   tablesz : Nat → Nat
   maxValues : Nat
-  cld : JInt .i64 → JInt .i64
+  cld : JInt .i64 → DictResult (JInt .i64)
   fillSlots : Nat → Nat → (Nat → Nat) → Nat → Nat
   unsetKey : Nat → (Nat → Option K) → Nat → (Nat → Option K)
   unsetValue : Nat → (Nat → Option Unit) → Nat → (Nat → Option Unit)
@@ -155,7 +158,7 @@ def setSimilarFor {S K : Type} (c : S) (typeToken : Nat) : SetModel K := setEmpt
 def checkCount (count : Int) : Jl (JInt .i64) :=
   if count < 0 then
     .error (.domainError ("`count` must not be negative (got " ++ toString count ++ ")"))
-  else JInt.convert .i64 (min count (IntTy.max .i64))
+  else JInt.convert (IntTy.i64.name) .i64 (min count (IntTy.max .i64))
 
 
 
@@ -793,8 +796,8 @@ def uniqueFromMethod {α : Type} (types : TypeOps α)
         let R := types.typejoin S out.eltype
         let seen ← types.convertSet R seen
         let out ← types.convertVector R out
-        let (_, seen) ← inBang x seen
-        let out ← pushVector out x
+        let (present, seen) ← inBang x seen
+        let out ← if present then .ok out else pushVector out x
         loop rest (i + 1) out seen
   exact loop (itr.values.drop state) state out seen
 
@@ -850,11 +853,11 @@ def uniqueMapMethod {A K : Type} (f : A → K) (values : List A) (seen : Option 
   | none =>
     match values with
     | [] => .ok out
-    | x :: rest =>
+    | x :: _ =>
       let y := f x
       let seen ← insert y (newSet (typeof y))
       let out ← pushVector out x
-      resume f out rest seen 1 (typeof y)
+      resume f out values seen 1 (typeof y)
 
 /--
 Julia source: base/set.jl:323-342 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -1759,10 +1762,10 @@ function _replace!(new::Callable, res::Union{AbstractDict,AbstractSet},
 end
 ```
 -/
-def replaceAbstractCollectionsMethod {C α : Type} (isDict isSet : C → Bool)
+def replaceAbstractCollectionsMethod {C α K V : Type} (isDict isSet : C → Bool)
     (same : C → C → Bool) (elements : C → Result (List α)) (new : α → Result α)
-    (identical : α → α → Bool) (asKey : α → C → α)
-    (pop : α → C → Result (α × C)) (push : α → C → Result C)
+    (identical : α → α → Bool) (asKey : α → C → K)
+    (pop : K → C → Result (V × C)) (push : α → C → Result C)
     (res source : C) (count : Nat) : Result C := do
   if !((isDict res && isDict source) || (isSet res && isSet source)) then
     .error (.assertion "type mismatch")
@@ -1970,3 +1973,380 @@ def replaceTuplePairsWrapper {α : Type} (equal identical : α → α → Bool)
   replaceTuplePairsMethod equal identical values n.val.toNat pairs
 
 end JuliaLean.base.set
+
+/-!
+`unique`, `allunique` and `allequal` on `Vector{Int}`, `base/set.jl` (master
+`bbfa0ce4150`). For `Int`, `isequal` is `==`, `isless` is `<`, `OrderStyle(Int)` is
+`Ordered()`, and a `Set{Int}` is modelled as the list of the values inserted so far.
+-/
+
+namespace JuliaLean.ArrayOps
+
+open JuliaLean
+
+/-- `unique(itr)` for an iterator with an element type, `base/set.jl:224-233`:
+`!in!(x, seen) && push!(out, x)`. -/
+def uniqueLoop (seen : List Int) : List Int → List Int
+  | [] => []
+  | x :: rest => if x ∈ seen then uniqueLoop seen rest else x :: uniqueLoop (x :: seen) rest
+
+def unique (v : List JInt64) : List JInt64 :=
+  (uniqueLoop [] (v.map (·.val))).map (JInt.wrap .i64)
+
+/-- `_hashed_allunique(C)`, `base/set.jl:525-542`: `in!(v, seen) && return false`
+over the elements (the first 1000 elements are scanned separately before a `sizehint!`,
+which does not change the result). -/
+def hashedLoop (seen : List Int) : List Int → Bool
+  | [] => true
+  | x :: rest => if x ∈ seen then false else hashedLoop (x :: seen) rest
+
+/-- `_indexed_allunique(A)`, `base/set.jl:579-592`: compare each element with every later one. -/
+def indexedAllunique : List Int → Bool
+  | [] => true
+  | a :: rest => if rest.any (· == a) then false else indexedAllunique rest
+
+/-- The scan of the sorted fast path of `allunique(A::StridedArray)`,
+`base/set.jl:557-567`: `compare(a2, a)` advances, `isequal` fails, anything else falls
+back to the hashed method on the whole array. -/
+def sortedScan (whole : List Int) (incr : Bool) (a2 : Int) : List Int → Bool
+  | [] => true
+  | a :: rest =>
+    if (if incr then decide (a2 < a) else decide (a < a2)) then sortedScan whole incr a rest
+    else if a2 = a then false
+    else hashedLoop [] whole
+
+/-- `allunique(A::StridedArray)` for `Vector{Int}`, `base/set.jl:553-577`. -/
+def allunique (v : List JInt64) : Bool :=
+  let w := v.map (·.val)
+  if w.length < 32 then (if w.length < 2 then true else indexedAllunique w)
+  else match w with
+    | a1 :: a2 :: rest =>
+      if a1 ≠ a2 then sortedScan w (decide (a1 < a2)) a2 rest else false
+    | _ => hashedLoop [] w
+
+/-- `allequal(itr)`, `base/set.jl:648-656`: true for length ≤ 1, else
+`all(isequal(a), rest)` for the first element `a`. -/
+def allequal (v : List JInt64) : Bool :=
+  if v.length ≤ 1 then true
+  else match v with
+    | a :: rest => rest.all (fun x => x.val == a.val)
+    | [] => true
+
+end JuliaLean.ArrayOps
+
+namespace JuliaLean.BitSetsCov.Bugs
+
+def insertUnique (x : Nat) (xs : List Nat) : List Nat :=
+  if x ∈ xs then xs else xs ++ [x]
+
+def setOf (xs : List Nat) : List Nat := xs.foldl (fun s x => insertUnique x s) []
+
+/-- `_replace!(new, res::AbstractSet, A::AbstractSet, count)`,
+`base/set.jl:909-943`, in the `res !== A` branch. -/
+def replaceSeparate (f : Nat → Nat) (source result : List Nat) : List Nat :=
+  source.foldl (fun result x =>
+    let y := f x
+    if x = y then result else insertUnique y (result.erase x)) result
+
+/-- `allunique(::Union{AbstractSet,AbstractDict}) = true`, `base/set.jl:544`. -/
+def alluniqueIdSet (_xs : List IdValue) : Bool := true
+
+inductive ReplaceSingletonOutcome where
+  | ok
+  | methodError
+  deriving DecidableEq
+
+/-- The omitted-count type path of `replace(A, old_new...)`,
+`base/set.jl:842-864`: removing a singleton from the element type may make the
+temporary set unable to hold the unreplaced members. -/
+def replaceSetSingleton (hasUnreplacedValue : Bool) : ReplaceSingletonOutcome :=
+  if hasUnreplacedValue then .methodError else .ok
+
+end JuliaLean.BitSetsCov.Bugs
+
+namespace JuliaLean.BitSetsCov.Coll
+
+open Bugs
+
+/-! ## `base/set.jl` -/
+
+/-- Lines 42-73. -/
+def setFromDict (keys : SetState) : SetState := keys
+def setEmpty : SetState := []
+def setCopy (s : SetState) : SetState := s
+def setTyped (unionOne : SetState → List Nat → SetState) (itr : List Nat) : SetState := unionOne [] itr
+def setAny : SetState := []
+def setKeyset (keys : SetState) : SetState := keys
+def setHasEltype (unionOne : SetState → List Nat → SetState) (itr : List Nat) : SetState := setTyped unionOne itr
+def setUnknownEltype (unionOne : SetState → List Nat → SetState) (concrete : Bool) (itr : List Nat) : SetState :=
+  if concrete then setTyped unionOne itr else unionOne [] itr
+def setEmptyLike (_s : SetState) : SetState := []
+def setSimilar (_s : SetState) : SetState := []
+
+/-- Lines 75-178. -/
+def setShow (sameTypeInfo : Bool) (s : SetState) : String :=
+  if s.isEmpty then if sameTypeInfo then "Set()" else "Set{T}()" else "Set(...)"
+def setIsEmpty (s : SetState) : Bool := s.isEmpty
+def setLength (s : SetState) : Nat := s.length
+def setIn (x : Nat) (s : SetState) : Bool := decide (x ∈ s)
+def setInBang (x : Nat) (s : SetState) : Bool × SetState :=
+  if x ∈ s then (true, s) else (false, insert s x)
+def setPush (s : SetState) (x : Nat) : SetState := insert s x
+def setPopDefault (s : SetState) (x default : Nat) : Nat × SetState :=
+  if x ∈ s then (x, erase s x) else (default, s)
+def setPopKey (s : SetState) (x : Nat) : Option (Nat × SetState) :=
+  if x ∈ s then some (x, erase s x) else none
+def setPopAny (s : SetState) : Option (Nat × SetState) :=
+  match s with | [] => none | x :: xs => some (x, xs)
+def setDelete (s : SetState) (x : Nat) : SetState := erase s x
+def setSizehint (s : SetState) (_n : Int) (_shrink : Bool) : SetState := s
+def setEmptyBang (_s : SetState) : SetState := []
+def setRehash (s : SetState) : SetState := s
+def setIterate (s : SetState) (state : Nat) : Option (Nat × Nat) :=
+  match s.drop state with | [] => none | x :: _ => some (x, state + 1)
+def setOnly (s : SetState) : Option Nat := match s with | [x] => some x | _ => none
+
+/-- Lines 187-198. -/
+def setSetdiff (setdiffOne : SetState → List Nat → SetState) (s t : SetState) : SetState :=
+  if 2 * s.length < t.length then s.filter (fun x => decide (x ∉ t)) else setdiffOne s t
+
+/-- Stable first-occurrence selection used by the methods at lines 203-478. -/
+def uniqueBy (f : Nat → Nat) (xs : List Nat) : List Nat :=
+  (xs.foldl (fun acc x =>
+    let keys := acc.2
+    let k := f x
+    if k ∈ keys then acc else (acc.1 ++ [x], keys ++ [k])) ([], [])).1
+def unique (xs : List Nat) : List Nat := uniqueBy id xs
+def uniqueFrom (xs out seen : List Nat) (i : Nat) : List Nat :=
+  out ++ unique (xs.drop i |>.filter (fun x => decide (x ∉ seen)))
+def uniqueBangBy (f : Nat → Nat) (xs : List Nat) : List Nat := uniqueBy f xs
+def uniqueBang (xs : List Nat) : List Nat := unique xs
+def groupedUnique (xs : List Nat) : List Nat :=
+  xs.foldl (fun out x => if out.getLast? = some x then out else out ++ [x]) []
+def uniqueDispatch (ordered sorted : Bool) (xs : List Nat) : List Nat :=
+  if ordered && sorted then groupedUnique xs else uniqueBang xs
+
+def allunique (xs : List Nat) : Bool := decide xs.Nodup
+def hashedAllunique (xs : List Nat) : Bool := allunique xs
+def indexedAllunique (xs : List Nat) : Bool := allunique xs
+def alluniqueDispatch (hasLength : Bool) (xs : List Nat) : Bool :=
+  if hasLength && xs.length < 2 then true
+  else if hasLength && xs.length < 32 then indexedAllunique xs else hashedAllunique xs
+def alluniqueMap (f : Nat → Nat) (xs : List Nat) : Bool := alluniqueDispatch true (xs.map f)
+def alluniqueSet (_s : SetState) : Bool := true
+def alluniqueString (codepoints : List Nat) : Bool :=
+  if codepoints.length < 32 then indexedAllunique codepoints else hashedAllunique codepoints
+def alluniqueTuple (xs : List Nat) : Bool :=
+  if xs.length < 32 then indexedAllunique xs else hashedAllunique xs
+def alluniqueEmptyTuple : Bool := true
+
+def allequal (xs : List Nat) : Bool :=
+  match xs with | [] => true | x :: rest => rest.all (fun y => decide (x = y))
+def allequalSet (s : SetState) : Bool := decide (s.length ≤ 1)
+def allequalMap (f : Nat → Nat) (xs : List Nat) : Bool := allequal (xs.map f)
+def allequalLoop (f : Nat → Nat) (xs : List Nat) : Bool := allequalMap f xs
+def allequalTuple (f : Nat → Nat) (xs : List Nat) : Bool :=
+  if xs.length ≤ 1 then true else allequalLoop f xs
+def allequalEmptyTuple : Bool := true
+
+/-- Lines 695-731. -/
+def setFilterBang (abstractUnsafeFilter : (Nat → Bool) → SetState → SetState)
+    (f : Nat → Bool) (s : SetState) : SetState := abstractUnsafeFilter f s
+def setHash (hash : Nat → Nat) (seed : Nat) (s : SetState) : Nat :=
+  s.foldl (fun h x => h ^^^ hash x) seed
+def setConvertSame (s : SetState) : SetState := s
+def setConvert (s : SetState) : SetState := ofList s
+
+inductive CountOutcome where | ok (count : Nat) | domainError deriving DecidableEq
+def checkCount (count : Int) : CountOutcome :=
+  if count < 0 then .domainError else .ok (min count 9223372036854775807).toNat
+def copyOfType (x : List Nat) : List Nat := x
+def similarOrCopy (isSetOrDict : Bool) (x : List Nat) : List Nat := if isSetOrDict then x else []
+
+/-- Lines 762-902. -/
+def replacePairs (pairs : List (Nat × Nat)) (x : Nat) : Nat :=
+  match pairs.find? (fun p => p.1 = x) with | some p => p.2 | none => x
+def replacePairsBang (A : List Nat) (pairs : List (Nat × Nat)) (count : Nat) : List Nat :=
+  (A.foldl (fun acc x =>
+    let y := if acc.2 < count then replacePairs pairs x else x
+    (acc.1 ++ [y], acc.2 + if x = y then 0 else 1)) ([], 0)).1
+def replaceCallableBang (f : Nat → Nat) (A : List Nat) (count : Nat) : List Nat :=
+  replacePairsBang A (A.map fun x => (x, f x)) count
+def replacePairsCopy (A : List Nat) (pairs : List (Nat × Nat)) (count : Nat) : List Nat :=
+  replacePairsBang A pairs count
+def promoteValueType (types : List Nat) : Nat := types.foldl max 0
+def subtractSingleton (isSingleton : Bool) (t singleton : Nat) : Nat := if isSingleton && t = singleton then 0 else t
+def replaceCallableCopy (f : Nat → Nat) (A : List Nat) (count : Nat) : List Nat :=
+  replaceCallableBang f A count
+def replaceAmbiguous : Bool := false
+
+/-- Lines 906-1046. -/
+def askeyDict (p : Nat × Nat) : Nat := p.1
+def askeySet (x : Nat) : Nat := x
+def replaceCollection (f : Nat → Nat) (res source : SetState) : SetState :=
+  replaceSeparate f source res
+def replaceArray (f : Nat → Nat) (res source : List Nat) (count : Nat) : List Nat :=
+  replaceCallableBang f source count |>.take res.length
+def replaceDict (f : (Nat × Nat) → Nat × Nat) (pairs : List (Nat × Nat)) : List (Nat × Nat) :=
+  pairs.map f
+def replaceSet (f : Nat → Nat) (s : SetState) : SetState := ofList (s.map f)
+def replaceTuple (f : Nat → Nat) : List Nat → Nat → List Nat
+  | [], _ => []
+  | xs, 0 => xs
+  | x :: xs, count + 1 =>
+      let y := f x
+      y :: replaceTuple f xs (count + 1 - if x = y then 0 else 1)
+def replaceTuplePairs (t : List Nat) (count : Nat) (pairs : List (Nat × Nat)) : List Nat :=
+  replaceTuple (replacePairs pairs) t count
+
+end JuliaLean.BitSetsCov.Coll
+/-!
+# `Set`, `base/set.jl` and `base/abstractset.jl` (master `bbfa0ce4150`)
+
+`struct Set{T}; dict::Dict{T,Nothing}; end` (`base/set.jl:39-43`): a set is
+the table of its `dict` field, with `Unit` for `Nothing` values.
+
+Elements of another type `Q` (e.g. a `Float64` pushed into a `Set{Float32}`)
+go through a `Conv Q K`: the type test `x isa K`, `convert(K, x)`, `hash(x)`
+and `isequal(x, k)`.
+-/
+
+namespace JuliaLean.Dicts
+
+variable {K Q E : Type}
+
+/-- `Set{K}`: the `dict::Dict{K,Nothing}` field. -/
+abbrev SetT (K : Type) := Table K Unit
+
+/-- `push!(s::Set, x) = (s.dict[x] = nothing; s)`, `base/set.jl:137`. -/
+def pushConv (o : KeyOps K) (c : Conv Q K) (s : SetT K) (x : Q) : DR (SetT K) :=
+  setindexConv o c s () x
+
+/-- `push!` of an element of the key type. -/
+def push (o : KeyOps K) (s : SetT K) (x : K) : DR (SetT K) := setindex o s () x
+
+/-- `in(x, s::Set) = haskey(s.dict, x)`, `base/set.jl:92`, for `x::Q`. -/
+def inConv (c : Conv Q K) (s : SetT K) (x : Q) : DR Bool := do
+  let index ← htKeyindex s (c.hash x) (c.iseq x)
+  pure (index ≥ 0)
+
+/-- `in(x, s::Set)` for `x::K`. -/
+def setIn (o : KeyOps K) (s : SetT K) (x : K) : DR Bool := haskey o s x
+
+/-- `delete!(s::Set, x)`, `base/set.jl:164`. -/
+def setDelete (o : KeyOps K) (s : SetT K) (x : K) : DR (SetT K) := dictDelete o s x
+
+/-- `in!(x, s::Set)`, `base/set.jl:129-135`. -/
+def inBang (o : KeyOps K) (c : Conv Q K) (s : SetT K) (x : Q) : DR (Bool × SetT K) := do
+  let xT ← c.convert x
+  let (idx, sh, s) ← keyindex2 o s (o.hash xT) (o.eq xT)
+  if idx > 0 then pure (true, s)
+  else
+    let s ← setindexAt o s () xT (-idx).toNat sh
+    pure (false, s)
+
+/-- `Set{T}(itr) = union!(Set{T}(), itr)`, `base/set.jl:47`. -/
+def setOf (unionBang : KeyOps K → Conv Q K → SetT K → List Q → DR (SetT K))
+    (o : KeyOps K) (c : Conv Q K) (itr : List Q) : DR (SetT K) :=
+  unionBang o c Table.empty itr
+
+/-- Elements of a set in iteration order (`base/set.jl:176`, KeySet iteration
+`base/dict.jl:717-723`, which visits the same slots as `iterate(::Dict)`). -/
+def elems (s : SetT K) : DR (List K) := do
+  let xs ← iterList s
+  pure (xs.map (·.1))
+
+/-- `union!(s, t::Set)`. -/
+def unionSet (unionBang : KeyOps K → Conv K K → SetT K → List K → DR (SetT K))
+    (o : KeyOps K) (s t : SetT K) : DR (SetT K) := do
+  unionBang o (Conv.self o) s (← elems t)
+
+/-- `filter!(f, s::Set) = unsafe_filter!(f, s)`, `base/set.jl:695`, `base/abstractset.jl:633`. -/
+def setFilterBang
+    (filterLoop : KeyOps K → (K → DR Bool) → Nat → SetT K → Nat → DR (SetT K))
+    (o : KeyOps K) (keep : K → DR Bool) (s : SetT K) : DR (SetT K) :=
+  filterLoop o keep (s.size + 1) s s.idxfloor
+
+/-- `setdiff!(s::Set, t::Set)`, `base/set.jl:187-198`. -/
+def setdiffBang
+    (filterLoop : KeyOps K → (K → DR Bool) → Nat → SetT K → Nat → DR (SetT K))
+    (o : KeyOps K) (s t : SetT K) : DR (SetT K) := do
+  if 2 * s.count < t.count then
+    setFilterBang filterLoop o (fun x => do pure (!(← setIn o t x))) s
+  else
+    (← elems t).foldlM (fun s x => setDelete o s x) s
+
+end JuliaLean.Dicts
+
+namespace JuliaLean.Dicts
+
+open JuliaLean.Float
+
+variable {K Q V : Type}
+/-- `allunique(r::AbstractRange)`, `base/set.jl:546`; `step(r) = T(r.step)`
+(`base/range.jl:739`), `length(r) = r.len`. -/
+def SRL.allunique (r : SRL) : Bool := !F64.iszero r.step || decide (r.len ≤ 1)
+
+/-- `allequal(r::AbstractRange)`, `base/set.jl:660`. -/
+def SRL.allequal (r : SRL) : Bool := F64.iszero r.step || decide (r.len ≤ 1)
+/-- The loop of `_replace!(new, t::Dict{K,V}, A, count)`, `base/set.jl:986-1005`.
+`new k v` is `new(Pair{K,V}(k, v))`: `none` when it returns its argument
+(`x1 === x2`), otherwise the new pair, whose key has type `Q`. `fuel` bounds the
+slot scan (`skip_deleted` strictly increases `i`). -/
+def replaceLoop (c : Conv Q K) (new : K → V → Option (Q × V)) (count : Nat) :
+    Nat → Table K V → Nat → Nat → List (K × V) → DR (Table K V × List (K × V))
+  | 0, _, _, _, _ => throw .diverges
+  | fuel + 1, t, i, cnt, news =>
+    -- `while i != 0`
+    if i == 0 then pure (t, news) else do
+    let (k1, v1) ← entryAt t i
+    let (t, cnt, news, stop) ← match new k1 v1 with
+      | none => pure (t, cnt, news, false)
+      | some (k2, v2) => do
+        let (t, news) ←
+          -- `if isequal(k1, k2)`: overwrite in place; `t.keys[i] = k2` converts
+          if c.iseq k2 k1 then do
+            let k ← c.convert k2
+            pure ({ t with keys := upd t.keys i (some k), vals := upd t.vals i (some v2),
+                           age := bump t.age }, news)
+          -- `_delete!(t, i); push!(news, x2)`: `push!` into `Pair{K,V}[]` converts
+          else do
+            let t := deleteAt t i
+            let k ← c.convert k2
+            pure (t, news ++ [(k, v2)])
+        -- `c += 1; c == count && break`
+        pure (t, cnt + 1, news, cnt + 1 == count)
+    if stop then pure (t, news) else
+    -- `i = i == typemax(Int) ? 0 : skip_deleted(t, i+1)`
+    let i := if i == 2 ^ 63 - 1 then 0 else skipDeleted t (i + 1)
+    replaceLoop c new count fuel t i cnt news
+
+/-- `_replace!(new, t::Dict{K,V}, A::AbstractDict, count)`, `base/set.jl:980-1010`:
+`count == 0 && return t`; `i = skip_deleted_floor!(t)`; the loop; then
+`push!(t, n)` (a `Pair{K,V}`, so no further conversion) for every collected pair. -/
+def replaceDict (o : KeyOps K) (c : Conv Q K) (new : K → V → Option (Q × V))
+    (t : Table K V) (count : Nat) : DR (Table K V) := do
+  if count == 0 then return t
+  -- `skip_deleted_floor!`, `base/dict.jl:698-704`
+  let i := skipDeleted t t.idxfloor
+  let t := if i != 0 then { t with idxfloor := i } else t
+  let (t, news) ← replaceLoop c new count (t.size + 1) t i 0 []
+  news.foldlM (fun t kv => setindex o t kv.2 kv.1) t
+
+end JuliaLean.Dicts
+
+namespace JuliaLean.IdDicts
+
+/-! ## Collections on the other side of the generic set functions -/
+
+/-- `Set(itr)` on the universe: an `isequal`-keyed set. `push!` of an
+`isequal` element replaces the stored key (`h.keys[index] = key`,
+base/dict.jl `setindex!`), so the last representative wins. The Dicts area
+proves the `Set` table agrees with an `isequal` reference (`dicts-set-*`).
+Iteration order is the hash order in Julia, insertion order here; the uses
+below depend only on membership and length. -/
+def jsetOf (xs : List JVal) : List JVal :=
+  xs.foldl (fun acc x => if acc.any (isequal x) then acc.map (fun y => if isequal x y then x else y)
+    else acc ++ [x]) []
+
+end JuliaLean.IdDicts

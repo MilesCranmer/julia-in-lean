@@ -1,0 +1,48 @@
+id: ranges-rational-int8-length-wraps
+title: "length of a 64-element Int8 rational UnitRange returns -64"
+priority: P1
+kind: wrong-result
+area: Ranges
+files: [base/rational.jl]
+functions: ["length(r::AbstractUnitRange{T}) where T<:Rational"]
+summary: |
+  UnitRange(Int8(-1)//Int8(2), Int8(125)//Int8(2)) has 64 elements, yet length
+  returns Int8(-64). The exact count is representable in Int8.
+likelihood: |
+  Affects rational ranges with narrow fixed-width components when the optimized
+  numerator sum overflows even though division would produce a fitting count.
+maybe_intended: |
+  Fixed-width integer arithmetic wraps, but a collection length must count its elements.
+  This counterexample requires no unrepresentable endpoint or final count.
+reproducer: |
+  Stored at repro/ranges-rational-int8-length-wraps.jl.
+  r = UnitRange(Int8(-1)//Int8(2), Int8(125)//Int8(2))
+  length(r) # Int8(-64), although the exact cardinality is 64
+output:
+  release: |
+    REPRODUCED ranges-rational-int8-length-wraps
+  nightly: |
+    REPRODUCED ranges-rational-int8-length-wraps
+reproduced: {release: true, nightly: true}
+expected: |
+  Return the inclusive unit-step cardinality 64.
+promised_by: |
+  The collection length invariant counts elements. The endpoints have the same
+  denominator and differ by 63, so the inclusive interval contains 64 values.
+  base/rational.jl:704-706 describes this specialization as a performance method.
+cause: |
+  base/rational.jl:711 computes div(l.num - f.num + f.den, f.den) in Int8.
+  Here 125 - (-1) + 2 equals 128, wraps to -128, and divides by two to -64.
+possible_fix: |
+  Compute a widened or overflow-safe numerator before dividing by the common
+  denominator, preserving every representable final cardinality.
+duplicates:
+  issues: []
+  prs:
+    - {number: 41479, state: closed, relation: related, url: "https://github.com/JuliaLang/julia/pull/41479"}
+  queries:
+    - "GitHub issues and PRs: repo:JuliaLang/julia rational length overflow"
+    - "Web: site:github.com/JuliaLang/julia Rational UnitRange length overflow Int8"
+lean:
+  property: JuliaLean.Proofs.base.rational.Models1Group20.LengthNativeRationalRangeCorrect
+  theorem: JuliaLean.ChatGPT.Batch10.Group2.Models1G20LengthNativeRationalRange_refuted

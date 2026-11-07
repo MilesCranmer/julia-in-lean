@@ -1,55 +1,64 @@
 id: strings-cmp-malformed
-title: "cmp on Strings disagrees with the generic character comparison for invalid UTF-8"
-priority: P3
-kind: documentation
+title: "cmp(::String, ::String) disagrees with generic cmp(::AbstractString, ::AbstractString) for malformed UTF-8"
+priority: P2
+kind: wrong-result
 area: Strings
 files: [base/strings/string.jl, base/strings/basic.jl]
 functions: ["cmp(::String, ::String)", "cmp(::AbstractString, ::AbstractString)"]
 summary: |
-  cmp("\xe2\xc0", "\xe2\x82") == 1 (byte order), but the generic AbstractString
-  method returns -1, because '\xe2' < '\xe2\x82' as Chars. isless(collect(a),
-  collect(b)) is true.
+  For malformed UTF-8 strings, the String-specialized method and the generic
+  AbstractString method return opposite comparison results. With
+  `a = String(UInt8[0xc2, 0xff])` and `b = String(UInt8[0xc2, 0x80])`,
+  `cmp(a, b)` returns +1 while the generic method returns -1.
 likelihood: |
-  Only invalid UTF-8; sorting arbitrary byte strings.
+  Low. Callers must compare strings containing invalid UTF-8, usually by
+  constructing a String from unvalidated bytes. Comparisons of valid UTF-8
+  strings are unaffected.
 maybe_intended: |
-  Byte order for String is a deliberate fast path and agrees on valid UTF-8;
-  then the docstring should say so for invalid data.
+  The String method uses raw byte order, while the generic method compares
+  iterated characters. Since malformed UTF-8 does not encode valid Unicode
+  text, the different ordering could be intentional. The String documentation
+  allows any byte sequence and recommends `isvalid` to check UTF-8 validity
+  (base/strings/string.jl:80-89).
 reproducer: |
-  a = "\xe2\xc0"
-  b = "\xe2\x82"
-  x = cmp(a, b)
-  y = invoke(cmp, Tuple{AbstractString, AbstractString}, a, b)
-  println("cmp(a, b) = ", x, ", generic AbstractString cmp = ", y)
-  println("collect(a) = ", repr(collect(a)), ", collect(b) = ", repr(collect(b)))
-  println("isless(collect(a), collect(b)) = ", isless(collect(a), collect(b)))
-  x == 1 && y == -1 && println("REPRODUCED strings-cmp-malformed")
+  a = String(UInt8[0xc2, 0xff])
+  b = String(UInt8[0xc2, 0x80])
+  specialized = cmp(a, b)
+  generic = invoke(cmp, Tuple{AbstractString, AbstractString}, a, b)
+  Run `julia repro/strings-cmp-malformed.jl` with each pinned Julia version.
 output:
   release: |
-    cmp(a, b) = 1, generic AbstractString cmp = -1
-    collect(a) = ['\xe2', '\xc0'], collect(b) = ['\xe2\x82']
-    isless(collect(a), collect(b)) = true
+    JULIA 1.13.2 COMMIT 45b6d15e34bbd2003a31acce0b1847b63dad029c
     REPRODUCED strings-cmp-malformed
   nightly: |
-    cmp(a, b) = 1, generic AbstractString cmp = -1
-    collect(a) = ['\xe2', '\xc0'], collect(b) = ['\xe2\x82']
-    isless(collect(a), collect(b)) = true
+    JULIA 1.15.0-DEV.unknown COMMIT f755f49a9e41380d7da126b3c1db9fe7f83dd027
     REPRODUCED strings-cmp-malformed
 reproduced: {release: true, nightly: true}
 expected: |
-  Either the same result from both methods, or documented byte order for invalid
-  data.
+  The String-specialized and generic AbstractString methods should return the
+  same comparison result for every pair, including malformed UTF-8 strings.
 promised_by: |
-  The cmp docstring: "lexicographical order by Unicode code points"
-  (base/strings/basic.jl:276-282).
+  The generic `cmp(::AbstractString, ::AbstractString)` docstring specifies
+  lexicographical order by Unicode code points (base/strings/basic.jl:275-282).
+  String documents that its bytes may be any sequence and points users to
+  `isvalid` for UTF-8 validation (base/strings/string.jl:80-89).
 cause: |
-  cmp(::String, ::String) uses memcmp (base/strings/string.jl:232-236); the
-  generic method compares Chars (base/strings/basic.jl:308-318).
+  `cmp(::String, ::String)` compares bytes with `_memcmp` and returns its sign
+  (base/strings/string.jl:221-236). The generic method iterates both strings
+  and compares their `AbstractChar` values (base/strings/basic.jl:308-316).
+  These orders can differ for malformed UTF-8 bytes.
 possible_fix: ""
 duplicates:
   issues: []
+  prs: []
   queries:
-    - "issues: cmp invalid UTF-8"
-    - "issues: isless string invalid UTF-8 codeunit"
+    - 'JuliaLang/julia issues "cmp malformed string"'
+    - 'JuliaLang/julia PRs "cmp malformed string"'
+    - 'JuliaLang/julia issues "cmp invalid UTF-8 String AbstractString"'
+    - 'JuliaLang/julia PRs "cmp invalid UTF-8 String AbstractString"'
+    - 'JuliaLang/julia issues "isless invalid string"'
+    - 'JuliaLang/julia PRs "isless invalid string"'
 lean:
-  property: JuliaLean.Strings.CmpAgreesGeneric
-  theorem: JuliaLean.Strings.cmpAgreesGeneric_refuted
+  property: JuliaLean.Proofs.base.strings.string.Round1.CmpAgreesOnAllStrings
+  theorem: JuliaLean.ChatGPT.Batch2.Group2.StringsCmpMalformed_refuted
+covers: []

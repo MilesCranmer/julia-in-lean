@@ -1,161 +1,161 @@
 file	line	endline	name	signature	status	entry	note
-base/complex.jl	17	17	Complex	Complex(x::Real, y::Real)	todo		trivial: restates body or HasResult; covered by complex-type-algebra
-base/complex.jl	18	18	Complex	Complex(x::Real)	todo		trivial: restates body or HasResult; covered by complex-type-algebra
-base/complex.jl	42	42	Complex{T}	Complex{T}(x::Real) where {T<:Real}	todo		trivial: restates body or HasResult; covered by complex-type-algebra
-base/complex.jl	43	43	Complex{T}	Complex{T}(z::Complex) where {T<:Real}	todo		trivial: restates body or HasResult; covered by complex-widen-no-overflow
-base/complex.jl	44	45	(::Type{T})	(::Type{T})(z::Complex) where {T<:Real}	todo		trivial: restates body or HasResult; covered by complex-type-algebra
-base/complex.jl	47	47	Complex	Complex(z::Complex)	todo		trivial: restates body or HasResult; covered by complex-type-algebra
-base/complex.jl	49	50	promote_rule	promote_rule(::Type{Complex{T}}, ::Type{S}) where {T<:Real,S<:Real}	todo		trivial: restates body or HasResult; covered by complex-widen-no-overflow
-base/complex.jl	51	52	promote_rule	promote_rule(::Type{Complex{T}}, ::Type{Complex{S}}) where {T<:Real,S<:Real}	todo		trivial: restates body or HasResult; covered by complex-widen-no-overflow
-base/complex.jl	54	54	widen	widen(::Type{Complex{T}}) where {T}	todo		trivial: restates body or HasResult; covered by complex-widen-no-overflow
-base/complex.jl	56	56	float	float(::Type{Complex{T}}) where {T<:AbstractFloat}	todo		trivial: restates body or HasResult; covered by complex-type-algebra
-base/complex.jl	57	57	float	float(::Type{Complex{T}}) where {T}	todo		trivial: restates body or HasResult; covered by complex-type-algebra
-base/complex.jl	72	72	real	real(z::Complex)	todo		trivial: restates body or HasResult; covered by complex-type-algebra
-base/complex.jl	87	87	imag	imag(z::Complex)	todo		trivial: restates body or HasResult; covered by complex-type-algebra
-base/complex.jl	88	88	real	real(x::Real)	todo		trivial: restates body or HasResult; covered by complex-type-algebra
-base/complex.jl	89	89	imag	imag(x::Real)	todo		trivial: restates body or HasResult; covered by complex-type-algebra
-base/complex.jl	102	102	reim	reim(z)	todo		trivial: restates body or HasResult; covered by complex-type-algebra
-base/complex.jl	120	120	real	real(T::Type)	todo		trivial: restates body or HasResult; covered by complex-type-algebra
-base/complex.jl	121	121	real	real(::Type{T}) where {T<:Real}	todo		trivial: restates body or HasResult; covered by complex-type-algebra
-base/complex.jl	122	122	real	real(C::Type{<:Complex})	todo		trivial: restates body or HasResult; covered by complex-type-algebra
-base/complex.jl	123	123	real	real(::Type{Union{}})	todo		trivial: restates body or HasResult; covered by complex-type-algebra
-base/complex.jl	124	124	real	real(::Type{Union{}}, slurp...)	todo		trivial: restates body or HasResult; covered by complex-type-algebra
-base/complex.jl	148	148	isreal	isreal(x::Real)	todo		trivial: restates body or HasResult; covered by complex-type-algebra
+base/complex.jl	17	17	Complex	Complex(x::Real, y::Real)	modelled	complex-type-algebra,complex-muladd-exact-v2,complex-mixed-integer-float-constructors	Reviewed line by line against pinned f755f49 source.
+base/complex.jl	18	18	Complex	Complex(x::Real)	modelled	complex-constructor-real-effects;complex-native-integer-constructor-fields	Source-mirrored model JuliaLean.base.complex.Models2Group9.complexReal; reviewed against Julia f755f49.
+base/complex.jl	42	42	Complex{T}	Complex{T}(x::Real) where {T<:Real}	modelled	complex-constructor-typed-real-effects;complex-native-integer-constructor-fields	Source-mirrored model JuliaLean.base.complex.Models2Group9.complexTypedReal; reviewed against Julia f755f49.
+base/complex.jl	43	43	Complex{T}	Complex{T}(z::Complex) where {T<:Real}	modelled	complex-constructor-typed-complex-effects;complex-native-integer-constructor-fields;complex-constructor-typed-complex-selected-getters	Source-mirrored model JuliaLean.base.complex.Models2Group9.complexTypedComplex; reviewed against Julia f755f49.
+base/complex.jl	44	45	(::Type{T})	(::Type{T})(z::Complex) where {T<:Real}	modelled	complex-real-conversion-effects;complex-native-integer-constructor-fields;complex-real-conversion-selected-getters;complex-real-conversion-recursive-effects;complex-real-error-construction	Source-mirrored model JuliaLean.base.complex.Models2Group9.realFromComplexFull; reviewed against Julia f755f49.
+base/complex.jl	47	47	Complex	Complex(z::Complex)	modelled	complex-type-algebra	Reviewed against pinned source; reused canonical implementation and existing registry entry.
+base/complex.jl	49	50	promote_rule	promote_rule(::Type{Complex{T}}, ::Type{S}) where {T<:Real,S<:Real}	todo		Returned models2 group 9 proposal: Concrete type application is replaced by an externally classified admissible/rejected tag and a syntactic ComplexTy wrapper.
+base/complex.jl	51	52	promote_rule	promote_rule(::Type{Complex{T}}, ::Type{Complex{S}}) where {T<:Real,S<:Real}	modelled	complex-widen-no-overflow,complex-muladd-exact-v2,complex-integer-type-transforms	Reviewed line by line against pinned f755f49 source.
+base/complex.jl	54	54	widen	widen(::Type{Complex{T}}) where {T}	todo		Returned models2 group 9 proposal: Concrete type application is replaced by an externally classified admissible/rejected tag and a syntactic ComplexTy wrapper.
+base/complex.jl	56	56	float	float(::Type{Complex{T}}) where {T<:AbstractFloat}	modelled	complex-identity-conversions	Reused polymorphic identity; new unproved identity-conversion entry supplies the correct dispatch-domain registry anchor.
+base/complex.jl	57	57	float	float(::Type{Complex{T}}) where {T}	modelled	complex-type-algebra,complex-muladd-exact-v2,complex-integer-type-transforms	Reviewed line by line against pinned f755f49 source.
+base/complex.jl	72	72	real	real(z::Complex)	modelled	complex-type-algebra	Reviewed against pinned source; reused canonical implementation and existing registry entry.
+base/complex.jl	87	87	imag	imag(z::Complex)	modelled	complex-type-algebra	Reviewed against pinned source; reused canonical implementation and existing registry entry.
+base/complex.jl	88	88	real	real(x::Real)	modelled	complex-type-algebra	Reviewed against pinned source; reused canonical implementation and existing registry entry.
+base/complex.jl	89	89	imag	imag(x::Real)	modelled	complex-imaginary-real-effects;complex-native-real-parts	Source-mirrored model JuliaLean.base.complex.Models2Group9.imaginaryReal; reviewed against Julia f755f49.
+base/complex.jl	102	102	reim	reim(z)	modelled	complex-real-imaginary-effects;complex-native-real-parts	Source-mirrored model JuliaLean.base.complex.Models2Group9.realImaginary; reviewed against Julia f755f49.
+base/complex.jl	120	120	real	real(T::Type)	modelled	complex-real-type-query-effects;complex-real-type-query-recursive-effects	Source-mirrored model JuliaLean.base.complex.Models2Group9.realTypeQueryFull; reviewed against Julia f755f49.
+base/complex.jl	121	121	real	real(::Type{T}) where {T<:Real}	modelled	complex-type-algebra	Reviewed against pinned source; reused canonical implementation and existing registry entry.
+base/complex.jl	122	122	real	real(C::Type{<:Complex})	modelled	complex-type-algebra,complex-muladd-exact-v2,complex-parts-round-trip	Reviewed line by line against pinned f755f49 source.
+base/complex.jl	123	123	real	real(::Type{Union{}})	modelled	complex-type-algebra	Reviewed against pinned source; reused canonical implementation and existing registry entry.
+base/complex.jl	124	124	real	real(::Type{Union{}}, slurp...)	modelled	complex-type-algebra	Reviewed against pinned source; reused canonical implementation and existing registry entry.
+base/complex.jl	148	148	isreal	isreal(x::Real)	modelled	complex-type-algebra	Reviewed against pinned source; reused canonical implementation and existing registry entry.
 base/complex.jl	149	149	isreal	isreal(z::Complex)	modelled	complex-isreal-doc	
-base/complex.jl	150	150	isinteger	isinteger(z::Complex)	todo		trivial: restates body or HasResult; covered by complex-type-algebra
-base/complex.jl	151	151	isfinite	isfinite(z::Complex)	todo		trivial: restates body or HasResult; covered by complex-type-algebra
-base/complex.jl	152	152	isnan	isnan(z::Complex)	todo		trivial: restates body or HasResult; covered by complex-type-algebra
-base/complex.jl	153	153	isinf	isinf(z::Complex)	todo		trivial: restates body or HasResult; covered by complex-type-algebra
-base/complex.jl	154	154	iszero	iszero(z::Complex)	todo		trivial: restates body or HasResult; covered by complex-type-algebra
-base/complex.jl	155	155	isone	isone(z::Complex)	todo		trivial: restates body or HasResult; covered by complex-type-algebra
-base/complex.jl	168	168	complex	complex(z::Complex)	todo		trivial: restates body or HasResult; covered by complex-type-algebra
-base/complex.jl	169	169	complex	complex(x::Real)	todo		trivial: restates body or HasResult; covered by complex-type-algebra
-base/complex.jl	170	170	complex	complex(x::Real, y::Real)	todo		trivial: restates body or HasResult; covered by complex-type-algebra
-base/complex.jl	190	190	complex	complex(::Type{T}) where {T<:Real}	todo		trivial: restates body or HasResult; covered by complex-type-algebra
-base/complex.jl	191	191	complex	complex(::Type{Complex{T}}) where {T<:Real}	todo		trivial: restates body or HasResult; covered by complex-type-algebra
-base/complex.jl	192	192	complex	complex(::Type{Union{}})	todo		trivial: restates body or HasResult; covered by complex-type-algebra
-base/complex.jl	195	195	complex	complex(::Type{Union{}}, slurp...)	todo		trivial: restates body or HasResult; covered by complex-type-algebra
-base/complex.jl	197	197	flipsign	flipsign(x::Complex, y::Real)	todo		trivial: restates body or HasResult; covered by complex-flipsign-bswap-io
+base/complex.jl	150	150	isinteger	isinteger(z::Complex)	modelled	complex-integer-complex-effects;complex-native-integer-classification;complex-integer-selected-getters;complex-integer-recursive-effects;complex-native-integer-recursive-classification	Source-mirrored model JuliaLean.base.complex.Models2Group9.integerComplexFull; reviewed against Julia f755f49.
+base/complex.jl	151	151	isfinite	isfinite(z::Complex)	modelled	complex-finite-complex-effects;complex-native-integer-classification;complex-finite-selected-getters;complex-finite-recursive-effects;complex-native-integer-recursive-classification;complex-finite-recursive-cycle	Source-mirrored model JuliaLean.base.complex.Models2Group9.finiteComplexFull; reviewed against Julia f755f49.
+base/complex.jl	152	152	isnan	isnan(z::Complex)	modelled	complex-nan-complex-effects;complex-native-integer-classification;complex-nan-selected-getters;complex-nan-recursive-effects;complex-native-integer-recursive-classification	Source-mirrored model JuliaLean.base.complex.Models2Group9.nanComplexFull; reviewed against Julia f755f49.
+base/complex.jl	153	153	isinf	isinf(z::Complex)	modelled	complex-infinite-complex-effects;complex-native-integer-classification;complex-infinite-selected-getters;complex-infinite-recursive-effects;complex-native-integer-recursive-classification	Source-mirrored model JuliaLean.base.complex.Models2Group9.infiniteComplexFull; reviewed against Julia f755f49.
+base/complex.jl	154	154	iszero	iszero(z::Complex)	modelled	complex-zero-complex-effects;complex-native-integer-classification;complex-zero-selected-getters;complex-zero-recursive-effects;complex-native-integer-recursive-classification	Source-mirrored model JuliaLean.base.complex.Models2Group9.zeroComplexFull; reviewed against Julia f755f49.
+base/complex.jl	155	155	isone	isone(z::Complex)	modelled	complex-one-complex-effects;complex-native-integer-classification;complex-one-selected-getters;complex-one-recursive-effects;complex-native-integer-recursive-classification	Source-mirrored model JuliaLean.base.complex.Models2Group9.oneComplexFull; reviewed against Julia f755f49.
+base/complex.jl	168	168	complex	complex(z::Complex)	modelled	complex-type-algebra	Reviewed against pinned source; reused canonical implementation and existing registry entry.
+base/complex.jl	169	169	complex	complex(x::Real)	modelled	complex-public-complex	Source-mirrored model JuliaLean.base.complex.Models2Group9.publicComplexOne; reviewed against Julia f755f49.
+base/complex.jl	170	170	complex	complex(x::Real, y::Real)	modelled	complex-public-complex	Source-mirrored model JuliaLean.base.complex.Models2Group9.publicComplexTwo; reviewed against Julia f755f49.
+base/complex.jl	190	190	complex	complex(::Type{T}) where {T<:Real}	modelled	complex-type-algebra	Reviewed against pinned source; reused canonical implementation and existing registry entry.
+base/complex.jl	191	191	complex	complex(::Type{Complex{T}}) where {T<:Real}	modelled	complex-type-algebra	Reviewed against pinned source; reused canonical implementation and existing registry entry.
+base/complex.jl	192	192	complex	complex(::Type{Union{}})	modelled	complex-type-algebra	Reviewed against pinned source; reused canonical implementation and existing registry entry.
+base/complex.jl	195	195	complex	complex(::Type{Union{}}, slurp...)	modelled	complex-type-algebra	Reviewed against pinned source; reused canonical implementation and existing registry entry.
+base/complex.jl	197	197	flipsign	flipsign(x::Complex, y::Real)	modelled	complex-flipsign-effects-and-signs	Source-mirrored model JuliaLean.base.complex.Models2Group9.flipSignComplex; reviewed against Julia f755f49.
 base/complex.jl	199	218	show	show(io::IO, z::Complex)	todo		trivial: restates body or HasResult; covered by complex-flipsign-bswap-io
-base/complex.jl	219	220	show	show(io::IO, z::Complex{Bool})	todo		trivial: restates body or HasResult; covered by complex-flipsign-bswap-io
-base/complex.jl	222	230	show_unquoted	show_unquoted(io::IO, z::Complex, ::Int, prec::Int)	todo		trivial: restates body or HasResult; covered by complex-flipsign-bswap-io
-base/complex.jl	232	236	read	read(s::IO, ::Type{Complex{T}}) where T<:Real	todo		trivial: restates body or HasResult; covered by complex-flipsign-bswap-io
-base/complex.jl	237	239	write	write(s::IO, z::Complex)	todo		trivial: restates body or HasResult; covered by complex-flipsign-bswap-io
-base/complex.jl	242	242	bswap	bswap(z::Complex)	todo		trivial: restates body or HasResult; covered by complex-flipsign-bswap-io
-base/complex.jl	246	246	==	==(z::Complex, w::Complex)	todo		trivial: restates body or HasResult; covered by complex-isreal-doc
+base/complex.jl	219	220	show	show(io::IO, z::Complex{Bool})	modelled	complex-show-bool	Source-mirrored model JuliaLean.base.complex.Models2Group9.showBoolComplex; reviewed against Julia f755f49.
+base/complex.jl	222	230	show_unquoted	show_unquoted(io::IO, z::Complex, ::Int, prec::Int)	modelled	complex-show-unquoted-effects	Source-mirrored model JuliaLean.base.complex.Models2Group9.showUnquotedComplex; reviewed against Julia f755f49.
+base/complex.jl	232	236	read	read(s::IO, ::Type{Complex{T}}) where T<:Real	modelled	complex-read-effects	Source-mirrored model JuliaLean.base.complex.Models2Group9.readComplex; reviewed against Julia f755f49.
+base/complex.jl	237	239	write	write(s::IO, z::Complex)	modelled	complex-write-effects	Source-mirrored model JuliaLean.base.complex.Models2Group9.writeComplex; reviewed against Julia f755f49.
+base/complex.jl	242	242	bswap	bswap(z::Complex)	modelled	complex-unary-effects	Source-mirrored model JuliaLean.base.complex.Models2Group9.byteSwapComplexFull; reviewed against Julia f755f49.
+base/complex.jl	246	246	==	==(z::Complex, w::Complex)	modelled	complex-equality-effects	Source-mirrored model JuliaLean.base.complex.Models2Group9.equalComplexFull; reviewed against Julia f755f49.
 base/complex.jl	247	247	==	==(z::Complex, x::Real)	modelled	complex-isreal-doc	
-base/complex.jl	248	248	==	==(x::Real, z::Complex)	todo		trivial: restates body or HasResult; covered by complex-isreal-doc
+base/complex.jl	248	248	==	==(x::Real, z::Complex)	modelled	complex-real-complex-equality-effects;complex-integer-equality	Source-mirrored model JuliaLean.base.complex.Models2Group9.equalRealComplex; reviewed against Julia f755f49.
 base/complex.jl	250	250	isequal	isequal(z::Complex, w::Complex)	modelled	complex-isequal-hash	
 base/complex.jl	251	251	isequal	isequal(z::Complex, w::Real)	modelled	complex-isequal-hash	
-base/complex.jl	252	252	isequal	isequal(z::Real, w::Complex)	todo		trivial: restates body; covered by complex-isequal-hash
-base/complex.jl	254	254	in	in(x::Complex, r::AbstractRange{<:Real})	todo		trivial: restates body or HasResult; covered by complex-isreal-doc
+base/complex.jl	252	252	isequal	isequal(z::Real, w::Complex)	modelled	complex-real-complex-isequal-effects	Source-mirrored model JuliaLean.base.complex.Models2Group9.isequalRealComplexFull; reviewed against Julia f755f49.
+base/complex.jl	254	254	in	in(x::Complex, r::AbstractRange{<:Real})	modelled	complex-membership-effects	Source-mirrored model JuliaLean.base.complex.Models2Group9.memberComplexFull; reviewed against Julia f755f49.
 base/complex.jl	259	263	hash	hash(z::Complex, h::UInt)	modelled	complex-isequal-hash	
 base/complex.jl	280	280	conj	conj(z::Complex)	modelled	complex-conj-involution	
 base/complex.jl	281	281	abs	abs(z::Complex)	modelled	complex-abs-conj-neg	
-base/complex.jl	282	282	abs2	abs2(z::Complex)	todo		trivial: restates body; covered by complex-abs-conj-neg and complex-gaussian-ring
-base/complex.jl	283	287	inv	inv(z::Complex)	todo		trivial: restates body or HasResult; covered by complex-inv-properties
-base/complex.jl	288	288	inv	inv(z::Complex{<:Integer})	todo		trivial: restates body or HasResult; covered by complex-inv-properties
-base/complex.jl	290	290	+	+(z::Complex)	todo		trivial: restates body or HasResult; covered by complex-gaussian-ring
-base/complex.jl	291	291	-	-(z::Complex)	todo		trivial: restates body or HasResult; covered by complex-gaussian-ring
-base/complex.jl	292	292	+	+(z::Complex, w::Complex)	todo		trivial: restates body or HasResult; covered by complex-gaussian-ring
-base/complex.jl	293	293	-	-(z::Complex, w::Complex)	todo		trivial: restates body or HasResult; covered by complex-gaussian-ring
-base/complex.jl	294	295	*	*(z::Complex, w::Complex)	todo		trivial: restates body or HasResult; covered by complex-gaussian-ring
-base/complex.jl	297	297	-%	-%(z::Complex)	todo		trivial: restates body or HasResult; covered by complex-gaussian-ring
-base/complex.jl	298	298	+%	+%(z::Complex, w::Complex)	todo		trivial: restates body or HasResult; covered by complex-gaussian-ring
-base/complex.jl	299	299	-%	-%(z::Complex, w::Complex)	todo		trivial: restates body or HasResult; covered by complex-gaussian-ring
-base/complex.jl	300	301	*%	*%(z::Complex, w::Complex)	todo		trivial: restates body or HasResult; covered by complex-gaussian-ring
+base/complex.jl	282	282	abs2	abs2(z::Complex)	modelled	complex-abs2-effects;complex-integer-arithmetic-abs2	Source-mirrored model JuliaLean.base.complex.Models2Group9.squaredNormComplex; reviewed against Julia f755f49.
+base/complex.jl	283	287	inv	inv(z::Complex)	modelled	complex-inverse-generic-effects	Source-mirrored model JuliaLean.base.complex.Models2Group9.inverseComplexReopened; reviewed against Julia f755f49.
+base/complex.jl	288	288	inv	inv(z::Complex{<:Integer})	modelled	complex-integer-inverse	Source-mirrored model JuliaLean.base.complex.Models2Group9.inverseIntegerComplex; reviewed against Julia f755f49.
+base/complex.jl	290	290	+	+(z::Complex)	modelled	complex-unary-effects	Source-mirrored model JuliaLean.base.complex.Models2Group9.positiveComplexFull; reviewed against Julia f755f49.
+base/complex.jl	291	291	-	-(z::Complex)	modelled	complex-unary-effects	Source-mirrored model JuliaLean.base.complex.Models2Group9.negativeComplexFull; reviewed against Julia f755f49.
+base/complex.jl	292	292	+	+(z::Complex, w::Complex)	modelled	complex-binary-effects	Source-mirrored model JuliaLean.base.complex.Models2Group9.addComplexFull; reviewed against Julia f755f49.
+base/complex.jl	293	293	-	-(z::Complex, w::Complex)	modelled	complex-binary-effects	Source-mirrored model JuliaLean.base.complex.Models2Group9.subtractComplexFull; reviewed against Julia f755f49.
+base/complex.jl	294	295	*	*(z::Complex, w::Complex)	modelled	complex-multiply-effects	Source-mirrored model JuliaLean.base.complex.Models2Group9.multiplyComplexFull; reviewed against Julia f755f49.
+base/complex.jl	297	297	-%	-%(z::Complex)	modelled	complex-unary-effects	Source-mirrored model JuliaLean.base.complex.Models2Group9.negativeWrapComplexFull; reviewed against Julia f755f49.
+base/complex.jl	298	298	+%	+%(z::Complex, w::Complex)	modelled	complex-binary-effects	Source-mirrored model JuliaLean.base.complex.Models2Group9.addWrapComplexFull; reviewed against Julia f755f49.
+base/complex.jl	299	299	-%	-%(z::Complex, w::Complex)	modelled	complex-binary-effects	Source-mirrored model JuliaLean.base.complex.Models2Group9.subtractWrapComplexFull; reviewed against Julia f755f49.
+base/complex.jl	300	301	*%	*%(z::Complex, w::Complex)	modelled	complex-multiply-effects	Source-mirrored model JuliaLean.base.complex.Models2Group9.multiplyWrapComplexFull; reviewed against Julia f755f49.
 base/complex.jl	303	303	_mulsub	_mulsub(a, b, c)	todo		trivial: restates body or HasResult; covered by complex-gaussian-ring
-base/complex.jl	304	304	_mulsub	_mulsub(a::T, b::T, c::T) where {T<:Real}	todo		trivial: restates body or HasResult; covered by complex-gaussian-ring
+base/complex.jl	304	304	_mulsub	_mulsub(a::T, b::T, c::T) where {T<:Real}	modelled	complex-mulsub-effects;complex-integer-arithmetic-abs2	Source-mirrored model JuliaLean.base.complex.Models2Group9.mulsubSameType; reviewed against Julia f755f49.
 base/complex.jl	305	307	muladd	muladd(z::Complex, w::Complex, x::Complex)	modelled	complex-muladd-exact	
-base/complex.jl	311	311	+	+(x::Bool, z::Complex{Bool})	todo		trivial: restates body or alias; covered by complex-bool-mul-promotes
-base/complex.jl	312	312	+	+(z::Complex{Bool}, x::Bool)	todo		trivial: restates body or alias; covered by complex-bool-mul-promotes
-base/complex.jl	313	313	-	-(x::Bool, z::Complex{Bool})	todo		trivial: restates body or alias; covered by complex-bool-mul-promotes
-base/complex.jl	314	314	-	-(z::Complex{Bool}, x::Bool)	todo		trivial: restates body or alias; covered by complex-bool-mul-promotes
-base/complex.jl	315	315	*	*(x::Bool, z::Complex{Bool})	todo		trivial: restates body or alias; covered by complex-bool-mul-promotes
-base/complex.jl	316	316	*	*(z::Complex{Bool}, x::Bool)	todo		trivial: restates body or alias; covered by complex-bool-mul-promotes
-base/complex.jl	318	318	+	+(x::Bool, z::Complex)	todo		trivial: restates body or HasResult; covered by complex-gaussian-ring
-base/complex.jl	319	319	+	+(z::Complex, x::Bool)	todo		trivial: restates body or HasResult; covered by complex-gaussian-ring
-base/complex.jl	320	320	-	-(x::Bool, z::Complex)	todo		trivial: restates body or HasResult; covered by complex-gaussian-ring
-base/complex.jl	321	321	-	-(z::Complex, x::Bool)	todo		trivial: restates body or HasResult; covered by complex-gaussian-ring
+base/complex.jl	311	311	+	+(x::Bool, z::Complex{Bool})	modelled	complex-bool-mul-promotes	Reviewed against pinned source; reused canonical implementation and existing registry entry.
+base/complex.jl	312	312	+	+(z::Complex{Bool}, x::Bool)	modelled	complex-bool-mul-promotes	Reviewed against pinned source; reused canonical implementation and existing registry entry.
+base/complex.jl	313	313	-	-(x::Bool, z::Complex{Bool})	modelled	complex-bool-mul-promotes	Reviewed against pinned source; reused canonical implementation and existing registry entry.
+base/complex.jl	314	314	-	-(z::Complex{Bool}, x::Bool)	modelled	complex-bool-mul-promotes	Reviewed against pinned source; reused canonical implementation and existing registry entry.
+base/complex.jl	315	315	*	*(x::Bool, z::Complex{Bool})	modelled	complex-bool-mul-promotes	Reviewed against pinned source; reused canonical implementation and existing registry entry.
+base/complex.jl	316	316	*	*(z::Complex{Bool}, x::Bool)	modelled	complex-bool-mul-promotes	Reviewed against pinned source; reused canonical implementation and existing registry entry.
+base/complex.jl	318	318	+	+(x::Bool, z::Complex)	modelled	complex-mixed-add-bool-complex-recursive-effects	Source-mirrored model JuliaLean.base.complex.Models2Group9.addBoolComplexRecursive; reviewed against Julia f755f49.
+base/complex.jl	319	319	+	+(z::Complex, x::Bool)	modelled	complex-mixed-add-complex-bool-recursive-effects	Source-mirrored model JuliaLean.base.complex.Models2Group9.addComplexBoolRecursive; reviewed against Julia f755f49.
+base/complex.jl	320	320	-	-(x::Bool, z::Complex)	modelled	complex-mixed-subtract-bool-complex-recursive-effects	Source-mirrored model JuliaLean.base.complex.Models2Group9.subtractBoolComplexRecursive; reviewed against Julia f755f49.
+base/complex.jl	321	321	-	-(z::Complex, x::Bool)	modelled	complex-mixed-subtract-complex-bool-recursive-effects	Source-mirrored model JuliaLean.base.complex.Models2Group9.subtractComplexBoolRecursive; reviewed against Julia f755f49.
 base/complex.jl	322	322	*	*(x::Bool, z::Complex)	modelled	complex-false-strong-zero	
-base/complex.jl	323	323	*	*(z::Complex, x::Bool)	todo		trivial: restates body; covered by complex-false-strong-zero
-base/complex.jl	325	325	+	+(x::Real, z::Complex{Bool})	todo		trivial: restates body or alias; covered by complex-bool-mul-promotes
-base/complex.jl	326	326	+	+(z::Complex{Bool}, x::Real)	todo		trivial: restates body or alias; covered by complex-bool-mul-promotes
-base/complex.jl	327	331	-	-(x::Real, z::Complex{Bool})	todo		trivial: restates body or alias; covered by complex-bool-mul-promotes
-base/complex.jl	332	332	-	-(z::Complex{Bool}, x::Real)	todo		trivial: restates body or alias; covered by complex-bool-mul-promotes
-base/complex.jl	333	333	*	*(x::Real, z::Complex{Bool})	todo		trivial: restates body or alias; covered by complex-bool-mul-promotes
-base/complex.jl	334	334	*	*(z::Complex{Bool}, x::Real)	todo		trivial: restates body or alias; covered by complex-bool-mul-promotes
-base/complex.jl	337	337	+	+(x::Real, z::Complex)	todo		trivial: restates body or HasResult; covered by complex-gaussian-ring
-base/complex.jl	338	338	+	+(z::Complex, x::Real)	todo		trivial: restates body or HasResult; covered by complex-gaussian-ring
-base/complex.jl	339	343	-	-(x::Real, z::Complex)	todo		trivial: restates body or HasResult; covered by complex-gaussian-ring
-base/complex.jl	344	344	-	-(z::Complex, x::Real)	todo		trivial: restates body or HasResult; covered by complex-gaussian-ring
-base/complex.jl	345	345	*	*(x::Real, z::Complex)	todo		trivial: restates body or HasResult; covered by complex-gaussian-ring
-base/complex.jl	346	346	*	*(z::Complex, x::Real)	todo		trivial: restates body or HasResult; covered by complex-gaussian-ring
-base/complex.jl	348	348	muladd	muladd(x::Real, z::Complex, y::Union{Real,Complex})	todo		trivial: restates body or HasResult; covered by complex-gaussian-ring
-base/complex.jl	349	349	muladd	muladd(z::Complex, x::Real, y::Real)	todo		trivial: restates body or HasResult; covered by complex-gaussian-ring
-base/complex.jl	350	351	muladd	muladd(z::Complex, x::Real, w::Complex)	todo		trivial: restates body or HasResult; covered by complex-gaussian-ring
-base/complex.jl	352	352	muladd	muladd(x::Real, y::Real, z::Complex)	todo		trivial: restates body or HasResult; covered by complex-gaussian-ring
-base/complex.jl	353	355	muladd	muladd(z::Complex, w::Complex, x::Real)	todo		trivial: restates body or HasResult; covered by complex-gaussian-ring
-base/complex.jl	357	357	/	/(a::R, z::S) where {R<:Real,S<:Complex}	todo		trivial: restates body or HasResult; covered by complex-div-scaling-and-inf
-base/complex.jl	358	358	/	/(z::Complex, x::Real)	todo		trivial: restates body or HasResult; covered by complex-div-scaling-and-inf
-base/complex.jl	360	377	/	/(a::Complex{T}, b::Complex{T}) where T<:Real	todo		trivial: restates body or HasResult; covered by complex-div-scaling-and-inf
-base/complex.jl	379	392	/	/(z::Complex{T}, w::Complex{T}) where {T<:Union{Float16,Float32}}	todo		trivial: restates body or HasResult; covered by complex-div-scaling-and-inf
+base/complex.jl	323	323	*	*(z::Complex, x::Bool)	modelled	complex-mixed-multiply-complex-bool-recursive-effects	Source-mirrored model JuliaLean.base.complex.Models2Group9.multiplyComplexBoolRecursive; reviewed against Julia f755f49.
+base/complex.jl	325	325	+	+(x::Real, z::Complex{Bool})	modelled	complex-mixed-add-real-complex-bool-effects	Source-mirrored model JuliaLean.base.complex.Models2Group9.addRealComplexBool; reviewed against Julia f755f49.
+base/complex.jl	326	326	+	+(z::Complex{Bool}, x::Real)	modelled	complex-mixed-add-complex-bool-real-effects	Source-mirrored model JuliaLean.base.complex.Models2Group9.addComplexBoolReal; reviewed against Julia f755f49.
+base/complex.jl	327	331	-	-(x::Real, z::Complex{Bool})	modelled	complex-mixed-subtract-real-complex-bool-effects	Source-mirrored model JuliaLean.base.complex.Models2Group9.subtractRealComplexBool; reviewed against Julia f755f49.
+base/complex.jl	332	332	-	-(z::Complex{Bool}, x::Real)	modelled	complex-mixed-subtract-complex-bool-real-effects	Source-mirrored model JuliaLean.base.complex.Models2Group9.subtractComplexBoolReal; reviewed against Julia f755f49.
+base/complex.jl	333	333	*	*(x::Real, z::Complex{Bool})	modelled	complex-mixed-multiply-real-complex-bool-effects;complex-mixed-native-bool-float-multiplication	Source-mirrored model JuliaLean.base.complex.Models2Group9.multiplyRealComplexBool; reviewed against Julia f755f49.
+base/complex.jl	334	334	*	*(z::Complex{Bool}, x::Real)	modelled	complex-mixed-multiply-complex-bool-real-effects;complex-mixed-native-bool-float-multiplication	Source-mirrored model JuliaLean.base.complex.Models2Group9.multiplyComplexBoolReal; reviewed against Julia f755f49.
+base/complex.jl	337	337	+	+(x::Real, z::Complex)	modelled	complex-mixed-add-real-complex-recursive-effects	Source-mirrored model JuliaLean.base.complex.Models2Group9.addRealComplexRecursive; reviewed against Julia f755f49.
+base/complex.jl	338	338	+	+(z::Complex, x::Real)	modelled	complex-mixed-add-complex-real-effects;complex-mixed-native-integer-arithmetic	Source-mirrored model JuliaLean.base.complex.Models2Group9.addComplexReal; reviewed against Julia f755f49.
+base/complex.jl	339	343	-	-(x::Real, z::Complex)	modelled	complex-mixed-subtract-real-complex-recursive-effects	Source-mirrored model JuliaLean.base.complex.Models2Group9.subtractRealComplexRecursive; reviewed against Julia f755f49.
+base/complex.jl	344	344	-	-(z::Complex, x::Real)	modelled	complex-mixed-subtract-complex-real-recursive-effects	Source-mirrored model JuliaLean.base.complex.Models2Group9.subtractComplexRealRecursive; reviewed against Julia f755f49.
+base/complex.jl	345	345	*	*(x::Real, z::Complex)	modelled	complex-mixed-multiply-real-complex-recursive-effects	Source-mirrored model JuliaLean.base.complex.Models2Group9.multiplyRealComplexRecursive; reviewed against Julia f755f49.
+base/complex.jl	346	346	*	*(z::Complex, x::Real)	modelled	complex-mixed-multiply-complex-real-effects;complex-mixed-native-integer-arithmetic	Source-mirrored model JuliaLean.base.complex.Models2Group9.multiplyComplexReal; reviewed against Julia f755f49.
+base/complex.jl	348	348	muladd	muladd(x::Real, z::Complex, y::Union{Real,Complex})	modelled	complex-mixed-muladd-forwarding-effects;complex-mixed-native-integer-muladd	Source-mirrored model JuliaLean.base.complex.muladd_Real_Complex_Union; reviewed against Julia f755f49.
+base/complex.jl	349	349	muladd	muladd(z::Complex, x::Real, y::Real)	modelled	complex-mixed-muladd-complex-real-real-recursive-effects	Source-mirrored model JuliaLean.base.complex.Models2Group9.muladdComplexRealRealRecursive; reviewed against Julia f755f49.
+base/complex.jl	350	351	muladd	muladd(z::Complex, x::Real, w::Complex)	modelled	complex-mixed-muladd-complex-real-complex-recursive-effects	Source-mirrored model JuliaLean.base.complex.Models2Group9.muladdComplexRealComplexRecursive; reviewed against Julia f755f49.
+base/complex.jl	352	352	muladd	muladd(x::Real, y::Real, z::Complex)	modelled	complex-mixed-muladd-real-real-complex-recursive-effects	Source-mirrored model JuliaLean.base.complex.Models2Group9.muladdRealRealComplexRecursive; reviewed against Julia f755f49.
+base/complex.jl	353	355	muladd	muladd(z::Complex, w::Complex, x::Real)	modelled	complex-mixed-muladd-complex-complex-real-recursive-effects	Source-mirrored model JuliaLean.base.complex.Models2Group9.muladdComplexComplexRealRecursive; reviewed against Julia f755f49.
+base/complex.jl	357	357	/	/(a::R, z::S) where {R<:Real,S<:Complex}	modelled	complex-mixed-divide-real-complex-effects	Source-mirrored model JuliaLean.base.complex.Models2Group9.divideRealComplex; reviewed against Julia f755f49.
+base/complex.jl	358	358	/	/(z::Complex, x::Real)	modelled	complex-mixed-divide-complex-real-recursive-effects	Source-mirrored model JuliaLean.base.complex.Models2Group9.divideComplexRealRecursive; reviewed against Julia f755f49.
+base/complex.jl	360	377	/	/(a::Complex{T}, b::Complex{T}) where T<:Real	modelled	complex-division-same-opening-failures	Source-mirrored model JuliaLean.base.complex.Models2Group9.divideSameComplex; reviewed against Julia f755f49.
+base/complex.jl	379	392	/	/(z::Complex{T}, w::Complex{T}) where {T<:Union{Float16,Float32}}	modelled	complex-small-division-sanity	Complete Float16/Float32 union; all bit patterns; exact format conversion and runtime primitive dependency bodies retained. Property remains todo.
 base/complex.jl	400	421	/	/(z::ComplexF64, w::ComplexF64)	modelled	complex-div-real-divisor,complex-div-spurious-nan,complex-div-subnormal-ratio	
-base/complex.jl	424	432	cdiv	cdiv(a::Float64, b::Float64, c::Float64, d::Float64)	todo		trivial: restates body or HasResult; covered by complex-div-scaling-and-inf
-base/complex.jl	433	438	scaling_cdiv	scaling_cdiv(a::Float64, b::Float64, c::Float64, d::Float64, ab::Float64, cd::Float64)	todo		trivial: restates body or HasResult; covered by complex-div-scaling-and-inf
-base/complex.jl	439	459	scaleargs_cdiv	scaleargs_cdiv(a::Float64, b::Float64, c::Float64, d::Float64, ab::Float64, cd::Float64)	todo		trivial: restates body or HasResult; covered by complex-div-scaling-and-inf
+base/complex.jl	424	432	cdiv	cdiv(a::Float64, b::Float64, c::Float64, d::Float64)	modelled	complex-div-scaling-and-inf;complex-div-subnormal-ratio	Reviewed against pinned source; reused canonical implementation and existing registry entry.
+base/complex.jl	433	438	scaling_cdiv	scaling_cdiv(a::Float64, b::Float64, c::Float64, d::Float64, ab::Float64, cd::Float64)	modelled	complex-div-spurious-nan	Reused complete scaling helper; registered public div_ComplexF64 reaches it through scaling_cdiv. Existing refutation entry is a dependency anchor, not a proof of all helper branches.
+base/complex.jl	439	459	scaleargs_cdiv	scaleargs_cdiv(a::Float64, b::Float64, c::Float64, d::Float64, ab::Float64, cd::Float64)	modelled	complex-div-scaling-and-inf	Reviewed against pinned source; reused canonical implementation and existing registry entry.
 base/complex.jl	460	466	robust_cdiv1	robust_cdiv1(a::Float64, b::Float64, c::Float64, d::Float64)	modelled	complex-div-subnormal-ratio	
 base/complex.jl	467	474	robust_cdiv2	robust_cdiv2(a::Float64, b::Float64, c::Float64, d::Float64, r::Float64, t::Float64)	modelled	complex-div-spurious-nan	
-base/complex.jl	476	481	inv	inv(z::Complex{T}) where T<:Union{Float16,Float32}	todo		trivial: restates body or HasResult; covered by complex-inv-properties
-base/complex.jl	482	510	inv	inv(w::ComplexF64)	todo		trivial: restates body or HasResult; covered by complex-inv-properties
-base/complex.jl	511	517	robust_cinv	robust_cinv(c::Float64, d::Float64)	todo		trivial: restates body or HasResult; covered by complex-inv-properties
-base/complex.jl	519	531	ssqs	ssqs(x::T, y::T) where T<:Real	todo		trivial: HasResult; covered by complex-sqrt-branch-cut
+base/complex.jl	476	481	inv	inv(z::Complex{T}) where T<:Union{Float16,Float32}	modelled	complex-small-reciprocal-sanity	Complete Float16/Float32 union; all bit patterns; exact format conversion and runtime primitive dependency bodies retained. Property remains todo.
+base/complex.jl	482	510	inv	inv(w::ComplexF64)	modelled	complex-float64-reciprocal-classification	Complete additive Float64 reciprocal with source-ordered chained sqrt threshold comparison; canonical reciprocal remains untouched. All new reciprocal callers use inverseF64.
+base/complex.jl	511	517	robust_cinv	robust_cinv(c::Float64, d::Float64)	modelled	complex-inv-properties	Reviewed against pinned source; reused canonical implementation and existing registry entry.
+base/complex.jl	519	531	ssqs	ssqs(x::T, y::T) where T<:Real	modelled	complex-ssqs-evaluation-typed-assignments	Source-mirrored model JuliaLean.base.complex.Models2Group9.scaledSquares; reviewed against Julia f755f49.
 base/complex.jl	533	558	sqrt	sqrt(z::Complex)	modelled	complex-sqrt-branch-cut	
 base/complex.jl	586	586	cis	cis	excluded		no-behaviour: generic function declaration at base/complex.jl:586 has no method body
-base/complex.jl	587	590	cis	cis(theta::Real)	todo		trivial: restates body or HasResult; covered by complex-trig-hyperbolic-identities
-base/complex.jl	592	596	cis	cis(z::Complex)	todo		trivial: restates body or HasResult; covered by complex-trig-hyperbolic-identities
+base/complex.jl	587	590	cis	cis(theta::Real)	modelled	complex-cis-real-destructure-effects	Source-mirrored model JuliaLean.base.complex.Models2Group9.cisReal; reviewed against Julia f755f49.
+base/complex.jl	592	596	cis	cis(z::Complex)	modelled	complex-cis-complex-destructure-effects	Source-mirrored model JuliaLean.base.complex.Models2Group9.cisComplex; reviewed against Julia f755f49.
 base/complex.jl	617	617	cispi	cispi	excluded		no-behaviour: generic function declaration at base/complex.jl:617 has no method body
-base/complex.jl	618	618	cispi	cispi(theta::Real)	todo		trivial: restates body or HasResult; covered by complex-trig-hyperbolic-identities
-base/complex.jl	620	624	cispi	cispi(z::Complex)	todo		trivial: restates body or HasResult; covered by complex-trig-hyperbolic-identities
-base/complex.jl	651	651	angle	angle(z::Complex)	todo		trivial: restates body or HasResult; covered by complex-exp-log-special-values
-base/complex.jl	653	674	log	log(z::Complex)	todo		trivial: restates body or HasResult; covered by complex-exp-log-special-values
-base/complex.jl	695	698	log10	log10(z::Complex)	todo		trivial: restates body or HasResult; covered by complex-exp-log-special-values
-base/complex.jl	699	702	log2	log2(z::Complex)	todo		trivial: restates body or HasResult; covered by complex-exp-log-special-values
-base/complex.jl	704	725	exp	exp(z::Complex)	todo		trivial: restates body or HasResult; covered by complex-exp-log-special-values
-base/complex.jl	727	755	expm1	expm1(z::Complex{T}) where T<:Real	todo		trivial: restates body or HasResult; covered by complex-exp-log-special-values
-base/complex.jl	757	773	log1p	log1p(z::Complex{T}) where T	todo		trivial: restates body or HasResult; covered by complex-exp-log-special-values
-base/complex.jl	775	781	exp2	exp2(z::Complex{T}) where T	todo		trivial: restates body or HasResult; covered by complex-exp-log-special-values
-base/complex.jl	783	789	exp10	exp10(z::Complex{T}) where T	todo		trivial: restates body or HasResult; covered by complex-exp-log-special-values
-base/complex.jl	792	881	_cpow	_cpow(z::Union{T,Complex{T}}, p::Union{T,Complex{T}}) where T	todo		trivial: restates body or HasResult; covered by complex-pow-bool-and-zero
-base/complex.jl	882	882	^	^(z::Complex{T}, p::Complex{T}) where T<:Real	todo		trivial: restates body or HasResult; covered by complex-pow-bool-and-zero
-base/complex.jl	883	883	^	^(z::Complex{T}, p::T) where T<:Real	todo		trivial: restates body or HasResult; covered by complex-pow-bool-and-zero
-base/complex.jl	884	884	^	^(z::T, p::Complex{T}) where T<:Real	todo		trivial: restates body or HasResult; covered by complex-pow-bool-and-zero
-base/complex.jl	886	886	^	^(z::Complex, n::Bool)	todo		trivial: restates body or HasResult; covered by complex-pow-bool-and-zero
-base/complex.jl	887	887	^	^(z::Complex, n::Integer)	todo		trivial: restates body or HasResult; covered by complex-pow-bool-and-zero
-base/complex.jl	889	889	^	^(z::Complex{<:AbstractFloat}, n::Bool)	todo		trivial: restates body or HasResult; covered by complex-pow-bool-and-zero
-base/complex.jl	890	890	^	^(z::Complex{<:Integer}, n::Bool)	todo		trivial: restates body or HasResult; covered by complex-pow-bool-and-zero
+base/complex.jl	618	618	cispi	cispi(theta::Real)	modelled	complex-trig-hyperbolic-identities,complex-muladd-exact-v2,complex-integer-cispi	Reviewed line by line against pinned f755f49 source.
+base/complex.jl	620	624	cispi	cispi(z::Complex)	modelled	complex-cispi-complex-destructure-effects	Source-mirrored model JuliaLean.base.complex.Models2Group9.cispiComplex; reviewed against Julia f755f49.
+base/complex.jl	651	651	angle	angle(z::Complex)	modelled	complex-angle-effects	Source-mirrored model JuliaLean.base.complex.Models2Group9.angleComplex; reviewed against Julia f755f49.
+base/complex.jl	653	674	log	log(z::Complex)	modelled	complex-log-complex-recursive-effects;complex-log-complex-recursive-cycle;complex-log-near-unit-short-circuits	Source-mirrored model JuliaLean.base.complex.Models2Group9.logComplexFull; reviewed against Julia f755f49.
+base/complex.jl	695	698	log10	log10(z::Complex)	modelled	complex-logarithm-bases-effects	Source-mirrored model JuliaLean.base.complex.Models2Group9.logarithm10Complex; reviewed against Julia f755f49.
+base/complex.jl	699	702	log2	log2(z::Complex)	modelled	complex-logarithm-bases-effects	Source-mirrored model JuliaLean.base.complex.Models2Group9.logarithm2Complex; reviewed against Julia f755f49.
+base/complex.jl	704	725	exp	exp(z::Complex)	modelled	complex-exp-complete-effects-branches	Source-mirrored model JuliaLean.base.complex.Models2Group9.exponentialComplex; reviewed against Julia f755f49.
+base/complex.jl	727	755	expm1	expm1(z::Complex{T}) where T<:Real	modelled	complex-expm1-complete-effects-branches	Source-mirrored model JuliaLean.base.complex.Models2Group9.exponentialMinusOneComplex; reviewed against Julia f755f49.
+base/complex.jl	757	773	log1p	log1p(z::Complex{T}) where T	modelled	complex-log1p-generic-effects	Source-mirrored model JuliaLean.base.complex.Models2Group9.log1pComplexReopened; reviewed against Julia f755f49.
+base/complex.jl	775	781	exp2	exp2(z::Complex{T}) where T	modelled	complex-exp2-recursive-effects;complex-exp-base-recursive-cycle	Source-mirrored model JuliaLean.base.complex.Models2Group9.exponential2Complex; reviewed against Julia f755f49.
+base/complex.jl	783	789	exp10	exp10(z::Complex{T}) where T	modelled	complex-exp10-recursive-effects;complex-exp-base-recursive-cycle	Source-mirrored model JuliaLean.base.complex.Models2Group9.exponential10Complex; reviewed against Julia f755f49.
+base/complex.jl	792	881	_cpow	_cpow(z::Union{T,Complex{T}}, p::Union{T,Complex{T}}) where T	todo		Returned models2 group 9 proposal: Concrete type application is replaced by an externally classified admissible/rejected tag and a syntactic ComplexTy wrapper.
+base/complex.jl	882	882	^	^(z::Complex{T}, p::Complex{T}) where T<:Real	modelled	complex-same-type-power-effects	Source-mirrored model JuliaLean.base.complex.Models2Group9.powerComplexComplex; reviewed against Julia f755f49.
+base/complex.jl	883	883	^	^(z::Complex{T}, p::T) where T<:Real	modelled	complex-same-type-power-effects	Source-mirrored model JuliaLean.base.complex.Models2Group9.powerComplexRealSame; reviewed against Julia f755f49.
+base/complex.jl	884	884	^	^(z::T, p::Complex{T}) where T<:Real	modelled	complex-same-type-power-effects	Source-mirrored model JuliaLean.base.complex.Models2Group9.powerRealComplexSame; reviewed against Julia f755f49.
+base/complex.jl	886	886	^	^(z::Complex, n::Bool)	modelled	complex-boolean-power-effects	Source-mirrored model JuliaLean.base.complex.Models2Group9.powerComplexBool; reviewed against Julia f755f49.
+base/complex.jl	887	887	^	^(z::Complex, n::Integer)	modelled	complex-integer-power-redispatch	Source-mirrored model JuliaLean.base.complex.Models2Group9.powerComplexInteger; reviewed against Julia f755f49.
+base/complex.jl	889	889	^	^(z::Complex{<:AbstractFloat}, n::Bool)	modelled	complex-boolean-power-effects	Source-mirrored model JuliaLean.base.complex.Models2Group9.powerComplexFloatBool; reviewed against Julia f755f49.
+base/complex.jl	890	890	^	^(z::Complex{<:Integer}, n::Bool)	modelled	complex-boolean-power-effects	Source-mirrored model JuliaLean.base.complex.Models2Group9.powerComplexIntegerBool; reviewed against Julia f755f49.
 base/complex.jl	892	893	^	^(z::Complex{<:AbstractFloat}, n::Integer)	modelled	complex-pow-typemin	
 base/complex.jl	894	894	^	^(z::Complex{<:Integer}, n::Integer)	modelled	complex-int-pow-wraps	
-base/complex.jl	896	899	^	^(z::Complex{T}, p::S) where {T<:Real,S<:Real}	todo		trivial: restates body or HasResult; covered by complex-pow-bool-and-zero
-base/complex.jl	900	903	^	^(z::T, p::Complex{S}) where {T<:Real,S<:Real}	todo		trivial: restates body or HasResult; covered by complex-pow-bool-and-zero
-base/complex.jl	905	920	sin	sin(z::Complex{T}) where T	todo		trivial: restates body or HasResult; covered by complex-trig-hyperbolic-identities
-base/complex.jl	923	940	cos	cos(z::Complex{T}) where T	todo		trivial: restates body or HasResult; covered by complex-trig-hyperbolic-identities
-base/complex.jl	943	947	tan	tan(z::Complex)	todo		trivial: restates body or HasResult; covered by complex-trig-hyperbolic-identities
-base/complex.jl	949	961	asin	asin(z::Complex)	todo		trivial: restates body or HasResult; covered by complex-trig-hyperbolic-identities
-base/complex.jl	963	984	acos	acos(z::Complex)	todo		trivial: restates body or HasResult; covered by complex-trig-hyperbolic-identities
-base/complex.jl	986	989	atan	atan(z::Complex)	todo		trivial: restates body or HasResult; covered by complex-trig-hyperbolic-identities
-base/complex.jl	991	995	sinh	sinh(z::Complex)	todo		trivial: restates body or HasResult; covered by complex-trig-hyperbolic-identities
-base/complex.jl	997	1000	cosh	cosh(z::Complex)	todo		trivial: restates body or HasResult; covered by complex-trig-hyperbolic-identities
-base/complex.jl	1002	1022	tanh	tanh(z::Complex{T}) where T	todo		trivial: restates body or HasResult; covered by complex-trig-hyperbolic-identities
-base/complex.jl	1024	1027	asinh	asinh(z::Complex)	todo		trivial: restates body or HasResult; covered by complex-trig-hyperbolic-identities
-base/complex.jl	1029	1046	acosh	acosh(z::Complex)	todo		trivial: restates body or HasResult; covered by complex-trig-hyperbolic-identities
-base/complex.jl	1048	1089	atanh	atanh(z::Complex{T}) where T	todo		trivial: restates body or HasResult; covered by complex-trig-hyperbolic-identities
-base/complex.jl	1123	1126	round	round(z::Complex, rr::RoundingMode=RoundNearest, ri::RoundingMode=rr; kwargs...)	todo		trivial: restates body or HasResult; covered by complex-round-array-eps
-base/complex.jl	1129	1129	float	float(z::Complex{<:AbstractFloat})	todo		trivial: restates body or HasResult; covered by complex-round-array-eps
-base/complex.jl	1130	1130	float	float(z::Complex)	todo		trivial: restates body or HasResult; covered by complex-round-array-eps
-base/complex.jl	1132	1132	big	big(::Type{Complex{T}}) where {T<:Real}	todo		trivial: restates body or HasResult; covered by complex-round-array-eps
-base/complex.jl	1133	1133	big	big(z::Complex{T}) where {T<:Real}	todo		trivial: restates body or HasResult; covered by complex-round-array-eps
-base/complex.jl	1153	1153	complex	complex(A::AbstractArray{<:Complex})	todo		trivial: restates body or HasResult; covered by complex-round-array-eps
-base/complex.jl	1155	1160	complex	complex(A::AbstractArray{T}) where T	todo		trivial: restates body or HasResult; covered by complex-round-array-eps
-base/complex.jl	1164	1164	eps	eps(z::Complex{<:AbstractFloat})	todo		trivial: restates body or HasResult; covered by complex-round-array-eps
-base/complex.jl	1166	1166	eps	eps(::Type{Complex{T}}) where {T<:AbstractFloat}	todo		trivial: restates body or HasResult; covered by complex-round-array-eps
+base/complex.jl	896	899	^	^(z::Complex{T}, p::S) where {T<:Real,S<:Real}	todo		Returned models2 group 9 proposal: Concrete type application is replaced by an externally classified admissible/rejected tag and a syntactic ComplexTy wrapper.
+base/complex.jl	900	903	^	^(z::T, p::Complex{S}) where {T<:Real,S<:Real}	todo		Returned models2 group 9 proposal: Concrete type application is replaced by an externally classified admissible/rejected tag and a syntactic ComplexTy wrapper.
+base/complex.jl	905	920	sin	sin(z::Complex{T}) where T	modelled	complex-sine-generic-effects	Source-mirrored model JuliaLean.base.complex.Models2Group9.sinComplexReopened; reviewed against Julia f755f49.
+base/complex.jl	923	940	cos	cos(z::Complex{T}) where T	modelled	complex-cosine-generic-effects	Source-mirrored model JuliaLean.base.complex.Models2Group9.cosComplexReopened; reviewed against Julia f755f49.
+base/complex.jl	943	947	tan	tan(z::Complex)	modelled	complex-tan-destructure-rotation-effects	Source-mirrored model JuliaLean.base.complex.Models2Group9.tangentComplex; reviewed against Julia f755f49.
+base/complex.jl	949	961	asin	asin(z::Complex)	modelled	complex-asin-complete-effects-branches	Source-mirrored model JuliaLean.base.complex.Models2Group9.arcSineComplex; reviewed against Julia f755f49.
+base/complex.jl	963	984	acos	acos(z::Complex)	modelled	complex-acos-full-effects-identity	Source-mirrored model JuliaLean.base.complex.Models2Group9.arccosineComplex; reviewed against Julia f755f49.
+base/complex.jl	986	989	atan	atan(z::Complex)	modelled	complex-inverse-trig-rotation-effects	Source-mirrored model JuliaLean.base.complex.Models2Group9.arctangentComplex; reviewed against Julia f755f49.
+base/complex.jl	991	995	sinh	sinh(z::Complex)	modelled	complex-sinh-destructure-rotation-effects	Source-mirrored model JuliaLean.base.complex.Models2Group9.hyperbolicSineComplex; reviewed against Julia f755f49.
+base/complex.jl	997	1000	cosh	cosh(z::Complex)	modelled	complex-cosh-destructure-effects	Source-mirrored model JuliaLean.base.complex.Models2Group9.hyperbolicCosineComplex; reviewed against Julia f755f49.
+base/complex.jl	1002	1022	tanh	tanh(z::Complex{T}) where T	modelled	complex-tanh-generic-effects	Source-mirrored model JuliaLean.base.complex.Models2Group9.tanhComplexReopened; reviewed against Julia f755f49.
+base/complex.jl	1024	1027	asinh	asinh(z::Complex)	modelled	complex-inverse-trig-rotation-effects	Source-mirrored model JuliaLean.base.complex.Models2Group9.inverseHyperbolicSineComplex; reviewed against Julia f755f49.
+base/complex.jl	1029	1046	acosh	acosh(z::Complex)	modelled	complex-acosh-complete-effects-branches;complex-acosh-negative-pi-bits	Source-mirrored model JuliaLean.base.complex.Models2Group9.arcCoshComplex; reviewed against Julia f755f49.
+base/complex.jl	1048	1089	atanh	atanh(z::Complex{T}) where T	modelled	complex-atanh-complete-effects;complex-atanh-overflow-short-circuit	Source-mirrored model JuliaLean.base.complex.Models2Group9.arcTanhComplex; reviewed against Julia f755f49.
+base/complex.jl	1123	1126	round	round(z::Complex, rr::RoundingMode=RoundNearest, ri::RoundingMode=rr; kwargs...)	modelled	complex-round-effects-defaults	Source-mirrored model JuliaLean.base.complex.Models2Group9.roundComplexFull; reviewed against Julia f755f49.
+base/complex.jl	1129	1129	float	float(z::Complex{<:AbstractFloat})	modelled	complex-identity-conversions	Reused polymorphic identity; new unproved identity-conversion entry supplies the correct dispatch-domain registry anchor.
+base/complex.jl	1130	1130	float	float(z::Complex)	modelled	complex-float-effects-classification	Source-mirrored model JuliaLean.base.complex.Models2Group9.floatComplexFull; reviewed against Julia f755f49.
+base/complex.jl	1132	1132	big	big(::Type{Complex{T}}) where {T<:Real}	todo		Returned models2 group 9 proposal: Concrete type application is replaced by an externally classified admissible/rejected tag and a syntactic ComplexTy wrapper.
+base/complex.jl	1133	1133	big	big(z::Complex{T}) where {T<:Real}	modelled	complex-round-array-eps,complex-muladd-exact-v2	Reviewed line by line against pinned f755f49 source.
+base/complex.jl	1153	1153	complex	complex(A::AbstractArray{<:Complex})	modelled	complex-identity-conversions	Reused polymorphic identity; new unproved identity-conversion entry supplies the correct dispatch-domain registry anchor.
+base/complex.jl	1155	1160	complex	complex(A::AbstractArray{T}) where T	modelled	complex-array-recursive-effects;complex-array-cycle;complex-array-false-predicate	Source-mirrored model JuliaLean.base.complex.Models2Group9.complexArray; reviewed against Julia f755f49.
+base/complex.jl	1164	1164	eps	eps(z::Complex{<:AbstractFloat})	modelled	complex-epsilon-value-effects	Source-mirrored model JuliaLean.base.complex.Models2Group9.epsilonComplexFull; reviewed against Julia f755f49.
+base/complex.jl	1166	1166	eps	eps(::Type{Complex{T}}) where {T<:AbstractFloat}	modelled	complex-epsilon-type-effects	Source-mirrored model JuliaLean.base.complex.Models2Group9.epsilonComplexType; reviewed against Julia f755f49.

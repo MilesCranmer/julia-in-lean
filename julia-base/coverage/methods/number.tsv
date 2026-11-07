@@ -1,64 +1,64 @@
 file	line	endline	name	signature	status	entry	note
-base/number.jl	6	6	convert	convert(::Type{T}, x::T) where {T<:Number}	todo		trivial: restates source equations without an independent contract
-base/number.jl	7	7	convert	convert(::Type{T}, x::Number) where {T<:Number}	todo		trivial: restates source equations without an independent contract
-base/number.jl	22	22	isinteger	isinteger(x::Integer)	todo		trivial: restates source equations without an independent contract
-base/number.jl	44	44	iszero	iszero(x)	todo		trivial: restates source equations without an independent contract
-base/number.jl	66	66	isone	isone(x)	todo		trivial: restates source equations without an independent contract
-base/number.jl	84	84	isfinite	isfinite(x::Number)	todo		trivial: restates source equations without an independent contract
-base/number.jl	86	86	size	size(x::Number)	todo		trivial: restates source equations without an independent contract
-base/number.jl	87	87	size	size(x::Number, d::Integer)	todo		trivial: restates source equations without an independent contract
-base/number.jl	88	88	axes	axes(x::Number)	todo		trivial: restates source equations without an independent contract
-base/number.jl	89	89	axes	axes(x::Number, d::Integer)	todo		trivial: restates source equations without an independent contract
-base/number.jl	90	90	eltype	eltype(::Type{T}) where {T<:Number}	todo		trivial: restates source equations without an independent contract
-base/number.jl	91	91	ndims	ndims(x::Number)	todo		trivial: restates source equations without an independent contract
-base/number.jl	92	92	ndims	ndims(::Type{<:Number})	todo		trivial: restates source equations without an independent contract
-base/number.jl	93	93	length	length(x::Number)	todo		trivial: restates source equations without an independent contract
-base/number.jl	94	94	firstindex	firstindex(x::Number)	todo		trivial: restates source equations without an independent contract
-base/number.jl	95	95	firstindex	firstindex(x::Number, d::Int)	todo		trivial: restates source equations without an independent contract
-base/number.jl	96	96	lastindex	lastindex(x::Number)	todo		trivial: restates source equations without an independent contract
-base/number.jl	97	97	lastindex	lastindex(x::Number, d::Int)	todo		trivial: restates source equations without an independent contract
-base/number.jl	98	98	IteratorSize	IteratorSize(::Type{<:Number})	todo		trivial: restates source equations without an independent contract
-base/number.jl	99	99	keys	keys(::Number)	todo		trivial: restates source equations without an independent contract
-base/number.jl	101	101	getindex	getindex(x::Number)	todo		trivial: restates source equations without an independent contract
-base/number.jl	102	106	getindex	getindex(x::Number, i::Integer)	todo		trivial: restates source equations without an independent contract
-base/number.jl	107	111	getindex	getindex(x::Number, I::Integer...)	todo		trivial: restates source equations without an independent contract
-base/number.jl	112	112	get	get(x::Number, i::Integer, default)	todo		trivial: restates source equations without an independent contract
-base/number.jl	113	113	get	get(x::Number, ind::Tuple, default)	todo		trivial: restates source equations without an independent contract
-base/number.jl	114	114	get	get(f::Callable, x::Number, i::Integer)	todo		trivial: restates source equations without an independent contract
-base/number.jl	115	115	get	get(f::Callable, x::Number, ind::Tuple)	todo		trivial: restates source equations without an independent contract
-base/number.jl	117	117	first	first(x::Number)	todo		trivial: restates source equations without an independent contract
-base/number.jl	118	118	last	last(x::Number)	todo		trivial: restates source equations without an independent contract
-base/number.jl	119	119	copy	copy(x::Number)	todo		trivial: restates source equations without an independent contract
-base/number.jl	143	143	signbit	signbit(x::Real)	todo		trivial: restates source equations without an independent contract
-base/number.jl	165	165	ispositive	ispositive(x::Real)	todo		trivial: restates source equations without an independent contract
-base/number.jl	187	187	isnegative	isnegative(x::Real)	todo		trivial: restates source equations without an independent contract
-base/number.jl	211	211	sign	sign(x::Number)	todo		trivial: restates source equations without an independent contract
-base/number.jl	212	212	sign	sign(x::Real)	todo		trivial: restates source equations without an independent contract
-base/number.jl	213	213	sign	sign(x::Unsigned)	todo		trivial: restates source equations without an independent contract
-base/number.jl	214	214	abs	abs(x::Real)	todo		trivial: restates source equations without an independent contract
-base/number.jl	238	238	abs2	abs2(x::Number)	todo		trivial: restates source equations without an independent contract
-base/number.jl	239	239	abs2	abs2(x::Real)	todo		trivial: restates source equations without an independent contract
-base/number.jl	255	255	flipsign	flipsign(x::Real, y::Real)	todo		trivial: restates source equations without an independent contract
-base/number.jl	271	271	copysign	copysign(x::Real, y::Real)	todo		trivial: restates source equations without an independent contract
-base/number.jl	273	273	conj	conj(x::Real)	todo		trivial: restates source equations without an independent contract
-base/number.jl	274	274	transpose	transpose(x::Number)	todo		trivial: restates source equations without an independent contract
-base/number.jl	275	275	adjoint	adjoint(x::Number)	todo		trivial: restates source equations without an independent contract
-base/number.jl	276	276	angle	angle(z::Real)	todo		trivial: restates source equations without an independent contract
-base/number.jl	305	305	inv	inv(x::Number)	todo		trivial: restates source equations without an independent contract
-base/number.jl	327	327	widemul	widemul(x::Number, y::Number)	todo		trivial: restates source equations without an independent contract
-base/number.jl	329	329	iterate	iterate(x::Number)	todo		trivial: restates source equations without an independent contract
-base/number.jl	330	330	iterate	iterate(x::Number, ::Any)	todo		trivial: restates source equations without an independent contract
-base/number.jl	331	331	isempty	isempty(x::Number)	todo		trivial: restates source equations without an independent contract
-base/number.jl	332	332	in	in(x::Number, y::Number)	todo		trivial: restates source equations without an independent contract
-base/number.jl	334	334	map	map(f, x::Number, ys::Number...)	todo		trivial: restates source equations without an independent contract
-base/number.jl	363	363	zero	zero(x::Number)	todo		trivial: restates source equations without an independent contract
-base/number.jl	364	364	zero	zero(::Type{T}) where {T<:Number}	todo		trivial: restates source equations without an independent contract
-base/number.jl	365	365	zero	zero(::Type{Union{}}, slurp...)	todo		trivial: restates source equations without an independent contract
-base/number.jl	405	405	one	one(::Type{T}) where {T<:Number}	todo		trivial: restates source equations without an independent contract
-base/number.jl	406	406	one	one(x::T) where {T<:Number}	todo		trivial: restates source equations without an independent contract
-base/number.jl	407	407	one	one(::Type{Union{}}, slurp...)	todo		trivial: restates source equations without an independent contract
-base/number.jl	430	430	oneunit	oneunit(x::T) where {T}	todo		trivial: restates source equations without an independent contract
-base/number.jl	431	431	oneunit	oneunit(::Type{T}) where {T}	todo		trivial: restates source equations without an independent contract
-base/number.jl	432	432	oneunit	oneunit(::Type{Union{}}, slurp...)	todo		trivial: restates source equations without an independent contract
-base/number.jl	452	452	big	big(::Type{T}) where {T<:Number}	todo		trivial: restates source equations without an independent contract
-base/number.jl	453	453	big	big(::Type{Union{}}, slurp...)	todo		trivial: restates source equations without an independent contract
+base/number.jl	6	6	convert	convert(::Type{T}, x::T) where {T<:Number}	modelled	number-real-scalar-identities	Existing model reviewed against pinned f755f49 source.
+base/number.jl	7	7	convert	convert(::Type{T}, x::Number) where {T<:Number}	todo		Missing: the source typeasserts T(x)::T, but JlError has no TypeError constructor, so the model assumes the constructor returns a T.
+base/number.jl	22	22	isinteger	isinteger(x::Integer)	modelled	number-integer-predicates	Existing model reviewed against pinned f755f49 source.
+base/number.jl	44	44	iszero	iszero(x)	modelled	number-integer-predicates	Existing model reviewed against pinned f755f49 source.
+base/number.jl	66	66	isone	isone(x)	modelled	number-integer-predicates	Existing model reviewed against pinned f755f49 source.
+base/number.jl	84	84	isfinite	isfinite(x::Number)	modelled	number-integer-predicates	Existing model reviewed against pinned f755f49 source.
+base/number.jl	86	86	size	size(x::Number)	modelled	number-scalar-shape	Existing model reviewed against pinned f755f49 source.
+base/number.jl	87	87	size	size(x::Number, d::Integer)	modelled	number-scalar-dimensions	Existing model reviewed against pinned f755f49 source.
+base/number.jl	88	88	axes	axes(x::Number)	modelled	number-scalar-shape	Existing model reviewed against pinned f755f49 source.
+base/number.jl	89	89	axes	axes(x::Number, d::Integer)	modelled	number-scalar-dimensions	Existing model reviewed against pinned f755f49 source.
+base/number.jl	90	90	eltype	eltype(::Type{T}) where {T<:Number}	modelled	number-scalar-shape	Existing model reviewed against pinned f755f49 source.
+base/number.jl	91	91	ndims	ndims(x::Number)	modelled	number-scalar-shape	Existing model reviewed against pinned f755f49 source.
+base/number.jl	92	92	ndims	ndims(::Type{<:Number})	modelled	number-scalar-shape	Existing model reviewed against pinned f755f49 source.
+base/number.jl	93	93	length	length(x::Number)	modelled	number-scalar-shape	Existing model reviewed against pinned f755f49 source.
+base/number.jl	94	94	firstindex	firstindex(x::Number)	modelled	number-scalar-shape	Existing model reviewed against pinned f755f49 source.
+base/number.jl	95	95	firstindex	firstindex(x::Number, d::Int)	modelled	number-scalar-dimensions	Existing model reviewed against pinned f755f49 source.
+base/number.jl	96	96	lastindex	lastindex(x::Number)	modelled	number-scalar-shape	Existing model reviewed against pinned f755f49 source.
+base/number.jl	97	97	lastindex	lastindex(x::Number, d::Int)	modelled	number-scalar-dimensions	Existing model reviewed against pinned f755f49 source.
+base/number.jl	98	98	IteratorSize	IteratorSize(::Type{<:Number})	modelled	number-scalar-shape	Existing model reviewed against pinned f755f49 source.
+base/number.jl	99	99	keys	keys(::Number)	modelled	number-scalar-shape	Existing model reviewed against pinned f755f49 source.
+base/number.jl	101	101	getindex	getindex(x::Number)	modelled	number-scalar-collection	Existing model reviewed against pinned f755f49 source.
+base/number.jl	102	106	getindex	getindex(x::Number, i::Integer)	modelled	number-scalar-collection	Existing model reviewed against pinned f755f49 source.
+base/number.jl	107	111	getindex	getindex(x::Number, I::Integer...)	modelled	number-scalar-collection	Existing model reviewed against pinned f755f49 source.
+base/number.jl	112	112	get	get(x::Number, i::Integer, default)	modelled	number-scalar-collection	Existing model reviewed against pinned f755f49 source.
+base/number.jl	113	113	get	get(x::Number, ind::Tuple, default)	modelled	number-scalar-collection	Existing model reviewed against pinned f755f49 source.
+base/number.jl	114	114	get	get(f::Callable, x::Number, i::Integer)	modelled	number-scalar-collection	Existing model reviewed against pinned f755f49 source.
+base/number.jl	115	115	get	get(f::Callable, x::Number, ind::Tuple)	modelled	number-scalar-collection	Existing model reviewed against pinned f755f49 source.
+base/number.jl	117	117	first	first(x::Number)	modelled	number-scalar-collection	Existing model reviewed against pinned f755f49 source.
+base/number.jl	118	118	last	last(x::Number)	modelled	number-scalar-collection	Existing model reviewed against pinned f755f49 source.
+base/number.jl	119	119	copy	copy(x::Number)	modelled	number-scalar-collection	Existing model reviewed against pinned f755f49 source.
+base/number.jl	143	143	signbit	signbit(x::Real)	modelled	number-integer-strict-signs	Existing model reviewed against pinned f755f49 source.
+base/number.jl	165	165	ispositive	ispositive(x::Real)	modelled	number-integer-strict-signs	Existing model reviewed against pinned f755f49 source.
+base/number.jl	187	187	isnegative	isnegative(x::Real)	modelled	number-integer-strict-signs	Existing model reviewed against pinned f755f49 source.
+base/number.jl	211	211	sign	sign(x::Number)	modelled	number-number-sign-magnitude	Existing model reviewed against pinned f755f49 source.
+base/number.jl	212	212	sign	sign(x::Real)	modelled	number-integer-real-sign	Existing model reviewed against pinned f755f49 source.
+base/number.jl	213	213	sign	sign(x::Unsigned)	modelled	number-unsigned-sign-identity	Existing model reviewed against pinned f755f49 source.
+base/number.jl	214	214	abs	abs(x::Real)	modelled	number-integer-magnitude-signs	Existing model reviewed against pinned f755f49 source.
+base/number.jl	238	238	abs2	abs2(x::Number)	modelled	number-integer-abs2-square	Existing model reviewed against pinned f755f49 source.
+base/number.jl	239	239	abs2	abs2(x::Real)	modelled	number-integer-abs2-square	Existing model reviewed against pinned f755f49 source.
+base/number.jl	255	255	flipsign	flipsign(x::Real, y::Real)	modelled	number-integer-magnitude-signs	Existing model reviewed against pinned f755f49 source.
+base/number.jl	271	271	copysign	copysign(x::Real, y::Real)	modelled	number-integer-magnitude-signs	Existing model reviewed against pinned f755f49 source.
+base/number.jl	273	273	conj	conj(x::Real)	modelled	number-real-scalar-identities	Existing model reviewed against pinned f755f49 source.
+base/number.jl	274	274	transpose	transpose(x::Number)	modelled	number-real-scalar-identities	Existing model reviewed against pinned f755f49 source.
+base/number.jl	275	275	adjoint	adjoint(x::Number)	modelled	number-real-scalar-identities	Existing model reviewed against pinned f755f49 source.
+base/number.jl	276	276	angle	angle(z::Real)	modelled	number-real-scalar-identities	Existing model reviewed against pinned f755f49 source.
+base/number.jl	305	305	inv	inv(x::Number)	modelled	number-inverse-law	Existing model reviewed against pinned f755f49 source.
+base/number.jl	327	327	widemul	widemul(x::Number, y::Number)	modelled	number-bitinteger-widemul-exact	Existing model reviewed against pinned f755f49 source.
+base/number.jl	329	329	iterate	iterate(x::Number)	modelled	number-scalar-collection	Existing model reviewed against pinned f755f49 source.
+base/number.jl	330	330	iterate	iterate(x::Number, ::Any)	modelled	number-scalar-collection	Existing model reviewed against pinned f755f49 source.
+base/number.jl	331	331	isempty	isempty(x::Number)	modelled	number-scalar-collection	Existing model reviewed against pinned f755f49 source.
+base/number.jl	332	332	in	in(x::Number, y::Number)	modelled	number-integer-membership	Existing model reviewed against pinned f755f49 source.
+base/number.jl	334	334	map	map(f, x::Number, ys::Number...)	modelled	number-real-scalar-identities	Existing model reviewed against pinned f755f49 source.
+base/number.jl	363	363	zero	zero(x::Number)	modelled	number-integer-zero-one-units	Existing model reviewed against pinned f755f49 source.
+base/number.jl	364	364	zero	zero(::Type{T}) where {T<:Number}	modelled	number-integer-zero-one-units	Existing model reviewed against pinned f755f49 source.
+base/number.jl	365	365	zero	zero(::Type{Union{}}, slurp...)	todo		Missing: the fixed callee Union{}(...) (base/boot.jl:398) must call boot.unionBottomCtor; boot uses its own error carrier, so the model still takes it as a parameter.
+base/number.jl	405	405	one	one(::Type{T}) where {T<:Number}	modelled	number-integer-zero-one-units	Existing model reviewed against pinned f755f49 source.
+base/number.jl	406	406	one	one(x::T) where {T<:Number}	modelled	number-integer-zero-one-units	Existing model reviewed against pinned f755f49 source.
+base/number.jl	407	407	one	one(::Type{Union{}}, slurp...)	todo		Missing: the fixed callee Union{}(...) (base/boot.jl:398) must call boot.unionBottomCtor; boot uses its own error carrier, so the model still takes it as a parameter.
+base/number.jl	430	430	oneunit	oneunit(x::T) where {T}	modelled	number-integer-zero-one-units	Existing model reviewed against pinned f755f49 source.
+base/number.jl	431	431	oneunit	oneunit(::Type{T}) where {T}	modelled	number-integer-zero-one-units	Existing model reviewed against pinned f755f49 source.
+base/number.jl	432	432	oneunit	oneunit(::Type{Union{}}, slurp...)	todo		Missing: the fixed callee Union{}(...) (base/boot.jl:398) must call boot.unionBottomCtor; boot uses its own error carrier, so the model still takes it as a parameter.
+base/number.jl	452	452	big	big(::Type{T}) where {T<:Number}	modelled	number-big-type-stability	Existing model reviewed against pinned f755f49 source.
+base/number.jl	453	453	big	big(::Type{Union{}}, slurp...)	todo		Missing: the fixed callee Union{}(...) (base/boot.jl:398) must call boot.unionBottomCtor; boot uses its own error carrier, so the model still takes it as a parameter.

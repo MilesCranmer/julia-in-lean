@@ -96,5 +96,5 @@ duplicates:
   issues: []
   queries: ["issues: pow5invsplit_lookup bounds", "issues: Ryu lookup negative index", "prs: pow5invsplit_lookup bounds", "prs: Ryu lookup negative index"]
 lean:
-  property: JuliaLean.MemSafety.G4.RyuLookupInBounds
-  theorem: JuliaLean.MemSafety.G4.ryuLookupInBounds_refuted
+  property: JuliaLean.Proofs.base.ryu.utils.RyuLookupInBounds
+  theorem: JuliaLean.Proofs.base.ryu.utils.ryuLookupInBounds_refuted

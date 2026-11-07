@@ -1,74 +1,56 @@
 id: dicts-immutabledict-isequal
-title: "isequal/== on ImmutableDicts with repeated keys are asymmetric and disagree with hash"
-priority: P2
-kind: wrong-result
-area: Dicts
-files: [base/abstractdict.jl, base/dict.jl]
-functions: ["isequal(::AbstractDict, ::AbstractDict)", "==(::AbstractDict, ::AbstractDict)", "hash(::AbstractDict, ::UInt)"]
+title: "Repeated ImmutableDict keys make == and isequal asymmetric"
+priority: "P2"
+kind: "wrong-result"
+area: "Dicts"
+files:
+  - "base/abstractdict.jl"
+  - "base/dict.jl"
+functions:
+  - "==(::AbstractDict, ::AbstractDict)"
+  - "isequal(::AbstractDict, ::AbstractDict)"
 summary: |
-  The generic AbstractDict isequal and == check that the lengths agree and
-  that every pair of the left argument is in the right one. That is only a
-  correct test when iteration yields each key once. An ImmutableDict yields
-  shadowed pairs as well, so ImmutableDict(:a => 1, :a => 1) == and isequal to
-  ImmutableDict(:a => 1, :b => 2), but not the other way round. The generic
-  hash xors the pair hashes, so repeated pairs cancel and isequal
-  ImmutableDicts can hash differently. For the same reason
-  allunique(::AbstractDict) = true and allequal(c) = length(c) <= 1
-  (base/set.jl:544,658) are wrong for ImmutableDict(:a => 1, :a => 1), whose
-  iteration yields the same pair twice.
+  ImmutableDict(:a => 1, :a => 1) and Dict(:a => 1, :b => 1) both have length two. Forward equality and isequal return true because both repeated left-hand pairs match :a; reverse comparisons return false because :b is missing. The reproducer checks only the isequal half of this symmetry.
 likelihood: |
-  ImmutableDicts with repeated keys arise naturally, e.g. from nested
-  IOContext(io, :compact => true) calls; comparing or hashing them is rare.
+  An ImmutableDict with repeated keys is compared to a dictionary with the same pair count and a different visible key set. Repeated keys naturally occur when layering immutable properties.
 maybe_intended: |
-  The ImmutableDict docstring (base/dict.jl:794-799) says `in` and iteration
-  see all pairs, including shadowed ones, so comparisons on all pairs might
-  be intended. Even then, == and isequal must be symmetric and isequal must
-  imply equal hashes.
+  Iteration over shadowed ImmutableDict pairs is intentional. The resulting asymmetric isequal violates its explicit equivalence-relation contract. Open issue #64137 reports the same repeated-key comparison defect.
 reproducer: |
-  X = Base.ImmutableDict(:a => 1, :a => 1)
-  Y = Base.ImmutableDict(:a => 1, :b => 2)
-  X == Y, Y == X            # (true, false)
-  A = Base.ImmutableDict(:b => 2, :a => 1, :a => 1)
-  B = Base.ImmutableDict(:a => 1, :b => 2, :b => 2)
-  isequal(A, B), hash(A) == hash(B)   # (true, false)
+  a = Base.ImmutableDict(:a => 1, :a => 1)
+  b = Dict(:a => 1, :b => 1)
+  @show a == b b == a
+  @show isequal(a, b) isequal(b, a)
 output:
   release: |
-    X == Y: true; Y == X: false
-    isequal(X, Y): true; isequal(Y, X): false
-    haskey(X, :b) = false, haskey(Y, :b) = true
-    isequal(A, B): true; hash(A) == hash(B): false
-    length(Set{Any}([A, B])) = 2
-    allunique(X) = true, allunique(collect(X)) = false; allequal(X) = false, allequal(collect(X)) = true
     REPRODUCED dicts-immutabledict-isequal
   nightly: |
-    X == Y: true; Y == X: false
-    isequal(X, Y): true; isequal(Y, X): false
-    haskey(X, :b) = false, haskey(Y, :b) = true
-    isequal(A, B): true; hash(A) == hash(B): false
-    length(Set{Any}([A, B])) = 2
-    allunique(X) = true, allunique(collect(X)) = false; allequal(X) = false, allequal(collect(X)) = true
     REPRODUCED dicts-immutabledict-isequal
-reproduced: {release: true, nightly: true}
+reproduced:
+  release: true
+  nightly: true
 expected: |
-  X == Y and isequal(X, Y) are false (Y has key :b, X does not), in both
-  orders; isequal(A, B) is false or hash(A) == hash(B).
+  Both comparison directions should agree. These visible key sets differ, so a symmetric false result is appropriate.
 promised_by: |
-  base/operators.jl:152: "`isequal` is an equivalence relation - it is
-  reflexive (`===` implies `isequal`), symmetric and transitive";
-  base/operators.jl:116: collections "compare their key sets, and if those are
-  `==`, then compare the values for each of those keys"; base/hashing.jl:14:
-  "`isequal(x,y)` implies `isequal(hash(x), hash(y))`".
+  base/operators.jl:152-154 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027:
+  "`isequal` is an equivalence relation - it is reflexive (`===` implies `isequal`), symmetric"
+  "(`isequal(a, b)` implies `isequal(b, a)`) and transitive (`isequal(a, b)` and"
+  "`isequal(b, c)` implies `isequal(a, c)`)."
 cause: |
-  base/abstractdict.jl:504-533 compare length(l) == length(r) and
-  `in(pair, r)` for each pair of l; base/dict.jl:864 counts shadowed pairs in
-  length and base/dict.jl:860-863 iterates them; base/abstractdict.jl:541-543
-  xors the pair hashes, so a repeated pair cancels.
+  base/abstractdict.jl:504-533 compares lengths and checks each left-hand pair against the right dictionary without a reverse key-set check. base/dict.jl:860-864 iterates and counts shadowed repeated pairs, allowing duplicate matches to conceal the missing :b key.
 possible_fix: |
-  Give ImmutableDict its own ==, isequal and hash that walk only the visible
-  (most recent) pair of each key.
+  Define equality for ImmutableDict in terms of visible bindings, or ensure the generic algorithm handles repeated iteration keys symmetrically.
 duplicates:
-  issues: []
-  queries: ["ImmutableDict ==", "ImmutableDict isequal", "ImmutableDict hash", "ImmutableDict equality", "ImmutableDict duplicate keys", "AbstractDict == asymmetric"]
+  issues:
+    - number: 64137
+      state: open
+      relation: duplicate
+  prs: []
+  queries:
+    - "ImmutableDict isequal"
+    - "ImmutableDict equality"
+    - "ImmutableDict duplicate keys"
+  search_evidence: |
+    Open issue 64137 is a duplicate. Merged PR 64432 fixes related allunique/allequal assumptions, not dictionary equality.
 lean:
-  property: JuliaLean.Dicts.ImmutableDictEqSymmetric
-  theorem: JuliaLean.Dicts.immutableDictEqSymmetric_refuted
+  property: JuliaLean.Proofs.base.abstractdict.DictBothEqualitySymmetricSpec
+  theorem: JuliaLean.ChatGPT.Batch4.Group15.DictsImmutabledictIsequal_refuted

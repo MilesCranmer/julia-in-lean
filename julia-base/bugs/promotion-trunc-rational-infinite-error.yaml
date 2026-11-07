@@ -51,5 +51,5 @@ duplicates:
   issues: []
   queries: ["trunc Rational infinite", "round Rational DivideError", "DivideError rational", "rational infinity round", "rational infinite integer conversion", "round Rational", "trunc Rational"]
 lean:
-  property: JuliaLean.Promotion.TruncInfiniteInexact
-  theorem: JuliaLean.Promotion.truncInfiniteInexact_refuted
+  property: JuliaLean.Proofs.base.rational.Round5.documented_infinite_truncation
+  theorem: JuliaLean.Proofs.base.rational.Round5.documented_infinite_truncation_refuted

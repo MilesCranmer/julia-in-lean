@@ -5,12 +5,11 @@
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 
-lake build
+python3 scripts/check-hoist.py
 
-if grep -rnwE 'sorry|admit|native_decide|bv_decide|ofReduceBool' --include='*.lean' JuliaLean JuliaLean.lean; then
-    echo "FAIL forbidden proof escape found (see lines above)"
-    exit 1
-fi
+LEAN_NUM_THREADS=2 lake build JuliaLean JuliaLean.Registry.Audit
+
+python3 scripts/check-proof-escapes.py
 
 lake env lean CRuntimeAudit.lean
 lake env lean Audit.lean | tee .lake/audit.out

@@ -4,12 +4,13 @@ priority: P3
 kind: wrong-result
 area: Strings
 files: [base/strings/search.jl]
-functions: ["findnext(::AbstractString, ::AbstractString, ::Integer)", "findfirst(::AbstractString, ::AbstractString)", "occursin"]
+functions: ["findnext(::AbstractString, ::AbstractString, ::Integer)", "findfirst(::AbstractString, ::AbstractString)", "findprev(::AbstractString, ::AbstractString, ::Integer)", "findlast(::AbstractString, ::AbstractString)", "findall(::AbstractString, ::AbstractString)", "occursin"]
 summary: |
   findfirst("\xa9x", "éx") returns 2:3, starting at the second byte of 'é';
   s[2:3] throws StringIndexError. The one-character needle "\xa9" is searched by
   character and not found, so occursin("\xa9x", s) is true while
   occursin("\xa9", s) is false.
+  The same interior match appears in findprev, findlast, findall with either overlap setting, and both occursin call forms.
 likelihood: |
   Only needles that are not valid UTF-8 can match inside a character; rare
   outside byte-level processing.
@@ -35,11 +36,27 @@ output:
     occursin("\xa9", "éx") = false
     s[r] = StringIndexError: invalid index [2], valid nearby indices [1]=>'é', [3]=>'x'
     REPRODUCED strings-findnext-inside-char
+    needle bytes = UInt8[0x80, 0x61]; haystack bytes = UInt8[0xc2, 0x80, 0x61]
+    findnext/findprev/findfirst/findlast = (2:3, 2:3, 2:3, 2:3)
+    findall = UnitRange{Int64}[2:3]; overlap=true = UnitRange{Int64}[2:3]; occursin = true; slice = StringIndexError
+    REPRODUCED strings-search-forward-first-range
+    REPRODUCED strings-search-reverse-last-range
+    REPRODUCED strings-search-first-last-string
+    REPRODUCED strings-search-occursin-first-match
+    REPRODUCED strings-search-all-pattern-ranges
   nightly: |
     findfirst("\xa9x", "éx") = 2:3
     occursin("\xa9", "éx") = false
     s[r] = StringIndexError: invalid index [2], valid nearby indices [1]=>'é', [3]=>'x'
     REPRODUCED strings-findnext-inside-char
+    needle bytes = UInt8[0x80, 0x61]; haystack bytes = UInt8[0xc2, 0x80, 0x61]
+    findnext/findprev/findfirst/findlast = (2:3, 2:3, 2:3, 2:3)
+    findall = UnitRange{Int64}[2:3]; overlap=true = UnitRange{Int64}[2:3]; occursin = true; slice = StringIndexError
+    REPRODUCED strings-search-forward-first-range
+    REPRODUCED strings-search-reverse-last-range
+    REPRODUCED strings-search-first-last-string
+    REPRODUCED strings-search-occursin-first-match
+    REPRODUCED strings-search-all-pattern-ranges
 reproduced: {release: true, nightly: true}
 expected: |
   nothing, or a range r with s[r] == t.
@@ -50,17 +67,41 @@ cause: |
   _searchindex for DenseUTF8String (base/strings/search.jl:395-399) uses a byte
   search for needles longer than one character and a Char search for one-
   character needles.
+  The reverse byte-search path and the findall/occursin wrappers reuse the same byte-level occurrence without enforcing a decoded-character boundary.
 possible_fix: |
   Reject byte matches that do not start at a valid index, or document byte
   semantics.
 duplicates:
-  issues: []
+  issues:
+    - {number: 25997, state: closed, relation: related}
   queries:
     - "issues: findfirst invalid UTF-8"
     - "issues: findnext invalid string index"
     - "issues: occursin invalid UTF-8"
     - "issues: search middle of character"
     - "prs: findnext invalid UTF-8"
+    - "gh search issues '_searchindex' --repo JuliaLang/julia --limit 100 --json number,title,state,url"
+  search_notes: |
+    No matching issue is known. Issue #25997 concerns the related
+    one-character malformed-UTF8 search error, rather than the interior match
+    returned for the two-byte needle here.
 lean:
   property: JuliaLean.Strings.FindnextMatches
   theorem: JuliaLean.Strings.findnextMatches_refuted
+covers: [strings-search-forward-first-range, strings-search-reverse-last-range, strings-search-first-last-string, strings-search-occursin-first-match, strings-search-all-pattern-ranges]
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: true
+  output: |
+    findfirst("\xa9x", "éx") = 2:3
+    occursin("\xa9", "éx") = false
+    s[r] = StringIndexError: invalid index [2], valid nearby indices [1]=>'é', [3]=>'x'
+    REPRODUCED strings-findnext-inside-char
+    needle bytes = UInt8[0x80, 0x61]; haystack bytes = UInt8[0xc2, 0x80, 0x61]
+    findnext/findprev/findfirst/findlast = (2:3, 2:3, 2:3, 2:3)
+    findall = UnitRange{Int64}[2:3]; overlap=true = UnitRange{Int64}[2:3]; occursin = true; slice = StringIndexError
+    REPRODUCED strings-search-forward-first-range
+    REPRODUCED strings-search-reverse-last-range
+    REPRODUCED strings-search-first-last-string
+    REPRODUCED strings-search-occursin-first-match
+    REPRODUCED strings-search-all-pattern-ranges

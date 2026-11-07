@@ -38,8 +38,19 @@ cause: |
 possible_fix: |
   For non-seekable buffers take the bytes io.ptr:io.size, as take! does.
 duplicates:
-  issues: []
-  queries: ["takestring!", "takestring! mark", "takestring PipeBuffer", "takestring PipeBuffer mark"]
+  issues:
+    - number: 64166
+      state: closed
+      relation: duplicate
+      note: "Exact marked-PipeBuffer consumed-byte defect; opened and inspected."
+  prs:
+    - number: 64289
+      state: merged
+      relation: duplicate
+      note: "Exact fix, merged 2026-10-28; opened and inspected."
+  queries:
+    - "gh search issues takestring mark --repo JuliaLang/julia --limit 100 --json number,title,state,url"
+    - "gh search prs takestring mark --repo JuliaLang/julia --limit 100 --json number,title,state,url"
 lean:
-  property: JuliaLean.IOBuffers.TakestringEqTake
-  theorem: JuliaLean.IOBuffers.takestringEqTake_refuted
+  property: JuliaLean.Proofs.base.iobuffer.TakestringEqTake
+  theorem: JuliaLean.ChatGPT.Batch6.Group1.IobuffersTakestringMark_refuted

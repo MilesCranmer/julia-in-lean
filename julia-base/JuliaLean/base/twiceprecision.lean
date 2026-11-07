@@ -1,6 +1,8 @@
 import JuliaLean.Core
 import JuliaLean.base.range
 import JuliaLean.base.float
+import JuliaLean.base.intfuncs
+import JuliaLean.base.math
 
 set_option linter.unusedVariables false
 
@@ -10,6 +12,21 @@ open JuliaLean JuliaLean.base.range
 
 abbrev F64 := JuliaLean.base.float.FV .f64
 abbrev IEEEType := JuliaLean.base.float.FTy
+
+structure BasicArithmetic (T : Type) where
+  add : T → T → T
+  sub : T → T → T
+  mul : T → T → T
+  neg : T → T
+  abs : T → T
+  lt : T → T → Bool
+  le : T → T → Bool
+  gt : T → T → Bool
+  eq : T → T → Bool
+  zero : T
+  one : T
+  iszero : T → Bool
+  isfinite : T → Bool
 
 structure Arithmetic (T : Type) where
   add : T → T → T
@@ -33,6 +50,13 @@ structure Arithmetic (T : Type) where
   truncInt : T → JlX Int
   inv : T → T
 
+instance {T : Type} : Coe (Arithmetic T) (BasicArithmetic T) where
+  coe ops := {
+    add := ops.add, sub := ops.sub, mul := ops.mul, neg := ops.neg, abs := ops.abs,
+    lt := ops.lt, le := ops.le, gt := ops.gt, eq := ops.eq,
+    zero := ops.zero, one := ops.one, iszero := ops.iszero, isfinite := ops.isfinite
+  }
+
 structure BitOps (F U M N : Type) where
   reinterpretTo : F → U
   reinterpretFrom : U → F
@@ -44,8 +68,8 @@ structure IntegerOps (I : Type) where
   add : I → I → I
   sub : I → I → I
   mul : I → I → I
-  div : I → I → I
-  rem : I → I → I
+  div : I → I → JlX I
+  rem : I → I → JlX I
   neg : I → I
   abs : I → I
   max : I → I → I
@@ -54,7 +78,7 @@ structure IntegerOps (I : Type) where
   eq : I → I → Bool
   isEven : I → Bool
   shiftRightOne : I → I
-  gcd : I → I → I
+  gcd : I → I → JlX I
   zero : I
   one : I
 
@@ -84,9 +108,11 @@ structure FloatRangeOps (F I L N R : Type) where
   hpFloat : F → F → N → L → L → JlX R
 
 
+/-- Iterations of `rat` (base/twiceprecision.jl:757-772). Exhausting the
+model's iteration limit is distinct from reaching a Julia return or break. -/
 def ratLoop {F I : Type} : Nat → RatOps F I → F → F → I → I → I → I →
     JlX (I × I)
-  | 0, _, _, _, a, b, _, _ => .ok (a, b)
+  | 0, _, _, _, _, _, _, _ => .error (.errorException "fuel")
   | fuel + 1, ops, x, y, a, b, c, d => do
     if !ops.float.le (ops.float.abs y) ops.bound then return (a, b)
     let f ← ops.truncInt y
@@ -183,7 +209,7 @@ end
 ```
 
 -/
-def add12Same {T : Type} (ops : Arithmetic T) (ifelse : {A : Type} → Bool → A → A → A)
+def add12Same {T : Type} (ops : BasicArithmetic T) (ifelse : {A : Type} → Bool → A → A → A)
     (x y : T) : T × T :=
   let (x, y) := ifelse (ops.gt (ops.abs y) (ops.abs x)) (y, x) (x, y)
   canonicalize2 ops.add ops.sub x y
@@ -195,7 +221,7 @@ add12(x, y) = add12(promote(x, y)...)
 ```
 
 -/
-def add12Mixed {X Y T : Type} (promote : X → Y → T × T) (ops : Arithmetic T)
+def add12Mixed {X Y T : Type} (promote : X → Y → T × T) (ops : BasicArithmetic T)
     (ifelse : {A : Type} → Bool → A → A → A) (x : X) (y : Y) : T × T :=
   let (x, y) := promote x y
   add12Same ops ifelse x y
@@ -222,7 +248,7 @@ mul12(x::T, y::T) where {T} = (p = x * y; (p, zero(p)))
 ```
 
 -/
-def mul12Generic {T : Type} (ops : Arithmetic T) (x y : T) : T × T :=
+def mul12Generic {T : Type} (ops : BasicArithmetic T) (x y : T) : T × T :=
   let p := ops.mul x y
   (p, ops.zero)
 
@@ -308,7 +334,7 @@ TwicePrecision{T}(x::T) where {T} = TwicePrecision{T}(x, zero(T))
 ```
 
 -/
-def tpFromSame {T : Type} (ops : Arithmetic T) (x : T) : TwicePrecision T :=
+def tpFromSame {T : Type} (ops : BasicArithmetic T) (x : T) : TwicePrecision T :=
   ⟨x, ops.zero⟩
 
 /--
@@ -608,7 +634,7 @@ Julia source: base/twiceprecision.jl:279-279 @ f755f49a9e41380d7da126b3c1db9fe7f
 ```
 
 -/
-def negTp {T : Type} (ops : Arithmetic T) (x : TwicePrecision T) : TwicePrecision T :=
+def negTp {T : Type} (ops : BasicArithmetic T) (x : TwicePrecision T) : TwicePrecision T :=
   ⟨ops.neg x.hi, ops.neg x.lo⟩
 
 /--
@@ -631,7 +657,7 @@ end
 ```
 
 -/
-def zeroTpType {T : Type} (ops : Arithmetic T) : TwicePrecision T :=
+def zeroTpType {T : Type} (ops : BasicArithmetic T) : TwicePrecision T :=
   let z := ops.zero
   ⟨z, z⟩
 
@@ -645,7 +671,7 @@ end
 ```
 
 -/
-def addTpNumber {T : Type} (ops : Arithmetic T) (ifelse : {A : Type} → Bool → A → A → A)
+def addTpNumber {T : Type} (ops : BasicArithmetic T) (ifelse : {A : Type} → Bool → A → A → A)
     (x : TwicePrecision T) (y : T) : TwicePrecision T :=
   let (s_hi, s_lo) := add12Same ops ifelse x.hi y
   let (h, l) := canonicalize2 ops.add ops.sub s_hi (ops.add s_lo x.lo)
@@ -658,7 +684,7 @@ Julia source: base/twiceprecision.jl:293-293 @ f755f49a9e41380d7da126b3c1db9fe7f
 ```
 
 -/
-def addNumberTp {T : Type} (ops : Arithmetic T) (ifelse : {A : Type} → Bool → A → A → A)
+def addNumberTp {T : Type} (ops : BasicArithmetic T) (ifelse : {A : Type} → Bool → A → A → A)
     (x : T) (y : TwicePrecision T) : TwicePrecision T := addTpNumber ops ifelse y x
 
 /--
@@ -672,7 +698,7 @@ end
 ```
 
 -/
-def addTpSame {T : Type} (ops : Arithmetic T) (x y : TwicePrecision T) : TwicePrecision T :=
+def addTpSame {T : Type} (ops : BasicArithmetic T) (x y : TwicePrecision T) : TwicePrecision T :=
   let r := ops.add x.hi y.hi
   let s := if ops.gt (ops.abs x.hi) (ops.abs y.hi)
     then ops.add (ops.add (ops.add (ops.sub x.hi r) y.hi) y.lo) x.lo
@@ -688,7 +714,7 @@ Julia source: base/twiceprecision.jl:300-300 @ f755f49a9e41380d7da126b3c1db9fe7f
 
 -/
 def addTpPromoted {R S T : Type} (promote : TwicePrecision R → TwicePrecision S →
-    TwicePrecision T × TwicePrecision T) (ops : Arithmetic T)
+    TwicePrecision T × TwicePrecision T) (ops : BasicArithmetic T)
     (x : TwicePrecision R) (y : TwicePrecision S) : TwicePrecision T :=
   let (x, y) := promote x y
   addTpSame ops x y
@@ -700,7 +726,7 @@ Julia source: base/twiceprecision.jl:302-302 @ f755f49a9e41380d7da126b3c1db9fe7f
 ```
 
 -/
-def subTpSame {T : Type} (ops : Arithmetic T) (x y : TwicePrecision T) : TwicePrecision T :=
+def subTpSame {T : Type} (ops : BasicArithmetic T) (x y : TwicePrecision T) : TwicePrecision T :=
   addTpSame ops x (negTp ops y)
 
 /--
@@ -710,7 +736,7 @@ Julia source: base/twiceprecision.jl:303-303 @ f755f49a9e41380d7da126b3c1db9fe7f
 ```
 
 -/
-def subTpNumber {T : Type} (ops : Arithmetic T) (ifelse : {A : Type} → Bool → A → A → A)
+def subTpNumber {T : Type} (ops : BasicArithmetic T) (ifelse : {A : Type} → Bool → A → A → A)
     (x : TwicePrecision T) (y : T) : TwicePrecision T :=
   addTpNumber ops ifelse x (ops.neg y)
 
@@ -721,7 +747,7 @@ Julia source: base/twiceprecision.jl:304-304 @ f755f49a9e41380d7da126b3c1db9fe7f
 ```
 
 -/
-def subNumberTp {T : Type} (ops : Arithmetic T) (ifelse : {A : Type} → Bool → A → A → A)
+def subNumberTp {T : Type} (ops : BasicArithmetic T) (ifelse : {A : Type} → Bool → A → A → A)
     (x : T) (y : TwicePrecision T) : TwicePrecision T :=
   addNumberTp ops ifelse x (negTp ops y)
 
@@ -786,7 +812,7 @@ end
 ```
 
 -/
-def mulTpSame {T : Type} (ops : Arithmetic T) (mul12 : T → T → T × T)
+def mulTpSame {T : Type} (ops : BasicArithmetic T) (mul12 : T → T → T × T)
     (ifelse : {A : Type} → Bool → A → A → A) (x y : TwicePrecision T) :
     TwicePrecision T :=
   let (zh, zl) := mul12 x.hi y.hi
@@ -803,7 +829,7 @@ Julia source: base/twiceprecision.jl:323-323 @ f755f49a9e41380d7da126b3c1db9fe7f
 
 -/
 def mulTpPromoted {R S T : Type} (promote : TwicePrecision R → TwicePrecision S →
-    TwicePrecision T × TwicePrecision T) (ops : Arithmetic T) (mul12 : T → T → T × T)
+    TwicePrecision T × TwicePrecision T) (ops : BasicArithmetic T) (mul12 : T → T → T × T)
     (ifelse : {A : Type} → Bool → A → A → A) (x : TwicePrecision R) (y : TwicePrecision S) :
     TwicePrecision T :=
   let (x, y) := promote x y
@@ -1056,19 +1082,23 @@ def colon {F I N R : Type} (ops : FloatRangeOps F I I N R) (type : Type)
         ops.float.eq (ops.float.div (ops.ofInt stopN) (ops.ofInt stopD)) stop then
       let den ← ops.lcmUnchecked startD stepD
       let m := ops.maxintfloat
-      if !ops.integer.eq den ops.integer.zero &&
-          ops.float.le (ops.float.abs (ops.float.mul start (ops.ofInt den))) m &&
-          ops.float.le (ops.float.abs (ops.float.mul step (ops.ofInt den))) m &&
-          ops.integer.eq (ops.integer.rem den startD) ops.integer.zero &&
-          ops.integer.eq (ops.integer.rem den stepD) ops.integer.zero then
-        let startN := ops.integer.mul startN (ops.integer.div den startD)
-        let stepN := ops.integer.mul stepN (ops.integer.div den stepD)
+      let eligible ←
+        if !ops.integer.eq den ops.integer.zero &&
+            ops.float.le (ops.float.abs (ops.float.mul start (ops.ofInt den))) m &&
+            ops.float.le (ops.float.abs (ops.float.mul step (ops.ofInt den))) m then do
+          let r ← ops.integer.rem den startD
+          if !ops.integer.eq r ops.integer.zero then pure false
+          else pure (ops.integer.eq (← ops.integer.rem den stepD) ops.integer.zero)
+        else pure false
+      if eligible then
+        let startN := ops.integer.mul startN (← ops.integer.div den startD)
+        let stepN := ops.integer.mul stepN (← ops.integer.div den stepD)
         let numer := ops.integer.add
           (ops.integer.sub (ops.integer.mul den stopN) (ops.integer.mul stopD startN))
           (ops.integer.mul stepN stopD)
         let denom := ops.integer.mul stepN stopD
         let len := ops.integer.max ops.integer.zero (← ops.convertInt
-          (ops.integer.div numer denom))
+          (← ops.integer.div numer denom))
         if ops.isbetween start
             (ops.float.add start (ops.float.mul (ops.ofInt (ops.integer.sub len ops.integer.one)) step))
             (ops.float.add stop (ops.float.div step (ops.float.add ops.float.one ops.float.one))) &&
@@ -1190,12 +1220,16 @@ def rangeStartStepLength {F I L N R : Type} (ops : FloatRangeOps F I L N R)
       ops.float.eq (ops.float.div (ops.ofInt stepN) (ops.ofInt stepD)) st then
     let den ← ops.lcmUnchecked startD stepD
     let m := ops.maxintfloat
-    if ops.float.le (ops.float.abs (ops.float.mul (ops.ofInt den) a)) m &&
-        ops.float.le (ops.float.abs (ops.float.mul (ops.ofInt den) st)) m &&
-        ops.integer.eq (ops.integer.rem den startD) ops.integer.zero &&
-        ops.integer.eq (ops.integer.rem den stepD) ops.integer.zero then
-      let startN := ops.integer.mul startN (ops.integer.div den startD)
-      let stepN := ops.integer.mul stepN (ops.integer.div den stepD)
+    let eligible ←
+      if ops.float.le (ops.float.abs (ops.float.mul (ops.ofInt den) a)) m &&
+          ops.float.le (ops.float.abs (ops.float.mul (ops.ofInt den) st)) m then do
+        let r ← ops.integer.rem den startD
+        if !ops.integer.eq r ops.integer.zero then pure false
+        else pure (ops.integer.eq (← ops.integer.rem den stepD) ops.integer.zero)
+      else pure false
+    if eligible then
+      let startN := ops.integer.mul startN (← ops.integer.div den startD)
+      let stepN := ops.integer.mul stepN (← ops.integer.div den stepD)
       return ← floatrange ops type lenPlusZero round clampInt floatInt offsetToInt one
         startN stepN len den
   ops.hpFloat a st ops.zeroN len one
@@ -1563,13 +1597,17 @@ def convertSRLFloatRange {T R S L Q F I N : Type}
       exact f startN startD && exact s stepN stepD then
     let den ← ops.lcmUnchecked startD stepD
     let m := ops.maxintfloat
-    if !ops.integer.eq den ops.integer.zero &&
-        ops.float.le (ops.float.abs (ops.float.mul f (ops.ofInt den))) m &&
-        ops.float.le (ops.float.abs (ops.float.mul s (ops.ofInt den))) m &&
-        ops.integer.eq (ops.integer.rem den startD) ops.integer.zero &&
-        ops.integer.eq (ops.integer.rem den stepD) ops.integer.zero then
-      let startN := ops.integer.mul startN (ops.integer.div den startD)
-      let stepN := ops.integer.mul stepN (ops.integer.div den stepD)
+    let eligible ←
+      if !ops.integer.eq den ops.integer.zero &&
+          ops.float.le (ops.float.abs (ops.float.mul f (ops.ofInt den))) m &&
+          ops.float.le (ops.float.abs (ops.float.mul s (ops.ofInt den))) m then do
+        let r ← ops.integer.rem den startD
+        if !ops.integer.eq r ops.integer.zero then pure false
+        else pure (ops.integer.eq (← ops.integer.rem den stepD) ops.integer.zero)
+      else pure false
+    if eligible then
+      let startN := ops.integer.mul startN (← ops.integer.div den startD)
+      let stepN := ops.integer.mul stepN (← ops.integer.div den stepD)
       return ← floatrange ops type lenPlusZero round clampInt float offsetToInt one
         startN stepN (length r) den
   fallback r
@@ -1719,11 +1757,11 @@ end
 
 -/
 def addStepRangeLen {T I : Type}
-    (ops : Arithmetic I) (len1 len2 : StepRangeLen T (TwicePrecision T) (TwicePrecision T) I → I)
+    (ops : BasicArithmetic I) (len1 len2 : StepRangeLen T (TwicePrecision T) (TwicePrecision T) I → I)
     (addTp : TwicePrecision T → TwicePrecision T → TwicePrecision T)
     (getindexHiprec : StepRangeLen T (TwicePrecision T) (TwicePrecision T) I → I →
       JlX (TwicePrecision T))
-    (roundHalf : I → I → I) (twiceprecision : TwicePrecision T → Nat → TwicePrecision T)
+    (roundHalf : I → I → JlX I) (twiceprecision : TwicePrecision T → Nat → TwicePrecision T)
     (nbitslen : Type → I → I → Nat)
     (make : TwicePrecision T → TwicePrecision T → I → I → JlX
       (StepRangeLen T (TwicePrecision T) (TwicePrecision T) I))
@@ -1733,7 +1771,7 @@ def addStepRangeLen {T I : Type}
   if !ops.eq len (len2 r2) then throw (.dimensionMismatch "argument dimensions must match")
   let (imid, ref) ← if ops.eq r1.offset r2.offset then pure (r1.offset, addTp r1.ref r2.ref)
     else do
-      let imid := roundHalf r1.offset r2.offset
+      let imid ← roundHalf r1.offset r2.offset
       let ref1mid ← getindexHiprec r1 imid
       let ref2mid ← getindexHiprec r2 imid
       pure (imid, addTp ref1mid ref2mid)
@@ -1927,7 +1965,7 @@ end
 def linspaceRational {F I L W N R : Type} (ops : FloatRangeOps F I L N R)
     (lenPlusZero : L → L) (linspace1 : F → F → L → JlX R)
     (toF64Int : I → F64) (toF64Len : L → F64) (roundInt : F64 → JlX L) (clamp : L → L → L → L)
-    (widenLen : L → W) (widenInt : I → W) (wide : Arithmetic W) (one : L)
+    (widenLen : L → W) (widenInt : I → W) (wide : BasicArithmetic W) (one : L)
     (hpRatioWide : W × W → W × W → N → L → L → JlX R)
     (startN stopN den : I) (len : L) : JlX R := do
   let len := lenPlusZero len
@@ -2021,7 +2059,7 @@ lcm_unchecked(a::T, b::T) where T<:Integer = a * div(b, gcd(a, b))
 -/
 def lcmUnchecked {I : Type} (ops : IntegerOps I) (div : I → I → JlX I)
     (a b : I) : JlX I := do
-  let q ← div b (ops.gcd a b)
+  let q ← div b (← ops.gcd a b)
   pure (ops.mul a q)
 
 /--
@@ -2092,7 +2130,7 @@ Julia source: base/twiceprecision.jl:787-788 @ f755f49a9e41380d7da126b3c1db9fe7f
 ```
 
 -/
-def tpLt {T : Type} (ops : Arithmetic T) (x y : TwicePrecision T) : Bool :=
+def tpLt {T : Type} (ops : BasicArithmetic T) (x y : TwicePrecision T) : Bool :=
   ops.lt x.hi y.hi || (ops.eq x.hi y.hi && ops.lt x.lo y.lo)
 
 /--
@@ -2161,20 +2199,6 @@ def liftJl {α : Type} (r : Jl α) : JlX α :=
   | .ok x => .ok x
   | .error e => .error (.jl e)
 
-def frexpFl {f : JuliaLean.Promotion.Fmt} (x : JuliaLean.Promotion.Fl f) :
-    JuliaLean.Promotion.Fl f × Int :=
-  if !x.isfinite || x.iszero then (x, 0)
-  else if x.expField > 0 then
-    let xs := JuliaLean.Promotion.Fl.ofBits
-      ((if x.signbit then 2 ^ (f.eb + f.sb) else 0) + (f.bias - 1) * 2 ^ f.sb + x.frac)
-    (xs, (x.expField : Int) - ((f.bias - 1 : Nat) : Int))
-  else
-    let k := x.frac.log2
-    let m := x.frac * 2 ^ (f.sb - k)
-    let xs := JuliaLean.Promotion.Fl.ofBits
-      ((if x.signbit then 2 ^ (f.eb + f.sb) else 0) + (f.bias - 1) * 2 ^ f.sb + (m - 2 ^ f.sb))
-    (xs, (k : Int) - ((f.bias + f.sb - 2 : Nat) : Int))
-
 def ldexpFl {f : JuliaLean.Promotion.Fmt} (x : JuliaLean.Promotion.Fl f) (e : Int) :
     JuliaLean.Promotion.Fl f :=
   if !x.isfinite || x.iszero then x
@@ -2204,7 +2228,7 @@ def fvArithmetic (T : JuliaLean.base.float.FTy) : Arithmetic (JuliaLean.base.flo
     let h := JuliaLean.base.float.mul_IEEEFloat x y
     (h, JuliaLean.C.jlFmaFloat x y (JuliaLean.base.float.neg_IEEEFloat h)),
   fma := JuliaLean.C.jlFmaFloat,
-  frexp := frexpFl,
+  frexp := JuliaLean.base.math.frexp,
   ldexp := ldexpFl,
   truncInt := fun x =>
     match JuliaLean.base.float.round_ToZero .i64 x with
@@ -2230,14 +2254,8 @@ def jintOps (t : IntTy) : IntegerOps (JInt t) := {
   add := JuliaLean.base.int.add,
   sub := JuliaLean.base.int.sub,
   mul := JuliaLean.base.int.mulSame,
-  div := fun a b =>
-    match JuliaLean.base.int.divSame a b with
-    | .ok q => q
-    | .error _ => JuliaLean.base.int.lit t 0,
-  rem := fun a b =>
-    match JuliaLean.base.int.remSame a b with
-    | .ok r => r
-    | .error _ => JuliaLean.base.int.lit t 0,
+  div := fun a b => liftJl (JuliaLean.base.int.divSame a b),
+  rem := fun a b => liftJl (JuliaLean.base.int.remSame a b),
   neg := JuliaLean.base.int.neg,
   abs := JuliaLean.base.int.abs,
   max := fun a b => JuliaLean.base.int.remT t (JuliaLean.base.int.jmax a b),
@@ -2248,19 +2266,15 @@ def jintOps (t : IntTy) : IntegerOps (JInt t) := {
     JuliaLean.base.int.eq (JuliaLean.base.int.binop JuliaLean.base.int.band a (JuliaLean.base.int.lit .i64 1))
       (JuliaLean.base.int.lit .i64 0),
   shiftRightOne := fun a => JuliaLean.base.int.shr_Int a (JuliaLean.base.int.lit .i64 1),
-  gcd := fun a b => JuliaLean.base.int.lit t (Nat.gcd a.val.natAbs b.val.natAbs),
+  gcd := fun a b => liftJl (JuliaLean.base.intfuncs.gcd_BitInteger a b),
   zero := JuliaLean.base.int.lit t 0,
   one := JuliaLean.base.int.lit t 1
 }
 
-def jintArith (t : IntTy) : Arithmetic (JInt t) := {
+def jintArith (t : IntTy) : BasicArithmetic (JInt t) := {
   add := JuliaLean.base.int.add,
   sub := JuliaLean.base.int.sub,
   mul := JuliaLean.base.int.mulSame,
-  div := fun a b =>
-    match JuliaLean.base.int.divSame a b with
-    | .ok q => q
-    | .error _ => JuliaLean.base.int.lit t 0,
   neg := JuliaLean.base.int.neg,
   abs := JuliaLean.base.int.abs,
   lt := JuliaLean.base.int.ltSame,
@@ -2270,16 +2284,7 @@ def jintArith (t : IntTy) : Arithmetic (JInt t) := {
   zero := JuliaLean.base.int.lit t 0,
   one := JuliaLean.base.int.lit t 1,
   iszero := fun a => JuliaLean.base.int.eqSame a (JuliaLean.base.int.lit t 0),
-  isfinite := fun _ => true,
-  twoMul := fun a b => (JuliaLean.base.int.mulSame a b, JuliaLean.base.int.lit t 0),
-  fma := fun a b c => JuliaLean.base.int.add (JuliaLean.base.int.mulSame a b) c,
-  frexp := fun a => (a, 0),
-  ldexp := fun a _ => a,
-  truncInt := fun a => .ok a.val,
-  inv := fun a =>
-    match JuliaLean.base.int.divSame (JuliaLean.base.int.lit t 1) a with
-    | .ok q => q
-    | .error _ => JuliaLean.base.int.lit t 0
+  isfinite := fun _ => true
 }
 
 def cldNat (a b : Nat) : Nat := (a + b - 1) / b
@@ -2469,7 +2474,9 @@ def f64RangeOps128 : FloatRangeOps F64 (JInt .i128) (JInt .i64) (JInt .i64) SRLF
   ofLength := JuliaLean.base.float.floatOfInt .f64,
   convertInt := pure,
   roundInt := roundIntF64,
-  rat := fun _ => .ok (JuliaLean.base.int.lit .i128 1, JuliaLean.base.int.lit .i128 0),
+  rat := fun x => do
+    let (n, d) ← ratF64 x
+    pure (JuliaLean.base.int.widenTo .i128 n, JuliaLean.base.int.widenTo .i128 d),
   lcmUnchecked := fun a b => lcmUnchecked (jintOps .i128) (fun x y => liftJl (JuliaLean.base.int.divSame x y)) a b,
   maxintfloat := JuliaLean.base.float.floatOfInt .f64 (JuliaLean.base.int.lit .i64 9007199254740992),
   zeroN := JuliaLean.base.int.lit .i64 0,
@@ -2588,13 +2595,11 @@ def getindexHiprecF64 {I : Type} (isBool : I → Bool) (showIndex : I → String
     (fun u s => JuliaLean.base.float.mul_IEEEFloat (JuliaLean.base.float.floatOfInt .f64 u) s)
     JuliaLean.base.float.add_IEEEFloat (add12Same f64Arithmetic JuliaLean.base.int.ifelse) r i
 
-def roundHalfI64 (a b : JInt .i64) : JInt .i64 :=
+def roundHalfI64 (a b : JInt .i64) : JlX (JInt .i64) := do
   let s := JuliaLean.base.int.add a b
   let two := JuliaLean.base.float.floatOfInt .f64 (JuliaLean.base.int.lit .i64 2)
   let q := JuliaLean.base.float.div_IEEEFloat (JuliaLean.base.float.floatOfInt .f64 s) two
-  match roundIntF64 q with
-  | .ok m => m
-  | .error _ => a
+  roundIntF64 q
 
 def addStepRangeLenF64 (r1 r2 : SRLF64) : JlX SRLF64 :=
   addStepRangeLen (jintArith .i64) length_StepRangeLen length_StepRangeLen
@@ -2618,3 +2623,223 @@ def sumStepRangeLenInt (t : IntTy) (r : StepRangeLen (JInt t) (JInt t) (JInt t) 
     (fun v => liftJl (JuliaLean.base.int.convert t v)) r
 
 end JuliaLean.base.twiceprecision
+
+namespace JuliaLean.MathFuncs
+
+open JuliaLean.Float
+
+/-- `canonicalize2(big, little)`; `base/twiceprecision.jl:48-51`. -/
+def canonicalize2 (big little : F64) : F64 × F64 :=
+  let h := F64.add big little
+  (h, F64.add (F64.sub big h) little)
+
+end JuliaLean.MathFuncs
+
+namespace JuliaLean.BroadcastViews
+
+open JuliaLean
+
+/-- The type of the `ref`/`step` fields of a floating-point `StepRangeLen`. -/
+inductive RefT where
+  | float
+  | twicePrecision
+  deriving DecidableEq, Repr
+
+/-- The floating-point element types of a colon range. -/
+inductive FloatT where
+  | f32
+  | f64
+  deriving DecidableEq, Repr
+
+/-- `start:step:stop` for `start, step, stop :: T<:IEEEFloat`, `base/twiceprecision.jl:394-434`:
+both branches end in `floatrange`/`steprangelen_hp(T, ...)`, which builds
+`StepRangeLen(TwicePrecision{Float64}(ref), TwicePrecision{Float64}(step), ...)` for `Float64`
+(lines 342-347, 360-365) and `StepRangeLen{T}(Float64 ref, Float64 step, ...)` otherwise
+(349-353, 367-371). -/
+def colonRefT : FloatT → RefT
+  | .f64 => .twicePrecision
+  | .f32 => .float
+
+/-- Round `n / d` (`d ≠ 0`) to the nearest integer, ties to even (`round` with `RoundNearest`). -/
+def roundHalfEven (n d : Int) : Int :=
+  let n' := if d < 0 then -n else n
+  let d' := if d < 0 then -d else d
+  let q := n'.fdiv d'
+  let r := n' - q * d'
+  if 2 * r < d' then q else if 2 * r > d' then q + 1 else if q % 2 = 0 then q else q + 1
+
+/-- `floatrange(Float64, start_n, step_n, len, den = 1)` for an unsigned `len::UInt64`,
+`base/twiceprecision.jl:380-392`: `len + 0` stays `UInt64`; for `len ≥ 2` and `step_n ≠ 0`,
+`imin = clamp(round(UInt64, -start_n/step_n+1), 1, len)` (throws `InexactError` when the rounded
+value is negative) and `ref_n = start_n + (imin-1)*step_n` is computed in `UInt64` (Int operands
+promote to `UInt64`). `steprangelen_hp` converts `ref_n::UInt64` with `TwicePrecision{Float64}`,
+whose `splitprec` (lines 22-26) throws `InexactError` when `Float64(ref_n)` rounds up to `2^64`
+(`ref_n ≥ 2^64 - 2^10`). Returns the exact value of `ref` and the offset `imin`. Valid for
+`|start_n|, |step_n| < 2^50`, where the `Float64` quotient rounds like the exact one. -/
+def floatrangeU (startN stepN : Int) (len : U64) : R (Int × U64) :=
+  if len.val < 2 ∨ stepN = 0 then .ok (startN, JInt.lit .u64 1)
+  else
+    let k := roundHalfEven (stepN - startN) stepN
+    if k < 0 then .error .inexactError
+    else
+      let imin : U64 := JInt.wrap .u64 (max 1 (min k len.val))
+      let refN : U64 := JInt.wrap .u64 (startN + (imin.val - 1) * stepN)
+      if refN.val ≥ 2 ^ 64 - 2 ^ 10 then .error .inexactError
+      else .ok (refN.val, imin)
+
+end JuliaLean.BroadcastViews
+
+namespace JuliaLean.FloatRanges
+
+open JuliaLean.Float
+
+/-- `isbetween`, `base/twiceprecision.jl:790`. -/
+def isbetween (a x b : F64) : Bool :=
+  (F64.le a x && F64.le x b) || (F64.le b x && F64.le x a)
+
+/-- `lcm_unchecked`, `base/twiceprecision.jl:775`: `a * div(b, gcd(a, b))`, wrapping. -/
+def lcmUnchecked (a b : I64) : Jl I64 := do
+  let g ← IntArith.NumberTheory.gcd a b
+  let q ← JInt.div b g
+  pure (a * q)
+
+/-- `truncmask`, `base/twiceprecision.jl:28-30`. -/
+def truncmask (x : F64) (mask : Nat) : F64 := F64.ofBits (Nat.land mask (F64.toBits x))
+
+
+/-- `truncbits`, `base/twiceprecision.jl:33-35`. -/
+def truncbits (x : F64) (nb : Int) : F64 := truncmask x (shlMask nb)
+
+/-- `canonicalize2`, `base/twiceprecision.jl:48-51`. -/
+def canonicalize2 (big little : F64) : F64 × F64 :=
+  let h := F64.add big little
+  (h, F64.add (F64.sub big h) little)
+
+/-- `add12`, `base/twiceprecision.jl:83-86`. -/
+def add12 (x y : F64) : F64 × F64 :=
+  let (x, y) := if F64.lt (F64.abs x) (F64.abs y) then (y, x) else (x, y)
+  canonicalize2 x y
+
+/-- `two_mul` with hardware FMA, `base/floatfuncs.jl:376-380`; `mul12`,
+`base/twiceprecision.jl:114-117`. -/
+def mul12 (x y : F64) : F64 × F64 :=
+  let h := F64.mul x y
+  let l := F64.fma x y (F64.neg h)
+  if !F64.isfinite h then (h, h) else (h, l)
+
+/-- `TwicePrecision{Float64}`, `base/twiceprecision.jl:196-199`. -/
+structure TP where
+  hi : F64
+  lo : F64
+  deriving DecidableEq, Repr, Inhabited
+
+namespace TP
+
+/-- `TwicePrecision{T}(x::T)`, `base/twiceprecision.jl:201`. -/
+def ofF (x : F64) : TP := ⟨x, fzero⟩
+
+/-- `Float64(x::TwicePrecision)`, `base/twiceprecision.jl:265`. -/
+def toF (x : TP) : F64 := F64.add x.hi x.lo
+
+/-- `-(x::TwicePrecision)`, `base/twiceprecision.jl:279`. -/
+def neg (x : TP) : TP := ⟨F64.neg x.hi, F64.neg x.lo⟩
+
+/-- `splitprec(Float64, i)`, `base/twiceprecision.jl:22-26`; `oftype(i, hi)` is an
+exact conversion that throws `InexactError` when `hi` is out of range. -/
+def splitprec {t : IntTy} (i : JInt t) : Jl (F64 × F64) := do
+  let hi := truncbits (flt i) 27
+  let ihi ← F64.int t hi
+  pure (hi, flt (i - ihi))
+
+/-- `TwicePrecision{T}(i::Integer)`, `base/twiceprecision.jl:211-212`. -/
+def ofInt {t : IntTy} (i : JInt t) : Jl TP := do
+  let (a, b) ← splitprec i
+  let (h, l) := canonicalize2 a b
+  pure ⟨h, l⟩
+
+/-- `+(x::TwicePrecision, y::Number)`, `base/twiceprecision.jl:289-292`. -/
+def addF (x : TP) (y : F64) : TP :=
+  let (s_hi, s_lo) := add12 x.hi y
+  let (h, l) := canonicalize2 s_hi (F64.add s_lo x.lo)
+  ⟨h, l⟩
+
+/-- `+(x::TwicePrecision{T}, y::TwicePrecision{T})`, `base/twiceprecision.jl:295-299`. -/
+def add (x y : TP) : TP :=
+  let r := F64.add x.hi y.hi
+  let s := if F64.lt (F64.abs y.hi) (F64.abs x.hi)
+    then F64.add (F64.add (F64.add (F64.sub x.hi r) y.hi) y.lo) x.lo
+    else F64.add (F64.add (F64.add (F64.sub y.hi r) x.hi) x.lo) y.lo
+  let (h, l) := canonicalize2 r s
+  ⟨h, l⟩
+
+/-- `*(x::TwicePrecision{T}, y::TwicePrecision{T})`, `base/twiceprecision.jl:318-322`. -/
+def mul (x y : TP) : TP :=
+  let (zh, zl) := mul12 x.hi y.hi
+  let (h, l) := canonicalize2 zh
+    (F64.add (F64.add (F64.mul x.hi y.lo) (F64.mul x.lo y.hi)) zl)
+  if F64.iszero zh || !F64.isfinite zh then ⟨zh, zh⟩ else ⟨h, l⟩
+
+/-- `*(x::TwicePrecision, v::Number)` for `v::Float64`, `base/twiceprecision.jl:306-309`. -/
+def mulF (x : TP) (v : F64) : TP :=
+  if F64.eq v fzero then ⟨F64.mul x.hi v, F64.mul x.lo v⟩
+  else mul x (ofF v)
+
+/-- `/(x::TwicePrecision, y::TwicePrecision)`, `base/twiceprecision.jl:329-335`. -/
+def div (x y : TP) : TP :=
+  let hi := F64.div x.hi y.hi
+  let (uh, ul) := mul12 hi y.hi
+  let lo := F64.div
+    (F64.sub (F64.add (F64.sub (F64.sub x.hi uh) ul) x.lo) (F64.mul hi y.lo)) y.hi
+  let (h, l) := canonicalize2 hi lo
+  if F64.iszero hi || !F64.isfinite hi then ⟨hi, hi⟩ else ⟨h, l⟩
+
+/-- `/(x::TwicePrecision, v::Number)`, `base/twiceprecision.jl:325-327`. -/
+def divF (x : TP) (v : F64) : TP := div x (ofF v)
+
+/-- `TwicePrecision{Float64}((num, den))`, `base/twiceprecision.jl:222-225`:
+`TwicePrecision{T}(n) / d`, where the divisor is converted to Float64. -/
+def ofRatio {t : IntTy} (n d : JInt t) : Jl TP := do
+  let x ← ofInt n
+  pure (divF x (flt d))
+
+/-- `twiceprecision(val::TwicePrecision, nb)`, `base/twiceprecision.jl:246-249`. -/
+def trunc (val : TP) (nb : Int) : TP :=
+  let hi := truncbits val.hi nb
+  ⟨hi, F64.add (F64.sub val.hi hi) val.lo⟩
+
+end TP
+
+/-- `nbitslen(len, offset)`, `base/twiceprecision.jl:256`. -/
+def nbitslen0 (len offset : I64) : Int :=
+  if len.val < 2 then 0
+  else topSetBit (imax (offset - i64 1) (len - offset) - i64 1) + 1
+
+/-- `nbitslen(Float64, len, offset)`, `base/twiceprecision.jl:252-253`. -/
+def nbitslen (len offset : I64) : Int := min 27 (nbitslen0 len offset)
+
+/-- `convert(Int, maxintfloat(Float32, Int))`, `base/twiceprecision.jl:767`. -/
+def ratBoundInt : I64 := i64 16777216
+
+/-- One iteration bound of the `while` loop of `rat`. Each iteration either exits
+or, after the first, multiplies `|b|` by at least the golden ratio (`|f| ≥ 1` since
+`|y| > 1` after `inv`), so `max(|a|,|b|) > 2^24` after at most 40 iterations; the
+remaining fuel is never reached. -/
+def ratLoop (x : F64) : Nat → F64 → I64 → I64 → I64 → I64 → Jl (I64 × I64)
+  | 0, _, a, b, _, _ => .ok (a, b)
+  | fuel + 1, y, a, b, c, d =>
+    if !F64.le (F64.abs y) ratBound then .ok (a, b)
+    else do
+      let f ← F64.truncInt .i64 y
+      let y := F64.sub y (flt f)
+      let a' := f * a + c
+      let c := a
+      let b' := f * b + d
+      let d := b
+      if !(decide ((imax (iabs a') (iabs b')).val ≤ ratBoundInt.val)) then return (c, d)
+      if F64.eq (F64.div (flt a') (flt b')) x then return (a', b')
+      ratLoop x fuel (F64.div F64.one y) a' b' c d
+
+/-- `rat(x)`, `base/twiceprecision.jl:757-772`: continued-fraction approximation. -/
+def rat (x : F64) : Jl (I64 × I64) := ratLoop x 100 x (i64 1) (i64 0) (i64 0) (i64 1)
+
+end JuliaLean.FloatRanges

@@ -44,8 +44,26 @@ cause: |
 possible_fix: |
   Record out.size before copyuntil and strip only bytes after it.
 duplicates:
-  issues: []
-  queries: ["copyline", "copyline IOBuffer", "copyline keep", "copyline keep false", "copyline CRLF"]
+  issues:
+    - {number: 64164, state: open, relation: duplicate}
+  queries: ["copyline", "copyline IOBuffer", "copyline keep", "copyline keep false", "copyline CRLF", "repo:JuliaLang/julia is:issue copyline IOBuffer"]
 lean:
   property: JuliaLean.IOBuffers.CopylineAtEnd
   theorem: JuliaLean.IOBuffers.copylineAtEnd_refuted
+covers:
+  - iocov-iobuffer-copyline-methods
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: true
+  proof: JuliaLean.Proofs.base.iobuffer.copylineAtEnd_native_refuted
+  output: |
+    JULIA 1.13.2 COMMIT 45b6d15e34bbd2003a31acce0b1847b63dad029c
+    JULIA 1.15.0-DEV.unknown COMMIT f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    == release
+    "a\n" + exhausted stream: "a"; "ab\r" + "\n": "ab"
+    buffer over a vector with memory offset: position = -1, bytesavailable = 0
+    REPRODUCED iobuffers-copyline-prior
+    == nightly
+    "a\n" + exhausted stream: "a"; "ab\r" + "\n": "ab"
+    buffer over a vector with memory offset: position = -1, bytesavailable = 0
+    REPRODUCED iobuffers-copyline-prior

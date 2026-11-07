@@ -6,13 +6,6 @@ open Lean Meta
 
 def cruntimeStandardAxioms : List Name := [``propext, ``Classical.choice, ``Quot.sound]
 
-def cruntimeRuntimeAxiomModule : Name := `JuliaLean.Runtime.Axioms
-
-def cruntimeAxiomAllowed (env : Environment) (ax : Name) : Bool :=
-  cruntimeStandardAxioms.contains ax ||
-    match env.getModuleIdxFor? ax with
-    | some idx => env.header.moduleNames[idx.toNat]? == some cruntimeRuntimeAxiomModule
-    | none => false
 
 #eval show MetaM Unit from do
   let env ← getEnv
@@ -58,7 +51,7 @@ def cruntimeAxiomAllowed (env : Environment) (ax : Name) : Bool :=
       continue
     let axioms ← collectAxioms thm
     for ax in axioms do
-      unless cruntimeAxiomAllowed env ax do
+      unless cruntimeStandardAxioms.contains ax do
         failures := failures.push s!"{e.id}: {thm} uses disallowed axiom {ax}"
     if e.status == .refuted then
       if e.issue.isEmpty then

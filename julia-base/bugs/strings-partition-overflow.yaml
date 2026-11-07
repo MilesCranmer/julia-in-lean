@@ -43,9 +43,13 @@ cause: |
 possible_fix: |
   Fix the overflow in nextind(s, i, n).
 duplicates:
-  issues: []
+  issues:
+    - {number: 64143, state: open, relation: related}
+  prs:
+    - {number: 64370, state: merged, relation: duplicate}
   queries:
     - "issues: partition string typemax"
+    - "issues: Iterators.partition String typemax BoundsError"
 lean:
-  property: JuliaLean.Strings.PartitionWhole
-  theorem: JuliaLean.Strings.partitionWhole_refuted
+  property: JuliaLean.Proofs.base.strings.util.Round6.PartitionWhole
+  theorem: JuliaLean.Proofs.base.strings.util.Round6.partitionWhole_refuted

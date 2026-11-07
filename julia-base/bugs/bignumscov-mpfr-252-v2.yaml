@@ -1,0 +1,89 @@
+id: bignumscov-mpfr-252-v2
+title: RoundingMode documentation does not distinguish ambient BigFloat modes from integer tie rules
+priority: P3
+kind: documentation
+area: BigNums
+files:
+  - base/rounding.jl
+  - base/mpfr.jl
+functions:
+  - rounding(::Type{BigFloat})
+  - setrounding(::Type{BigFloat}, ::RoundingMode)
+summary: |
+  setrounding(BigFloat, RoundNearestTiesAway) throws MethodError. The
+  RoundingMode docstring presents seven supported modes after describing both
+  ambient arithmetic controls and integer rounding. It does not explain that
+  the two nearest-tie variants are unavailable as ambient BigFloat modes.
+likelihood: |
+  A reader can reasonably try a tag listed under RoundingMode with setrounding,
+  particularly because rounding's docstring points to that list for available modes.
+maybe_intended: |
+  Rejecting this tag for ambient arithmetic is consistent with MPFR's supported
+  modes. A tag for rounding to integers does not automatically define an MPFR
+  arithmetic mode. Assuming that every public tag is supported does not hold;
+  the reproducer shows this without establishing a runtime bug. The actionable
+  issue is the missing distinction in the documentation.
+reproducer: |
+  try
+      setrounding(BigFloat, RoundNearestTiesAway)
+  catch err
+      err isa MethodError || rethrow()
+      println("REPRODUCED bignumscov-mpfr-252-v2")
+  end
+output:
+  release: |
+    REPRODUCED bignumscov-mpfr-252-v2
+  nightly: |
+    REPRODUCED bignumscov-mpfr-252-v2
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  Document which modes setrounding(BigFloat, mode) accepts, distinguishing
+  ambient arithmetic modes from the two additional integer-rounding tie rules.
+  Do not promise an ambient nearest-ties-away mode solely because its tag is public.
+promised_by: |
+  At pinned source f755f49a9e41380d7da126b3c1db9fe7f83dd027,
+  base/rounding.jl:29-34 says:
+  "A type used for controlling the rounding mode of floating point operations (via
+  [`rounding`](@ref)/[`setrounding`](@ref) functions), or as
+  optional arguments for rounding to the nearest integer (via the [`round`](@ref)
+  function).
+
+  Currently supported rounding modes are:"
+  Its list at lines 36-42 includes "- [`RoundNearestTiesAway`](@ref)".
+  base/rounding.jl:215 says:
+  "See [`RoundingMode`](@ref) for available modes."
+  These passages do not explicitly promise that every listed tag works in
+  every API; their failure to distinguish the sets is the documentation problem.
+cause: |
+  base/mpfr.jl:253 converts the tag to MPFRRoundingMode before writing the
+  default. Lines 75-79 implement only Nearest, ToZero, Up, Down and FromZero.
+  No conversion exists for NearestTiesAway, so dispatch throws MethodError.
+possible_fix: |
+  Add the five accepted ambient modes to the setrounding documentation and
+  label the two nearest-tie variants as integer-rounding modes in RoundingMode.
+duplicates:
+  issues:
+    - number: 64178
+      state: open
+      relation: related
+      note: Integer-target round rejects the same tags, not ambient setrounding
+    - number: 26935
+      state: closed
+      relation: related
+      note: Discussion of setrounding API limitations, not an exact duplicate
+  queries:
+    - tool: gh search issues --repo JuliaLang/julia
+      query: setrounding RoundNearestTiesAway
+    - tool: gh search issues --repo JuliaLang/julia
+      query: setrounding modes
+    - tool: gh search issues --repo JuliaLang/julia
+      query: setrounding
+    - tool: gh search prs --repo JuliaLang/julia
+      query: setrounding RoundNearestTiesAway
+    - tool: gh search prs --repo JuliaLang/julia
+      query: setrounding modes
+lean:
+  property: JuliaLean.Proofs.base.mpfr.Round1.SetRoundingObservableCorrect
+  theorem: JuliaLean.ChatGPT.Batch4.Group3.BignumscovMpfr252V2_refuted

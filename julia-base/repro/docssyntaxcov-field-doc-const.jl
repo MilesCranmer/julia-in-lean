@@ -1,14 +1,13 @@
-# Docs.metadata collects field docstrings only before `Symbol` or `x::T` field
-# declarations, so the docstring of a `const` field is kept and attached to the
-# next ordinary field instead.
+# A field docstring before a const field is attached to the next ordinary field.
 "S doc"
 mutable struct S
     "doc for a"
     const a::Int
     b::Int
 end
-fields = Base.Docs.meta(@__MODULE__)[Base.Docs.Binding(@__MODULE__, :S)].docs[Union{}].data[:fields]
-println("fields = ", repr(fields))
-if get(fields, :b, nothing) == "doc for a" && !haskey(fields, :a)
+d = (@doc S)
+fields = d.data[:fields]
+println("@doc S field docs = ", repr(fields))
+if fields == Dict(:b => "doc for a")
     println("REPRODUCED docssyntaxcov-field-doc-const")
 end

@@ -8,16 +8,16 @@ base/reshapedarray.jl	36	36	eltype	eltype(::Type{<:ReshapedArrayIterator{I}}) wh
 base/reshapedarray.jl	38	39	throw_dmrsa	throw_dmrsa(dims, len)	modelled	reshapedarray-dimension-errors	row-specific faithful source-order replacement
 base/reshapedarray.jl	43	51	reshape	reshape(a::Array{T,M}, dims::NTuple{N,Int}) where {T,N,M}	modelled	reinterpretarrays-reshape-check-sound	row-specific faithful source-order replacement
 base/reshapedarray.jl	55	62	reshape!	reshape!(a::Array{T,N}, dims::NTuple{N,Int}) where {T,N}	modelled	multidimcov-reshape-bang-field	row-specific faithful source model and reproduced refutation
-base/reshapedarray.jl	122	122	reshape	reshape(parent::AbstractArray, dims::IntOrInd...)	todo		trivial: reshape overload forwards unchanged arguments
-base/reshapedarray.jl	123	123	reshape	reshape(parent::AbstractArray, shp::Tuple{Union{Integer,AbstractOneTo}, Vararg{Union{Integer,AbstractOneTo}}})	todo		trivial: shape overload only converts and forwards
-base/reshapedarray.jl	126	126	reshape	reshape(parent::AbstractArray, shp::Tuple{Union{Integer,OneTo}, Vararg{Union{Integer,OneTo}}})	todo		trivial: legacy shape overload only converts and forwards
-base/reshapedarray.jl	127	127	reshape	reshape(parent::AbstractArray, dims::Tuple{Integer, Vararg{Integer}})	todo		trivial: integer tuple overload only converts and forwards
-base/reshapedarray.jl	128	128	reshape	reshape(parent::AbstractArray, dims::Dims)	todo		trivial: Dims overload forwards to the general reshape method
-base/reshapedarray.jl	131	131	reshape	reshape(parent::AbstractVector, ::Colon)	todo		trivial: overload wrappers and colon scanners restate dispatch
-base/reshapedarray.jl	132	132	reshape	reshape(parent::AbstractVector, ::Tuple{Colon})	todo		trivial: overload wrappers and colon scanners restate dispatch
-base/reshapedarray.jl	133	133	reshape	reshape(parent::AbstractArray, dims::Int...)	todo		trivial: Int vararg overload forwards to tuple reshape
-base/reshapedarray.jl	134	134	reshape	reshape(parent::AbstractArray, dims::Integer...)	todo		trivial: Integer vararg overload forwards to tuple reshape
-base/reshapedarray.jl	135	135	reshape	reshape(parent::AbstractArray, dims::Union{Integer,Colon}...)	todo		trivial: mixed vararg overload forwards to tuple reshape
+base/reshapedarray.jl	122	122	reshape	reshape(parent::AbstractArray, dims::IntOrInd...)	modelled	reshapedarray-vector-strides	Reviewed line by line against pinned f755f49 source.
+base/reshapedarray.jl	123	123	reshape	reshape(parent::AbstractArray, shp::Tuple{Union{Integer,AbstractOneTo}, Vararg{Union{Integer,AbstractOneTo}}})	modelled	reshapedarray-vector-strides	Reviewed line by line against pinned f755f49 source.
+base/reshapedarray.jl	126	126	reshape	reshape(parent::AbstractArray, shp::Tuple{Union{Integer,OneTo}, Vararg{Union{Integer,OneTo}}})	modelled	reshapedarray-vector-strides	Reviewed line by line against pinned f755f49 source.
+base/reshapedarray.jl	127	127	reshape	reshape(parent::AbstractArray, dims::Tuple{Integer, Vararg{Integer}})	modelled	reshapedarray-vector-strides	Reviewed line by line against pinned f755f49 source.
+base/reshapedarray.jl	128	128	reshape	reshape(parent::AbstractArray, dims::Dims)	modelled	reshapedarray-vector-strides	Reviewed line by line against pinned f755f49 source.
+base/reshapedarray.jl	131	131	reshape	reshape(parent::AbstractVector, ::Colon)	modelled	reshapedarray-vector-strides	Reviewed line by line against pinned f755f49 source.
+base/reshapedarray.jl	132	132	reshape	reshape(parent::AbstractVector, ::Tuple{Colon})	modelled	reshapedarray-vector-strides	Reviewed line by line against pinned f755f49 source.
+base/reshapedarray.jl	133	133	reshape	reshape(parent::AbstractArray, dims::Int...)	modelled	reshapedarray-vector-strides	Reviewed line by line against pinned f755f49 source.
+base/reshapedarray.jl	134	134	reshape	reshape(parent::AbstractArray, dims::Integer...)	modelled	reshapedarray-vector-strides	Reviewed line by line against pinned f755f49 source.
+base/reshapedarray.jl	135	135	reshape	reshape(parent::AbstractArray, dims::Union{Integer,Colon}...)	modelled	reshapedarray-vector-strides	Reviewed line by line against pinned f755f49 source.
 base/reshapedarray.jl	136	136	reshape	reshape(parent::AbstractArray, dims::Tuple{Vararg{Union{Integer,Colon}}})	todo		trivial: colon tuple overload delegates to colon inference
 base/reshapedarray.jl	138	139	throw1	throw1(dims)	modelled	reshapedarray-dimension-errors	row-specific faithful source-order replacement
 base/reshapedarray.jl	140	141	throw2	throw2(lenA, dims)	modelled	reshapedarray-dimension-errors	row-specific faithful source-order replacement
@@ -32,20 +32,20 @@ base/reshapedarray.jl	181	181	_before_colon	_before_colon(dim::Any, tail...)	tod
 base/reshapedarray.jl	182	182	_before_colon	_before_colon(dim::Colon, tail...)	todo		trivial: overload wrappers and colon scanners restate dispatch
 base/reshapedarray.jl	183	183	_after_colon	_after_colon(dim::Any, tail...)	todo		trivial: overload wrappers and colon scanners restate dispatch
 base/reshapedarray.jl	184	184	_after_colon	_after_colon(dim::Colon, tail...)	todo		trivial: overload wrappers and colon scanners restate dispatch
-base/reshapedarray.jl	186	186	reshape	reshape(parent::AbstractArray{T,N}, ndims::Val{N}) where {T,N}	todo		trivial: rank routing restates the dispatch body
-base/reshapedarray.jl	187	189	reshape	reshape(parent::AbstractArray, ndims::Val{N}) where N	todo		trivial: rank reshape forwards axes-derived dimensions
-base/reshapedarray.jl	194	194	rdims_trailing	rdims_trailing(l, inds...)	todo		trivial: private trailing-length recursion has no separate contract
-base/reshapedarray.jl	195	195	rdims_trailing	rdims_trailing(l)	todo		trivial: terminal trailing-length helper forwards length
-base/reshapedarray.jl	196	196	rdims	rdims(out::Val{N}, inds::Tuple) where {N}	todo		trivial: Val wrapper prepares unit axes for rank dispatch
-base/reshapedarray.jl	197	197	rdims	rdims(out::Tuple{}, inds::Tuple{})	todo		trivial: rank routing restates the dispatch body
-base/reshapedarray.jl	198	198	rdims	rdims(out::Tuple{}, inds::Tuple{Any})	todo		trivial: rank routing restates the dispatch body
-base/reshapedarray.jl	199	199	rdims	rdims(out::Tuple{}, inds::NTuple{M,Any}) where {M}	todo		trivial: rank routing restates the dispatch body
-base/reshapedarray.jl	200	200	rdims	rdims(out::Tuple{Any}, inds::Tuple{})	todo		trivial: rank routing restates the dispatch body
-base/reshapedarray.jl	201	201	rdims	rdims(out::NTuple{N,Any}, inds::Tuple{}) where {N}	todo		trivial: rank routing restates the dispatch body
-base/reshapedarray.jl	202	202	rdims	rdims(out::Tuple{Any}, inds::Tuple{Any})	todo		trivial: rank routing restates the dispatch body
-base/reshapedarray.jl	203	203	rdims	rdims(out::Tuple{Any}, inds::NTuple{M,Any}) where {M}	todo		trivial: singleton rank helper computes a collapsed dimension
-base/reshapedarray.jl	204	204	rdims	rdims(out::NTuple{N,Any}, inds::NTuple{N,Any}) where {N}	todo		trivial: rank routing restates the dispatch body
-base/reshapedarray.jl	205	205	rdims	rdims(out::NTuple{N,Any}, inds::NTuple{M,Any}) where {N,M}	todo		trivial: rank routing restates the dispatch body
+base/reshapedarray.jl	186	186	reshape	reshape(parent::AbstractArray{T,N}, ndims::Val{N}) where {T,N}	modelled	reshapedarray-vector-strides	Reviewed line by line against pinned f755f49 source.
+base/reshapedarray.jl	187	189	reshape	reshape(parent::AbstractArray, ndims::Val{N}) where N	modelled	reshapedarray-vector-strides	Reviewed line by line against pinned f755f49 source.
+base/reshapedarray.jl	194	194	rdims_trailing	rdims_trailing(l, inds...)	modelled	reshapedarray-vector-strides	Reviewed line by line against pinned f755f49 source.
+base/reshapedarray.jl	195	195	rdims_trailing	rdims_trailing(l)	modelled	reshapedarray-vector-strides	Reviewed line by line against pinned f755f49 source.
+base/reshapedarray.jl	196	196	rdims	rdims(out::Val{N}, inds::Tuple) where {N}	modelled	reshapedarray-vector-strides	Reviewed line by line against pinned f755f49 source.
+base/reshapedarray.jl	197	197	rdims	rdims(out::Tuple{}, inds::Tuple{})	modelled	reshapedarray-vector-strides	Reviewed line by line against pinned f755f49 source.
+base/reshapedarray.jl	198	198	rdims	rdims(out::Tuple{}, inds::Tuple{Any})	modelled	reshapedarray-vector-strides	Reviewed line by line against pinned f755f49 source.
+base/reshapedarray.jl	199	199	rdims	rdims(out::Tuple{}, inds::NTuple{M,Any}) where {M}	modelled	reshapedarray-vector-strides	Reviewed line by line against pinned f755f49 source.
+base/reshapedarray.jl	200	200	rdims	rdims(out::Tuple{Any}, inds::Tuple{})	modelled	reshapedarray-vector-strides	Reviewed line by line against pinned f755f49 source.
+base/reshapedarray.jl	201	201	rdims	rdims(out::NTuple{N,Any}, inds::Tuple{}) where {N}	modelled	reshapedarray-vector-strides	Reviewed line by line against pinned f755f49 source.
+base/reshapedarray.jl	202	202	rdims	rdims(out::Tuple{Any}, inds::Tuple{Any})	modelled	reshapedarray-vector-strides	Reviewed line by line against pinned f755f49 source.
+base/reshapedarray.jl	203	203	rdims	rdims(out::Tuple{Any}, inds::NTuple{M,Any}) where {M}	modelled	reshapedarray-vector-strides	Reviewed line by line against pinned f755f49 source.
+base/reshapedarray.jl	204	204	rdims	rdims(out::NTuple{N,Any}, inds::NTuple{N,Any}) where {N}	modelled	reshapedarray-vector-strides	Reviewed line by line against pinned f755f49 source.
+base/reshapedarray.jl	205	205	rdims	rdims(out::NTuple{N,Any}, inds::NTuple{M,Any}) where {N,M}	modelled	reshapedarray-vector-strides	Reviewed line by line against pinned f755f49 source.
 base/reshapedarray.jl	209	209	_reshape	_reshape(parent::Vector, dims::Dims{1})	todo		trivial: rank routing restates the dispatch body
 base/reshapedarray.jl	210	210	_reshape	_reshape(parent::Array, dims::Dims{1})	todo		trivial: rank routing restates the dispatch body
 base/reshapedarray.jl	211	211	_reshape	_reshape(parent::Array, dims::Dims)	todo		trivial: rank routing restates the dispatch body
@@ -59,13 +59,13 @@ base/reshapedarray.jl	243	246	__reshape	__reshape(p::Tuple{AbstractArray{<:Any,0
 base/reshapedarray.jl	248	251	__reshape	__reshape(p::Tuple{AbstractArray,IndexLinear}, dims::Dims)	modelled	reinterpretarrays-reshape-check-sound	
 base/reshapedarray.jl	253	253	size	size(A::ReshapedArray)	modelled	reshapedarray-array-shares-storage	
 base/reshapedarray.jl	254	254	length	length(A::ReshapedArray)	modelled	reshapedarray-array-shares-storage	
-base/reshapedarray.jl	255	255	similar	similar(A::ReshapedArray, eltype::Type, dims::Dims)	todo		trivial: similar delegates to the parent
-base/reshapedarray.jl	256	256	similar	similar(::Type{TA}, dims::Dims) where {T,N,P,TA<:ReshapedArray{T,N,P}}	todo		trivial: type-level similar delegates to the parent type
+base/reshapedarray.jl	255	255	similar	similar(A::ReshapedArray, eltype::Type, dims::Dims)	modelled	reshapedarray-vector-strides	Reviewed line by line against pinned f755f49 source.
+base/reshapedarray.jl	256	256	similar	similar(::Type{TA}, dims::Dims) where {T,N,P,TA<:ReshapedArray{T,N,P}}	modelled	reshapedarray-vector-strides	Reviewed line by line against pinned f755f49 source.
 base/reshapedarray.jl	257	257	IndexStyle	IndexStyle(::Type{<:ReshapedArrayLF})	modelled	reshapedarray-array-shares-storage	
 base/reshapedarray.jl	258	258	parent	parent(A::ReshapedArray)	modelled	reshapedarray-array-shares-storage	
 base/reshapedarray.jl	259	259	parentindices	parentindices(A::ReshapedArray)	modelled	reshapedarray-array-shares-storage	
 base/reshapedarray.jl	260	260	elsize	elsize(::Type{<:ReshapedArray{<:Any,<:Any,P}}) where {P}	modelled	reshapedarray-array-shares-storage	
-base/reshapedarray.jl	262	262	unaliascopy	unaliascopy(A::ReshapedArray)	todo		trivial: unaliascopy delegates parent copying then reconstructs metadata
+base/reshapedarray.jl	262	262	unaliascopy	unaliascopy(A::ReshapedArray)	modelled	reshapedarray-vector-strides	Reviewed line by line against pinned f755f49 source.
 base/reshapedarray.jl	263	263	dataids	dataids(A::ReshapedArray)	modelled	reshapedarray-array-shares-storage	
 base/reshapedarray.jl	265	265	mightalias	mightalias(A::ReshapedArray, B::ReshapedArray)	modelled	reshapedarray-array-shares-storage	
 base/reshapedarray.jl	267	267	mightalias	mightalias(A::ReshapedArray, B::SubArray)	modelled	reshapedarray-array-shares-storage	
@@ -82,8 +82,8 @@ base/reshapedarray.jl	294	299	getindex	getindex(A::ReshapedArrayLF, index::Int)	
 base/reshapedarray.jl	300	303	getindex	getindex(A::ReshapedArray{T,N}, indices::Vararg{Int,N}) where {T,N}	modelled	memsafety-reshapedarray-indexing	row-specific faithful source-order replacement
 base/reshapedarray.jl	304	308	getindex	getindex(A::ReshapedArray, index::ReshapedIndex)	modelled	memsafety-reshapedarray-indexing	row-specific faithful source-order replacement
 base/reshapedarray.jl	310	315	_unsafe_getindex	_unsafe_getindex(A::ReshapedArray{T,N}, indices::Vararg{Int,N}) where {T,N}	modelled	memsafety-reshapedarray-ind2sub	row-specific faithful source-order replacement
-base/reshapedarray.jl	316	316	_unsafe_getindex_rs	_unsafe_getindex_rs(A, i::Integer)	todo		trivial: scalar helper forwards the parent getindex call
-base/reshapedarray.jl	317	317	_unsafe_getindex_rs	_unsafe_getindex_rs(A, I)	todo		trivial: tuple helper forwards the parent getindex call
+base/reshapedarray.jl	316	316	_unsafe_getindex_rs	_unsafe_getindex_rs(A, i::Integer)	modelled	reshapedarray-vector-strides	Reviewed line by line against pinned f755f49 source.
+base/reshapedarray.jl	317	317	_unsafe_getindex_rs	_unsafe_getindex_rs(A, I)	modelled	reshapedarray-vector-strides	Reviewed line by line against pinned f755f49 source.
 base/reshapedarray.jl	319	324	setindex!	setindex!(A::ReshapedArrayLF, val, index::Int)	modelled	reshapedarray-assignment-returns-value	row-specific faithful source-order replacement
 base/reshapedarray.jl	325	328	setindex!	setindex!(A::ReshapedArray{T,N}, val, indices::Vararg{Int,N}) where {T,N}	modelled	reshapedarray-assignment-returns-value	row-specific faithful source-order replacement
 base/reshapedarray.jl	329	333	setindex!	setindex!(A::ReshapedArray, val, index::ReshapedIndex)	modelled	reshapedarray-assignment-returns-value	row-specific faithful source-order replacement
@@ -92,13 +92,13 @@ base/reshapedarray.jl	344	344	setindex!	setindex!(A::ReshapedRange, val, index::
 base/reshapedarray.jl	345	345	setindex!	setindex!(A::ReshapedRange{T,N}, val, indices::Vararg{Int,N}) where {T,N}	modelled	reshapedarray-range-assignment-error	
 base/reshapedarray.jl	346	346	setindex!	setindex!(A::ReshapedRange, val, index::ReshapedIndex)	modelled	reshapedarray-range-assignment-error	
 base/reshapedarray.jl	348	348	_rs_setindex!_err	_rs_setindex!_err()	modelled	reshapedarray-range-assignment-error	row-specific faithful source-order replacement
-base/reshapedarray.jl	350	350	cconvert	cconvert(::Type{Ptr{T}}, a::ReshapedArray{T}) where {T}	todo		trivial: pointer conversion forwards to the parent
-base/reshapedarray.jl	351	351	unsafe_convert	unsafe_convert(::Type{Ptr{T}}, a::ReshapedArray{T}) where {T}	todo		trivial: unsafe pointer conversion forwards to the parent
+base/reshapedarray.jl	350	350	cconvert	cconvert(::Type{Ptr{T}}, a::ReshapedArray{T}) where {T}	modelled	reshapedarray-vector-strides	Reviewed line by line against pinned f755f49 source.
+base/reshapedarray.jl	351	351	unsafe_convert	unsafe_convert(::Type{Ptr{T}}, a::ReshapedArray{T}) where {T}	modelled	reshapedarray-vector-strides	Reviewed line by line against pinned f755f49 source.
 base/reshapedarray.jl	355	355	viewindexing	viewindexing(I::Tuple{Slice, ReshapedUnitRange, Vararg{ScalarIndex}})	modelled	reshapedarray-range-assignment-error	
 base/reshapedarray.jl	356	356	viewindexing	viewindexing(I::Tuple{ReshapedRange, Vararg{ScalarIndex}})	modelled	reshapedarray-range-assignment-error	
-base/reshapedarray.jl	357	357	compute_stride1	compute_stride1(s, inds, I::Tuple{ReshapedRange, Vararg{Any}})	todo		trivial: private range stride helper supports the view stride method
+base/reshapedarray.jl	357	357	compute_stride1	compute_stride1(s, inds, I::Tuple{ReshapedRange, Vararg{Any}})	modelled	reshapedarray-vector-strides	Reviewed line by line against pinned f755f49 source.
 base/reshapedarray.jl	358	359	compute_offset1	compute_offset1(parent::AbstractVector, stride1::Integer, I::Tuple{ReshapedRange})	modelled	reshapedarray-pointer-offsets	
-base/reshapedarray.jl	360	361	substrides	substrides(strds::NTuple{N,Int}, I::Tuple{ReshapedRange{<:Integer}, Vararg{Any}}) where N	todo		trivial: private range stride helper supports the view stride method
+base/reshapedarray.jl	360	361	substrides	substrides(strds::NTuple{N,Int}, I::Tuple{ReshapedRange{<:Integer}, Vararg{Any}}) where N	modelled	reshapedarray-vector-strides	Reviewed line by line against pinned f755f49 source.
 base/reshapedarray.jl	368	376	unsafe_convert	unsafe_convert(::Type{Ptr{S}}, V::SubArray{T,N,P,<:Tuple{Vararg{StridedSubArrayIndex}}}) where {S,T,N,P}	modelled	reshapedarray-pointer-offsets	row-specific faithful source-order replacement
 base/reshapedarray.jl	384	390	_offset_cconvert	_offset_cconvert(::Type{Ptr{T}}, byte_offset::Int, cconv_parent::OffsetCConvert{T}) where {T}	modelled	reshapedarray-pointer-offsets	
 base/reshapedarray.jl	391	396	_offset_cconvert	_offset_cconvert(::Type{Ptr{T}}, byte_offset::Int, cconv_parent::C) where {T,C}	modelled	reshapedarray-pointer-offsets	
@@ -114,9 +114,9 @@ base/reshapedarray.jl	437	446	_reshaped_strides	_reshaped_strides(sz::Dims, resh
 base/reshapedarray.jl	448	448	merge_adjacent_dim	merge_adjacent_dim(::Dims{0}, ::Dims{0})	modelled	reshapedarray-range-assignment-error	
 base/reshapedarray.jl	449	449	merge_adjacent_dim	merge_adjacent_dim(apsz::Dims{1}, apst::Dims{1})	modelled	reshapedarray-range-assignment-error	
 base/reshapedarray.jl	450	464	merge_adjacent_dim	merge_adjacent_dim(apsz::Dims{N}, apst::Dims{N}, n::Int = 1) where {N}	modelled	reshapedarray-vector-strides	row-specific faithful source-order replacement
-base/reshapedarray.jl	466	466	map	map(f, R::ReshapedArray)	todo		trivial: map delegates to parent map and reshape
-base/reshapedarray.jl	468	468	iterate	iterate(R::ReshapedArray)	todo		trivial: map, iteration, fold, and membership forward to the parent
-base/reshapedarray.jl	469	469	iterate	iterate(R::ReshapedArray, state)	todo		trivial: map, iteration, fold, and membership forward to the parent
-base/reshapedarray.jl	471	471	mapfoldl_impl	mapfoldl_impl(f, op, nt, R::ReshapedArray)	todo		trivial: map, iteration, fold, and membership forward to the parent
-base/reshapedarray.jl	472	472	mapfoldr_impl	mapfoldr_impl(f, op, nt, R::ReshapedArray)	todo		trivial: map, iteration, fold, and membership forward to the parent
-base/reshapedarray.jl	474	474	in	in(x, R::ReshapedArray)	todo		trivial: map, iteration, fold, and membership forward to the parent
+base/reshapedarray.jl	466	466	map	map(f, R::ReshapedArray)	modelled	reshapedarray-vector-strides	Reviewed line by line against pinned f755f49 source.
+base/reshapedarray.jl	468	468	iterate	iterate(R::ReshapedArray)	modelled	reshapedarray-vector-strides	Reviewed line by line against pinned f755f49 source.
+base/reshapedarray.jl	469	469	iterate	iterate(R::ReshapedArray, state)	modelled	reshapedarray-vector-strides	Reviewed line by line against pinned f755f49 source.
+base/reshapedarray.jl	471	471	mapfoldl_impl	mapfoldl_impl(f, op, nt, R::ReshapedArray)	modelled	reshapedarray-vector-strides	Reviewed line by line against pinned f755f49 source.
+base/reshapedarray.jl	472	472	mapfoldr_impl	mapfoldr_impl(f, op, nt, R::ReshapedArray)	modelled	reshapedarray-vector-strides	Reviewed line by line against pinned f755f49 source.
+base/reshapedarray.jl	474	474	in	in(x, R::ReshapedArray)	modelled	reshapedarray-vector-strides	Reviewed line by line against pinned f755f49 source.

@@ -5,6 +5,7 @@ kind: wrong-result
 area: Ranges
 files: [base/range.jl]
 functions: ["length(::AbstractUnitRange)", "length(::OrdinalRange)"]
+covers: [rangescov-issorted-full-width]
 summary: |
   A range with 2^64 elements reports length 0 while isempty is false. The
   count is not representable as Int64, and length silently wraps instead of

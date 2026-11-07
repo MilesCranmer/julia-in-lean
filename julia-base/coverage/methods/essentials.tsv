@@ -1,147 +1,147 @@
 file	line	endline	name	signature	status	entry	note
-base/essentials.jl	9	9	blackbox	blackbox(x)	todo		
-base/essentials.jl	12	12	size	size(a::Array)	todo		
-base/essentials.jl	13	13	length	length(t::AbstractArray)	todo		
-base/essentials.jl	14	14	size	size(a::GenericMemory)	todo		
-base/essentials.jl	15	15	throw_boundserror	throw_boundserror(A)	todo		
-base/essentials.jl	16	16	throw_boundserror	throw_boundserror(A, I)	todo		
-base/essentials.jl	17	17	throw_boundserror	throw_boundserror(A, i1, i2, I...)	todo		
-base/essentials.jl	18	18	_throw_boundserror_indices	_throw_boundserror_indices(A)	todo		
-base/essentials.jl	19	19	_throw_boundserror_indices	_throw_boundserror_indices(A, i1, I...)	todo		
-base/essentials.jl	23	23	==	==(a::GlobalRef, b::GlobalRef)	todo		
-base/essentials.jl	46	48	_gc_preserve_begin	_gc_preserve_begin(arg1)	todo		
-base/essentials.jl	50	52	_gc_preserve_end	_gc_preserve_end(token)	todo		
-base/essentials.jl	125	134	nospecialize	nospecialize(vars...)	todo		
-base/essentials.jl	142	151	specialize	specialize(vars...)	todo		
-base/essentials.jl	184	186	isdefined	isdefined(s::Symbol)	todo		
-base/essentials.jl	188	188	_nameof	_nameof(m::Module)	todo		
-base/essentials.jl	190	193	_is_internal	_is_internal(__module__)	todo		
-base/essentials.jl	196	209	_total_meta	_total_meta()	todo		
-base/essentials.jl	211	224	_foldable_meta	_foldable_meta()	todo		
-base/essentials.jl	226	239	_terminates_locally_meta	_terminates_locally_meta()	todo		
-base/essentials.jl	241	254	_terminates_globally_meta	_terminates_globally_meta()	todo		
-base/essentials.jl	256	269	_terminates_globally_notaskstate_meta	_terminates_globally_notaskstate_meta()	todo		
-base/essentials.jl	271	284	_terminates_globally_noub_meta	_terminates_globally_noub_meta()	todo		
-base/essentials.jl	286	299	_effect_free_terminates_locally_meta	_effect_free_terminates_locally_meta()	todo		
-base/essentials.jl	301	314	_nothrow_noub_meta	_nothrow_noub_meta()	todo		
-base/essentials.jl	316	329	_nothrow_meta	_nothrow_meta()	todo		
-base/essentials.jl	331	344	_noub_meta	_noub_meta()	todo		
-base/essentials.jl	346	359	_notaskstate_meta	_notaskstate_meta()	todo		
-base/essentials.jl	361	374	_noub_if_noinbounds_meta	_noub_if_noinbounds_meta()	todo		
-base/essentials.jl	377	379	_propagate_inbounds_meta	_propagate_inbounds_meta()	todo		
-base/essentials.jl	380	382	_nospecializeinfer_meta	_nospecializeinfer_meta()	todo		
-base/essentials.jl	385	388	checkbounds	checkbounds(::Type{Bool}, A::Union{Array, Memory}, i::Int)	todo		
-base/essentials.jl	389	393	checkbounds	checkbounds(A::AbstractArray, I...)	todo		
-base/essentials.jl	395	395	default_access_order	default_access_order(::GenericMemory{:not_atomic})	todo		
-base/essentials.jl	396	396	default_access_order	default_access_order(::GenericMemory{:atomic})	todo		
-base/essentials.jl	397	397	default_access_order	default_access_order(::GenericMemoryRef{:not_atomic})	todo		
-base/essentials.jl	398	398	default_access_order	default_access_order(::GenericMemoryRef{:atomic})	todo		
-base/essentials.jl	400	404	getindex	getindex(A::GenericMemory, i::Int)	todo		
-base/essentials.jl	406	406	getindex	getindex(A::GenericMemoryRef)	todo		
-base/essentials.jl	419	419	nameof	nameof(m::Module)	todo		
-base/essentials.jl	421	421	iterate	iterate	todo		
-base/essentials.jl	471	471	convert	convert	todo		
-base/essentials.jl	474	474	convert	convert(::Type{Union{}}, _...)	todo		
-base/essentials.jl	476	476	convert	convert(::Type{Type}, x::Type)	todo		
-base/essentials.jl	480	480	convert	convert(::Type{String}, x::String)	todo		
-base/essentials.jl	488	494	eval	eval(ex)	todo		
-base/essentials.jl	495	501	eval	eval(mod, ex)	todo		
-base/essentials.jl	508	508	Pairs{K, V, I, A}	Pairs{K, V, I, A}(data, itr) where {K, V, I, A}	todo		
-base/essentials.jl	509	509	Pairs{K, V}	Pairs{K, V}(data::A, itr::I) where {K, V, I, A}	todo		
-base/essentials.jl	510	510	Pairs{K}	Pairs{K}(data::A, itr::I) where {K, I, A}	todo		
-base/essentials.jl	511	511	Pairs	Pairs(data::A, itr::I) where {I, A}	todo		
-base/essentials.jl	513	513	pairs	pairs(::Type{NamedTuple})	todo		
-base/essentials.jl	523	523	argtail	argtail(_, rest...)	todo		
-base/essentials.jl	541	541	tail	tail(x::Tuple)	todo		
-base/essentials.jl	542	542	tail	tail(::Tuple{})	todo		
-base/essentials.jl	544	550	unwrap_unionall	unwrap_unionall(@nospecialize(a))	todo		
-base/essentials.jl	552	558	rewrap_unionall	rewrap_unionall(@nospecialize(t), @nospecialize(u))	todo		
-base/essentials.jl	560	571	rewrap_unionall	rewrap_unionall(t::Core.TypeofVararg, @nospecialize(u))	todo		
+base/essentials.jl	9	9	blackbox	blackbox(x)	modelled	essentials-barriers	Concrete compilerbarrier has the valid blackbox setting and preserves any argument.
+base/essentials.jl	12	12	size	size(a::Array)	modelled	essentials-existing-array-shape	Reuse the concrete imported array field accessor, not the unconstrained canonical sizeArray callback. Array dimensions are JInt .i64. No existing registry ID is claimed for this alternative declaration.
+base/essentials.jl	13	13	length	length(t::AbstractArray)	modelled	essentials-length-dispatch	Source-mirrored model JuliaLean.base.essentials.Models2Group19.lengthAbstract; reviewed against Julia f755f49.
+base/essentials.jl	14	14	size	size(a::GenericMemory)	modelled	bootcov-ess-access	Concrete heap lookup and stored length; restrict physical memories to constructible nonnegative Int64-sized slot counts.
+base/essentials.jl	15	15	throw_boundserror	throw_boundserror(A)	modelled	essentials-bounds-error-helpers	Concrete existing exception constructor; no throwing callback. Internal helper invariant checks the exception class. Error payload fields are outside Exc, as in the frozen error model.
+base/essentials.jl	16	16	throw_boundserror	throw_boundserror(A, I)	modelled	essentials-bounds-error-helpers	Concrete existing exception constructor; no throwing callback. Internal helper invariant checks the exception class. Error payload fields are outside Exc, as in the frozen error model.
+base/essentials.jl	17	17	throw_boundserror	throw_boundserror(A, i1, i2, I...)	modelled	essentials-bounds-error-helpers	Concrete existing exception constructor; no throwing callback. Internal helper invariant checks the exception class. Error payload fields are outside Exc, as in the frozen error model.
+base/essentials.jl	18	18	_throw_boundserror_indices	_throw_boundserror_indices(A)	modelled	essentials-bounds-error-helpers	Concrete existing exception constructor; no throwing callback. Internal helper invariant checks the exception class. Error payload fields are outside Exc, as in the frozen error model.
+base/essentials.jl	19	19	_throw_boundserror_indices	_throw_boundserror_indices(A, i1, I...)	modelled	essentials-bounds-error-helpers	Concrete existing exception constructor; no throwing callback. Internal helper invariant checks the exception class. Error payload fields are outside Exc, as in the frozen error model.
+base/essentials.jl	23	23	==	==(a::GlobalRef, b::GlobalRef)	modelled	bootcov-ess-globalref-eq	Module identity and interned symbol equality are explicit.
+base/essentials.jl	46	48	_gc_preserve_begin	_gc_preserve_begin(arg1)	modelled	essentials-marker-macros	Concrete AST constructor calls existing esc.
+base/essentials.jl	50	52	_gc_preserve_end	_gc_preserve_end(token)	modelled	essentials-marker-macros	Concrete AST constructor calls existing esc.
+base/essentials.jl	125	134	nospecialize	nospecialize(vars...)	modelled	essentials-nospecialize-heap	Concrete local syntax heap preserves Expr identity, shared/cyclic aliases, assignment-head mutation and allocation order. No implementation callback. Contracts cover the full constructible tuple and valid machine-sized syntax-heap domain; compiler interpretation and allocation resource exhaustion follow the installed logical Expr boundary.
+base/essentials.jl	142	151	specialize	specialize(vars...)	modelled	essentials-specialize-heap	Concrete local syntax heap preserves Expr identity, shared/cyclic aliases, assignment-head mutation and allocation order. No implementation callback. Contracts cover the full constructible tuple and valid machine-sized syntax-heap domain; compiler interpretation and allocation resource exhaustion follow the installed logical Expr boundary.
+base/essentials.jl	184	186	isdefined	isdefined(s::Symbol)	modelled	essentials-marker-macros	Concrete installed syntax/module-field model; no missing callee callback.
+base/essentials.jl	188	188	_nameof	_nameof(m::Module)	modelled	bootcov-foldable-meta-effects	Concrete installed syntax/module-field model; no missing callee callback.
+base/essentials.jl	190	193	_is_internal	_is_internal(__module__)	modelled	essentials-internal-gate	Full unannotated argument domain, including _nameof MethodError for non-Module inputs. The typed isInternal helper short-circuits before baseRelativeTo and is used by all macro contexts. Reuses the existing Modules runtime boundary.
+base/essentials.jl	196	209	_total_meta	_total_meta()	modelled	essentials-internal-gate	Internal macro; no invented public contract. Exact flag order copied from pinned source and checked structurally. Uses the new short-circuit gate and installed effectMeta/EffectFlags constructors; frozen macro remains unchanged.
+base/essentials.jl	211	224	_foldable_meta	_foldable_meta()	modelled	essentials-internal-gate	Internal macro; no invented public contract. Exact flag order copied from pinned source and checked structurally. Uses the new short-circuit gate and installed effectMeta/EffectFlags constructors; frozen macro remains unchanged.
+base/essentials.jl	226	239	_terminates_locally_meta	_terminates_locally_meta()	modelled	essentials-internal-gate	Internal macro; no invented public contract. Exact flag order copied from pinned source and checked structurally. Uses the new short-circuit gate and installed effectMeta/EffectFlags constructors; frozen macro remains unchanged.
+base/essentials.jl	241	254	_terminates_globally_meta	_terminates_globally_meta()	modelled	essentials-internal-gate	Internal macro; no invented public contract. Exact flag order copied from pinned source and checked structurally. Uses the new short-circuit gate and installed effectMeta/EffectFlags constructors; frozen macro remains unchanged.
+base/essentials.jl	256	269	_terminates_globally_notaskstate_meta	_terminates_globally_notaskstate_meta()	modelled	essentials-internal-gate	Internal macro; no invented public contract. Exact flag order copied from pinned source and checked structurally. Uses the new short-circuit gate and installed effectMeta/EffectFlags constructors; frozen macro remains unchanged.
+base/essentials.jl	271	284	_terminates_globally_noub_meta	_terminates_globally_noub_meta()	modelled	essentials-internal-gate	Internal macro; no invented public contract. Exact flag order copied from pinned source and checked structurally. Uses the new short-circuit gate and installed effectMeta/EffectFlags constructors; frozen macro remains unchanged.
+base/essentials.jl	286	299	_effect_free_terminates_locally_meta	_effect_free_terminates_locally_meta()	modelled	essentials-internal-gate	Internal macro; no invented public contract. Exact flag order copied from pinned source and checked structurally. Uses the new short-circuit gate and installed effectMeta/EffectFlags constructors; frozen macro remains unchanged.
+base/essentials.jl	301	314	_nothrow_noub_meta	_nothrow_noub_meta()	modelled	essentials-internal-gate	Internal macro; no invented public contract. Exact flag order copied from pinned source and checked structurally. Uses the new short-circuit gate and installed effectMeta/EffectFlags constructors; frozen macro remains unchanged.
+base/essentials.jl	316	329	_nothrow_meta	_nothrow_meta()	modelled	essentials-internal-gate	Internal macro; no invented public contract. Exact flag order copied from pinned source and checked structurally. Uses the new short-circuit gate and installed effectMeta/EffectFlags constructors; frozen macro remains unchanged.
+base/essentials.jl	331	344	_noub_meta	_noub_meta()	modelled	essentials-internal-gate	Internal macro; no invented public contract. Exact flag order copied from pinned source and checked structurally. Uses the new short-circuit gate and installed effectMeta/EffectFlags constructors; frozen macro remains unchanged.
+base/essentials.jl	346	359	_notaskstate_meta	_notaskstate_meta()	modelled	essentials-internal-gate	Internal macro; no invented public contract. Exact flag order copied from pinned source and checked structurally. Uses the new short-circuit gate and installed effectMeta/EffectFlags constructors; frozen macro remains unchanged.
+base/essentials.jl	361	374	_noub_if_noinbounds_meta	_noub_if_noinbounds_meta()	modelled	essentials-internal-gate	Internal macro; no invented public contract. Exact flag order copied from pinned source and checked structurally. Uses the new short-circuit gate and installed effectMeta/EffectFlags constructors; frozen macro remains unchanged.
+base/essentials.jl	377	379	_propagate_inbounds_meta	_propagate_inbounds_meta()	modelled	essentials-marker-macros	Concrete callable model in supplied imports.
+base/essentials.jl	380	382	_nospecializeinfer_meta	_nospecializeinfer_meta()	modelled	essentials-marker-macros	Concrete callable model in supplied imports.
+base/essentials.jl	385	388	checkbounds	checkbounds(::Type{Bool}, A::Union{Array, Memory}, i::Int)	modelled	bootcov-ess-checkbounds	Concrete callable model in supplied imports. Length parameter is the actual nonnegative machine length of a constructible Array/Memory; arithmetic uses installed JInt intrinsics.
+base/essentials.jl	389	393	checkbounds	checkbounds(A::AbstractArray, I...)	modelled	essentials-checkbounds-dispatch	Source-mirrored model JuliaLean.base.essentials.Models2Group19.checkbounds; reviewed against Julia f755f49.
+base/essentials.jl	395	395	default_access_order	default_access_order(::GenericMemory{:not_atomic})	modelled	bootcov-ess-access	Concrete callable model in supplied imports. Bind the atomic-kind Bool to false as required by this dispatch signature.
+base/essentials.jl	396	396	default_access_order	default_access_order(::GenericMemory{:atomic})	modelled	bootcov-ess-access	Concrete callable model in supplied imports. Bind the atomic-kind Bool to true as required by this dispatch signature.
+base/essentials.jl	397	397	default_access_order	default_access_order(::GenericMemoryRef{:not_atomic})	modelled	bootcov-ess-access	Concrete callable model in supplied imports. Bind the atomic-kind Bool to false as required by this dispatch signature.
+base/essentials.jl	398	398	default_access_order	default_access_order(::GenericMemoryRef{:atomic})	modelled	bootcov-ess-access	Concrete callable model in supplied imports. Bind the atomic-kind Bool to true as required by this dispatch signature.
+base/essentials.jl	400	404	getindex	getindex(A::GenericMemory, i::Int)	modelled	bootcov-ess-access	Concrete callable model in supplied imports. Existing shared heap preserves aliases, order checks and undefined-slot/bounds errors; input heap/reference must be constructible.
+base/essentials.jl	406	406	getindex	getindex(A::GenericMemoryRef)	modelled	bootcov-ess-access	Concrete callable model in supplied imports. Existing shared heap preserves aliases, order checks and undefined-slot/bounds errors; input heap/reference must be constructible.
+base/essentials.jl	419	419	nameof	nameof(m::Module)	modelled	bootcov-foldable-meta-effects	Concrete callable model in supplied imports.
+base/essentials.jl	421	421	iterate	iterate	excluded		no-behaviour: declares the generic function without a method body; surrounding assignment only sets an inference heuristic.
+base/essentials.jl	471	471	convert	convert	excluded		no-behaviour: declares the generic function without defining a method body.
+base/essentials.jl	474	474	convert	convert(::Type{Union{}}, _...)	modelled	essentials-conversions	Concrete callable model in supplied imports.
+base/essentials.jl	476	476	convert	convert(::Type{Type}, x::Type)	modelled	essentials-conversions	Concrete callable model in supplied imports. Instantiate polymorphic identity only on the source Type-object dispatch domain.
+base/essentials.jl	480	480	convert	convert(::Type{String}, x::String)	modelled	essentials-conversions	Concrete callable model in supplied imports.
+base/essentials.jl	488	494	eval	eval(ex)	modelled	essentials-eval-expansion	Closes the frozen syntax model by fixing esc to the installed callable esc definition. Does not evaluate Core.eval at macro-expansion time.
+base/essentials.jl	495	501	eval	eval(mod, ex)	modelled	essentials-eval-expansion	Closes the frozen syntax model by fixing esc to the installed callable esc definition. Does not evaluate Core.eval at macro-expansion time.
+base/essentials.jl	508	508	Pairs{K, V, I, A}	Pairs{K, V, I, A}(data, itr) where {K, V, I, A}	modelled	essentials-pairs-colon-val	Reviewed line by line against pinned f755f49 source.
+base/essentials.jl	509	509	Pairs{K, V}	Pairs{K, V}(data::A, itr::I) where {K, V, I, A}	modelled	essentials-pairs-colon-val	Concrete existing model; reused without modifying its declaration. Type parameters fix both field types before construction; original object references are retained.
+base/essentials.jl	510	510	Pairs{K}	Pairs{K}(data::A, itr::I) where {K, I, A}	modelled	essentials-pairs-colon-val	Reviewed line by line against pinned f755f49 source.
+base/essentials.jl	511	511	Pairs	Pairs(data::A, itr::I) where {I, A}	modelled	essentials-pairs-colon-val	Reviewed line by line against pinned f755f49 source.
+base/essentials.jl	513	513	pairs	pairs(::Type{NamedTuple})	modelled	essentials-pairs-colon-val	Concrete existing model; reused without modifying its declaration. The two binder IDs belong to this fixed closed type-family representation; no free caller variable is substituted.
+base/essentials.jl	523	523	argtail	argtail(_, rest...)	modelled	bootcov-ess-tuples	Concrete existing model; reused without modifying its declaration. Lists denote constructible Julia tuples; instantiate element universe with JVal to cover heterogeneous tuples.
+base/essentials.jl	541	541	tail	tail(x::Tuple)	modelled	bootcov-ess-tuples	Concrete existing model; reused without modifying its declaration. Lists denote constructible Julia tuples; instantiate element universe with JVal to cover heterogeneous tuples.
+base/essentials.jl	542	542	tail	tail(::Tuple{})	modelled	bootcov-ess-tuples	Concrete existing model; reused without modifying its declaration. Lists denote constructible Julia tuples; instantiate element universe with JVal to cover heterogeneous tuples.
+base/essentials.jl	544	550	unwrap_unionall	unwrap_unionall(@nospecialize(a))	modelled	bootcov-ess-unwrap-rewrap	Concrete existing model; reused without modifying its declaration. Non-inspected values/types may be carried by the existing other tag; type parameters and tuple metadata obey Julia representation bounds.
+base/essentials.jl	552	558	rewrap_unionall	rewrap_unionall(@nospecialize(t), @nospecialize(u))	modelled	bootcov-ess-unwrap-rewrap	Reviewed line by line against pinned f755f49 source.
+base/essentials.jl	560	571	rewrap_unionall	rewrap_unionall(t::Core.TypeofVararg, @nospecialize(u))	modelled	bootcov-ess-unwrap-rewrap	Reviewed line by line against pinned f755f49 source.
 base/essentials.jl	574	582	rename_unionall	rename_unionall(@nospecialize(u))	todo		
-base/essentials.jl	585	587	widen_diagonal	widen_diagonal(@nospecialize(t), troot::UnionAll)	todo		
-base/essentials.jl	589	591	isvarargtype	isvarargtype(@nospecialize(t))	todo		
-base/essentials.jl	593	601	isvatuple	isvatuple(@nospecialize(t))	todo		
-base/essentials.jl	603	606	unwrapva	unwrapva(@nospecialize(t))	todo		
-base/essentials.jl	608	613	unconstrain_vararg_length	unconstrain_vararg_length(va::Core.TypeofVararg)	todo		
-base/essentials.jl	617	646	datatype_min_ninitialized	datatype_min_ninitialized(@nospecialize t0)	todo		
-base/essentials.jl	650	650	_tuple_error	_tuple_error(T::Type, x)	todo		
-base/essentials.jl	652	652	convert	convert(::Type{T}, x::T) where {T<:Tuple}	todo		
-base/essentials.jl	653	667	convert	convert(::Type{T}, x::NTuple{N,Any}) where {N, T<:Tuple}	todo		
-base/essentials.jl	659	665	cvt1	cvt1(n)	todo		
-base/essentials.jl	718	718	oftype	oftype(x, y)	todo		
-base/essentials.jl	720	720	unsigned	unsigned(x::Int)	todo		
-base/essentials.jl	721	721	signed	signed(x::UInt)	todo		
-base/essentials.jl	737	737	cconvert	cconvert	todo		
-base/essentials.jl	739	739	cconvert	cconvert(::Type{T}, x) where {T}	todo		
-base/essentials.jl	740	740	cconvert	cconvert(::Type{Union{}}, x...)	todo		
-base/essentials.jl	741	741	cconvert	cconvert(::Type{<:Ptr}, x)	todo		
-base/essentials.jl	742	742	unsafe_convert	unsafe_convert(::Type{T}, x::T) where {T}	todo		
-base/essentials.jl	743	743	unsafe_convert	unsafe_convert(::Type{T}, x::T) where {T<:Ptr}	todo		
-base/essentials.jl	744	744	unsafe_convert	unsafe_convert(::Type{P}, x::Ptr) where {P<:Ptr}	todo		
-base/essentials.jl	745	745	unsafe_convert	unsafe_convert(::Type{Ptr{UInt8}}, s::String)	todo		
-base/essentials.jl	746	746	unsafe_convert	unsafe_convert(::Type{Ptr{Int8}}, s::String)	todo		
-base/essentials.jl	751	751	_reinterpret	_reinterpret	todo		
-base/essentials.jl	787	794	reinterpret	reinterpret(::Type{Out}, x) where {Out}	todo		
-base/essentials.jl	841	841	sizeof	sizeof(x)	todo		
-base/essentials.jl	894	894	ifelse	ifelse(condition::Bool, x, y)	todo		
-base/essentials.jl	903	903	esc	esc(@nospecialize(e))	todo		
-base/essentials.jl	949	951	boundscheck	boundscheck(blk)	todo		
-base/essentials.jl	981	987	inbounds	inbounds(blk)	todo		
-base/essentials.jl	1030	1033	label	label(name::Symbol)	todo		
-base/essentials.jl	1035	1052	label	label(name::Symbol, body)	todo		
-base/essentials.jl	1054	1058	label	label(body)	todo		
-base/essentials.jl	1068	1070	goto	goto(name::Symbol)	todo		
-base/essentials.jl	1073	1077	getindex	getindex(A::Array, i::Int)	todo		
-base/essentials.jl	1079	1084	setindex!	setindex!(A::Array{Any}, @nospecialize(x), i::Int)	todo		
-base/essentials.jl	1085	1090	setindex!	setindex!(A::Memory{Any}, @nospecialize(x), i::Int)	todo		
-base/essentials.jl	1091	1091	setindex!	setindex!(A::MemoryRef{T}, x) where {T}	todo		
-base/essentials.jl	1092	1092	setindex!	setindex!(A::MemoryRef{Any}, @nospecialize(x))	todo		
-base/essentials.jl	1096	1096	getindex	getindex(v::SimpleVector, i::Int)	todo		
-base/essentials.jl	1097	1099	length	length(v::SimpleVector)	todo		
-base/essentials.jl	1100	1100	firstindex	firstindex(::SimpleVector)	todo		
-base/essentials.jl	1101	1101	lastindex	lastindex(v::SimpleVector)	todo		
-base/essentials.jl	1102	1102	iterate	iterate(v::SimpleVector, i=1)	todo		
-base/essentials.jl	1103	1103	eltype	eltype(::Type{SimpleVector})	todo		
-base/essentials.jl	1104	1104	keys	keys(v::SimpleVector)	todo		
-base/essentials.jl	1105	1105	isempty	isempty(v::SimpleVector)	todo		
-base/essentials.jl	1106	1106	axes	axes(v::SimpleVector)	todo		
-base/essentials.jl	1107	1107	axes	axes(v::SimpleVector, d::Integer)	todo		
-base/essentials.jl	1109	1115	==	==(v1::SimpleVector, v2::SimpleVector)	todo		
-base/essentials.jl	1117	1117	map	map(f, v::SimpleVector)	todo		
-base/essentials.jl	1119	1119	getindex	getindex(v::SimpleVector, I::AbstractArray)	todo		
-base/essentials.jl	1121	1121	unsafe_convert	unsafe_convert(::Type{Ptr{Any}}, sv::SimpleVector)	todo		
-base/essentials.jl	1149	1149	isassigned	isassigned	todo		
-base/essentials.jl	1151	1154	isassigned	isassigned(v::SimpleVector, i::Int)	todo		
-base/essentials.jl	1170	1170	Colon	Colon()	todo		
-base/essentials.jl	1174	1177	show	show(io::IO, ::Colon)	todo		
-base/essentials.jl	1200	1200	Val{x}	Val{x}() where {x}	todo		
-base/essentials.jl	1203	1203	Val	Val(x)	todo		
-base/essentials.jl	1211	1211	inferencebarrier	inferencebarrier(@nospecialize(x))	todo		
-base/essentials.jl	1235	1239	isempty	isempty(itr)	todo		
-base/essentials.jl	1263	1263	values	values(itr)	todo		
-base/essentials.jl	1267	1267	+	(+)(x::Int, y::Int)	todo		
-base/essentials.jl	1268	1268	-	(-)(x::Int, y::Int)	todo		
-base/essentials.jl	1294	1294	!	!(x::Bool)	todo		
-base/essentials.jl	1296	1296	length	length(a::Array{T,1}) where {T}	todo		
-base/essentials.jl	1298	1298	has_typevar	has_typevar(@nospecialize(t), v::TypeVar)	todo		
-base/essentials.jl	1302	1339	_fieldtypes_constrain_typevars	_fieldtypes_constrain_typevars(tvars::Array{Any,1}, fts::Core.SimpleVector)	todo		
-base/essentials.jl	1342	1360	_defaultctor_typeinfo	_defaultctor_typeinfo(@nospecialize(ty::Type))	todo		
-base/essentials.jl	1365	1514	_defaultctors	_defaultctors(@nospecialize(ty), functionloc)	todo		
-base/essentials.jl	1542	1542	ismissing	ismissing(x)	todo		
-base/essentials.jl	1544	1544	popfirst!	popfirst!	todo		
-base/essentials.jl	1570	1570	peek	peek	todo		
-base/essentials.jl	1578	1580	__LINE__	__LINE__()	todo		
-base/essentials.jl	1601	1601	isdone	isdone(_, _...)	todo		
-base/essentials.jl	1610	1610	iterate	iterate	todo		
-base/essentials.jl	1618	1620	isiterable	isiterable(T)::Bool	todo		
-base/essentials.jl	1656	1670	world	world(sym, world)	todo		
-base/essentials.jl	1672	1673	_resolve_in_world	_resolve_in_world(world::Integer, gr::GlobalRef)	todo		
-base/essentials.jl	1676	1676	+	+	todo		
-base/essentials.jl	1677	1677	-	-	todo		
-base/essentials.jl	1678	1678	*	*	todo		
-base/essentials.jl	1679	1679	==	==	todo		
-base/essentials.jl	1680	1680	!=	!=	todo		
-base/essentials.jl	1681	1681	<=	<=	todo		
-base/essentials.jl	1682	1682	>=	>=	todo		
-base/essentials.jl	1683	1683	<	<	todo		
-base/essentials.jl	1684	1684	>	>	todo		
+base/essentials.jl	585	587	widen_diagonal	widen_diagonal(@nospecialize(t), troot::UnionAll)	modelled	bootcov-ess-unwrap-rewrap	Reviewed line by line against pinned f755f49 source.
+base/essentials.jl	589	591	isvarargtype	isvarargtype(@nospecialize(t))	modelled	essentials-existing-vararg-inspection	Concrete existing model; reused without modifying its declaration. Non-inspected values/types may be carried by the existing other tag; type parameters and tuple metadata obey Julia representation bounds.
+base/essentials.jl	593	601	isvatuple	isvatuple(@nospecialize(t))	modelled	essentials-existing-vararg-inspection	Concrete existing model; reused without modifying its declaration. Non-inspected values/types may be carried by the existing other tag; type parameters and tuple metadata obey Julia representation bounds.
+base/essentials.jl	603	606	unwrapva	unwrapva(@nospecialize(t))	modelled	essentials-existing-vararg-inspection	Concrete imported implementation fixes Any internally; unlike canonical unwrapva it does not accept an arbitrary Any value. This method only tests Vararg/T-definedness and retains every other input.
+base/essentials.jl	608	613	unconstrain_vararg_length	unconstrain_vararg_length(va::Core.TypeofVararg)	modelled	essentials-existing-vararg-inspection	Concrete existing model; reused without modifying its declaration. Use only the TypeofVararg dispatch domain, with valid T/N representation.
+base/essentials.jl	617	646	datatype_min_ninitialized	datatype_min_ninitialized(@nospecialize t0)	modelled	essentials-min-initialized	Internal method on a concrete local metadata heap, not callback-supplied answers. Records TypeName identity/flags/field names/Int32 n_uninitialized; bounds parameter/tuple lengths; preserves eager NamedTuple parameter reads and JInt arithmetic. Extra local dependencies: enriched unwrap_unionall and DataType-only isabstracttype (runtime_internals.jl:1186-1192). No public contract invented.
+base/essentials.jl	650	650	_tuple_error	_tuple_error(T::Type, x)	modelled	bootcov-ess-tuples	Concrete existing model; reused without modifying its declaration.
+base/essentials.jl	652	652	convert	convert(::Type{T}, x::T) where {T<:Tuple}	modelled	essentials-existing-tuple-identity	Concrete existing model; reused without modifying its declaration. Lists denote constructible Julia tuples; instantiate element universe with JVal to cover heterogeneous tuples.
+base/essentials.jl	653	667	convert	convert(::Type{T}, x::NTuple{N,Any}) where {N, T<:Tuple}	modelled	bootcov-ess-tuples	Reviewed line by line against pinned f755f49 source.
+base/essentials.jl	659	665	cvt1	cvt1(n)	modelled	bootcov-ess-tuples	Reviewed line by line against pinned f755f49 source.
+base/essentials.jl	718	718	oftype	oftype(x, y)	modelled	essentials-oftype-dispatch	Source-mirrored model JuliaLean.base.essentials.Models2Group19.oftype; reviewed against Julia f755f49.
+base/essentials.jl	720	720	unsigned	unsigned(x::Int)	modelled	bootcov-ess-signed-unsigned	Concrete existing model; reused without modifying its declaration.
+base/essentials.jl	721	721	signed	signed(x::UInt)	modelled	bootcov-ess-signed-unsigned	Concrete existing model; reused without modifying its declaration.
+base/essentials.jl	737	737	cconvert	cconvert	excluded		no-behaviour: declares the generic function without defining a method body.
+base/essentials.jl	739	739	cconvert	cconvert(::Type{T}, x) where {T}	modelled	essentials-cconvert-dispatch	Source-mirrored model JuliaLean.base.essentials.Models2Group19.cconvert; reviewed against Julia f755f49.
+base/essentials.jl	740	740	cconvert	cconvert(::Type{Union{}}, x...)	modelled	essentials-cconvert-bottom	Binds the existing convertUnionBottom model instead of supplying a conversion callback. Full variadic input domain; no missing callee.
+base/essentials.jl	741	741	cconvert	cconvert(::Type{<:Ptr}, x)	modelled	essentials-conversions	Concrete installed method on its selected dispatch domain; preserves input values/identities.
+base/essentials.jl	742	742	unsafe_convert	unsafe_convert(::Type{T}, x::T) where {T}	modelled	essentials-conversions	Concrete installed method on its selected dispatch domain; preserves input values/identities.
+base/essentials.jl	743	743	unsafe_convert	unsafe_convert(::Type{T}, x::T) where {T<:Ptr}	modelled	essentials-conversions	Concrete installed method on its selected dispatch domain; preserves input values/identities.
+base/essentials.jl	744	744	unsafe_convert	unsafe_convert(::Type{P}, x::Ptr) where {P<:Ptr}	modelled	essentials-pointer-convert-dispatch	Source-mirrored model JuliaLean.base.essentials.unsafeConvertPointer; reviewed against Julia f755f49.
+base/essentials.jl	745	745	unsafe_convert	unsafe_convert(::Type{Ptr{UInt8}}, s::String)	modelled	essentials-string-pointer-aliasing	Source-mirrored model JuliaLean.base.essentials.Models2Group19.unsafeConvertStringUInt8; reviewed against Julia f755f49.
+base/essentials.jl	746	746	unsafe_convert	unsafe_convert(::Type{Ptr{Int8}}, s::String)	modelled	essentials-string-pointer-aliasing	Source-mirrored model JuliaLean.base.essentials.Models2Group19.unsafeConvertStringInt8; reviewed against Julia f755f49.
+base/essentials.jl	751	751	_reinterpret	_reinterpret	excluded		no-behaviour: declares the generic function without defining a method body.
+base/essentials.jl	787	794	reinterpret	reinterpret(::Type{Out}, x) where {Out}	modelled	essentials-reinterpret-dispatch-bits	Source-mirrored model JuliaLean.base.essentials.Models2Group19.Reinterpret.reinterpret; reviewed against Julia f755f49.
+base/essentials.jl	841	841	sizeof	sizeof(x)	modelled	bootcov-ess-svec,essentials-conversions,essentials-pairs-colon-val	Reviewed line by line against pinned f755f49 source.
+base/essentials.jl	894	894	ifelse	ifelse(condition::Bool, x, y)	modelled	essentials-control	Concrete installed method on its selected dispatch domain; preserves input values/identities. Instantiate the value universe with JVal for heterogeneous x/y; arguments are already evaluated on method entry. Existing coreIfelse/ifelseCall also capture call-site checks and evaluation order.
+base/essentials.jl	903	903	esc	esc(@nospecialize(e))	modelled	essentials-marker-macros	Concrete installed method on its selected dispatch domain; preserves input values/identities. This models macro construction, not later compiler interpretation of emitted syntax.
+base/essentials.jl	949	951	boundscheck	boundscheck(blk)	modelled	essentials-marker-macros	Concrete installed method on its selected dispatch domain; preserves input values/identities. This models macro construction, not later compiler interpretation of emitted syntax.
+base/essentials.jl	981	987	inbounds	inbounds(blk)	modelled	essentials-marker-macros	Concrete installed method on its selected dispatch domain; preserves input values/identities. This models macro construction, not later compiler interpretation of emitted syntax.
+base/essentials.jl	1030	1033	label	label(name::Symbol)	modelled	essentials-marker-macros	Concrete installed method on its selected dispatch domain; preserves input values/identities. This models macro construction, not later compiler interpretation of emitted syntax.
+base/essentials.jl	1035	1052	label	label(name::Symbol, body)	modelled	essentials-label-heap	Concrete heap model includes missing and #undef loop args, correct second-before-first read order, unchanged input objects, aliases/cycles and source error precedence. Original tree model/proof remains unchanged.
+base/essentials.jl	1054	1058	label	label(body)	modelled	essentials-marker-macros	Concrete installed model uses existing syntax or shared-memory primitives; no implementation callback.
+base/essentials.jl	1068	1070	goto	goto(name::Symbol)	modelled	essentials-marker-macros	Concrete installed model uses existing syntax or shared-memory primitives; no implementation callback.
+base/essentials.jl	1073	1077	getindex	getindex(A::Array, i::Int)	modelled	essentials-array-access	Concrete installed model uses existing syntax or shared-memory primitives; no implementation callback. Constructible Array/Memory/reference invariants apply. Note the shared HM error-state abstraction discussed in NOTES; these fixed operations perform no write before an error.
+base/essentials.jl	1079	1084	setindex!	setindex!(A::Array{Any}, @nospecialize(x), i::Int)	modelled	essentials-array-access	Concrete installed model uses existing syntax or shared-memory primitives; no implementation callback. Constructible Array/Memory/reference invariants apply. Note the shared HM error-state abstraction discussed in NOTES; these fixed operations perform no write before an error.
+base/essentials.jl	1085	1090	setindex!	setindex!(A::Memory{Any}, @nospecialize(x), i::Int)	modelled	essentials-array-access	Concrete installed model uses existing syntax or shared-memory primitives; no implementation callback. Constructible Array/Memory/reference invariants apply. Note the shared HM error-state abstraction discussed in NOTES; these fixed operations perform no write before an error.
+base/essentials.jl	1091	1091	setindex!	setindex!(A::MemoryRef{T}, x) where {T}	modelled	essentials-array-access	Reviewed line by line against pinned f755f49 source.
+base/essentials.jl	1092	1092	setindex!	setindex!(A::MemoryRef{Any}, @nospecialize(x))	modelled	essentials-array-access	Concrete installed model uses existing syntax or shared-memory primitives; no implementation callback. Constructible Array/Memory/reference invariants apply. Note the shared HM error-state abstraction discussed in NOTES; these fixed operations perform no write before an error.
+base/essentials.jl	1096	1096	getindex	getindex(v::SimpleVector, i::Int)	modelled	essentials-svec-read	Full Int64/index or constructible SimpleVector domain. Reuses installed SVec primitives through a machine-type adapter; does not change the frozen Nat/Int interface.
+base/essentials.jl	1097	1099	length	length(v::SimpleVector)	modelled	essentials-svec-shape	Full Int64/index or constructible SimpleVector domain. Reuses installed SVec primitives through a machine-type adapter; does not change the frozen Nat/Int interface.
+base/essentials.jl	1100	1100	firstindex	firstindex(::SimpleVector)	modelled	essentials-svec-shape	Full Int64/index or constructible SimpleVector domain. Reuses installed SVec primitives through a machine-type adapter; does not change the frozen Nat/Int interface.
+base/essentials.jl	1101	1101	lastindex	lastindex(v::SimpleVector)	modelled	essentials-svec-shape	Full Int64/index or constructible SimpleVector domain. Reuses installed SVec primitives through a machine-type adapter; does not change the frozen Nat/Int interface.
+base/essentials.jl	1102	1102	iterate	iterate(v::SimpleVector, i=1)	modelled	essentials-svec-iterate-dispatch	Source-mirrored model JuliaLean.base.essentials.Models2Group19.SimpleVector.iterate; JuliaLean.base.essentials.Models2Group19.SimpleVector.iterateDefault; reviewed against Julia f755f49.
+base/essentials.jl	1103	1103	eltype	eltype(::Type{SimpleVector})	modelled	bootcov-ess-svec	Concrete canonical Any type result; no runtime callback.
+base/essentials.jl	1104	1104	keys	keys(v::SimpleVector)	modelled	essentials-svec-shape	Uses a concrete local OneTo{Int64} constructor needed by this method, source range.jl:485-491,505. Result carries its actual JInt stop field, not an unrestricted Nat.
+base/essentials.jl	1105	1105	isempty	isempty(v::SimpleVector)	modelled	bootcov-ess-svec	Concrete stored-slot length-zero test. No Julia integer arithmetic is replaced; interpret SVecObj with its actual machine-size invariant.
+base/essentials.jl	1106	1106	axes	axes(v::SimpleVector)	modelled	essentials-svec-shape	Fixed one-element tuple of typed ranges; covers all constructible SimpleVectors, including empty and null-slot vectors.
+base/essentials.jl	1107	1107	axes	axes(v::SimpleVector, d::Integer)	modelled	essentials-svec-axes-dispatch	Source-mirrored model JuliaLean.base.essentials.Models2Group19.SimpleVector.axes; reviewed against Julia f755f49.
+base/essentials.jl	1109	1115	==	==(v1::SimpleVector, v2::SimpleVector)	modelled	essentials-svec-equality-dispatch	Source-mirrored model JuliaLean.base.essentials.Models2Group19.SimpleVector.equal; reviewed against Julia f755f49.
+base/essentials.jl	1117	1117	map	map(f, v::SimpleVector)	modelled	essentials-svec-map-trace	Concrete source mapping with actual f input, JInt indices, size-checked allocation and canonical empty memory identity. A local ExceptT-outside-StateT adapter retains heap writes across errors; only fixed installed no-write-before-error primitives are adapted. Full independent finite-trace contract includes reads, f calls, stores, errors and nontermination. Existing Arr header identity/GC/resource abstraction remains explicit.
+base/essentials.jl	1119	1119	getindex	getindex(v::SimpleVector, I::AbstractArray)	modelled	bootcov-ess-svec	Reviewed line by line against pinned f755f49 source.
+base/essentials.jl	1121	1121	unsafe_convert	unsafe_convert(::Type{Ptr{Any}}, sv::SimpleVector)	modelled	bootcov-ess-svec	Concrete 64-bit pointer operation adds the configured eight-byte SVec header to its actual object address using wrapping UInt64; existing pointer/address boundary is explicit.
+base/essentials.jl	1149	1149	isassigned	isassigned	excluded		no-behaviour: declares the generic function without defining a method body.
+base/essentials.jl	1151	1154	isassigned	isassigned(v::SimpleVector, i::Int)	modelled	essentials-svec-isassigned-modes;essentials-svec-isassigned-documentation	Includes every Int64 index and both checked/unchecked modes. Source tests bounds, not slot definedness. Two unproved entries separate exact bounds/elision invariant from the public assigned-slot promise; internal null-slot cases may conflict with that promise, without a runtime bug claim.
+base/essentials.jl	1170	1170	Colon	Colon()	modelled	essentials-pairs-colon-val	Concrete nullary singleton constructor.
+base/essentials.jl	1174	1177	show	show(io::IO, ::Colon)	modelled	essentials-show-colon-dispatch	Source-mirrored model JuliaLean.base.essentials.Models2Group19.showColon; reviewed against Julia f755f49.
+base/essentials.jl	1200	1200	Val{x}	Val{x}() where {x}	modelled	essentials-pairs-colon-val	Concrete fieldless constructor on the already-valid Val{x} dispatch domain. Validity of its type parameter is an actual type-construction invariant.
+base/essentials.jl	1203	1203	Val	Val(x)	modelled	essentials-pairs-colon-val	Reviewed line by line against pinned f755f49 source.
+base/essentials.jl	1211	1211	inferencebarrier	inferencebarrier(@nospecialize(x))	modelled	essentials-barriers	Concrete compilerbarrier type-setting call preserves the argument; compiler inference is outside value semantics.
+base/essentials.jl	1235	1239	isempty	isempty(itr)	modelled	essentials-isempty-boundary	Complete source wrapper at the already-existing IterMethods interface boundary. Preserves arbitrary nonmissing hints, exact invocation order, errors, state effects and nontermination. Does not claim implementations of user-defined isdone/iterate.
+base/essentials.jl	1263	1263	values	values(itr)	modelled	essentials-barriers	Concrete identity fallback over arbitrary iterator/collection values.
+base/essentials.jl	1267	1267	+	(+)(x::Int, y::Int)	modelled	bootcov-ess-int-add-sub	Uses installed add_int on JInt .i64; preserves wrapping.
+base/essentials.jl	1268	1268	-	(-)(x::Int, y::Int)	modelled	bootcov-ess-int-add-sub	Uses installed sub_int on JInt .i64; preserves wrapping.
+base/essentials.jl	1294	1294	!	!(x::Bool)	modelled	essentials-existing-primitive-not	Reuse the existing bound one-bit jlNotInt intrinsic model. The frozen essentials-bool-not registry entry names the older notBool model, so no existing property ID is claimed for this alternative declaration.
+base/essentials.jl	1296	1296	length	length(a::Array{T,1}) where {T}	modelled	essentials-existing-array-shape	Concrete imported first-dimension accessor, with the actual rank-one Array invariant dims.length=1. Returns the stored JInt value. Does not rely on the canonical arbitrary getfield/getindex callbacks; no registry ID is claimed for this alternative declaration.
+base/essentials.jl	1298	1298	has_typevar	has_typevar(@nospecialize(t), v::TypeVar)	modelled	essentials-typevar-query	Concrete jl_has_typevar/jl_has_bound_typevars implementation from supplied pinned C source. Runtime graph covers DataType cached flags/parameters, TypeVar identity, UnionAll masking, TypeApp, Union, Intersect, TypeEq, TypeEgal, Vararg and all other objects. Ordered scans and bounds use concrete stored metadata, not callbacks. Int32 C-result conversion is explicit; internal helper needs no invented public contract.
+base/essentials.jl	1302	1339	_fieldtypes_constrain_typevars	_fieldtypes_constrain_typevars(tvars::Array{Any,1}, fts::Core.SimpleVector)	modelled	essentials-fieldtypes-constrain	Concrete tag assertions, bounded ArrayAny/SVec slots, actual query primitive and Int64 counters. Outer scan descends, later-variable scan ascends, upper-bound query precedes same-object stop. UndefRefError, TypeError, null SVec undefined behavior and nontermination retain source order. Runtime heap/metadata is the actual read-only snapshot; no query correctness callback.
+base/essentials.jl	1342	1360	_defaultctor_typeinfo	_defaultctor_typeinfo(@nospecialize(ty::Type))	modelled	essentials-pairs-colon-val	Reviewed line by line against pinned f755f49 source.
+base/essentials.jl	1365	1514	_defaultctors	_defaultctors(@nospecialize(ty), functionloc)	modelled	essentials-pairs-colon-val	Reviewed line by line against pinned f755f49 source.
+base/essentials.jl	1542	1542	ismissing	ismissing(x)	modelled	essentials-ismissing-singleton	Binds identity against the installed Missing singleton; all other represented values are false. The reserved runtime type tag distinguishes Base.Missing from unrelated user types with the same unqualified name.
+base/essentials.jl	1544	1544	popfirst!	popfirst!	excluded		no-behaviour: declares the generic function without defining a method body.
+base/essentials.jl	1570	1570	peek	peek	excluded		no-behaviour: declares the generic function without defining a method body.
+base/essentials.jl	1578	1580	__LINE__	__LINE__()	modelled	essentials-line-location	Typed LineNumberNode context uses JInt .i64 and optional source-file symbol. Covers every signed line including the documented zero; directly reads the stored field without a getter callback.
+base/essentials.jl	1601	1601	isdone	isdone(_, _...)	modelled	essentials-iterator-defaults	The concrete monadic fallback returns the existing Missing singleton and ignores the iterator and already evaluated variadic state arguments. No effect or supplied isdone callback is introduced.
+base/essentials.jl	1610	1610	iterate	iterate	excluded		no-behaviour: declares the generic function without defining a method body.
+base/essentials.jl	1618	1620	isiterable	isiterable(T)::Bool	modelled	essentials-pairs-colon-val	Reviewed line by line against pinned f755f49 source.
+base/essentials.jl	1656	1670	world	world(sym, world)	modelled	essentials-marker-macros	Reviewed line by line against pinned f755f49 source.
+base/essentials.jl	1672	1673	_resolve_in_world	_resolve_in_world(world::Integer, gr::GlobalRef)	modelled	essentials-pairs-colon-val	Reviewed line by line against pinned f755f49 source.
+base/essentials.jl	1676	1676	+	+	excluded		no-behaviour: declares the generic function without a method body; surrounding assignment only sets an inference heuristic.
+base/essentials.jl	1677	1677	-	-	excluded		no-behaviour: declares the generic function without a method body; surrounding assignment only sets an inference heuristic.
+base/essentials.jl	1678	1678	*	*	excluded		no-behaviour: declares the generic function without a method body; surrounding assignment only sets an inference heuristic.
+base/essentials.jl	1679	1679	==	==	excluded		no-behaviour: declares the generic function without a method body; surrounding assignment only sets an inference heuristic.
+base/essentials.jl	1680	1680	!=	!=	excluded		no-behaviour: declares the generic function without a method body; surrounding assignment only sets an inference heuristic.
+base/essentials.jl	1681	1681	<=	<=	excluded		no-behaviour: declares the generic function without a method body; surrounding assignment only sets an inference heuristic.
+base/essentials.jl	1682	1682	>=	>=	excluded		no-behaviour: declares the generic function without a method body; surrounding assignment only sets an inference heuristic.
+base/essentials.jl	1683	1683	<	<	excluded		no-behaviour: declares the generic function without a method body; surrounding assignment only sets an inference heuristic.
+base/essentials.jl	1684	1684	>	>	excluded		no-behaviour: declares the generic function without a method body; surrounding assignment only sets an inference heuristic.

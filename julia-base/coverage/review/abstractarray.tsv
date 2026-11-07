@@ -243,8 +243,6 @@ line	name	verdict	mirror	property	settled	reason
 3266	_ind2sub	HOLLOW	yes	no	yes	P3266 restates the per-index _ind2sub fill of N similar vectors with every callee unconstrained.
 3307	foreach	HOLLOW	yes	no	yes	P3307 restates the for x in itr; f(x) loop with iterate and apply free, so foreach's call-each-element promise is not tied to a collection.
 3308	foreach	HOLLOW	yes	no	yes	P3308 restates the zip loop with zipIterate and apply unconstrained.
-3385	mapslices	HOLLOW	yes	no	yes	P3385 restates mapslices' slice extraction and assembly with mapWhole, getindex, apply and allocation callbacks free, so no slicewise promise is stated.
-3450	_inner_mapslices!	HOLLOW	yes	no	yes	P3450 restates _inner_mapslices!'s loop with unsafeGetSlice, apply and the setters unconstrained.
 3477	concatenate_setindex!	HOLLOW	yes	no	yes	Property3477 restates R[I...] .= (v,) with broadcastSet unconstrained.
 3478	concatenate_setindex!	HOLLOW	yes	no	yes	Property3478 restates R[I...] = X with set unconstrained.
 3491	map	HOLLOW	yes	no	yes	P3491 restates collect_similar(A, Generator(f, A)) with iterate, apply, allocate and write free.

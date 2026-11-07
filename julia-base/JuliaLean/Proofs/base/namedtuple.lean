@@ -1665,11 +1665,6 @@ def entries : List Entry := [
     statement := "NamedTuple key types are Symbol, and value and element types follow the declared tuple type."
     source := "base/namedtuple.jl:231-248"
     status := .proven, prop := ``NamedTupleTypeMethodsCorrect, thm := some ``namedTupleTypeMethodsCorrect_proven },
-  { id := "sorttuplescov-namedtuple-type-helpers", juliaFile := "base/namedtuple.jl"
-    juliaFns := ["merge_types", "diff_types", "diff_fallback"]
-    statement := "Merged fields keep the rightmost declared type, while a difference keeps each retained field's original type and value."
-    source := "base/namedtuple.jl:280-285,403-422"
-    status := .proven, prop := ``NamedTupleTypeHelpersCorrect, thm := some ``namedTupleTypeHelpersCorrect_proven },
   { id := "sorttuplescov-namedtuple-macros", juliaFile := "base/namedtuple.jl"
     juliaFns := ["@NamedTuple", "@Kwargs"]
     statement := "The macros preserve declaration order, use Any for omitted field types, ignore line nodes, reject malformed declarations, and give keyword arguments a Symbol key type."

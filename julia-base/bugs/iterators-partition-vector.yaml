@@ -1,0 +1,123 @@
+id: iterators-partition-vector
+title: Vector partition returns an empty final chunk after endpoint overflow
+priority: P2
+kind: wrong-result
+area: Iterators
+files:
+  - base/iterators.jl
+functions:
+  - partition
+  - iterate(::PartitionIterator{<:AbstractArray})
+  - length(::PartitionIterator)
+summary: |
+  On 64-bit Julia, partition(Vector{Nothing}(undef, 2^62 + 5), 2^62 + 3)
+  advertises two chunks. It returns a correct first chunk followed by an
+  empty second chunk, although two elements remain. The vector is publicly
+  constructible with zero element-storage bytes. Both release and pinned
+  nightly reproduce the failure. The report iteratorscov-partition-methods
+  describes the same defect.
+likelihood: |
+  Requires a large logical vector length and partition count on a 64-bit
+  system. Nothing is a zero-size singleton type, so the witness needs only
+  array and memory headers, not storage proportional to its length. The
+  reproducer inspects two views without collecting or traversing the input.
+maybe_intended: |
+  Native Int arithmetic wraps, but the public partition docstring promises
+  to iterate over the collection n elements at a time and illustrates a
+  shorter final chunk. Both supplied positive integers fit in Int. No
+  documented restriction excludes zero-size element vectors or these counts.
+reproducer: |
+  # Nothing has zero-size elements; only two partition steps are inspected.
+  @assert Sys.WORD_SIZE == 64
+  L = (Int(1) << 62) + 5
+  n = (Int(1) << 62) + 3
+  xs = Vector{Nothing}(undef, L)
+  @assert sizeof(Nothing) == 0 && sizeof(xs) == 0 && length(xs) == L
+  @assert isassigned(xs, 1) && isassigned(xs, L)
+  @assert xs[1] === nothing && xs[L] === nothing
+  p = Iterators.partition(xs, n)
+  @assert length(p) == 2
+  first_step = iterate(p)
+  @assert first_step !== nothing
+  first_chunk, state = first_step
+  @assert length(first_chunk) == n && state == n + 1
+  @assert L - n == 2
+  second_step = iterate(p, state)
+  @assert second_step !== nothing
+  second_chunk, next_state = second_step
+  @assert length(second_chunk) == 0
+  @assert next_state == typemin(Int) + 7
+  println("REPRODUCED iterators-partition-vector")
+output:
+  release: |
+    REPRODUCED iterators-partition-vector
+  nightly: |
+    REPRODUCED iterators-partition-vector
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  The second chunk should contain the two remaining nothing values, followed
+  by termination. It should not be empty or return a negative next state.
+  The safe reproducer stops after the second chunk and does not pass the
+  malformed negative state back to iterate.
+promised_by: |
+  Pinned source f755f49a9e41380d7da126b3c1db9fe7f83dd027:
+  https://github.com/JuliaLang/julia/blob/f755f49a9e41380d7da126b3c1db9fe7f83dd027/base/iterators.jl#L1423-L1440
+  "Iterate over a collection `n` elements at a time." The example partitions
+  five vector elements into chunks [1, 2], [3, 4], [5]. The public constructor
+  rejects n < 1 and converts n to Int; the witness satisfies both conditions.
+cause: |
+  base/iterators.jl:1476-1479 computes the array endpoint as
+  min(state + itr.n - 1, lastindex(itr.c)) before creating a view. On the
+  second step, state = 2^62 + 4 and n = 2^62 + 3. Their sum is mathematically
+  2^63 + 7, which wraps to typemin(Int) + 7; subtracting one gives
+  typemin(Int) + 6. Clamping this negative endpoint cannot recover the final
+  two elements. The empty state:r view is returned with next state
+  typemin(Int) + 7. The public Vector constructor in base/boot.jl:821-824
+  stores its dimension separately from Memory. src/genericmemory.c allocates
+  nel * elsz bytes; for Nothing, elsz is zero and there are no union tag bytes.
+  L = 2^62 + 5 is also below its MAXINTVAL-1 element-count rejection threshold.
+possible_fix: |
+  Derive the endpoint from the remaining distance to lastindex before adding
+  a chunk size, so intermediate arithmetic cannot overflow. Ensure terminal
+  state handling cannot wrap. No proposed repair was applied in this report.
+duplicates:
+  issues:
+    - number: 64143
+      state: closed
+      relation: related
+      note: "String first/partition overflow through nextind; a different implementation path."
+  prs:
+    - number: 64370
+      state: merged
+      relation: related
+      note: "Fixes string nextind overflow, without changing the array partition endpoint."
+    - number: 40830
+      state: merged
+      relation: related
+      note: "Historical non-1-indexed array partition support; same endpoint implementation family."
+    - number: 33533
+      state: merged
+      relation: related
+      note: "Historical array view specialization; does not report this zero-size-vector witness."
+  search_notes: |
+    Related: issue #64143 and PRs #64370, #40830, #33533 (listed above).
+    Issue #58967 (a memory leak involving ordinary chunks) and #3061
+    (historical combinatorial partitions) do not match. No exact duplicate is
+    known.
+  queries:
+    - "gh search issues 'partition overflow' --repo JuliaLang/julia --limit 100 --json number,title,state,url"
+    - "gh search prs 'partition overflow' --repo JuliaLang/julia --limit 100 --json number,title,state,url"
+    - "gh search issues 'partition Nothing' --repo JuliaLang/julia --limit 100 --json number,title,state,url"
+    - "gh search prs 'partition Nothing' --repo JuliaLang/julia --limit 100 --json number,title,state,url"
+    - "gh search issues 'partition typemax' --repo JuliaLang/julia --limit 100 --json number,title,state,url"
+    - "gh search prs 'partition typemax' --repo JuliaLang/julia --limit 100 --json number,title,state,url"
+    - "gh search issues 'Iterators.partition' --repo JuliaLang/julia --limit 100 --json number,title,state,url"
+    - "gh search prs 'Iterators.partition' --repo JuliaLang/julia --limit 100 --json number,title,state,url"
+    - "gh search issues partition overflow --repo JuliaLang/julia --limit 100 --json number,title,state,url"
+    - "gh search prs partition overflow --repo JuliaLang/julia --limit 100 --json number,title,state,url"
+    - "gh search issues partition Nothing --repo JuliaLang/julia --limit 100 --json number,title,state,url"
+lean:
+  property: JuliaLean.Proofs.base.iterators.PartitionVectorCorrect
+  theorem: JuliaLean.ChatGPT.Batch5.Group5.IteratorsPartitionVector_refuted

@@ -54,7 +54,7 @@ end JuliaLean.Promotion
 namespace JuliaLean.Proofs.base.float
 
 open JuliaLean JuliaLean.C JuliaLean.Registry JuliaLean.base JuliaLean.base.float
-open JuliaLean.Promotion
+open JuliaLean.Promotion hiding FTy FV FTy.fmt FTy.bytes FTy.f16 FTy.f32 FTy.f64
 
 /-! ## Basic integer and bit-pattern lemmas -/
 
@@ -361,7 +361,8 @@ theorem Fmt.den_pos (f : Fmt) : 0 < f.den := Nat.two_pow_pos _
 end JuliaLean.Promotion
 
 namespace JuliaLean.Proofs.base.float
-open JuliaLean JuliaLean.C JuliaLean.Registry JuliaLean.base JuliaLean.base.float JuliaLean.Promotion
+open JuliaLean JuliaLean.C JuliaLean.Registry JuliaLean.base JuliaLean.base.float
+open JuliaLean.Promotion hiding FTy FV FTy.fmt FTy.bytes FTy.f16 FTy.f32 FTy.f64
 
 theorem good_fty (T : FTy) : T.fmt.Good := by
   cases T
@@ -1001,10 +1002,259 @@ theorem cmp_via (hf : f.Good) (hg : g.Good) (hne : (g == f) = false) (hsb : f.sb
   rw [← convert_exactOrder hf hg hne hsb hbias x y]
   exact cmp_promote hg _ y h1 h2
 
+theorem finite_key_lt_inf (hf : f.Good) (x : Fl f) (hx : x.isfinite = true) :
+    -(((2 ^ f.sb * 2 ^ (f.emax - 1) : Nat) : Int)) < x.key ∧
+    x.key < ((2 ^ f.sb * 2 ^ (f.emax - 1) : Nat) : Int) := by
+  have hM := (bits_split x).2
+  have hP := Nat.two_pow_pos f.sb
+  have hE := hf.emax_eq
+  have hS := hf.emax_succ
+  have hfin : x.magnitude / 2 ^ f.sb ≠ f.emax := by
+    have := hx; simp only [isfinite, bne_iff_ne, ne_eq] at this
+    rw [expField_eq] at this; exact this
+  have hdiv : x.magnitude / 2 ^ f.sb < 2 ^ f.eb := by
+    apply Nat.div_lt_of_lt_mul; rw [← Nat.pow_add, Nat.add_comm]; exact hM
+  have hmag_lt : x.magnitude < f.emax * 2 ^ f.sb := by
+    have := Nat.div_add_mod x.magnitude (2 ^ f.sb)
+    have := Nat.mod_lt x.magnitude hP
+    have hle : x.magnitude / 2 ^ f.sb + 1 ≤ f.emax := by omega
+    have hmul := Nat.mul_le_mul_left (2 ^ f.sb) hle
+    rw [Nat.mul_add, Nat.mul_one, Nat.mul_comm (2 ^ f.sb) f.emax] at hmul
+    omega
+  have hmk_lt := magKey_strictMono f hmag_lt
+  have hmk_inf : magKey f (f.emax * 2 ^ f.sb) = 2 ^ f.sb * 2 ^ (f.emax - 1) := by
+    unfold magKey
+    rw [Nat.mul_div_cancel _ hP, Nat.mul_mod_left,
+      ite_eq_right_iff.mpr (by omega), Nat.zero_add]
+  rw [hmk_inf] at hmk_lt
+  unfold key
+  generalize 2 ^ f.sb * 2 ^ (f.emax - 1) = K at hmk_lt ⊢
+  generalize magKey f x.magnitude = M at hmk_lt ⊢
+  cases x.signbit <;> simp only [Bool.false_eq_true, ↓reduceIte] <;> omega
+
+theorem inf_key_eq (hf : f.Good) (x : Fl f) (hi : x.isinf = true) :
+    x.key = if x.signbit then -(((2 ^ f.sb * 2 ^ (f.emax - 1) : Nat) : Int))
+            else ((2 ^ f.sb * 2 ^ (f.emax - 1) : Nat) : Int) := by
+  have hE := hf.emax_eq
+  have he : x.expField = f.emax := by
+    unfold isinf at hi; simp only [Bool.and_eq_true, beq_iff_eq] at hi; exact hi.1
+  have hr : x.frac = 0 := by
+    unfold isinf at hi; simp only [Bool.and_eq_true, beq_iff_eq] at hi; exact hi.2
+  have hmk : magKey f x.magnitude = 2 ^ f.sb * 2 ^ (f.emax - 1) := by
+    unfold magKey
+    rw [← expField_eq, ← frac_eq, he, hr, Nat.zero_add,
+      ite_eq_right_iff.mpr (by omega)]
+  unfold key
+  rw [hmk]
+theorem convert_widen_key (hf : f.Good) (hg : g.Good) (hne : (g == f) = false)
+    (hsb : f.sb ≤ g.sb) (hbias : f.bias + f.sb ≤ g.bias) (x : Fl f) :
+    (convert x : Fl g).isnan = x.isnan ∧
+    (convert x : Fl g).isinf = x.isinf ∧
+    (convert x : Fl g).isfinite = x.isfinite ∧
+    (x.isinf = true → (convert x : Fl g).signbit = x.signbit) ∧
+    (x.isfinite = true →
+      (convert x : Fl g).key * (f.den : Int) = x.key * (g.den : Int) ∧
+      (convert x : Fl g).toRat.1 * (x.toRat.2 : Int) = x.toRat.1 * ((convert x : Fl g).toRat.2 : Int)) := by
+  have hgS := hg.emax_succ
+  have hgE := hg.emax_eq
+  have hfE := hf.emax_eq
+  have hPg := Nat.two_pow_pos g.sb
+  have hDf : (0 : Int) < f.den := by exact_mod_cast f.den_pos
+  have hDg : (0 : Int) < g.den := by exact_mod_cast g.den_pos
+  unfold convert
+  rw [hne]
+  simp only [Bool.false_eq_true, ↓reduceIte]
+  cases hn : x.isnan
+  · cases hi : x.isinf
+    · have hfin : x.isfinite = true := by simp_all [isnan, isinf, isfinite]
+      simp only [Bool.false_eq_true, ↓reduceIte]
+      have hrat_x := (toRat_key hf x hfin).2
+      obtain ⟨m, i, j, hr, hk, hm, hrange⟩ := toRat_cases hf x hfin
+      have hkey := hrat_x
+      rw [hr] at hkey
+      dsimp only at hkey
+      have hfin_scale :
+          (roundRat x.toRat.1 x.toRat.2 x.signbit : Fl g).isfinite = true ∧
+          (roundRat x.toRat.1 x.toRat.2 x.signbit : Fl g).key * (f.den : Int) = x.key * (g.den : Int) := by
+        rw [hr]
+        dsimp only
+        by_cases hm0 : m = 0
+        · subst hm0
+          have hz : (roundRat (if x.signbit then -((0 * 2 ^ i : Nat) : Int)
+              else ((0 * 2 ^ i : Nat) : Int)) (2 ^ j) x.signbit : Fl g) = zero x.signbit := by
+            cases x.signbit <;> simp [roundRat]
+          rw [hz]
+          obtain ⟨hz1, hz2⟩ := zero_spec hg x.signbit
+          have hkx : x.key = 0 := by
+            have h2 : ((2 ^ j : Nat) : Int) ≠ 0 := by have := Nat.two_pow_pos j; omega
+            have h3 : x.key * ((2 ^ j : Nat) : Int) = 0 := by
+              rw [← hkey]; cases x.signbit <;> simp
+            exact (Int.mul_eq_zero.1 h3).resolve_right h2
+          exact ⟨hz1, by rw [hz2, hkx]; simp⟩
+        · obtain ⟨hlo, hhi⟩ := hrange hm0
+          have hn' : (if x.signbit then -((m * 2 ^ i : Nat) : Int)
+              else ((m * 2 ^ i : Nat) : Int)).natAbs = m * 2 ^ i := by
+            cases x.signbit <;> simp only [Bool.false_eq_true, ↓reduceIte, Int.natAbs_neg,
+              Int.natAbs_natCast]
+          have hm1 : m < 2 ^ (g.sb + 1) :=
+            Nat.lt_of_lt_of_le hm (Nat.pow_le_pow_right (by decide) (by omega))
+          obtain ⟨h1, h2⟩ := roundRat_key (f := g) hg _ m i j x.signbit hn' (by omega) hm1
+            (by omega) (by omega)
+          have hj : (0 : Int) < ((2 ^ j : Nat) : Int) := by exact_mod_cast Nat.two_pow_pos j
+          refine ⟨h1, ?_⟩
+          generalize (if x.signbit then -((m * 2 ^ i : Nat) : Int)
+            else ((m * 2 ^ i : Nat) : Int)) = N at h2 hkey
+          generalize (roundRat N (2 ^ j) x.signbit : Fl g).key = K at h2
+          apply Int.eq_of_mul_eq_mul_right (Int.ne_of_gt hj)
+          calc K * (f.den : Int) * ((2 ^ j : Nat) : Int)
+              = K * ((2 ^ j : Nat) : Int) * (f.den : Int) := by rw [Int.mul_right_comm]
+            _ = N * (g.den : Int) * (f.den : Int) := by rw [h2]
+            _ = N * (f.den : Int) * (g.den : Int) := by rw [Int.mul_right_comm]
+            _ = x.key * ((2 ^ j : Nat) : Int) * (g.den : Int) := by rw [hkey]
+            _ = x.key * (g.den : Int) * ((2 ^ j : Nat) : Int) := by rw [Int.mul_right_comm]
+      obtain ⟨hg_fin, hg_scale⟩ := hfin_scale
+      generalize (roundRat x.toRat.1 x.toRat.2 x.signbit : Fl g) = w at hg_fin hg_scale ⊢
+      have hrat_w := (toRat_key hg w hg_fin).2
+      refine ⟨isnan_of_finite hg_fin, isinf_of_finite hg_fin, by rw [hg_fin, hfin],
+        fun h => False.elim h, fun _ => ⟨hg_scale, ?_⟩⟩
+      apply Int.eq_of_mul_eq_mul_right (by omega : (g.den : Int) ≠ 0)
+      apply Int.eq_of_mul_eq_mul_right (by omega : (f.den : Int) ≠ 0)
+      have hstep1 : (w.toRat.1 * (g.den : Int)) * (x.toRat.2 : Int) * (f.den : Int) =
+          (w.key * (f.den : Int)) * (w.toRat.2 : Int) * (x.toRat.2 : Int) := by
+        rw [hrat_w, Int.mul_right_comm (w.key * (w.toRat.2 : Int)) (x.toRat.2 : Int) (f.den : Int),
+          Int.mul_right_comm w.key (w.toRat.2 : Int) (f.den : Int)]
+      have hstep2 : (x.toRat.1 * (f.den : Int)) * (w.toRat.2 : Int) * (g.den : Int) =
+          (x.key * (g.den : Int)) * (w.toRat.2 : Int) * (x.toRat.2 : Int) := by
+        rw [hrat_x, Int.mul_right_comm (x.key * (x.toRat.2 : Int)) (w.toRat.2 : Int) (g.den : Int),
+          Int.mul_right_comm x.key (x.toRat.2 : Int) (g.den : Int),
+          Int.mul_right_comm (x.key * (g.den : Int)) (x.toRat.2 : Int) (w.toRat.2 : Int)]
+      calc w.toRat.1 * (x.toRat.2 : Int) * (g.den : Int) * (f.den : Int)
+          = (w.toRat.1 * (g.den : Int)) * (x.toRat.2 : Int) * (f.den : Int) := by
+            rw [Int.mul_right_comm w.toRat.1 (x.toRat.2 : Int) (g.den : Int)]
+        _ = (w.key * (f.den : Int)) * (w.toRat.2 : Int) * (x.toRat.2 : Int) := hstep1
+        _ = (x.key * (g.den : Int)) * (w.toRat.2 : Int) * (x.toRat.2 : Int) := by rw [hg_scale]
+        _ = (x.toRat.1 * (f.den : Int)) * (w.toRat.2 : Int) * (g.den : Int) := hstep2.symm
+        _ = x.toRat.1 * (w.toRat.2 : Int) * (g.den : Int) * (f.den : Int) := by
+            rw [Int.mul_right_comm x.toRat.1 (f.den : Int) (w.toRat.2 : Int),
+              Int.mul_right_comm (x.toRat.1 * (w.toRat.2 : Int)) (f.den : Int) (g.den : Int)]
+    · have hinf : (inf x.signbit : Fl g) = pack x.signbit g.emax 0 := by simp [inf, pack]
+      obtain ⟨hs, he, hfr, -⟩ := pack_parts (f := g) x.signbit g.emax 0 (by omega) hPg
+      simp only [Bool.false_eq_true, ↓reduceIte, hinf]
+      have hpn : (pack x.signbit g.emax 0 : Fl g).isnan = false := by unfold isnan; rw [he, hfr]; simp
+      have hpi : (pack x.signbit g.emax 0 : Fl g).isinf = true := by unfold isinf; rw [he, hfr]; simp
+      have hpf : (pack x.signbit g.emax 0 : Fl g).isfinite = false := by unfold isfinite; rw [he]; simp
+      have hxf : x.isfinite = false := by
+        unfold isinf at hi; unfold isfinite; simp only [Bool.and_eq_true, beq_iff_eq] at hi; simp [hi.1]
+      exact ⟨hpn, hpi, by rw [hpf, hxf], fun _ => hs, fun h => by rw [hxf] at h; exact Bool.noConfusion h⟩
+  · have hfr : x.frac < 2 ^ f.sb := by rw [frac_eq]; exact Nat.mod_lt _ (Nat.two_pow_pos _)
+    have hpay : x.frac * 2 ^ (g.sb - f.sb) < 2 ^ g.sb := by
+      calc x.frac * 2 ^ (g.sb - f.sb) < 2 ^ f.sb * 2 ^ (g.sb - f.sb) :=
+            (Nat.mul_lt_mul_right (Nat.two_pow_pos _)).2 hfr
+        _ = 2 ^ g.sb := by rw [← Nat.pow_add]; congr 1; omega
+    have hhalf : 2 ^ (g.sb - 1) < 2 ^ g.sb :=
+      Nat.pow_lt_pow_right (by decide) (by have := hg.sb_pos; omega)
+    have hL : Nat.lor (x.frac * 2 ^ (g.sb - f.sb)) (2 ^ (g.sb - 1)) < 2 ^ g.sb :=
+      Nat.or_lt_two_pow hpay hhalf
+    have hpk : (ofBits ((if x.signbit then 2 ^ (g.eb + g.sb) else 0) + g.emax * 2 ^ g.sb +
+        Nat.lor (x.frac * 2 ^ (g.sb - f.sb)) (2 ^ (g.sb - 1))) : Fl g) =
+        pack x.signbit g.emax (Nat.lor (x.frac * 2 ^ (g.sb - f.sb)) (2 ^ (g.sb - 1))) := by
+      unfold pack; rw [Nat.add_assoc]
+    obtain ⟨-, he, hfr', -⟩ := pack_parts (f := g) x.signbit g.emax _ (by omega) hL
+    simp only [↓reduceIte, ite_eq_left_iff.mpr fun h => absurd hsb h, hpk]
+    have hpn : (pack x.signbit g.emax (Nat.lor (x.frac * 2 ^ (g.sb - f.sb)) (2 ^ (g.sb - 1))) :
+        Fl g).isnan = true := by unfold isnan; rw [he, hfr']; simp
+    have hpi : (pack x.signbit g.emax (Nat.lor (x.frac * 2 ^ (g.sb - f.sb)) (2 ^ (g.sb - 1))) :
+        Fl g).isinf = false := by unfold isinf; rw [he, hfr']; simp
+    have hpf : (pack x.signbit g.emax (Nat.lor (x.frac * 2 ^ (g.sb - f.sb)) (2 ^ (g.sb - 1))) :
+        Fl g).isfinite = false := by unfold isfinite; rw [he]; simp
+    have hxi : x.isinf = false := by
+      unfold isnan at hn; unfold isinf; simp only [Bool.and_eq_true, beq_iff_eq, bne_iff_ne] at hn; simp [hn.1, hn.2]
+    have hxf : x.isfinite = false := by
+      unfold isnan at hn; unfold isfinite; simp only [Bool.and_eq_true, beq_iff_eq] at hn; simp [hn.1]
+    exact ⟨hpn, by rw [hpi, hxi], by rw [hpf, hxf],
+      fun h => by rw [hxi] at h; exact Bool.noConfusion h,
+      fun h => by rw [hxf] at h; exact Bool.noConfusion h⟩
+
+theorem convert_widen_cmp (hf : f.Good) (hg : g.Good) (hne : (g == f) = false)
+    (hsb : f.sb ≤ g.sb) (hbias : f.bias + f.sb ≤ g.bias) (x y : Fl f) :
+    Fl.eq (convert x : Fl g) (convert y : Fl g) = Fl.eq x y ∧
+    Fl.lt (convert x : Fl g) (convert y : Fl g) = Fl.lt x y ∧
+    Fl.le (convert x : Fl g) (convert y : Fl g) = Fl.le x y := by
+  obtain ⟨hnx, hix, hfx, hsx, hkx⟩ := convert_widen_key hf hg hne hsb hbias x
+  obtain ⟨hny, hiy, hfy, hsy, hky⟩ := convert_widen_key hf hg hne hsb hbias y
+  by_cases hx : x.isnan = true
+  · simp [Fl.le, Fl.eq, Fl.lt, hnx, hx]
+  · by_cases hy : y.isnan = true
+    · simp [Fl.le, Fl.eq, Fl.lt, hny, hy]
+    · have hx' : x.isnan = false := Bool.eq_false_iff.mpr hx
+      have hy' : y.isnan = false := Bool.eq_false_iff.mpr hy
+      have hcx' : (convert x : Fl g).isnan = false := by rw [hnx]; exact hx'
+      have hcy' : (convert y : Fl g).isnan = false := by rw [hny]; exact hy'
+      have hDf : (0 : Int) < f.den := by exact_mod_cast f.den_pos
+      have hDg : (0 : Int) < g.den := by exact_mod_cast g.den_pos
+      have hkey_rel :
+          ((convert x : Fl g).key = (convert y : Fl g).key ↔ x.key = y.key) ∧
+          ((convert x : Fl g).key < (convert y : Fl g).key ↔ x.key < y.key) := by
+        cases hfin_x : x.isfinite <;> cases hfin_y : y.isfinite
+        · have hinf_x : x.isinf = true := by
+            unfold isfinite at hfin_x; unfold isnan at hx'; unfold isinf
+            simp only [bne_eq_false_iff_eq] at hfin_x; simp [hfin_x] at hx' ⊢; exact hx'
+          have hinf_y : y.isinf = true := by
+            unfold isfinite at hfin_y; unfold isnan at hy'; unfold isinf
+            simp only [bne_eq_false_iff_eq] at hfin_y; simp [hfin_y] at hy' ⊢; exact hy'
+          have hinf_cx : (convert x : Fl g).isinf = true := by rw [hix]; exact hinf_x
+          have hinf_cy : (convert y : Fl g).isinf = true := by rw [hiy]; exact hinf_y
+          rw [inf_key_eq hf x hinf_x, inf_key_eq hf y hinf_y,
+            inf_key_eq hg _ hinf_cx, inf_key_eq hg _ hinf_cy, hsx hinf_x, hsy hinf_y]
+          have hpos_f : (0 : Int) < ((2 ^ f.sb * 2 ^ (f.emax - 1) : Nat) : Int) := by
+            exact_mod_cast Nat.mul_pos (Nat.two_pow_pos _) (Nat.two_pow_pos _)
+          have hpos_g : (0 : Int) < ((2 ^ g.sb * 2 ^ (g.emax - 1) : Nat) : Int) := by
+            exact_mod_cast Nat.mul_pos (Nat.two_pow_pos _) (Nat.two_pow_pos _)
+          generalize ((2 ^ f.sb * 2 ^ (f.emax - 1) : Nat) : Int) = Kf at hpos_f ⊢
+          generalize ((2 ^ g.sb * 2 ^ (g.emax - 1) : Nat) : Int) = Kg at hpos_g ⊢
+          cases x.signbit <;> cases y.signbit <;> simp <;> omega
+        · have hinf_x : x.isinf = true := by
+            unfold isfinite at hfin_x; unfold isnan at hx'; unfold isinf
+            simp only [bne_eq_false_iff_eq] at hfin_x; simp [hfin_x] at hx' ⊢; exact hx'
+          have hinf_cx : (convert x : Fl g).isinf = true := by rw [hix]; exact hinf_x
+          have hfin_cy : (convert y : Fl g).isfinite = true := by rw [hfy]; exact hfin_y
+          obtain ⟨hlo_f, hhi_f⟩ := finite_key_lt_inf hf y hfin_y
+          obtain ⟨hlo_g, hhi_g⟩ := finite_key_lt_inf hg _ hfin_cy
+          rw [inf_key_eq hf x hinf_x, inf_key_eq hg _ hinf_cx, hsx hinf_x]
+          generalize ((2 ^ f.sb * 2 ^ (f.emax - 1) : Nat) : Int) = Kf at hlo_f hhi_f ⊢
+          generalize ((2 ^ g.sb * 2 ^ (g.emax - 1) : Nat) : Int) = Kg at hlo_g hhi_g ⊢
+          cases x.signbit <;> simp only [Bool.false_eq_true, ↓reduceIte] <;> omega
+        · have hinf_y : y.isinf = true := by
+            unfold isfinite at hfin_y; unfold isnan at hy'; unfold isinf
+            simp only [bne_eq_false_iff_eq] at hfin_y; simp [hfin_y] at hy' ⊢; exact hy'
+          have hinf_cy : (convert y : Fl g).isinf = true := by rw [hiy]; exact hinf_y
+          have hfin_cx : (convert x : Fl g).isfinite = true := by rw [hfx]; exact hfin_x
+          obtain ⟨hlo_f, hhi_f⟩ := finite_key_lt_inf hf x hfin_x
+          obtain ⟨hlo_g, hhi_g⟩ := finite_key_lt_inf hg _ hfin_cx
+          rw [inf_key_eq hf y hinf_y, inf_key_eq hg _ hinf_cy, hsy hinf_y]
+          generalize ((2 ^ f.sb * 2 ^ (f.emax - 1) : Nat) : Int) = Kf at hlo_f hhi_f ⊢
+          generalize ((2 ^ g.sb * 2 ^ (g.emax - 1) : Nat) : Int) = Kg at hlo_g hhi_g ⊢
+          cases y.signbit <;> simp only [Bool.false_eq_true, ↓reduceIte] <;> omega
+        · have hkx' := (hkx hfin_x).1
+          have hky' := (hky hfin_y).1
+          constructor
+          · rw [← Int.mul_eq_mul_right_iff (by omega : (f.den : Int) ≠ 0), hkx', hky',
+              Int.mul_eq_mul_right_iff (by omega : (g.den : Int) ≠ 0)]
+          · rw [← Int.mul_lt_mul_right hDf, hkx', hky', Int.mul_lt_mul_right hDg]
+      have heq : Fl.eq (convert x : Fl g) (convert y : Fl g) = Fl.eq x y := by
+        rw [eq_key hcx' hcy', eq_key hx' hy']
+        exact decide_eq_decide.mpr hkey_rel.1
+      have hlt : Fl.lt (convert x : Fl g) (convert y : Fl g) = Fl.lt x y := by
+        rw [lt_key hcx' hcy', lt_key hx' hy']
+        exact decide_eq_decide.mpr hkey_rel.2
+      refine ⟨heq, hlt, ?_⟩
+      unfold Fl.le
+      rw [heq, hlt]
 end JuliaLean.Promotion.Fl
 
 namespace JuliaLean.Proofs.base.float
-open JuliaLean JuliaLean.C JuliaLean.Registry JuliaLean.base JuliaLean.base.float JuliaLean.Promotion
+open JuliaLean JuliaLean.C JuliaLean.Registry JuliaLean.base JuliaLean.base.float
+open JuliaLean.Promotion hiding FTy FV FTy.fmt FTy.bytes FTy.f16 FTy.f32 FTy.f64
 
 theorem exactOrder_cases {f : Fmt} (x : Fl f) (hx : x.isnan = false) (y : Int) :
     exactOrder x y = some (-1) ∨ exactOrder x y = some 0 ∨ exactOrder x y = some 1 := by
@@ -1105,19 +1355,13 @@ total order on `isequal` classes, with `-0.0` strictly before `+0.0` and all `Na
 in one `isequal` class at the top (`base/float.jl:619-634`). -/
 def IslessPartition : Prop := ∀ (T : FTy) (x y : FV T),
   (isless_IEEEFloat x y = true ∨ isless_IEEEFloat y x = true ∨ isequal_IEEEFloat x y = true) ∧
-  (isequal_IEEEFloat x y = true ↔ isless_IEEEFloat x y = false ∧ isless_IEEEFloat y x = false)
+  (isequal_IEEEFloat x y = true ↔ isless_IEEEFloat x y = false ∧ isless_IEEEFloat y x = false) ∧
+  isless_IEEEFloat (Fl.zero true : FV T) (Fl.zero false : FV T) = true ∧
+  (x.isnan = true → y.isnan = true → isequal_IEEEFloat x y = true) ∧
+  (x.isnan = false → isless_IEEEFloat x (nan_float T) = true) ∧
+  (x.isnan = true → isless_IEEEFloat (nan_float T) x = false) ∧
+  (_fpint x).val = if x.signbit then -((x.magnitude : Int) + 1) else (x.magnitude : Int)
 
-theorem islessPartition_proven : IslessPartition := by
-  intro T x y
-  rw [isless_IEEEFloat_eq, isless_IEEEFloat_eq, isequal_IEEEFloat_eq]
-  have hnan : x.toBits = y.toBits → x.isnan = y.isnan := by
-    intro h; simp only [Fl.isnan, Fl.expField, Fl.frac, h]
-  have hsign : x.toBits = y.toBits → x.signbit = y.signbit := by
-    intro h; simp only [Fl.signbit, h]
-  cases hx : x.isnan <;> cases hy : y.isnan <;>
-    cases sx : x.signbit <;> cases sy : y.signbit <;>
-    simp only [Fl.isless, Fl.isequal, hx, hy, sx, sy] <;>
-    simp_all <;> omega
 
 /-- `isless` is transitive across all bit patterns of every `IEEEFloat` format `T`, including
 `NaN` payloads and signed zeros (`base/float.jl:621-634`). -/
@@ -1131,6 +1375,60 @@ theorem islessTransitive_proven : IslessTransitive := by
     cases sx : x.signbit <;> cases sy : y.signbit <;> cases sz : z.signbit <;>
     simp only [Fl.isless, hx, hy, hz, sx, sy, sz] at hxy hyz ⊢ <;>
     simp_all <;> omega
+private theorem natEqNoLt (a b : Nat) :
+    (a == b) = true ↔ decide (a < b) = false ∧ decide (b < a) = false := by
+  simp only [beq_iff_eq, decide_eq_false_iff_not]
+  omega
+theorem islessPartition_proven : IslessPartition := by
+  intro T x y
+  simp only [isless_IEEEFloat_eq, isequal_IEEEFloat_eq]
+  refine ⟨?_, ?_, ?_, ?_, ?_, ?_, fpint_val x⟩
+  · cases hx : x.isnan <;> cases hy : y.isnan <;>
+      cases sx : x.signbit <;> cases sy : y.signbit <;>
+      simp [Fl.isless, Fl.isequal, hx, hy, sx, sy] <;> omega
+  · by_cases hx : x.isnan = true
+    · by_cases hy : y.isnan = true
+      · simp [Fl.isless, Fl.isequal, hx, hy]
+      · have hy' : y.isnan = false := Bool.eq_false_iff.mpr hy
+        have hbits : x.toBits ≠ y.toBits := by
+          intro h
+          have hxy : x = y := Fl.ext_toBits h
+          rw [hxy] at hx
+          contradiction
+        simp [Fl.isless, Fl.isequal, hx, hy', hbits, beq_iff_eq]
+    · have hx' : x.isnan = false := Bool.eq_false_iff.mpr hx
+      by_cases hy : y.isnan = true
+      · have hbits : x.toBits ≠ y.toBits := by
+          intro h
+          have hxy : x = y := Fl.ext_toBits h
+          rw [← hxy] at hy
+          contradiction
+        simp [Fl.isless, Fl.isequal, hx', hy, hbits, beq_iff_eq]
+      · have hy' : y.isnan = false := Bool.eq_false_iff.mpr hy
+        by_cases hs : x.signbit = y.signbit
+        · have hnat := natEqNoLt x.toBits y.toBits
+          cases sx : x.signbit
+          · have sy : y.signbit = false := by rw [← hs, sx]
+            simpa [Fl.isless, Fl.isequal, hx', hy', sx, sy, beq_iff_eq] using hnat
+          · have sy : y.signbit = true := by rw [← hs, sx]
+            simpa [Fl.isless, Fl.isequal, hx', hy', sx, sy, and_comm, beq_iff_eq] using hnat
+        · have hbits : x.toBits ≠ y.toBits := by
+            intro h
+            have hsign : x.signbit = y.signbit := by
+              simp only [Fl.signbit]
+              rw [h]
+            exact hs hsign
+          cases sx : x.signbit <;> cases sy : y.signbit <;>
+            simp [Fl.isless, Fl.isequal, hx', hy', sx, sy, hbits, beq_iff_eq] <;> omega
+  · cases T <;> decide
+  · intro hx hy
+    simp [Fl.isequal, hx, hy]
+  · intro hx
+    have hn : (nan_float T : FV T).isnan = true := by cases T <;> decide
+    simp [Fl.isless, hx, hn]
+  · intro hx
+    have hn : (nan_float T : FV T).isnan = true := by cases T <;> decide
+    simp [Fl.isless, hx, hn]
 
 /-! ## Property 3: `Base.uabs` (`intarith-division-uabs-typemin`) -/
 
@@ -3950,7 +4248,9 @@ def TruncIntExact : Prop :=
       else .error (.inexactError "round")) ∧
   (∀ (T : FTy) (t : IntTy) (x : FV T),
     x.isfinite = true → t.min ≤ x.truncVal ∧ x.truncVal ≤ t.max →
-    unsafe_trunc t x = JInt.wrap t x.truncVal) ∧
+    unsafe_trunc t x = JInt.wrap t x.truncVal ∧
+    (t.signed = true → t.bits ≤ 64 → unsafe_trunc_BitSigned64 t x = JInt.wrap t x.truncVal) ∧
+    (t.signed = false → t.bits ≤ 64 → unsafe_trunc_BitUnsigned64 t x = JInt.wrap t x.truncVal)) ∧
   (∀ (T : FTy) (x : FV T),
     round_Signed (fun y _ => round_ToZero .i64 y) x .ToZero = round_ToZero .i64 x ∧
     round_Unsigned (fun y _ => round_ToZero .u64 y) x .ToZero = round_ToZero .u64 x ∧
@@ -3959,9 +4259,16 @@ def TruncIntExact : Prop :=
 theorem truncIntExact_proven : TruncIntExact := by
   refine ⟨round_ToZero_eq, ?_, fun _ _ => ⟨rfl, rfl, rfl⟩⟩
   intro T t x hfin hin
-  apply Subtype.ext
-  exact unsafe_trunc_eq_wrap T t x hfin hin
-
+  have hu : unsafe_trunc t x = JInt.wrap t x.truncVal := by
+    apply Subtype.ext
+    exact unsafe_trunc_eq_wrap T t x hfin hin
+  refine ⟨hu, ?_, ?_⟩
+  · intro hs hb
+    cases t <;> try (exfalso; revert hs hb; decide)
+    all_goals exact hu
+  · intro hs hb
+    cases t <;> try (exfalso; revert hs hb; decide)
+    all_goals exact hu
 def IntConvertExact : Prop :=
   (∀ (T : FTy) (t : IntTy) (x : FV T),
     intOfFloat t x =
@@ -4039,8 +4346,8 @@ def FloatBitLayoutInvariants : Prop :=
     (exponent_bias T).val = (T.fmt.bias : Int) ∧
     (exponent_raw_max T).val = (T.fmt.emax : Int) ∧
     (exponent_max T).val = (T.fmt.bias : Int) ∧
+    (ieee754_exponent_min T).val = 1 - (T.fmt.bias : Int) ∧
     (exponent_min T).val = 1 - (T.fmt.bias : Int) ∧
-    ieee754_exponent_min T = exponent_min T ∧
     (exponent_one T).val = (T.fmt.bias * 2 ^ T.fmt.sb : Nat) ∧
     (exponent_half T).val = ((T.fmt.bias - 1) * 2 ^ T.fmt.sb : Nat)) ∧
   (Inf16 = inf_float .f16 ∧ Inf32 = inf_float .f32 ∧ Inf64 = inf_float .f64 ∧ Inf = Inf64 ∧
@@ -4090,20 +4397,28 @@ theorem floatBitLayoutInvariants_proven : FloatBitLayoutInvariants := by
 
 def FloatIeee754RepresentationSpec : Prop := ∀ (F : FTy) (s : Bool),
   (∀ (e m : JInt F.uintTy), e.val.toNat < 2 ^ F.fmt.eb → m.val.toNat < 2 ^ F.fmt.sb →
-    reinterpret_Float_Int F (ieee754_representation F s e m) =
-      Fl.pack s e.val.toNat m.val.toNat) ∧
+    let f := reinterpret_Float_Int F (ieee754_representation F s e m)
+    f = Fl.pack s e.val.toNat m.val.toNat ∧
+    f.signbit = s ∧ f.expField = e.val.toNat ∧ f.frac = m.val.toNat) ∧
   reinterpret_Float_Int F (ieee754_representation_zero F s) = Fl.zero s ∧
   reinterpret_Float_Int F (ieee754_representation_inf F s) = Fl.inf s ∧
   (reinterpret_Float_Int F (ieee754_representation_nan F s)).isnan = true ∧
   (reinterpret_Float_Int F (ieee754_representation_nan F s)).signbit = s ∧
+  (reinterpret_Float_Int F (ieee754_representation_nan F s)).frac = 2 ^ (F.fmt.sb - 1) ∧
   reinterpret_Float_Int F (ieee754_representation_omega F false) = floatmax_float F ∧
   reinterpret_Float_Int F (ieee754_representation_omega F true) = neg_IEEEFloat (floatmax_float F) ∧
   (∀ (m : JInt F.uintTy), m.val.toNat < 2 ^ F.fmt.sb →
-    reinterpret_Float_Int F (ieee754_representation_subnormal F s m) =
-      Fl.pack s 0 m.val.toNat) ∧
+    let f := reinterpret_Float_Int F (ieee754_representation_subnormal F s m)
+    f = Fl.pack s 0 m.val.toNat ∧
+    f.signbit = s ∧ f.expField = 0 ∧ f.frac = m.val.toNat ∧
+    (0 < m.val.toNat → f.expField = 0 ∧ f.frac ≠ 0) ∧
+    (m.val.toNat = 0 → f = Fl.zero s)) ∧
   (∀ (m : JInt F.uintTy), m.val.toNat < 2 ^ F.fmt.sb →
-    reinterpret_Float_Int F (ieee754_representation_nan_payload F s m) =
-      Fl.pack s F.fmt.emax m.val.toNat)
+    let f := reinterpret_Float_Int F (ieee754_representation_nan_payload F s m)
+    f = Fl.pack s F.fmt.emax m.val.toNat ∧
+    f.signbit = s ∧ f.expField = F.fmt.emax ∧ f.frac = m.val.toNat ∧
+    (0 < m.val.toNat → f.isnan = true) ∧
+    (m.val.toNat = 0 → f = Fl.inf s))
 
 theorem floatIeee754RepresentationSpec_proven : FloatIeee754RepresentationSpec := by
   intro F s
@@ -4112,6 +4427,7 @@ theorem floatIeee754RepresentationSpec_proven : FloatIeee754RepresentationSpec :
       reinterpret_Float_Int F (ieee754_representation_inf F s) = Fl.inf s ∧
       (reinterpret_Float_Int F (ieee754_representation_nan F s)).isnan = true ∧
       (reinterpret_Float_Int F (ieee754_representation_nan F s)).signbit = s ∧
+      (reinterpret_Float_Int F (ieee754_representation_nan F s)).frac = 2 ^ (F.fmt.sb - 1) ∧
       reinterpret_Float_Int F (ieee754_representation_omega F false) = floatmax_float F ∧
       reinterpret_Float_Int F (ieee754_representation_omega F true) = neg_IEEEFloat (floatmax_float F) ∧
       int.remT F.uintTy (int.binop int.bor
@@ -4126,8 +4442,12 @@ theorem floatIeee754RepresentationSpec_proven : FloatIeee754RepresentationSpec :
       (int.remT F.uintTy (exponent_raw_max F)).val.toNat = F.fmt.emax ∧
       F.fmt.emax < 2 ^ F.fmt.eb := by
     cases F <;> cases s <;> decide
-  obtain ⟨hz, hinf, hnan1, hnan2, hom1, hom2, hsub_e, he0, hnan_e, he_max, hem_lt⟩ := hfixed
-  refine ⟨ieee754_representation_pack F s, hz, hinf, hnan1, hnan2, hom1, hom2, ?_, ?_⟩
+  obtain ⟨hz, hinf, hnan1, hnan2, hnan3, hom1, hom2, hsub_e, he0, hnan_e, he_max, hem_lt⟩ := hfixed
+  refine ⟨?_, hz, hinf, hnan1, hnan2, hnan3, hom1, hom2, ?_, ?_⟩
+  · intro e m heb hmb
+    have hp := ieee754_representation_pack F s e m heb hmb
+    obtain ⟨hs, he, hfr, -⟩ := Fl.pack_parts (f := F.fmt) s e.val.toNat m.val.toNat heb hmb
+    exact ⟨hp, by rw [hp, hs], by rw [hp, he], by rw [hp, hfr]⟩
   · intro m hm
     have heq : ieee754_representation_subnormal F s m =
         ieee754_representation F s (int.lit F.uintTy 0) m := by
@@ -4135,7 +4455,13 @@ theorem floatIeee754RepresentationSpec_proven : FloatIeee754RepresentationSpec :
       rw [hsub_e]
     have heb : (int.lit F.uintTy 0).val.toNat < 2 ^ F.fmt.eb := by
       rw [he0]; exact Nat.two_pow_pos _
-    rw [heq, ieee754_representation_pack F s (int.lit F.uintTy 0) m heb hm, he0]
+    have hp : reinterpret_Float_Int F (ieee754_representation_subnormal F s m) = Fl.pack s 0 m.val.toNat := by
+      rw [heq, ieee754_representation_pack F s (int.lit F.uintTy 0) m heb hm, he0]
+    obtain ⟨hs, he, hfr, -⟩ := Fl.pack_parts (f := F.fmt) s 0 m.val.toNat (Nat.two_pow_pos _) hm
+    dsimp only
+    rw [hp]
+    refine ⟨rfl, hs, he, hfr, fun hpos => ⟨he, by rw [hfr]; omega⟩, fun h0 => ?_⟩
+    rw [h0]; simp [Fl.pack, Fl.zero]
   · intro m hm
     have heq : ieee754_representation_nan_payload F s m =
         ieee754_representation F s (int.remT F.uintTy (exponent_raw_max F)) m := by
@@ -4143,8 +4469,17 @@ theorem floatIeee754RepresentationSpec_proven : FloatIeee754RepresentationSpec :
       rw [hnan_e]
     have heb : (int.remT F.uintTy (exponent_raw_max F)).val.toNat < 2 ^ F.fmt.eb := by
       rw [he_max]; exact hem_lt
-    rw [heq, ieee754_representation_pack F s _ m heb hm, he_max]
-
+    have hp : reinterpret_Float_Int F (ieee754_representation_nan_payload F s m) = Fl.pack s F.fmt.emax m.val.toNat := by
+      rw [heq, ieee754_representation_pack F s _ m heb hm, he_max]
+    obtain ⟨hs, he, hfr, -⟩ := Fl.pack_parts (f := F.fmt) s F.fmt.emax m.val.toNat hem_lt hm
+    dsimp only
+    rw [hp]
+    refine ⟨rfl, hs, he, hfr, ?_, fun h0 => ?_⟩
+    · intro hpos
+      unfold Fl.isnan
+      rw [he, hfr]
+      simp [Nat.ne_of_gt hpos]
+    · rw [h0]; simp [Fl.pack, Fl.inf]
 def FloatClassificationAndDecompose : Prop := ∀ (T : FTy) (x : FV T),
   isnan_IEEEFloat x = x.isnan ∧
   isinf_IEEEFloat x = x.isinf ∧
@@ -4152,7 +4487,7 @@ def FloatClassificationAndDecompose : Prop := ∀ (T : FTy) (x : FV T),
   (∀ {N : Type} (n : N), isnan_Number n = false) ∧
   (∀ n : Int, isfinite_Integer n = true) ∧
   isinf_Real isnan_IEEEFloat isfinite_IEEEFloat x = isinf_IEEEFloat x ∧
-  isfinite_Real decompose x = isfinite_IEEEFloat x ∧
+  isfinite_Real decompose (fun a b => !int.eq a b) x = isfinite_IEEEFloat x ∧
   (∀ (t : IntTy) (n : JInt t), decompose_Integer n = (n, int.lit .i64 0, int.lit .i64 1)) ∧
   (x.isnan = true →
     (decompose x).1.val = 0 ∧ (decompose x).2.1.val = 0 ∧ (decompose x).2.2.val = 0) ∧
@@ -4176,10 +4511,11 @@ theorem floatClassificationAndDecompose_proven : FloatClassificationAndDecompose
     rw [isnan_IEEEFloat_eq, isfinite_IEEEFloat_eq, isinf_IEEEFloat_eq]
     unfold Fl.isnan Fl.isfinite Fl.isinf bne
     cases (x.expField == T.fmt.emax) <;> cases (x.frac == 0) <;> rfl
-  have hreal_fin : isfinite_Real decompose x = isfinite_IEEEFloat x := by
+  have hreal_fin : isfinite_Real decompose (fun a b => !int.eq a b) x = isfinite_IEEEFloat x := by
     unfold isfinite_Real
+    dsimp only
     rw [isfinite_IEEEFloat_eq, eq_int_same_eq]
-    have h0 : (int.lit .i64 0).val = 0 := rfl
+    have h0 : (JInt.lit .i64 0).val = 0 := rfl
     rw [h0]
     by_cases hf : x.isfinite = true
     · obtain ⟨-, -, hden, -⟩ := hd_fin hf
@@ -4200,7 +4536,7 @@ theorem floatClassificationAndDecompose_proven : FloatClassificationAndDecompose
 
 /-! ## Property 12: Float conversions, promotion rules, and `widen` (`float-widen-convert-roundtrip`) -/
 
-def FloatWidenConvertRoundtrip : Prop :=
+def FloatWidenConvertRoundtripCore : Prop :=
   (∀ (T : FTy) (t : IntTy),
     (t.bits ≤ 64 ∧ t.signed = true → promote_rule_float_int T t = promote_rule_float_BitSigned64 T t) ∧
     (t.bits ≤ 64 ∧ t.signed = false → promote_rule_float_int T t = promote_rule_float_BitUnsigned64 T t) ∧
@@ -4244,7 +4580,7 @@ def FloatWidenConvertRoundtrip : Prop :=
     Float32_Int128 (int.lit .i128 (-1)) = neg_IEEEFloat (one_float .f32) ∧
     Float32_Int128 (int.typemin .i128) = neg_IEEEFloat (Float32_UInt128 (uabs_BitSigned (int.typemin .i128))))
 
-theorem floatWidenConvertRoundtrip_proven : FloatWidenConvertRoundtrip := by
+theorem floatWidenConvertRoundtripCore_proven : FloatWidenConvertRoundtripCore := by
   refine ⟨?_, ⟨rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl⟩, ?_, ?_, ?_, fun _ _ => rfl, fun _ => rfl, fun _ => rfl, by decide⟩
   · intro T t; cases T <;> cases t <;> decide
   · intro x y
@@ -4348,38 +4684,85 @@ theorem floatIeeeEqLtLe_proven : FloatIeeeEqLtLe := by
 
 /-! ## Property 14: LLVM rounding intrinsics, `rounds_up`, and `_round_convert` (`float-round-llvm-and-convert`) -/
 
-def FloatRoundLlvmAndConvert : Prop := ∀ (T : FTy) (x : FV T),
-  (x.isnan = false → (!x.isfinite || x.iszero) = true →
-    round_ToZero_llvm x = x ∧ round_Down_llvm x = x ∧
-    round_Up_llvm x = x ∧ round_Nearest_llvm x = x) ∧
-  (x.isfinite = true → x.iszero = false →
-    round_ToZero_llvm x = Fl.roundRat x.truncVal 1 x.signbit ∧
-    round_Down_llvm x = Fl.roundRat (x.toRat.1 / x.toRat.2) 1 x.signbit ∧
-    round_Up_llvm x = Fl.roundRat (-((-x.toRat.1) / x.toRat.2)) 1 x.signbit ∧
-    round_Nearest_llvm x = Fl.roundRat
-      (if x.toRat.1 < 0 then -(Fl.roundQuotient x.toRat.1.natAbs x.toRat.2 : Int)
-       else (Fl.roundQuotient x.toRat.1.natAbs x.toRat.2 : Int)) 1 x.signbit) ∧
-  rounds_up signbit_float x .Down = false ∧
-  rounds_up signbit_float x .Up = true ∧
-  rounds_up signbit_float x .ToZero = x.signbit ∧
-  rounds_up signbit_float x .FromZero = !x.signbit ∧
-  (∀ (t : IntTy) (n : JInt t),
-    _round_convert (floatOfInt T) signbit_float lt_IEEEFloat (fun a b => lt_IEEEFloat b a)
-        nextfloat prevfloat n x .Down =
-      (let xt := floatOfInt T n; if lt_IEEEFloat x xt then prevfloat xt else xt) ∧
-    _round_convert (floatOfInt T) signbit_float lt_IEEEFloat (fun a b => lt_IEEEFloat b a)
-        nextfloat prevfloat n x .Up =
-      (let xt := floatOfInt T n; if lt_IEEEFloat xt x then nextfloat xt else xt) ∧
-    _round_convert (floatOfInt T) signbit_float lt_IEEEFloat (fun a b => lt_IEEEFloat b a)
-        nextfloat prevfloat n x .ToZero =
-      (let xt := floatOfInt T n
-       if x.signbit then (if lt_IEEEFloat xt x then nextfloat xt else xt)
-       else (if lt_IEEEFloat x xt then prevfloat xt else xt)) ∧
-    _round_convert (floatOfInt T) signbit_float lt_IEEEFloat (fun a b => lt_IEEEFloat b a)
-        nextfloat prevfloat n x .FromZero =
-      (let xt := floatOfInt T n
-       if x.signbit then (if lt_IEEEFloat x xt then prevfloat xt else xt)
-       else (if lt_IEEEFloat xt x then nextfloat xt else xt)))
+/-- A float target returns an integer-valued result representable by that type, or infinity.
+Source: `base/rounding.jl:335-354`. -/
+def integralFloatOrInfinity {T : FTy} (y : FV T) : Prop :=
+  y.isnan = false ∧ (y.isfinite = false ∨ y.toRat.1 % (y.toRat.2 : Int) = 0)
+
+def targetLeInput {T S : FTy} (y : FV T) (x : FV S) : Prop :=
+  le_IEEEFloat (convertFloat .f64 y) (convertFloat .f64 x) = true
+
+def inputLeTarget {T S : FTy} (x : FV S) (y : FV T) : Prop :=
+  le_IEEEFloat (convertFloat .f64 x) (convertFloat .f64 y) = true
+
+def targetLeTarget {T : FTy} (a b : FV T) : Prop :=
+  le_IEEEFloat a b = true
+
+def roundDownValue {T S : FTy} (x : FV S) (y : FV T) : Prop :=
+  targetLeInput y x ∧
+    ∀ z : FV T, integralFloatOrInfinity z → targetLeInput z x → targetLeTarget z y
+
+def roundUpValue {T S : FTy} (x : FV S) (y : FV T) : Prop :=
+  inputLeTarget x y ∧
+    ∀ z : FV T, integralFloatOrInfinity z → inputLeTarget x z → targetLeTarget y z
+
+def directedRoundValue {T S : FTy} (r : RoundingMode) (x : FV S) (y : FV T) : Prop :=
+  integralFloatOrInfinity y ∧
+    match r with
+    | .Down => roundDownValue x y
+    | .Up => roundUpValue x y
+    | .ToZero => if signbit_float x then roundUpValue x y else roundDownValue x y
+    | .FromZero => if signbit_float x then roundDownValue x y else roundUpValue x y
+    | _ => False
+
+def roundInput {S : FTy} (x : FV S) : RoundingMode → FV S
+  | .Down => round_Down_llvm x
+  | .Up => round_Up_llvm x
+  | .ToZero => round_ToZero_llvm x
+  | .FromZero => if signbit_float x then round_Down_llvm x else round_Up_llvm x
+  | _ => x
+
+/-- Directed conversion chooses the extremal representable integer-valued float on the correct
+side of `x`. For NaN inputs, the converted result remains NaN, as checked by the installed
+`isnan_IEEEFloat` model (`JuliaLean/base/float.lean:2238-2239`). Source: `base/float.jl:458-473`,
+`base/floatfuncs.jl:160-162`, and `base/rounding.jl:490-491`. -/
+def FloatRoundConvertDirected : Prop :=
+  ∀ {S T : FTy} (x : FV S) (r : RoundingMode),
+    (r = .Down ∨ r = .Up ∨ r = .ToZero ∨ r = .FromZero) →
+    let result : FV T := _round_convert (convertFloat T) signbit_float
+      (fun y z => lt_IEEEFloat (convertFloat .f64 y) (convertFloat .f64 z))
+      (fun y z => lt_IEEEFloat (convertFloat .f64 z) (convertFloat .f64 y))
+      nextfloat prevfloat (roundInput x r) x r
+    (x.isnan = false → directedRoundValue r x result) ∧
+    (x.isnan = true → isnan_IEEEFloat result = true)
+
+/-- LLVM rounding follows the exact integer-rounding meanings; NaN outcomes are stated by class,
+without requiring any sign or payload bits (`base/float.jl:458-473`;
+`src/runtime_intrinsics.c:1812-1825`). -/
+def FloatRoundLlvmAndConvert : Prop :=
+  (∀ (T : FTy) (x : FV T),
+    (x.isnan = false → (!x.isfinite || x.iszero) = true →
+      round_ToZero_llvm x = x ∧ round_Down_llvm x = x ∧
+      round_Up_llvm x = x ∧ round_Nearest_llvm x = x) ∧
+    (x.isfinite = true → x.iszero = false →
+      round_ToZero_llvm x = Fl.roundRat x.truncVal 1 x.signbit ∧
+      round_Down_llvm x = Fl.roundRat (x.toRat.1 / x.toRat.2) 1 x.signbit ∧
+      round_Up_llvm x = Fl.roundRat (-((-x.toRat.1) / x.toRat.2)) 1 x.signbit ∧
+      round_Nearest_llvm x = Fl.roundRat
+        (if x.toRat.1 < 0 then -(Fl.roundQuotient x.toRat.1.natAbs x.toRat.2 : Int)
+         else (Fl.roundQuotient x.toRat.1.natAbs x.toRat.2 : Int)) 1 x.signbit) ∧
+    (x.isnan = true →
+      isnan_IEEEFloat (round_ToZero_llvm x) = true ∧
+      isnan_IEEEFloat (round_Down_llvm x) = true ∧
+      isnan_IEEEFloat (round_Up_llvm x) = true ∧
+      isnan_IEEEFloat (round_Nearest_llvm x) = true)) ∧
+  (∀ (T : FTy) (x : FV T),
+    rounds_up signbit_float x .Down = false ∧
+    rounds_up signbit_float x .Up = true ∧
+    rounds_up signbit_float x .ToZero = signbit_float x ∧
+    rounds_up signbit_float x .FromZero = !signbit_float x) ∧
+  FloatRoundConvertDirected
+
 
 theorem roundConvertToZero {I F X : Type} (cv : I → F) (sb : X → Bool)
     (lt gt : F → X → Bool) (nf pf : F → F) (n : I) (x : X) :
@@ -4395,30 +4778,6 @@ theorem roundConvertFromZero {I F X : Type} (cv : I → F) (sb : X → Bool)
   unfold _round_convert rounds_up rounds_up_FromZero
   cases sb x <;> rfl
 
-theorem floatRoundLlvmAndConvert_proven : FloatRoundLlvmAndConvert := by
-  intro T x
-  refine ⟨?_, ?_, rfl, rfl, ?_, ?_, ?_⟩
-  · intro hnan hcond
-    simp [round_ToZero_llvm, round_Down_llvm, round_Up_llvm, round_Nearest_llvm,
-      trunc_llvm, floor_llvm, ceil_llvm, rint_llvm,
-      jlTruncLlvm, jlFloorLlvm, jlCeilLlvm, jlRintLlvm,
-      unaryFloat, finishFloat_eq, roundFloat, hnan, hcond]
-  · intro hfin hnz
-    have hnan : x.isnan = false := Fl.isnan_of_finite hfin
-    simp [round_ToZero_llvm, round_Down_llvm, round_Up_llvm, round_Nearest_llvm,
-      trunc_llvm, floor_llvm, ceil_llvm, rint_llvm,
-      jlTruncLlvm, jlFloorLlvm, jlCeilLlvm, jlRintLlvm,
-      unaryFloat, finishFloat_eq, roundFloat, hnan, hfin, hnz, Fl.truncVal]
-  · simp [rounds_up, rounds_up_ToZero, signbit_float_eq]
-  · simp [rounds_up, rounds_up_FromZero, signbit_float_eq]
-  · intro t n
-    refine ⟨rfl, rfl, ?_, ?_⟩
-    · simpa only [signbit_float_eq] using
-        roundConvertToZero (floatOfInt T) signbit_float lt_IEEEFloat
-          (fun a b => lt_IEEEFloat b a) nextfloat prevfloat n x
-    · simpa only [signbit_float_eq] using
-        roundConvertFromZero (floatOfInt T) signbit_float lt_IEEEFloat
-          (fun a b => lt_IEEEFloat b a) nextfloat prevfloat n x
 
 /-! ## Property 15: IEEE 754 arithmetic, negation, `abs`, and NaN propagation (`float-arithmetic-and-nan-propagation`) -/
 
@@ -4426,20 +4785,32 @@ def FloatArithmeticAndNanPropagation : Prop := ∀ (T : FTy) (x y z : FV T),
   (x.isnan = false →
     (neg_IEEEFloat x).signbit = !x.signbit ∧
     (neg_IEEEFloat x).magnitude = x.magnitude ∧
+    neg_IEEEFloat (neg_IEEEFloat x) = x ∧
     (abs_IEEEFloat x).signbit = false ∧
-    (abs_IEEEFloat x).magnitude = x.magnitude) ∧
+    (abs_IEEEFloat x).magnitude = x.magnitude ∧
+    abs_IEEEFloat (neg_IEEEFloat x) = abs_IEEEFloat x) ∧
   (x.isnan = true ∨ y.isnan = true →
     (add_IEEEFloat x y).isnan = true ∧
     (sub_IEEEFloat x y).isnan = true ∧
     (mul_IEEEFloat x y).isnan = true ∧
     (div_IEEEFloat x y).isnan = true ∧
     (muladd_IEEEFloat x y z).isnan = true) ∧
+  (x.isnan = true ∨ y.isnan = true ∨ z.isnan = true →
+    (muladd_IEEEFloat x y z).isnan = true) ∧
   (add_IEEEFloat (inf_float T) (neg_IEEEFloat (inf_float T))).isnan = true ∧
   (sub_IEEEFloat (inf_float T) (inf_float T)).isnan = true ∧
   (mul_IEEEFloat (inf_float T) (zero_float T)).isnan = true ∧
   (div_IEEEFloat (zero_float T) (zero_float T)).isnan = true ∧
   (div_IEEEFloat (inf_float T) (inf_float T)).isnan = true ∧
-  (x.isnan = false → y.isnan = false → sub_IEEEFloat x y = add_IEEEFloat x (Fl.neg y))
+  (x.isnan = false → y.isnan = false → sub_IEEEFloat x y = add_IEEEFloat x (Fl.neg y)) ∧
+  (x.isfinite = true → y.isfinite = true →
+    add_IEEEFloat x y = Fl.roundRat (x.toRat.1 * (y.toRat.2 : Int) + y.toRat.1 * (x.toRat.2 : Int))
+      (x.toRat.2 * y.toRat.2) (x.signbit && y.signbit) ∧
+    mul_IEEEFloat x y = Fl.roundRat (x.toRat.1 * y.toRat.1)
+      (x.toRat.2 * y.toRat.2) (x.signbit != y.signbit) ∧
+    (y.iszero = false → div_IEEEFloat x y =
+      Fl.roundRat (if y.toRat.1 < 0 then -(x.toRat.1 * (y.toRat.2 : Int)) else x.toRat.1 * (y.toRat.2 : Int))
+        (x.toRat.2 * y.toRat.1.natAbs) (x.signbit != y.signbit)))
 
 theorem floatArithmeticAndNanPropagation_proven : FloatArithmeticAndNanPropagation := by
   intro T x y z
@@ -4450,19 +4821,32 @@ theorem floatArithmeticAndNanPropagation_proven : FloatArithmeticAndNanPropagati
       (div_IEEEFloat (zero_float T) (zero_float T)).isnan = true ∧
       (div_IEEEFloat (inf_float T) (inf_float T)).isnan = true := by
     clear x y z; cases T <;> decide
-  refine ⟨?_, ?_, hinv_ops.1, hinv_ops.2.1, hinv_ops.2.2.1, hinv_ops.2.2.2.1, hinv_ops.2.2.2.2, ?_⟩
+  refine ⟨?_, ?_, ?_, hinv_ops.1, hinv_ops.2.1, hinv_ops.2.2.1, hinv_ops.2.2.2.1, hinv_ops.2.2.2.2, ?_, ?_⟩
   · intro hx
     obtain ⟨hneg_mag, hneg_sign⟩ := fl_neg_parts x
+    have hneg_nan : x.neg.isnan = false := by
+      rw [Bool.eq_false_iff, ne_eq, isnan_iff_mag, hneg_mag]
+      rw [Bool.eq_false_iff, ne_eq, isnan_iff_mag] at hx
+      exact hx
+    obtain ⟨hneg2_mag, hneg2_sign⟩ := fl_neg_parts x.neg
+    have hneg_inv : x.neg.neg = x := by
+      have htb : x.neg.neg.toBits = x.toBits := by
+        rw [(Fl.bits_split x.neg.neg).1, (Fl.bits_split x).1,
+          hneg2_sign, hneg_sign, Bool.not_not, hneg2_mag, hneg_mag]
+      have h1 := Fl.ofBits_toBits x.neg.neg
+      have h2 := Fl.ofBits_toBits x
+      rw [htb] at h1
+      exact h1.symm.trans h2
     have hm_lt : x.magnitude < 2 ^ T.fmt.width := by
       have := (Fl.bits_split x).2; rw [Fmt.width_pow]; omega
     have hpos : 0 < 2 ^ (T.fmt.eb + T.fmt.sb) := Nat.two_pow_pos _
     have hm_bound := (Fl.bits_split x).2
     simp only [neg_IEEEFloat, neg_float, jlNegFloat, abs_IEEEFloat, abs_float, jlAbsFloat,
-      unaryFloat, finishFloat_eq, hx, Bool.and_false, Bool.false_eq_true, ↓reduceIte,
-      hneg_sign, hneg_mag, true_and]
+      unaryFloat, finishFloat_eq, hx, hneg_nan, Bool.and_false, Bool.false_eq_true, ↓reduceIte,
+      hneg_sign, hneg_mag, hneg_inv, true_and]
     unfold Fl.signbit Fl.magnitude at hm_lt hm_bound ⊢
     rw [Fl.toBits_ofBits, Nat.mod_eq_of_lt hm_lt, Nat.mod_eq_of_lt hm_bound]
-    refine ⟨?_, rfl⟩
+    refine ⟨?_, rfl, trivial⟩
     rw [decide_eq_false_iff_not]; omega
   · intro hnan
     have hq2 : ∀ w : FV T, w.isnan = true →
@@ -4488,9 +4872,42 @@ theorem floatArithmeticAndNanPropagation_proven : FloatArithmeticAndNanPropagati
           jlAddFloat, jlSubFloat, jlMulFloat, jlDivFloat, jlMuladdFloat,
           finishFloat_eq, floatAdd, floatSub, floatMul, floatDiv, floatFma,
           hx', hy, quietFloat_isnan y hy, hq2 y hy]
+  · intro hnan
+    have hq2 : ∀ w : FV T, w.isnan = true →
+        (if 32 ≤ T.fmt.width then quietFloat w else quietFloat (quietFloat w)).isnan = true := by
+      intro w hw; split
+      · exact quietFloat_isnan w hw
+      · exact quietFloat_isnan _ (quietFloat_isnan w hw)
+    by_cases hx : x.isnan = true
+    · simp [muladd_IEEEFloat, muladd_float, jlMuladdFloat, finishFloat_eq, floatAdd, floatMul, floatFma,
+        hx, quietFloat_isnan x hx, hq2 x hx]
+    · have hx' : x.isnan = false := Bool.eq_false_iff.mpr hx
+      by_cases hy : y.isnan = true
+      · simp [muladd_IEEEFloat, muladd_float, jlMuladdFloat, finishFloat_eq, floatAdd, floatMul, floatFma,
+          hx', hy, quietFloat_isnan y hy, hq2 y hy]
+      · have hy' : y.isnan = false := Bool.eq_false_iff.mpr hy
+        have hz : z.isnan = true := by rcases hnan with h | h | h <;> simp_all
+        unfold muladd_IEEEFloat muladd_float jlMuladdFloat
+        rw [finishFloat_eq]
+        split
+        · simp [floatFma, hx', hy', hz, quietFloat_isnan z hz]
+        · by_cases hxy : (floatMul x y).isnan = true
+          · simp [floatAdd, hxy, quietFloat_isnan _ hxy]
+          · have hxy' : (floatMul x y).isnan = false := Bool.eq_false_iff.mpr hxy
+            simp [floatAdd, hxy', hz, quietFloat_isnan z hz]
   · intro hx hy
     simp [sub_IEEEFloat, add_IEEEFloat, sub_float, add_float, jlSubFloat, jlAddFloat,
       finishFloat_eq, floatSub, hx, hy]
+  · intro hx hy
+    have hnx : x.isnan = false := Fl.isnan_of_finite hx
+    have hny : y.isnan = false := Fl.isnan_of_finite hy
+    have hix : x.isinf = false := Fl.isinf_of_finite hx
+    have hiy : y.isinf = false := Fl.isinf_of_finite hy
+    refine ⟨?_, ?_, ?_⟩
+    · simp [add_IEEEFloat, add_float, jlAddFloat, finishFloat_eq, floatAdd, hnx, hny, hix, hiy]
+    · simp [mul_IEEEFloat, mul_float, jlMulFloat, finishFloat_eq, floatMul, hnx, hny, hix, hiy]
+    · intro hzy
+      simp [div_IEEEFloat, div_float, jlDivFloat, finishFloat_eq, floatDiv, hnx, hny, hix, hiy, hzy]
 
 /-! ## Property 16: `unbiased_exponent`, `explicit_mantissa_noinfnan`, `_to_float`, `rem`, and `mod` (`float-fields-and-rem-mod-spec`) -/
 
@@ -4611,14 +5028,23 @@ theorem floatFieldsAndRemModCore_proven : FloatFieldsAndRemModCore := by
       split <;> simp [add_float, jlAddFloat,
         finishFloat_eq, floatAdd, hrem_nan, quietFloat_isnan _ hrem_nan]
 
+private def precision_Type_BitInteger {α : Type} {t : IntTy}
+    (_precision_with_base_2 : α → JInt .i64)
+    (floor_div_log2 : JInt .i64 → JInt t → Jl (JInt .i64))
+    (T : α) (base : JInt t) : Jl (JInt .i64) :=
+  precision_Type _precision_with_base_2
+    (fun b => int.lt (int.lit .i64 1) b)
+    (fun b => int.eq b (int.lit .i64 2))
+    floor_div_log2 T base
 def FloatBoundsAndEpsCore : Prop := ∀ (T : FTy) (x : FV T),
   (precision_Type_default .f16).val = 11 ∧
   (precision_Type_default .f32).val = 24 ∧
   (precision_Type_default .f64).val = 53 ∧
   precision_val_default x = precision_Type_default T ∧
   (∀ (b : JInt .i64) (f : JInt .i64 → JInt .i64 → Jl (JInt .i64)), b.val ≤ 1 →
-    precision_Type _precision_with_base_2 f T b = .error (.domainError "`base` cannot be less than 2.") ∧
-    precision_val f x b = .error (.domainError "`base` cannot be less than 2.")) ∧
+    precision_Type_BitInteger _precision_with_base_2 f T b = .error (.domainError "`base` cannot be less than 2.") ∧
+    precision_val (fun b => int.lt (int.lit .i64 1) b)
+      (fun b => int.eq b (int.lit .i64 2)) f x b = .error (.domainError "`base` cannot be less than 2.")) ∧
   issubnormal (zero_float T) = false ∧
   issubnormal (floatmin_float T) = false ∧
   issubnormal (nextfloat (zero_float T)) = true ∧
@@ -4643,46 +5069,41 @@ def FloatBoundsAndEpsCore : Prop := ∀ (T : FTy) (x : FV T),
   eps_AbstractFloat isfinite_IEEEFloat abs_IEEEFloat le_IEEEFloat floatmin_val (eps_float T)
     unbiased_exponent (fun _ _ => eps_float T) nextfloat (fun _ => zero_float T) (nan_float T) (zero_float T) =
     nextfloat (zero_float T)
-
 theorem floatBoundsAndEpsCore_proven : FloatBoundsAndEpsCore := by
   intro T x
-  have hfixed :
-      issubnormal (zero_float T) = false ∧
-      issubnormal (floatmin_float T) = false ∧
-      issubnormal (nextfloat (zero_float T)) = true ∧
-      ispow2_AbstractFloat (fun y => (y, (0 : Int))) (reinterpret_Float_Int T (exponent_half T)) = true ∧
-      ispow2_AbstractFloat (fun y => (y, (0 : Int))) (zero_float T) = false ∧
-      iseven_AbstractFloat floatmax_val (unsafe_trunc .i64)
-        (fun n => int.eq (int.band n (int.lit .i64 1)) (int.lit .i64 0)) (zero_float T) = true ∧
-      isodd_AbstractFloat floatmax_val (unsafe_trunc .i64)
-        (fun n => !(int.eq (int.band n (int.lit .i64 1)) (int.lit .i64 0))) (one_float T) = true ∧
-      typemin_float T = neg_IEEEFloat (inf_float T) ∧
-      typemax_float T = inf_float T ∧
-      eps_IEEEFloat (one_float T) = eps_float T ∧
-      (eps_IEEEFloat (inf_float T)).isnan = true ∧
-      (eps_IEEEFloat (nan_float T)).isnan = true ∧
-      eps_AbstractFloat isfinite_IEEEFloat abs_IEEEFloat le_IEEEFloat floatmin_val (eps_float T)
-        unbiased_exponent (fun _ _ => eps_float T) nextfloat (fun _ => zero_float T) (nan_float T) (zero_float T) =
-        nextfloat (zero_float T) := by
-    clear x; cases T <;> decide
-  refine ⟨rfl, rfl, rfl, rfl, ?_, hfixed.1, hfixed.2.1, hfixed.2.2.1,
-    hfixed.2.2.2.1, hfixed.2.2.2.2.1, hfixed.2.2.2.2.2.1, hfixed.2.2.2.2.2.2.1,
-    hfixed.2.2.2.2.2.2.2.1, hfixed.2.2.2.2.2.2.2.2.1, rfl, rfl, rfl, rfl, rfl, rfl, rfl,
-    hfixed.2.2.2.2.2.2.2.2.2.1, hfixed.2.2.2.2.2.2.2.2.2.2.1, hfixed.2.2.2.2.2.2.2.2.2.2.2.1,
-    hfixed.2.2.2.2.2.2.2.2.2.2.2.2⟩
-  intro b f hb
-  unfold precision_val precision_AbstractFloat precision_Type _precision
-  rw [lt_int_eq]
-  have h1 : (int.lit .i64 1).val = 1 := rfl
-  rw [h1, decide_eq_false (by omega)]
-  exact ⟨rfl, rfl⟩
+  have hbadBase : ∀ (b : JInt .i64) (f : JInt .i64 → JInt .i64 → Jl (JInt .i64)),
+      b.val ≤ 1 →
+        precision_Type_BitInteger _precision_with_base_2 f T b =
+          .error (.domainError "`base` cannot be less than 2.") ∧
+        precision_val (fun b => int.lt (int.lit .i64 1) b)
+          (fun b => int.eq b (int.lit .i64 2)) f x b =
+          .error (.domainError "`base` cannot be less than 2.") := by
+    intro b f hb
+    have h1 : (int.lit .i64 1).val = 1 := by
+      change wrapInt .i64 1 = 1
+      exact wrapInt_of_inRange .i64 1 (by decide)
+    have hlt : int.lt (int.lit .i64 1) b = false := by
+      rw [JuliaLean.Proofs.base.int.lt_eq, h1]
+      exact decide_eq_false (by omega)
+    exact ⟨by simp [precision_Type_BitInteger, precision_Type, _precision, hlt],
+      by simp [precision_val, precision_AbstractFloat, precision_Type, _precision, hlt]⟩
+  refine ⟨?_, ?_, ?_, rfl, hbadBase, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_,
+    ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+  all_goals
+    try simp [typemin_Real, typemax_Real, floatmin_val, floatmax_val,
+      floatmin_AbstractFloat, floatmax_AbstractFloat]
+  all_goals cases T <;> decide
+
 
 /-! ## Property 18: `bswap` on `IEEEFloat` and `float` on arrays and ranges (`float-bswap-and-collections`) -/
 
-def FloatBswapAndCollections : Prop := ∀ (T : FTy) (x : FV T),
+def FloatBswapAndCollectionsCore : Prop := ∀ (T : FTy) (x : FV T),
   bswap_IEEEFloat (zero_float T) = zero_float T ∧
-  bswap_IEEEFloat (bswap_IEEEFloat (one_float T)) = one_float T ∧
+  bswap_IEEEFloat (bswap_IEEEFloat x) = x ∧
   reinterpret_Unsigned (bswap_IEEEFloat x) = int.bswap (reinterpret_Unsigned x) ∧
+  (∀ j < T.bytes,
+    JuliaLean.Proofs.base.int.byteOf (bswap_IEEEFloat x).toBits j =
+      JuliaLean.Proofs.base.int.byteOf x.toBits (T.bytes - 1 - j)) ∧
   (∀ (arr : Array (FV T)), float_AbstractArray_AbstractFloat arr = arr) ∧
   (∀ {α : Type} (z : α) (toF : α → FV T) (arr : Array α),
     float_AbstractArray (fun _ => false) (fun _ => z) toF (fun _ => T) (fun _ a => .ok (a.map toF)) arr =
@@ -4708,21 +5129,15 @@ def FloatBswapAndCollections : Prop := ∀ (T : FTy) (x : FV T),
     float_LinRange toF lenLin (fun a b n => JuliaLean.base.range.LinRange.mk a b n n) lr =
       JuliaLean.base.range.LinRange.mk (toF lr.start) (toF lr.stop) (lenLin lr) (lenLin lr))
 
-theorem floatBswapAndCollections_proven : FloatBswapAndCollections := by
-  intro T x
-  have hfixed :
-      bswap_IEEEFloat (zero_float T) = zero_float T ∧
-      bswap_IEEEFloat (bswap_IEEEFloat (one_float T)) = one_float T := by
-    clear x; cases T <;> decide
-  refine ⟨hfixed.1, hfixed.2, ?_, fun _ => rfl, fun _ _ _ => ⟨rfl, rfl⟩,
-    fun _ _ _ _ _ _ _ _ _ _ _ _ => ⟨rfl, rfl, rfl, rfl⟩⟩
+theorem bswap_IEEEFloat_reinterpret {T : FTy} (y : FV T) :
+    reinterpret_Unsigned (bswap_IEEEFloat y) = int.bswap (reinterpret_Unsigned y) := by
   apply jint_eq
-  have huns : T.uintTy.signed = false := by clear x hfixed; cases T <;> rfl
-  have hbw : T.uintTy.bits = T.fmt.width := by clear x hfixed; cases T <;> rfl
+  have huns : T.uintTy.signed = false := by clear y; cases T <;> rfl
+  have hbw : T.uintTy.bits = T.fmt.width := by clear y; cases T <;> rfl
   rw [← val_of_unsigned_pattern huns, ← val_of_unsigned_pattern huns]
   congr 1
   rw [pattern_reinterpret_Unsigned]
-  have htoNat : (fromJInt (reinterpret_Unsigned x)).toNat = x.toBits := by
+  have htoNat : (fromJInt (reinterpret_Unsigned y)).toNat = y.toBits := by
     rw [← pattern_fromJInt, pattern_reinterpret_Unsigned]
   have h_ok : ∀ (w : Nat) (hm : w % 16 = 0) (b : BitVec w) (hp),
       int.okOf (jlBswapInt b) hp =
@@ -4731,12 +5146,54 @@ theorem floatBswapAndCollections_proven : FloatBswapAndCollections := by
     apply okOf_eq
     simp [jlBswapInt, hm, pure, Except.pure]
   unfold bswap_IEEEFloat bswap_int_float int.bswap int.bswap_wide int.bswap_int
-  have hmod16 : T.uintTy.bits % 16 = 0 := by clear x hfixed huns hbw htoNat h_ok; cases T <;> decide
+  have hmod16 : T.uintTy.bits % 16 = 0 := by clear y huns hbw htoNat h_ok; cases T <;> decide
   simp only [hmod16, ↓reduceDIte]
   rw [pattern_toJInt, h_ok T.uintTy.bits hmod16, h_ok T.fmt.width (by rw [← hbw]; exact hmod16)]
-  have hlt : x.toBits < 2 ^ T.fmt.width := x.bits.isLt
+  have hlt : y.toBits < 2 ^ T.fmt.width := y.bits.isLt
   simp only [hbw, htoNat, BitVec.toNat_ofNat, Fl.toBits_ofBits, Nat.mod_eq_of_lt hlt, Nat.mod_mod]
 
+theorem floatBswapAndCollectionsCore_proven : FloatBswapAndCollectionsCore := by
+  intro T x
+  have hzero : bswap_IEEEFloat (zero_float T) = zero_float T := by clear x; cases T <;> decide
+  have hbw : T.uintTy.bits = T.fmt.width := by clear x hzero; cases T <;> rfl
+  have hbytes : T.bytes = T.uintTy.bits / 8 := by clear x hzero hbw; cases T <;> rfl
+  have hdvd : T.uintTy.bits = 8 * (T.uintTy.bits / 8) := JuliaLean.Proofs.base.int.bits_dvd8 T.uintTy
+  have hpat_bswap : ∀ y : FV T, y.toBits = pattern (reinterpret_Unsigned y) :=
+    fun y => (pattern_reinterpret_Unsigned y).symm
+  refine ⟨hzero, ?_, bswap_IEEEFloat_reinterpret x, ?_, fun _ => rfl, fun _ _ _ => ⟨rfl, rfl⟩,
+    fun _ _ _ _ _ _ _ _ _ _ _ _ => ⟨rfl, rfl, rfl, rfl⟩⟩
+  · have hbits : (bswap_IEEEFloat (bswap_IEEEFloat x)).toBits = x.toBits := by
+      rw [hpat_bswap (bswap_IEEEFloat (bswap_IEEEFloat x)), bswap_IEEEFloat_reinterpret,
+        bswap_IEEEFloat_reinterpret, hpat_bswap x]
+      apply Nat.eq_of_testBit_eq
+      intro k
+      by_cases hk : k < T.uintTy.bits
+      · change (JuliaLean.Proofs.base.int.pattern (int.bswap (int.bswap (reinterpret_Unsigned x)))).testBit k =
+          (JuliaLean.Proofs.base.int.pattern (reinterpret_Unsigned x)).testBit k
+        rw [← JuliaLean.Proofs.base.int.bitOf_eq, ← JuliaLean.Proofs.base.int.bitOf_eq,
+          JuliaLean.Proofs.base.int.bitOf_bswap _ k hk]
+        let k' := k % 8 + 8 * (T.uintTy.bits / 8 - 1 - k / 8)
+        have hk' : k' < T.uintTy.bits := by dsimp [k']; omega
+        change JuliaLean.Proofs.base.int.bitOf (int.bswap (reinterpret_Unsigned x)) k' = _
+        rw [JuliaLean.Proofs.base.int.bitOf_bswap _ k' hk']
+        congr 1
+        dsimp [k']
+        omega
+      · have h1 : pattern (int.bswap (int.bswap (reinterpret_Unsigned x))) < 2 ^ k :=
+          Nat.lt_of_lt_of_le (JuliaLean.Proofs.base.int.pattern_lt _)
+            (Nat.pow_le_pow_right (by decide) (by omega))
+        have h2 : pattern (reinterpret_Unsigned x) < 2 ^ k :=
+          Nat.lt_of_lt_of_le (JuliaLean.Proofs.base.int.pattern_lt _)
+            (Nat.pow_le_pow_right (by decide) (by omega))
+        rw [Nat.testBit_lt_two_pow h1, Nat.testBit_lt_two_pow h2]
+    have h1 := Fl.ofBits_toBits (bswap_IEEEFloat (bswap_IEEEFloat x))
+    have h2 := Fl.ofBits_toBits x
+    rw [hbits] at h1
+    exact h1.symm.trans h2
+  · intro j hj
+    rw [hpat_bswap (bswap_IEEEFloat x), bswap_IEEEFloat_reinterpret, hpat_bswap x, hbytes]
+    rw [hbytes] at hj
+    exact JuliaLean.Proofs.base.int.byteSwap_proven T.uintTy (reinterpret_Unsigned x) j hj
 /-! ## Nothing to promise
 
 - `float@387`: `float(::Type{Union{}}, slurp...)` — `Union{}` ambiguity breaker (also covered in `FloatWidenConvertRoundtrip`)
@@ -4810,7 +5267,7 @@ theorem rem_IEEEFloat_small_and_diag {T : FTy} (x y : FV T) :
       unfold copysign_float jlCopysignFloat
       rw [finishFloat_eq]
       have hmag_abs : (abs_float x).magnitude = x.magnitude :=
-        (floatArithmeticAndNanPropagation_proven T x x x).1 hnx |>.2.2.2
+        (floatArithmeticAndNanPropagation_proven T x x x).1 hnx |>.2.2.2.2.1
       rw [hmag_abs, Nat.add_comm, ← (Fl.bits_split x).1, Fl.ofBits_toBits]
     · intro heq
       rw [rem_internal_le (abs_float x) (abs_float y) (by omega)]
@@ -4903,7 +5360,7 @@ theorem eps_IEEEFloat_nonfinite_and_sign {T : FTy} (x : FV T) :
     · exfalso
       have h_abs_nan := abs_preserves_nan d hd
       rw [h_abs_nan] at hnot_nan; contradiction
-    · exact (floatArithmeticAndNanPropagation_proven T d d d).1 (Bool.eq_false_iff.mpr hd) |>.2.2.1
+    · exact (floatArithmeticAndNanPropagation_proven T d d d).1 (Bool.eq_false_iff.mpr hd) |>.2.2.2.1
 
 theorem issubnormal_eq {T : FTy} (x : FV T) :
     issubnormal x = (x.expField == 0 && x.frac != 0) := by
@@ -4958,10 +5415,17 @@ theorem issubnormal_eq {T : FTy} (x : FV T) :
 
 
 
+def FloatReconstructionExact : Prop := ∀ (T : FTy) (tep : IntTy) (number : JInt T.uintTy) (ep : JInt tep),
+  0 < pattern number → pattern number < 2 ^ (T.fmt.sb + 1) → -2099 ≤ ep.val →
+  (ep.val < 0 ∨ ep.val.toNat + (pattern number).log2 + 1 < T.fmt.emax + T.fmt.sb) →
+  (_to_float number ep).isfinite = true ∧ (_to_float number ep).signbit = false ∧
+  (_to_float number ep).key =
+    ((if 0 ≤ ep.val then pattern number * 2 ^ ep.val.toNat
+      else pattern number / 2 ^ (-ep.val).toNat : Nat) : Int)
 /-- A finite nonzero dividend smaller in magnitude than its divisor is unchanged by
 `rem`; equal magnitudes give zero with the dividend's sign. Infinite divisors preserve
 finite dividends under both `rem` and `mod`. -/
-def FloatFieldsAndRemModSpec : Prop := FloatFieldsAndRemModCore ∧
+def FloatFieldsAndRemModSpec : Prop := FloatFieldsAndRemModCore ∧ FloatReconstructionExact ∧
   ∀ (T : FTy) (x y : FV T),
     (x.isfinite = true → y.isfinite = true →
       iszero_float x = false → iszero_float y = false →
@@ -4972,19 +5436,15 @@ def FloatFieldsAndRemModSpec : Prop := FloatFieldsAndRemModCore ∧
     (x.isfinite = true → y.isinf = true →
       rem_IEEEFloat x y = x ∧ mod_AbstractFloat x y = x)
 
-theorem floatFieldsAndRemModSpec_proven : FloatFieldsAndRemModSpec :=
-  ⟨floatFieldsAndRemModCore_proven, fun _ x y => rem_IEEEFloat_small_and_diag x y⟩
 
 /-- Subnormal floats have a zero exponent field and a nonzero stored fraction.
 `eps` is NaN on every nonfinite input; every non-NaN epsilon has a positive sign. -/
-def FloatBoundsAndEps : Prop := FloatBoundsAndEpsCore ∧
+def FloatBoundsAndEpsMid : Prop := FloatBoundsAndEpsCore ∧
   ∀ (T : FTy) (x : FV T),
     issubnormal x = (x.expField == 0 && x.frac != 0) ∧
     (x.isfinite = false → (eps_IEEEFloat x).isnan = true) ∧
     ((eps_IEEEFloat x).isnan = false → (eps_IEEEFloat x).signbit = false)
 
-theorem floatBoundsAndEps_proven : FloatBoundsAndEps :=
-  ⟨floatBoundsAndEpsCore_proven, fun _ x => ⟨issubnormal_eq x, eps_IEEEFloat_nonfinite_and_sign x⟩⟩
 
 theorem eq_u128_zero (u : JInt .u128) :
     int.eq u (int.lit .i64 0) = decide (u.val = 0) := by
@@ -7739,36 +8199,79 @@ theorem genericIntegerDecomposition_proven : GenericIntegerDecomposition := by
   simp
 
 def GenericArrayFloatConversion : Prop :=
-  ∀ (T F Ty A B I : Type) (zero : Unit → T) (AbstractFloat : T → F) (typeof : F → Ty)
-    (convert : Ty → A → JuliaLean.base.range.JlX B) (getA : A → I → T) (getB : B → I → F),
-  (∀ (tag : Ty) (a : A) (b : B), convert tag a = .ok b → ∀ i, getB b i = float_any AbstractFloat (getA a i)) →
-  ∀ (a : A),
-  float_AbstractArray (fun _ => false) zero (float_any AbstractFloat) typeof convert a =
-    .error (.errorException "`float` not defined on abstractly-typed arrays; please convert to a more specific type") ∧
-  (∀ b, float_AbstractArray (fun _ => true) zero (float_any AbstractFloat) typeof convert a = .ok b →
-    ∀ i, getB b i = float_any AbstractFloat (getA a i))
+  (∀ (t : IntTy) (xs : List (JInt t)),
+    let conv (ty : FTy) (a : List (JInt t)) : JuliaLean.base.range.JlX (List (FV .f64)) :=
+      if ty == .f64 then .ok (a.map (floatOfInt .f64)) else .error (.errorException "convert")
+    float_AbstractArray (fun _ => false) (fun _ => int.lit t 0) float_BitInteger (fun _ => FTy.f64) conv xs =
+      .error (.errorException "`float` not defined on abstractly-typed arrays; please convert to a more specific type") ∧
+    ∃ ys, ∃ hlen : ys.length = xs.length,
+      float_AbstractArray (fun _ => true) (fun _ => int.lit t 0) float_BitInteger (fun _ => FTy.f64) conv xs = .ok ys ∧
+      ∀ (i : Nat) (hi : i < xs.length),
+        let y := ys[i]'(by rw [hlen]; exact hi)
+        let x := xs[i]'hi
+        y = (Fl.roundRat x.val 1 false : FV .f64) ∧
+        (t.bits ≤ 52 → y.isfinite = true ∧ 0 < y.toRat.2 ∧ y.toRat.1 = x.val * (y.toRat.2 : Int))) ∧
+  (∀ (T : FTy) {α : Type} (zero : Unit → α) (toFloat : α → FV T) (xs : List α),
+    let conv (ty : FTy) (a : List α) : JuliaLean.base.range.JlX (List (FV T)) :=
+      if ty == T then .ok (a.map (fun x => convertFloat T (toFloat x))) else .error (.errorException "convert")
+    float_AbstractArray (fun _ => false) zero (float_any toFloat) (fun _ => T) conv xs =
+      .error (.errorException "`float` not defined on abstractly-typed arrays; please convert to a more specific type") ∧
+    float_AbstractArray (fun _ => true) zero (float_any toFloat) (fun _ => T) conv xs =
+      .ok (xs.map toFloat))
 
 theorem genericArrayFloatConversion_proven : GenericArrayFloatConversion := by
-  intro T F Ty A B I zero AbstractFloat typeof convert getA getB hconvert a
-  refine ⟨rfl, ?_⟩
-  intro b hb i
-  exact hconvert _ a b hb i
+  refine ⟨?_, ?_⟩
+  · intro t xs
+    refine ⟨rfl, xs.map (floatOfInt .f64), List.length_map _, rfl, ?_⟩
+    intro i hi
+    simp only [List.getElem_map]
+    refine ⟨floatOfInt_roundRat .f64 xs[i], ?_⟩
+    intro hb
+    exact smallIntegerExact_proven.1 .f64 t xs[i] hb
+  · intro T α zero toFloat xs
+    refine ⟨rfl, ?_⟩
+    have hconv : (fun x => convertFloat T (toFloat x)) = toFloat := by
+      funext x; cases T <;> rfl
+    simp [float_AbstractArray, hconv]
 
 /-! Nothing to promise:
+`exponent_min(Union{Type{Float16},Type{Float32},Type{Float64}})@169`: forwards directly to `ieee754_exponent_min`.
 `uabs(::Integer)@235`: forwards to the selected `abs` method; the magnitude arithmetic is in `int.jl` or the Integer subtype's own implementation.
 `Float16(::Integer)@241`: forwards the Integer-to-Float32 result to the Float16 constructor; its callees implement the conversions.
+`promote_rule@247`: constant promotion-table entry selecting the IEEEFloat type over 8/16/32/64-bit signed integers.
+`promote_rule@253`: constant promotion-table entry selecting the IEEEFloat type over Bool and 8/16/32/64-bit unsigned integers.
+`promote_rule@258`: constant promotion-table entry selecting Float64 over UInt128.
+`promote_rule@259`: constant promotion-table entry selecting Float64 over Int128.
+`promote_rule@260`: constant promotion-table entry selecting Float32 over UInt128.
+`promote_rule@261`: constant promotion-table entry selecting Float32 over Int128.
+`promote_rule@262`: constant promotion-table entry selecting Float16 over UInt128.
+`promote_rule@263`: constant promotion-table entry selecting Float16 over Int128.
 `float(x)@367`: forwards to the selected AbstractFloat constructor or array method.
 `float(::Type{T<:Number})@384`: queries the type returned by converting the type's zero; the selected constructor supplies the numeric result.
 `float(::Type{T<:AbstractFloat})@385`: type-identity dispatch with no calculation.
 `round(::Type{Signed},IEEEFloat,RoundingMode)@454`: forwards every rounding mode to the selected machine-signed-integer method.
 `round(::Type{Unsigned},IEEEFloat,RoundingMode)@455`: forwards every rounding mode to the selected machine-unsigned-integer method.
 `round(::Type{Integer},IEEEFloat,RoundingMode)@456`: forwards every rounding mode to the selected machine-integer method.
+`promote_rule@477`: constant promotion-table entry selecting Float32 over Float16.
+`promote_rule@478`: constant promotion-table entry selecting Float64 over Float16.
+`promote_rule@479`: constant promotion-table entry selecting Float64 over Float32.
+`widen@481`: constant type-widening entry mapping Float16 to Float32.
+`widen@482`: constant type-widening entry mapping Float32 to Float64.
+`_precision_with_base_2(::Type{Float16})@797`: constant significand bit-count 11 for Float16.
+`_precision_with_base_2(::Type{Float32})@798`: constant significand bit-count 24 for Float32.
+`_precision_with_base_2(::Type{Float64})@799`: constant significand bit-count 53 for Float64.
 `precision(Type{T<:AbstractFloat})@805`: forwards to `_precision` without changing its arguments.
 `precision(AbstractFloat)@806`: type-query forwarding to the precision method for that AbstractFloat subtype.
 `nextfloat(AbstractFloat,Integer)@853`: forwards the sign and unsigned magnitude of the Integer step to the selected `_nextfloat` implementation.
 `nextfloat(AbstractFloat)@863`: forwards a machine-integer step of one to the subtype's selected stepping implementation.
 `prevfloat(AbstractFloat,Integer)@871`: forwards the reverse direction and unsigned magnitude of the Integer step to the selected `_nextfloat` implementation.
 `prevfloat(AbstractFloat)@879`: forwards a machine-integer step of negative one to the subtype's selected stepping implementation.
+`typemin(::Type{Float16})@962`: constant bitcast representation of -Inf16.
+`typemax(::Type{Float16})@963`: constant Inf16.
+`typemin(::Type{Float32})@964`: constant -Inf32.
+`typemax(::Type{Float32})@965`: constant Inf32.
+`typemin(::Type{Float64})@966`: constant -Inf64.
+`typemax(::Type{Float64})@967`: constant Inf64.
 `typemin(Real)@969`: forwards to the lower-bound method selected for the value's type.
 `typemax(Real)@970`: forwards to the upper-bound method selected for the value's type.
 `floatmin(AbstractFloat)@1019`: forwards to the type's smallest-normal-value method.
@@ -7776,6 +8279,10 @@ theorem genericArrayFloatConversion_proven : GenericArrayFloatConversion := by
 `floatmin()@1047`: default-type forwarding to Float64; the Float64 extremum is specified below.
 `floatmax()@1048`: default-type forwarding to Float64; the Float64 extremum is specified below.
 `float(AbstractArray{<:AbstractFloat})@1166`: identity dispatch for an already-floating array, with no conversion or array traversal.
+`float(StepRange)@1175`: forwards converted start, step, and last endpoints to the range colon constructor.
+`float(UnitRange)@1176`: forwards converted start and last endpoints to the range colon constructor.
+`float(StepRangeLen)@1177`: forwards converted reference and step with length and offset to the StepRangeLen constructor.
+`float(LinRange)@1179`: forwards converted start and stop with length to the LinRange constructor.
 -/
 
 theorem magKey_mono (f : Fmt) {a b : Nat} (h : a ≤ b) : magKey f a ≤ magKey f b := by
@@ -7873,55 +8380,111 @@ theorem machineEpsilonGap_proven : MachineEpsilonGap := by
 
 
 def GenericFloatClassification : Prop :=
-  ∀ (F V : Type) [BEq V] [LawfulBEq V] (value : F → V)
-    (nan finite : F → Bool) (ne : F → F → Bool) (sub : F → F → F),
-  (∀ a b, ne a b = (nan a || nan b || !(value a == value b))) →
-  (∀ x, nan (sub x x) = !finite x) →
-  ∀ x, isnan_AbstractFloat ne x = nan x ∧
-    isfinite_AbstractFloat sub (isnan_AbstractFloat ne) x = finite x ∧
-    (isinf_Real (isnan_AbstractFloat ne) (isfinite_AbstractFloat sub (isnan_AbstractFloat ne)) x = true ↔
-      nan x = false ∧ finite x = false)
+  (∀ (T : FTy) (x : FV T),
+    let nan := isnan_AbstractFloat (fun a b => !(eq_IEEEFloat a b))
+    let fin := isfinite_AbstractFloat sub_IEEEFloat nan
+    let inf := isinf_Real nan fin
+    nan x = decide (x.expField = T.fmt.emax ∧ x.frac ≠ 0) ∧
+    fin x = decide (x.expField ≠ T.fmt.emax) ∧
+    inf x = decide (x.expField = T.fmt.emax ∧ x.frac = 0) ∧
+    (if nan x then 1 else 0) + (if fin x then 1 else 0) + (if inf x then 1 else 0) = 1) ∧
+  (∀ (F : Type) (zero nanVal : F) (ne : F → F → Bool) (sub : F → F → F),
+    ne zero zero = false →
+    ne nanVal nanVal = true →
+    (∀ x : F, (ne x x = true ∧ sub x x = nanVal) ∨ (ne x x = false ∧ sub x x = zero) ∨ (ne x x = false ∧ sub x x = nanVal)) →
+    ∀ x : F,
+      let nan := isnan_AbstractFloat ne
+      let fin := isfinite_AbstractFloat sub nan
+      let inf := isinf_Real nan fin
+      (if nan x then 1 else 0) + (if fin x then 1 else 0) + (if inf x then 1 else 0) = 1 ∧
+      (fin x = true ↔ (ne x x = false ∧ sub x x = zero)) ∧
+      (inf x = true ↔ (ne x x = false ∧ sub x x = nanVal)))
 
 theorem genericFloatClassification_proven : GenericFloatClassification := by
-  intro F V _ _ value nan finite ne sub hne hsub x
-  have hnan (y : F) : isnan_AbstractFloat ne y = nan y := by
-    simp only [isnan_AbstractFloat, hne, beq_self_eq_true, Bool.not_true, Bool.or_false, Bool.or_self]
-  have hfin : isfinite_AbstractFloat sub (isnan_AbstractFloat ne) x = finite x := by
-    simp only [isfinite_AbstractFloat, hnan, hsub, Bool.not_not]
-  refine ⟨hnan x, hfin, ?_⟩
-  simp only [isinf_Real, hnan, hfin, Bool.and_eq_true, Bool.not_eq_true]
-  cases nan x <;> cases finite x <;> decide
+  refine ⟨?_, ?_⟩
+  · intro T x
+    have hnan : isnan_AbstractFloat (fun a b => !(eq_IEEEFloat a b)) x = x.isnan := isnan_IEEEFloat_eq x
+    have hfin : isfinite_AbstractFloat sub_IEEEFloat (isnan_AbstractFloat (fun a b => !(eq_IEEEFloat a b))) x = x.isfinite :=
+      isfinite_IEEEFloat_eq x
+    have hinf : isinf_Real (isnan_AbstractFloat (fun a b => !(eq_IEEEFloat a b)))
+        (isfinite_AbstractFloat sub_IEEEFloat (isnan_AbstractFloat (fun a b => !(eq_IEEEFloat a b)))) x = x.isinf := by
+      unfold isinf_Real
+      rw [hnan, hfin]
+      unfold Fl.isnan Fl.isfinite Fl.isinf bne
+      cases (x.expField == T.fmt.emax) <;> cases (x.frac == 0) <;> rfl
+    dsimp only
+    rw [hnan, hfin, hinf]
+    unfold Fl.isnan Fl.isfinite Fl.isinf
+    by_cases he : x.expField = T.fmt.emax <;> by_cases hf : x.frac = 0 <;> simp [he, hf]
+  · intro F zero nanVal ne sub hzero hnan htri x
+    have hzne : zero ≠ nanVal := by
+      intro heq; rw [heq, hnan] at hzero; exact Bool.noConfusion hzero
+    dsimp only
+    rcases htri x with ⟨hx, hsub⟩ | ⟨hx, hsub⟩ | ⟨hx, hsub⟩
+    · simp [isnan_AbstractFloat, isfinite_AbstractFloat, isinf_Real, hx, hsub, hnan]
+    · simp [isnan_AbstractFloat, isfinite_AbstractFloat, isinf_Real, hx, hsub, hzero, hzne]
+    · simp [isnan_AbstractFloat, isfinite_AbstractFloat, isinf_Real, hx, hsub, hnan, Ne.symm hzne]
 
 def GenericRealClassification : Prop :=
-  ∀ (R N E : Type) (decompose : R → N × E × JInt .i64) (finite : R → Bool),
-  (∀ x, (decompose x).2.2.val ≠ 0 ↔ finite x = true) →
-  ∀ x, isfinite_Real decompose x = finite x ∧
-    (isinf_Real isnan_Number (isfinite_Real decompose) x = true ↔ finite x = false)
+  (∀ (T : FTy) (x : FV T),
+    isfinite_Real decompose (fun a b => !int.eq a b) x = decide (x.expField ≠ T.fmt.emax) ∧
+    isinf_Real isnan_IEEEFloat (isfinite_Real decompose (fun a b => !int.eq a b)) x = decide (x.expField = T.fmt.emax ∧ x.frac = 0)) ∧
+  (∀ (R : Type) (decomposeR : R → JInt .i64 × JInt .i64 × JInt .i64) (x : R),
+    let d := decomposeR x
+    (∀ (p : Int) (q : Nat), 0 < q →
+      p * d.2.2.val * (if 0 ≤ d.2.1.val then 1 else ((2 ^ (-d.2.1.val).toNat : Nat) : Int)) =
+        (q : Int) * d.1.val * (if 0 ≤ d.2.1.val then ((2 ^ d.2.1.val.toNat : Nat) : Int) else 1) →
+      ¬(d.1.val = 0 ∧ d.2.2.val = 0) →
+      (p = 0 → d.1.val = 0) →
+      isfinite_Real decomposeR (fun a b => !int.eq a b) x = true ∧
+      isinf_Real isnan_Number (isfinite_Real decomposeR (fun a b => !int.eq a b)) x = false) ∧
+    (d.1.val ≠ 0 ∧ d.2.2.val = 0 →
+      isfinite_Real decomposeR (fun a b => !int.eq a b) x = false ∧
+      isinf_Real isnan_Number (isfinite_Real decomposeR (fun a b => !int.eq a b)) x = true))
 
 theorem genericRealClassification_proven : GenericRealClassification := by
-  intro R N E decompose finite hden x
-  have hfin : isfinite_Real decompose x = finite x := by
-    by_cases hz : (decompose x).2.2.val = 0
-    · have hfalse : finite x = false := Bool.eq_false_iff.mpr (fun h => (hden x).mpr h hz)
-      simp [isfinite_Real, eq_int_same_eq, hz, hfalse]
-      rfl
-    · have htrue := (hden x).mp hz
-      simp [isfinite_Real, eq_int_same_eq, hz, htrue]
-      exact hz
-  refine ⟨hfin, ?_⟩
-  simp only [isinf_Real, isnan_Number, Bool.not_false, Bool.true_and, hfin, Bool.not_eq_true]
-  cases finite x <;> decide
-
+  refine ⟨?_, ?_⟩
+  · intro T x
+    have hc := floatClassificationAndDecompose_proven T x
+    have hfin : isfinite_Real decompose (fun a b => !int.eq a b) x = x.isfinite := hc.2.2.2.2.2.2.1.trans hc.2.2.1
+    have hinf : isinf_Real isnan_IEEEFloat (isfinite_Real decompose (fun a b => !int.eq a b)) x = x.isinf := by
+      unfold isinf_Real
+      rw [hc.1, hfin]
+      unfold Fl.isnan Fl.isfinite Fl.isinf bne
+      cases (x.expField == T.fmt.emax) <;> cases (x.frac == 0) <;> rfl
+    rw [hfin, hinf]
+    unfold Fl.isfinite Fl.isinf
+    by_cases he : x.expField = T.fmt.emax <;> by_cases hf : x.frac = 0 <;> simp [he, hf]
+  · intro R decomposeR x
+    dsimp only
+    have h0 : (JInt.lit .i64 0).val = 0 := rfl
+    refine ⟨?_, ?_⟩
+    · intro p q hq heq hnondeg hp0
+      have hden_ne : (decomposeR x).2.2.val ≠ 0 := by
+        intro hden0
+        by_cases hp : p = 0
+        · exact hnondeg ⟨hp0 hp, hden0⟩
+        · rw [hden0, Int.mul_zero, Int.zero_mul] at heq
+          have hpow_pos : (0 : Int) < (if 0 ≤ (decomposeR x).2.1.val then ((2 ^ (decomposeR x).2.1.val.toNat : Nat) : Int) else 1) := by
+            split
+            · exact_mod_cast Nat.two_pow_pos _
+            · decide
+          have hq_pos : (0 : Int) < (q : Int) := by omega
+          have hnum0 : (decomposeR x).1.val = 0 := by
+            rcases Int.mul_eq_zero.mp heq.symm with hqnum | hpow0
+            · exact (Int.mul_eq_zero.mp hqnum).resolve_left (by omega)
+            · omega
+          exact hnondeg ⟨hnum0, hden0⟩
+      have hfin : isfinite_Real decomposeR (fun a b => !int.eq a b) x = true := by
+        simp [isfinite_Real, eq_int_same_eq, h0, hden_ne]
+      exact ⟨hfin, by simp [isinf_Real, isnan_Number, hfin]⟩
+    · rintro ⟨_, hden0⟩
+      have hfin : isfinite_Real decomposeR (fun a b => !int.eq a b) x = false := by
+        simp [isfinite_Real, eq_int_same_eq, h0, hden0]
+      exact ⟨hfin, by simp [isinf_Real, isnan_Number, hfin]⟩
 def GenericIntegerFinite : Prop := ∀ (I : Type) (n : I),
-  isfinite_Integer n = true ∧ isnan_Number n = false ∧
-  isfinite_Real decompose_Integer n = true ∧
-  isinf_Real isnan_Number (isfinite_Real decompose_Integer) n = false
+  isfinite_Integer n = true ∧ isnan_Number n = false
 
-theorem genericIntegerFinite_proven : GenericIntegerFinite := by
-  intro I n
-  change true = true ∧ false = false ∧ (!(int.eq (int.lit .i64 1) (int.lit .i64 0))) = true ∧
-    Bool.and true (!(!(int.eq (int.lit .i64 1) (int.lit .i64 0)))) = false
-  decide
 
 def GenericFloatParity : Prop :=
   ∀ (F I : Type) (integer : F → Bool) (abs maxintfloat : F → F)
@@ -7948,45 +8511,96 @@ theorem genericFloatParity_proven : GenericFloatParity := by
       simp [hz]
     · simp
 
-def RadixPrecisionInterval : Prop :=
-  ∀ (A : Type) (t : IntTy) (binaryPrecision : A → JInt .i64)
-    (floorLog : JInt .i64 → JInt t → Jl (JInt .i64)),
-  (∀ p b, 0 ≤ p.val → 1 < b.val → b.val ≠ 2 →
+def RadixPrecisionIntervalGeneric : Prop :=
+  ∀ (A B : Type) (binaryPrecision : A → JInt .i64) (baseValue : B → Int)
+    (base_gt_one base_is_two : B → Bool)
+    (floorLog : JInt .i64 → B → Jl (JInt .i64)),
+  (∀ b, base_gt_one b = decide (1 < baseValue b) ∧
+    base_is_two b = decide (baseValue b = 2)) →
+  (∀ p b, 0 ≤ p.val → 1 < baseValue b → baseValue b ≠ 2 →
     ∃ q, floorLog p b = .ok q ∧ 0 ≤ q.val ∧
-      b.val.toNat ^ q.val.toNat ≤ 2 ^ p.val.toNat ∧
-      2 ^ p.val.toNat < b.val.toNat ^ (q.val.toNat + 1)) →
+      (baseValue b).toNat ^ q.val.toNat ≤ 2 ^ p.val.toNat ∧
+      2 ^ p.val.toNat < (baseValue b).toNat ^ (q.val.toNat + 1)) →
   ∀ x b, 0 ≤ (binaryPrecision x).val →
-    (b.val ≤ 1 → _precision binaryPrecision floorLog x b = .error (.domainError "`base` cannot be less than 2.")) ∧
-    (1 < b.val → ∃ q, _precision binaryPrecision floorLog x b = .ok q ∧ 0 ≤ q.val ∧
-      b.val.toNat ^ q.val.toNat ≤ 2 ^ (binaryPrecision x).val.toNat ∧
-      2 ^ (binaryPrecision x).val.toNat < b.val.toNat ^ (q.val.toNat + 1))
-
-theorem radixPrecisionInterval_proven : RadixPrecisionInterval := by
-  intro A t binaryPrecision floorLog hfloor x b hp
-  have hlt : int.lt (int.lit .i64 1) b = decide (1 < b.val) := by
-    have h := JuliaLean.Proofs.base.int.lt_eq (int.lit .i64 1) b
-    change int.lt (int.lit .i64 1) b = decide ((1 : Int) < b.val) at h
-    exact h
-  have heq : int.eq b (int.lit .i64 2) = decide (b.val = 2) := by
-    have h := JuliaLean.Proofs.base.int.eq_eq b (int.lit .i64 2)
-    change int.eq b (int.lit .i64 2) = decide (b.val = (2 : Int)) at h
-    exact h
-  constructor
-  · intro hb
-    simp only [_precision, hlt, show ¬1 < b.val by omega, decide_false, Bool.not_false, ↓reduceIte]
-  · intro hb
-    by_cases htwo : b.val = 2
-    · refine ⟨binaryPrecision x, ?_, hp, ?_, ?_⟩
-      · simp [_precision, hlt, heq, hb, htwo]
-      · rw [htwo]; exact Nat.le_refl _
-      · rw [htwo]; change 2 ^ (binaryPrecision x).val.toNat < 2 ^ ((binaryPrecision x).val.toNat + 1)
-        rw [Nat.pow_succ]
-        have := Nat.two_pow_pos (binaryPrecision x).val.toNat
+    (baseValue b ≤ 1 →
+      _precision binaryPrecision base_gt_one base_is_two floorLog x b =
+        .error (.domainError "`base` cannot be less than 2.")) ∧
+    (1 < baseValue b →
+      ∃ q, _precision binaryPrecision base_gt_one base_is_two floorLog x b = .ok q ∧
+        0 ≤ q.val ∧
+        (baseValue b).toNat ^ q.val.toNat ≤ 2 ^ (binaryPrecision x).val.toNat ∧
+        2 ^ (binaryPrecision x).val.toNat < (baseValue b).toNat ^ (q.val.toNat + 1))
+def RadixPrecisionInterval : Prop := RadixPrecisionIntervalGeneric ∧
+  (∀ (t : IntTy) (floorLog : JInt .i64 → JInt t → Jl (JInt .i64)),
+    (∀ p b, 0 ≤ p.val → 1 < b.val → b.val ≠ 2 →
+      ∃ q, floorLog p b = .ok q ∧ 0 ≤ q.val ∧
+        b.val.toNat ^ q.val.toNat ≤ 2 ^ p.val.toNat ∧
+        2 ^ p.val.toNat < b.val.toNat ^ (q.val.toNat + 1)) →
+    ∀ T b, 0 ≤ (_precision_with_base_2 T).val →
+      (b.val ≤ 1 →
+        _precision _precision_with_base_2
+          (fun b => int.lt (int.lit .i64 1) b)
+          (fun b => int.eq b (int.lit .i64 2)) floorLog T b =
+            .error (.domainError "`base` cannot be less than 2.")) ∧
+      (1 < b.val →
+        ∃ q, _precision _precision_with_base_2
+            (fun b => int.lt (int.lit .i64 1) b)
+            (fun b => int.eq b (int.lit .i64 2)) floorLog T b = .ok q ∧
+          0 ≤ q.val ∧ b.val.toNat ^ q.val.toNat ≤ 2 ^ (_precision_with_base_2 T).val.toNat ∧
+          2 ^ (_precision_with_base_2 T).val.toNat < b.val.toNat ^ (q.val.toNat + 1)))
+theorem radixPrecisionIntervalGeneric_proven : RadixPrecisionIntervalGeneric := by
+  intro A B binaryPrecision baseValue base_gt_one base_is_two floorLog hpred hfloor x b hp
+  refine ⟨?_, ?_⟩
+  · intro hbase
+    have hgt : base_gt_one b = false := by
+      rw [(hpred b).1]
+      exact decide_eq_false (by omega)
+    simp [_precision, hgt]
+  · intro hbase
+    have hgt : base_gt_one b = true := by
+      rw [(hpred b).1]
+      exact decide_eq_true (by omega)
+    by_cases htwo : baseValue b = 2
+    · have htwo' : base_is_two b = true := by
+        rw [(hpred b).2]
+        exact decide_eq_true htwo
+      refine ⟨binaryPrecision x, ?_, hp, ?_, ?_⟩
+      · simp [_precision, hgt, htwo']
+      · simp [htwo]
+      · have hpos : 0 < 2 ^ (binaryPrecision x).val.toNat := Nat.two_pow_pos _
+        rw [htwo]
+        change 2 ^ (binaryPrecision x).val.toNat <
+          2 ^ ((binaryPrecision x).val.toNat + 1)
+        rw [show (binaryPrecision x).val.toNat + 1 =
+          Nat.succ (binaryPrecision x).val.toNat by omega, Nat.pow_succ]
         omega
-    · obtain ⟨q, hq, hnonneg, hlo, hhi⟩ := hfloor (binaryPrecision x) b hp hb htwo
-      refine ⟨q, ?_, hnonneg, hlo, hhi⟩
-      simp only [_precision, hlt, heq, hb, htwo, decide_true, decide_false, Bool.not_true,
-        Bool.false_eq_true, ↓reduceIte, hq]
+    · have htwo' : base_is_two b = false := by
+        rw [(hpred b).2]
+        exact decide_eq_false htwo
+      obtain ⟨q, hq, hqnonneg, hqlo, hqhi⟩ :=
+        hfloor (binaryPrecision x) b hp (by omega) htwo
+      exact ⟨q, by simp [_precision, hgt, htwo', hq], hqnonneg, hqlo, hqhi⟩
+theorem radixPrecisionInterval_proven : RadixPrecisionInterval := by
+  refine ⟨radixPrecisionIntervalGeneric_proven, ?_⟩
+  intro t floorLog hfloor T b hp
+  have hpred : ∀ b : JInt t,
+      int.lt (int.lit .i64 1) b = decide (1 < b.val) ∧
+      int.eq b (int.lit .i64 2) = decide (b.val = 2) := by
+    intro b
+    have h1 : (int.lit .i64 1).val = 1 := by
+      change wrapInt .i64 1 = 1
+      exact wrapInt_of_inRange .i64 1 (by decide)
+    have h2 : (int.lit .i64 2).val = 2 := by
+      change wrapInt .i64 2 = 2
+      exact wrapInt_of_inRange .i64 2 (by decide)
+    exact ⟨by simpa [h1] using JuliaLean.Proofs.base.int.lt_eq (int.lit .i64 1) b,
+      by simpa [h2] using JuliaLean.Proofs.base.int.eq_eq b (int.lit .i64 2)⟩
+  have hgeneric := radixPrecisionIntervalGeneric_proven
+    FTy (JInt t) _precision_with_base_2 (fun b : JInt t => b.val)
+    (fun b => int.lt (int.lit .i64 1) b) (fun b => int.eq b (int.lit .i64 2))
+    floorLog hpred hfloor
+  exact hgeneric T b hp
+
 
 
 theorem nextSpec_saturated {F : FTy} (x : FV F) (d : Bool) (n : Nat)
@@ -8056,23 +8670,51 @@ theorem generic_nextfloat_closed {F : FTy} {I : Type}
     have hcfull : c = 2 ^ F.fmt.width := Nat.min_eq_right hlarge
     rw [hcfull, nextSpec_saturated x d _ (Nat.le_refl _), nextSpec_saturated x d _ hlarge]
 
+theorem iter_fixed {α : Type} (f : α → α) (y : α) (hf : f y = y) : ∀ n : Nat, iter f n y = y
+  | 0 => rfl
+  | n + 1 => by simp [iter, hf, iter_fixed f y hf n]
+
 def ArbitraryIntegerStepping : Prop :=
   ∀ (F : FTy) (I : Type) (value : I → Nat) (gt : I → Bool) (remU : I → JInt F.uintTy),
   (∀ a, gt a = decide (2 ^ F.fmt.width ≤ value a)) →
   (∀ a, (remU a).val = ((value a % 2 ^ F.fmt.width : Nat) : Int)) →
   ∀ (x : FV F) (a : I),
     _nextfloat_generic gt remU x false a = iter nextfloat (value a) x ∧
-    _nextfloat_generic gt remU x true a = iter prevfloat (value a) x
+    _nextfloat_generic gt remU x true a = iter prevfloat (value a) x ∧
+    (x.isnan = true → ∀ d : Bool, _nextfloat_generic gt remU x d a = x) ∧
+    (x.isnan = false → 2 ^ F.fmt.width ≤ value a →
+      _nextfloat_generic gt remU x false a = inf_float F ∧
+      _nextfloat_generic gt remU x true a = neg_IEEEFloat (inf_float F)) ∧
+    _nextfloat_generic gt remU (inf_float F) false a = inf_float F ∧
+    _nextfloat_generic gt remU (neg_IEEEFloat (inf_float F)) true a = neg_IEEEFloat (inf_float F)
 
 theorem arbitraryIntegerStepping_proven : ArbitraryIntegerStepping := by
   intro F I value gt remU hgt hrem x a
-  rw [generic_nextfloat_closed value gt remU hgt hrem x false a,
-    generic_nextfloat_closed value gt remU hgt hrem x true a, spec_iter false, spec_iter true]
+  have hclosed (y : FV F) (d : Bool) : _nextfloat_generic gt remU y d a = nextSpec y d (value a) :=
+    generic_nextfloat_closed value gt remU hgt hrem y d a
   have hn : (nextfloat : FV F → FV F) = (fun y => nextSpec y false 1) := funext nextfloat_eq
   have hp : (prevfloat : FV F → FV F) = (fun y => nextSpec y true 1) := funext prevfloat_eq
-  rw [hn, hp]
-  exact ⟨rfl, rfl⟩
-
+  have hiter_f (y : FV F) : _nextfloat_generic gt remU y false a = iter nextfloat (value a) y := by
+    rw [hclosed y false, spec_iter false, hn]
+  have hiter_t (y : FV F) : _nextfloat_generic gt remU y true a = iter prevfloat (value a) y := by
+    rw [hclosed y true, spec_iter true, hp]
+  have hinf_enc :
+      encode F false (infMag F) = inf_float F ∧
+      encode F true (infMag F) = neg_IEEEFloat (inf_float F) ∧
+      nextfloat (inf_float F) = inf_float F ∧
+      prevfloat (neg_IEEEFloat (inf_float F)) = neg_IEEEFloat (inf_float F) := by
+    clear hclosed hn hp hiter_f hiter_t hgt hrem value gt remU x a
+    cases F <;> decide
+  refine ⟨hiter_f x, hiter_t x, ?_, ?_, ?_, ?_⟩
+  · intro hx d
+    rw [hclosed x d]
+    simp [nextSpec, hx]
+  · intro hx hlarge
+    rw [hclosed x false, hclosed x true, nextSpec_saturated x false _ hlarge,
+      nextSpec_saturated x true _ hlarge]
+    simp [hx, hinf_enc.1, hinf_enc.2.1]
+  · rw [hiter_f (inf_float F), iter_fixed nextfloat (inf_float F) hinf_enc.2.2.1]
+  · rw [hiter_t (neg_IEEEFloat (inf_float F)), iter_fixed prevfloat _ hinf_enc.2.2.2]
 theorem numerator_power_two (n : Int) :
     2 * n = ((2 ^ (n.natAbs.log2 + 1) : Nat) : Int) ↔ ∃ k : Nat, n = ((2 ^ k : Nat) : Int) := by
   constructor
@@ -8290,11 +8932,156 @@ theorem reconstruct_prefix (T : FTy) {tep : IntTy} (number : JInt T.uintTy) (ep 
     rw [sub_int_val, he, hlz]
     exact wrap_fty_signed_small T _ ⟨by omega, by omega⟩
   exact ⟨hlz, hnormalized, he, heL⟩
-
+theorem reconstruct_prefix_bounded (T : FTy) {tep : IntTy}
+    (number : JInt T.uintTy) (ep : JInt tep)
+    (hn : 0 < pattern number) (hsmall : pattern number < 2 ^ (T.fmt.sb + 1))
+    (hep : -2099 ≤ ep.val ∧ ep.val ≤ 2099) :
+    let lz := int.unsafe_trunc T.intTy
+      (int.sub (int.ctlz_int number) (int.remT T.uintTy (exponent_bits T)))
+    lz.val = ((T.fmt.sb - (pattern number).log2 : Nat) : Int) ∧
+    pattern (int.shl_Int number (int.widenTo .i64 lz)) =
+      pattern number * 2 ^ (T.fmt.sb - (pattern number).log2) ∧
+    (int.unsafe_trunc T.intTy ep).val = ep.val ∧
+    (int.sub (int.unsafe_trunc T.intTy ep) lz).val =
+      ep.val - ((T.fmt.sb - (pattern number).log2 : Nat) : Int) := by
+  let n := pattern number
+  let L := T.fmt.sb - n.log2
+  let lz := int.unsafe_trunc T.intTy
+    (int.sub (int.ctlz_int number) (int.remT T.uintTy (exponent_bits T)))
+  have hnorm := normalize_significand T n hn hsmall
+  have hsb : T.fmt.sb ≤ 52 := by cases T <;> decide
+  have hwidth : T.fmt.width = 1 + T.fmt.eb + T.fmt.sb := rfl
+  have hw : T.uintTy.bits = T.fmt.width := by cases T <;> decide
+  have hL : L ≤ 52 := by dsimp [L]; omega
+  have heb : (int.remT T.uintTy (exponent_bits T)).val = (T.fmt.eb : Int) := by
+    cases T <;> decide
+  have hc :
+      (int.sub (int.ctlz_int number) (int.remT T.uintTy (exponent_bits T))).val =
+        (L : Int) := by
+    rw [sub_int_val, ctlz_fty_val, heb]
+    have hn0 : pattern number ≠ 0 := by omega
+    simp only [hn0, ↓reduceIte]
+    have hnlog : (pattern number).log2 ≤ T.fmt.sb := hnorm.1
+    have hd :
+        ((T.fmt.width - (pattern number).log2 - 1 : Nat) : Int) - T.fmt.eb =
+          (L : Int) := by
+      dsimp [L, n]
+      omega
+    rw [hd]
+    apply wrap_fty_unsigned_small
+    exact ⟨Int.natCast_nonneg _, by omega⟩
+  have hlz : lz.val = (L : Int) := by
+    change (int.remT T.intTy
+      (int.sub (int.ctlz_int number) (int.remT T.uintTy (exponent_bits T)))).val =
+        (L : Int)
+    rw [remT_val, hc]
+    apply wrap_fty_signed_small
+    exact ⟨by omega, by omega⟩
+  have hcount : (int.widenTo .i64 lz).val = (L : Int) := by
+    rw [widenTo_val, hlz]
+    exact wrap_fty_signed_small .f64 _ ⟨by omega, by omega⟩
+  have hnormalized :
+      pattern (int.shl_Int number (int.widenTo .i64 lz)) = n * 2 ^ L := by
+    rw [pattern_shl_Int _ _ (by rw [hcount]; exact Int.natCast_nonneg _),
+      hcount, Int.toNat_natCast, hw]
+    have hfit : n * 2 ^ L < 2 ^ T.fmt.width := by
+      have hpow : 2 ^ (T.fmt.sb + 1) ≤ 2 ^ T.fmt.width :=
+        Nat.pow_le_pow_right (by decide) (by omega)
+      exact Nat.lt_of_lt_of_le hnorm.2.2 hpow
+    exact Nat.mod_eq_of_lt hfit
+  have he : (int.unsafe_trunc T.intTy ep).val = ep.val := by
+    change (int.remT T.intTy ep).val = ep.val
+    rw [remT_val]
+    exact wrap_fty_signed_small T _ ⟨by omega, by omega⟩
+  have heL :
+      (int.sub (int.unsafe_trunc T.intTy ep) lz).val = ep.val - (L : Int) := by
+    rw [sub_int_val, he, hlz]
+    exact wrap_fty_signed_small T _ ⟨by omega, by omega⟩
+  exact ⟨hlz, hnormalized, he, heL⟩
 theorem reinterpret_fty_bits (T : FTy) {t : IntTy} (x : JInt t) :
     reinterpret_Float_Int T x = (Fl.ofBits (pattern x) : FV T) := by
   unfold reinterpret_Float_Int bitcast_to_float jlBitcast
   rw [← pattern_fromJInt]
+theorem reconstruct_negative_subnormal_pack (T : FTy) {tep : IntTy}
+    (number : JInt T.uintTy) (ep : JInt tep)
+    (hn : 0 < pattern number) (hsmall : pattern number < 2 ^ (T.fmt.sb + 1))
+    (hep : -2099 ≤ ep.val) (hnegative : ep.val < 0) :
+    _to_float number ep =
+        (Fl.pack false 0 (pattern number / 2 ^ (-ep.val).toNat) : FV T) ∧
+      pattern number / 2 ^ (-ep.val).toNat < 2 ^ T.fmt.sb := by
+  let n := pattern number
+  let L := T.fmt.sb - n.log2
+  let lz := int.unsafe_trunc T.intTy
+    (int.sub (int.ctlz_int number) (int.remT T.uintTy (exponent_bits T)))
+  let number' := int.shl_Int number (int.widenTo .i64 lz)
+  let e := int.sub (int.unsafe_trunc T.intTy ep) lz
+  let c := int.widenTo .i64 (int.neg e)
+  have hLnonneg : 0 ≤ (L : Int) := by dsimp [L]; omega
+  have hbranch : ep.val < (L : Int) := by omega
+  have hp := reconstruct_prefix_bounded T number ep hn hsmall ⟨hep, by omega⟩
+  have hnumber : pattern number' = n * 2 ^ L := hp.2.1
+  have he : e.val = ep.val - (L : Int) := hp.2.2.2
+  have hsall : ∀ S : FTy, S.fmt.sb ≤ 52 ∧ S.intTy.signed = true ∧
+      S.uintTy.signed = false ∧ (int.lit S.intTy 0).val = 0 ∧
+      pattern (significand_mask S) = 2 ^ S.fmt.sb - 1 := by
+    intro S
+    cases S <;> decide
+  obtain ⟨hsb, hsgn, hu, hzero, hmask⟩ := hsall T
+  have hL : L ≤ 52 := by dsimp [L]; omega
+  have he0 : e.val < 0 := by rw [he]; dsimp [L]; omega
+  have hcond : int.le_BitSigned (int.lit T.intTy 0) e = false := by
+    rw [int.le_BitSigned, sle_int_eq hsgn, hzero]
+    exact decide_eq_false (by omega)
+  have hneg : (int.neg e).val = (L : Int) - ep.val := by
+    rw [neg_int_val, he]
+    have hv : -(ep.val - (L : Int)) = (L : Int) - ep.val := by omega
+    rw [hv]
+    exact wrap_fty_signed_small T _ ⟨by omega, by omega⟩
+  have hc : c.val = (L : Int) - ep.val := by
+    rw [widenTo_val, hneg]
+    exact wrap_fty_signed_small .f64 _ ⟨by omega, by omega⟩
+  let k := (-ep.val).toNat
+  have hkpos : 1 ≤ k := by dsimp [k]; omega
+  have hkval : (k : Int) = -ep.val := by
+    dsimp [k]
+    exact Int.toNat_of_nonneg (by omega)
+  have hcNat : c.val.toNat = L + k := by
+    have hval : (L : Int) - ep.val = ((L + k : Nat) : Int) := by
+      rw [Int.natCast_add, hkval]
+      omega
+    rw [hc, hval]
+    rfl
+  have hshift : pattern (int.shr_Int number' c) = n / 2 ^ k := by
+    rw [pattern_shr_Int_unsigned hu _ _ (by rw [hc]; omega), hnumber, hcNat]
+    calc
+      n * 2 ^ L / 2 ^ (L + k) = (2 ^ L * n) / (2 ^ L * 2 ^ k) := by
+        rw [Nat.pow_add, Nat.mul_comm n (2 ^ L)]
+      _ = n / 2 ^ k := Nat.mul_div_mul_left _ _ (Nat.two_pow_pos L)
+  have hden : 2 ≤ 2 ^ k := by
+    have h := Nat.pow_le_pow_right (by decide : 0 < 2) hkpos
+    simpa using h
+  have hsmallResult : n / 2 ^ k < 2 ^ T.fmt.sb := by
+    apply (Nat.div_lt_iff_lt_mul (Nat.two_pow_pos k)).2
+    calc
+      n < 2 ^ (T.fmt.sb + 1) := hsmall
+      _ = 2 ^ T.fmt.sb * 2 := by rw [Nat.pow_succ]
+      _ ≤ 2 ^ T.fmt.sb * 2 ^ k := Nat.mul_le_mul_left _ hden
+  refine ⟨?_, hsmallResult⟩
+  change reinterpret_Float_Int T
+    (if int.le_BitSigned (int.lit T.intTy 0) e then
+      int.bor (int.band number' (significand_mask T))
+        (int.band (int.remT T.uintTy
+          (int.shl_Int (int.add e (int.lit T.intTy 1)) (significand_bits T)))
+          (exponent_mask T))
+    else int.band (int.shr_Int number' c) (significand_mask T)) = _
+  rw [hcond]
+  simp only [Bool.false_eq_true, ↓reduceIte]
+  rw [reinterpret_fty_bits, pattern_band, hshift, hmask, nat_and_mask,
+    Nat.mod_eq_of_lt hsmallResult]
+  unfold Fl.pack
+  simp only [Bool.false_eq_true, ↓reduceIte, Nat.zero_add, Nat.zero_mul]
+  rfl
+
 
 theorem shifted_exponent_mask (T : FTy) (e : Nat) (he : e < 2 ^ T.fmt.eb) :
     e * 2 ^ T.fmt.sb &&& ((2 ^ T.fmt.eb - 1) * 2 ^ T.fmt.sb) = e * 2 ^ T.fmt.sb := by
@@ -8496,6 +9283,46 @@ theorem to_float_exact_key (T : FTy) {tep : IntTy} (number : JInt T.uintTy) (ep 
     · rw [Fl.pack_key false 0 _ hbits hpack.2]
       simp only [Bool.false_eq_true, ↓reduceIte, Nat.zero_sub, Nat.pow_zero, Nat.add_zero, Nat.mul_one]
 
+theorem to_float_negative_key (T : FTy) {tep : IntTy}
+    (number : JInt T.uintTy) (ep : JInt tep)
+    (hn : 0 < pattern number) (hsmall : pattern number < 2 ^ (T.fmt.sb + 1))
+    (hep : -2099 ≤ ep.val) (hnegative : ep.val < 0) :
+    (_to_float number ep).isfinite = true ∧ (_to_float number ep).signbit = false ∧
+      (_to_float number ep).key =
+        ((pattern number / 2 ^ (-ep.val).toNat : Nat) : Int) := by
+  have hpack := reconstruct_negative_subnormal_pack T number ep hn hsmall hep hnegative
+  rw [hpack.1]
+  have hbits : 0 < 2 ^ T.fmt.eb := Nat.two_pow_pos _
+  have hparts := Fl.pack_parts (f := T.fmt) false 0
+    (pattern number / 2 ^ (-ep.val).toNat) hbits hpack.2
+  refine ⟨?_, hparts.1, ?_⟩
+  · unfold Fl.isfinite
+    rw [hparts.2.1]
+    simp only [bne_iff_ne]
+    have hmax : 0 < T.fmt.emax := by cases T <;> decide
+    omega
+  · rw [Fl.pack_key false 0 _ hbits hpack.2]
+    simp only [Bool.false_eq_true, ↓reduceIte, Nat.zero_sub, Nat.pow_zero,
+      Nat.add_zero, Nat.mul_one]
+theorem floatReconstructionExact_proven : FloatReconstructionExact := by
+  intro T tep number ep hn hsmall hep hcondition
+  by_cases hnonneg : 0 ≤ ep.val
+  · have hfinite :
+        ep.val.toNat + (pattern number).log2 + 1 < T.fmt.emax + T.fmt.sb := by
+      rcases hcondition with hnegative | hfinite
+      · omega
+      · exact hfinite
+    have h := to_float_exact_key T number ep hn hsmall hnonneg hfinite
+    refine ⟨h.1, h.2.1, ?_⟩
+    simpa [hnonneg] using h.2.2
+  · have hnegative : ep.val < 0 := by omega
+    have h := to_float_negative_key T number ep hn hsmall hep hnegative
+    have hnot : ¬ 0 ≤ ep.val := by omega
+    simpa [hnot] using h
+
+theorem floatFieldsAndRemModSpec_proven : FloatFieldsAndRemModSpec :=
+  ⟨floatFieldsAndRemModCore_proven, floatReconstructionExact_proven,
+    fun T x y => rem_IEEEFloat_small_and_diag x y⟩
 theorem uint_fty_lt (T : FTy) (x : JInt T.uintTy) : pattern x < 2 ^ T.fmt.width := by
   have hw : T.uintTy.bits = T.fmt.width := by cases T <;> decide
   simpa only [hw] using pattern_lt x
@@ -8864,15 +9691,7 @@ theorem positive_float_key {T : FTy} (x : FV T) (hs : x.signbit = false) :
   unfold magKey
   rw [← Fl.expField_eq, ← Fl.frac_eq]
 
-def FloatReconstructionExact : Prop := ∀ (T : FTy) (tep : IntTy) (number : JInt T.uintTy) (ep : JInt tep),
-  0 < pattern number → pattern number < 2 ^ (T.fmt.sb + 1) → 0 ≤ ep.val →
-  ep.val.toNat + (pattern number).log2 + 1 < T.fmt.emax + T.fmt.sb →
-  (_to_float number ep).isfinite = true ∧ (_to_float number ep).signbit = false ∧
-  (_to_float number ep).key = ((pattern number * 2 ^ ep.val.toNat : Nat) : Int)
 
-theorem floatReconstructionExact_proven : FloatReconstructionExact := by
-  intro T tep number ep
-  exact to_float_exact_key T number ep
 
 def SubnormalRemainderExact : Prop := ∀ (T : FTy) (x y : FV T),
   x.signbit = false → y.signbit = false → x.expField = 0 → y.expField = 0 → 0 < y.frac →
@@ -10419,78 +11238,1842 @@ theorem genericIntegerFloat16Conversion_proven : GenericIntegerFloat16Conversion
   exact @convertFloat_eq .f16 .f32 _
 
 def GenericNumericFloatQueries : Prop :=
-  ∀ (I F M Ty : Type) (constructor : I → F) (value : F → M) (rounded : I → M)
-    (typeof : F → Ty) (resultType : Ty) (zero : Unit → I),
-  (∀ x, value (constructor x) = rounded x) →
-  (∀ y, typeof y = resultType) →
-  (∀ x, value (float_any constructor x) = rounded x) ∧
-    float_Type_Number zero (float_any constructor) typeof = resultType
+  (∀ (t : IntTy) (x : JInt t),
+    float_any AbstractFloat_BitInteger x = (Fl.roundRat x.val 1 false : FV .f64) ∧
+    (t.bits ≤ 52 →
+      (float_any AbstractFloat_BitInteger x).isfinite = true ∧
+      0 < (float_any AbstractFloat_BitInteger x).toRat.2 ∧
+      (float_any AbstractFloat_BitInteger x).toRat.1 =
+        x.val * ((float_any AbstractFloat_BitInteger x).toRat.2 : Int)) ∧
+    float_any AbstractFloat_BitInteger (int.lit t 0) = zero_float .f64 ∧
+    float_Type_Number (fun _ => int.lit t 0) (float_any AbstractFloat_BitInteger) (fun _ => FTy.f64) = .f64) ∧
+  (∀ (b : Bool),
+    float_any AbstractFloat_Bool b = (if b then one_float .f64 else zero_float .f64) ∧
+    float_Type_Number (fun _ => false) (float_any AbstractFloat_Bool) (fun _ => FTy.f64) = .f64) ∧
+  (∀ (T : FTy) (I : Type) (value : I → Int) (zero : Unit → I) (toFloat : I → FV T),
+    value (zero ()) = 0 →
+    (∀ x : I, toFloat x = (Fl.roundRat (value x) 1 false : FV T)) →
+    float_any toFloat (zero ()) = zero_float T ∧
+    float_Type_Number zero (float_any toFloat) (fun _ => T) = T ∧
+    ∀ x : I, (value x).natAbs < 2 ^ (T.fmt.sb + 1) →
+      (float_any toFloat x).isfinite = true ∧
+      0 < (float_any toFloat x).toRat.2 ∧
+      (float_any toFloat x).toRat.1 = value x * ((float_any toFloat x).toRat.2 : Int))
 
 theorem genericNumericFloatQueries_proven : GenericNumericFloatQueries := by
-  intro I F M Ty constructor value rounded typeof resultType zero hvalue htype
-  exact ⟨hvalue, htype _⟩
+  refine ⟨?_, ?_, ?_⟩
+  · intro t x
+    have hz : float_any AbstractFloat_BitInteger (int.lit t 0) = zero_float .f64 := by
+      clear x; cases t <;> decide
+    exact ⟨integerConversionsRounded_proven.2.2.2 t x, smallIntegerExact_proven.1 .f64 t x, hz, rfl⟩
+  · intro b
+    have hb := (smallIntegerExact_proven.2.2.2 .f64 b)
+    exact ⟨hb.2.trans hb.1, rfl⟩
+  · intro T I value zero toFloat hz hto
+    have hz0 : (Fl.roundRat 0 1 false : FV T) = zero_float T := by cases T <;> decide
+    refine ⟨by simp [float_any, hto, hz, hz0], rfl, ?_⟩
+    intro x hx
+    change (toFloat x).isfinite = true ∧ 0 < (toFloat x).toRat.2 ∧
+      (toFloat x).toRat.1 = value x * ((toFloat x).toRat.2 : Int)
+    rw [hto x]
+    exact Fl.ofInt_exact (good_fty T) (value x) hx
 
-def PrecisionResultCorrect {t : IntTy} (p : JInt .i64) (b : JInt t) (result : Jl (JInt .i64)) : Prop :=
-  (b.val ≤ 1 → result = .error (.domainError "`base` cannot be less than 2.")) ∧
-  (1 < b.val → ∃ q, result = .ok q ∧ 0 ≤ q.val ∧
-    b.val.toNat ^ q.val.toNat ≤ 2 ^ p.val.toNat ∧
-    2 ^ p.val.toNat < b.val.toNat ^ (q.val.toNat + 1))
+def PrecisionResultCorrect {B : Type} (baseValue : B → Int) (p : JInt .i64) (b : B)
+    (result : Jl (JInt .i64)) : Prop :=
+  (baseValue b ≤ 1 → result = .error (.domainError "`base` cannot be less than 2.")) ∧
+  (1 < baseValue b → ∃ q, result = .ok q ∧ 0 ≤ q.val ∧
+    (baseValue b).toNat ^ q.val.toNat ≤ 2 ^ p.val.toNat ∧
+    2 ^ p.val.toNat < (baseValue b).toNat ^ (q.val.toNat + 1))
 
 def GenericPrecisionMethods : Prop :=
-  ∀ (A F : Type) (t : IntTy) (typeof : F → A) (binaryPrecision : A → JInt .i64)
-    (floorLog : JInt .i64 → JInt t → Jl (JInt .i64)),
-  (∀ p b, 0 ≤ p.val → 1 < b.val → b.val ≠ 2 →
-    ∃ q, floorLog p b = .ok q ∧ 0 ≤ q.val ∧
-      b.val.toNat ^ q.val.toNat ≤ 2 ^ p.val.toNat ∧
-      2 ^ p.val.toNat < b.val.toNat ^ (q.val.toNat + 1)) →
-  (∀ T b, 0 ≤ (binaryPrecision T).val → PrecisionResultCorrect (binaryPrecision T) b
-    (precision_Type binaryPrecision floorLog T b)) ∧
-  (∀ x b, 0 ≤ (binaryPrecision (typeof x)).val → PrecisionResultCorrect (binaryPrecision (typeof x)) b
-    (precision_AbstractFloat typeof (precision_Type binaryPrecision floorLog) x b))
-
+  (∀ (A F B : Type) (typeof : F → A) (baseValue : B → Int)
+    (base_gt_one base_is_two : B → Bool) (binaryPrecision : A → JInt .i64)
+    (floorLog : JInt .i64 → B → Jl (JInt .i64)),
+    (∀ b, base_gt_one b = decide (1 < baseValue b) ∧
+      base_is_two b = decide (baseValue b = 2)) →
+    (∀ p b, 0 ≤ p.val → 1 < baseValue b → baseValue b ≠ 2 →
+      ∃ q, floorLog p b = .ok q ∧ 0 ≤ q.val ∧
+        (baseValue b).toNat ^ q.val.toNat ≤ 2 ^ p.val.toNat ∧
+        2 ^ p.val.toNat < (baseValue b).toNat ^ (q.val.toNat + 1)) →
+    (∀ T b, 0 ≤ (binaryPrecision T).val →
+      PrecisionResultCorrect baseValue (binaryPrecision T) b
+        (precision_Type binaryPrecision base_gt_one base_is_two floorLog T b)) ∧
+    (∀ x b, 0 ≤ (binaryPrecision (typeof x)).val →
+      PrecisionResultCorrect baseValue (binaryPrecision (typeof x)) b
+        (precision_AbstractFloat typeof
+          (precision_Type binaryPrecision base_gt_one base_is_two floorLog) x b))) ∧
+  (∀ (t : IntTy) (floorLog : JInt .i64 → JInt t → Jl (JInt .i64)),
+    (∀ p b, 0 ≤ p.val → 1 < b.val → b.val ≠ 2 →
+      ∃ q, floorLog p b = .ok q ∧ 0 ≤ q.val ∧
+        b.val.toNat ^ q.val.toNat ≤ 2 ^ p.val.toNat ∧
+        2 ^ p.val.toNat < b.val.toNat ^ (q.val.toNat + 1)) →
+    ∀ (T : FTy) (x : FV T) (b : JInt t), 0 ≤ (_precision_with_base_2 T).val →
+      PrecisionResultCorrect (fun base : JInt t => base.val) (_precision_with_base_2 T) b
+        (precision_Type_BitInteger _precision_with_base_2 floorLog T b) ∧
+      PrecisionResultCorrect (fun base : JInt t => base.val) (_precision_with_base_2 T) b
+        (precision_val (fun base => int.lt (int.lit .i64 1) base)
+          (fun base => int.eq base (int.lit .i64 2)) floorLog x b))
 theorem genericPrecisionMethods_proven : GenericPrecisionMethods := by
-  intro A F t typeof binaryPrecision floorLog hfloor
-  constructor
-  · intro T b hp
-    exact radixPrecisionInterval_proven A t binaryPrecision floorLog hfloor T b hp
-  · intro x b hp
-    exact radixPrecisionInterval_proven A t binaryPrecision floorLog hfloor (typeof x) b hp
+  unfold GenericPrecisionMethods
+  refine ⟨?_, ?_⟩
+  · intro A F B typeof baseValue base_gt_one base_is_two binaryPrecision floorLog hpred hfloor
+    refine ⟨?_, ?_⟩
+    · intro T b hp
+      have h := radixPrecisionIntervalGeneric_proven
+        A B binaryPrecision baseValue base_gt_one base_is_two floorLog hpred hfloor T b hp
+      simpa [PrecisionResultCorrect, precision_Type] using h
+    · intro x b hp
+      have h := radixPrecisionIntervalGeneric_proven
+        A B binaryPrecision baseValue base_gt_one base_is_two floorLog hpred hfloor
+        (typeof x) b hp
+      simpa [PrecisionResultCorrect, precision_AbstractFloat, precision_Type] using h
+  · intro t floorLog hfloor T x b hp
+    have h := radixPrecisionInterval_proven.2 t floorLog hfloor T b hp
+    simpa [PrecisionResultCorrect, precision_Type_BitInteger, precision_val,
+      precision_AbstractFloat, precision_Type, JuliaLean.Proofs.base.int.eq_eq, eq_comm] using h
+
+
+theorem typemin_typemax_le {T : FTy} (z : FV T) (hz : z.isnan = false) :
+    le_IEEEFloat (typemin_float T) z = true ∧ le_IEEEFloat z (typemax_float T) = true := by
+  have hb :
+      (typemin_float T).isnan = false ∧ (typemin_float T).signbit = true ∧
+      (typemin_float T).magnitude = infMag T ∧
+      (typemax_float T).isnan = false ∧ (typemax_float T).signbit = false ∧
+      (typemax_float T).magnitude = infMag T := by
+    clear z hz; cases T <;> decide
+  have hmag := not_nan_mag hz
+  have hmk := magKey_mono T.fmt hmag
+  rw [le_IEEEFloat_key _ _ hb.1 hz, le_IEEEFloat_key _ _ hz hb.2.2.2.1]
+  unfold Fl.key
+  rw [hb.2.1, hb.2.2.1, hb.2.2.2.2.1, hb.2.2.2.2.2]
+  cases z.signbit <;> simp <;> omega
 
 def GenericRealTypeBounds : Prop :=
-  ∀ (Ty : Type) (Value : Ty → Type) (le : (t : Ty) → Value t → Value t → Prop)
-    (lower upper : (t : Ty) → Value t),
-  (∀ t z, le t (lower t) z) → (∀ t z, le t z (upper t)) →
-  ∀ t (x z : Value t), le t (typemin_Real lower t x) z ∧ le t z (typemax_Real upper t x)
+  (∀ (T : FTy) (x z : FV T),
+    typemin_Real typemin_float T x = neg_IEEEFloat (inf_float T) ∧
+    typemax_Real typemax_float T x = inf_float T ∧
+    (typemin_Real typemin_float T x).isinf = true ∧
+    (typemin_Real typemin_float T x).signbit = true ∧
+    (typemax_Real typemax_float T x).isinf = true ∧
+    (typemax_Real typemax_float T x).signbit = false ∧
+    (z.isnan = false →
+      le_IEEEFloat (typemin_float T) z = true ∧
+      le_IEEEFloat z (typemax_float T) = true ∧
+      le_IEEEFloat (typemin_Real typemin_float T x) z = true ∧
+      le_IEEEFloat z (typemax_Real typemax_float T x) = true)) ∧
+  (∀ (t : IntTy) (x z : JInt t),
+    (typemin_Real int.typemin t x).val = t.min ∧
+    (typemax_Real int.typemax t x).val = t.max ∧
+    int.le (typemin_Real int.typemin t x) z = true ∧
+    int.le z (typemax_Real int.typemax t x) = true)
 
 theorem genericRealTypeBounds_proven : GenericRealTypeBounds := by
-  intro Ty Value le lower upper hlow hhigh t x z
-  exact ⟨hlow t z, hhigh t z⟩
+  refine ⟨?_, ?_⟩
+  · intro T x z
+    dsimp only [typemin_Real, typemax_Real]
+    have hfixed :
+        typemin_float T = neg_IEEEFloat (inf_float T) ∧
+        typemax_float T = inf_float T ∧
+        (typemin_float T).isinf = true ∧
+        (typemin_float T).signbit = true ∧
+        (typemax_float T).isinf = true ∧
+        (typemax_float T).signbit = false := by
+      clear x z; cases T <;> decide
+    refine ⟨hfixed.1, hfixed.2.1, hfixed.2.2.1, hfixed.2.2.2.1, hfixed.2.2.2.2.1, hfixed.2.2.2.2.2, ?_⟩
+    intro hz
+    have hle := typemin_typemax_le z hz
+    exact ⟨hle.1, hle.2, hle.1, hle.2⟩
+  · intro t x z
+    have hmin : (int.typemin t).val = t.min := by clear x z; cases t <;> decide
+    have hmax : (int.typemax t).val = t.max := by clear x z; cases t <;> decide
+    have hz := z.property
+    dsimp only [typemin_Real, typemax_Real]
+    rw [JuliaLean.Proofs.base.int.le_eq, JuliaLean.Proofs.base.int.le_eq, hmin, hmax]
+    exact ⟨rfl, rfl, decide_eq_true hz.1, decide_eq_true hz.2⟩
 
-def GenericFloatingTypeLimits : Prop :=
-  ∀ (Ty : Type) (Value : Ty → Type) (normal finite : (t : Ty) → Value t → Bool)
-    (positive : (t : Ty) → Value t → Prop) (le : (t : Ty) → Value t → Value t → Prop)
-    (minimum maximum : (t : Ty) → Value t),
-  (∀ t, normal t (minimum t) = true ∧ positive t (minimum t) ∧
-    ∀ z, normal t z = true → positive t z → le t (minimum t) z) →
-  (∀ t, finite t (maximum t) = true ∧ ∀ z, finite t z = true → le t z (maximum t)) →
-  ∀ t (x : Value t),
-    normal t (floatmin_AbstractFloat minimum t x) = true ∧
-    positive t (floatmin_AbstractFloat minimum t x) ∧
-    (∀ z, normal t z = true → positive t z → le t (floatmin_AbstractFloat minimum t x) z) ∧
-    finite t (floatmax_AbstractFloat maximum t x) = true ∧
-    (∀ z, finite t z = true → le t z (floatmax_AbstractFloat maximum t x))
-
-theorem genericFloatingTypeLimits_proven : GenericFloatingTypeLimits := by
-  intro Ty Value normal finite positive le minimum maximum hmin hmax t x
-  exact ⟨(hmin t).1, (hmin t).2.1, (hmin t).2.2, (hmax t).1, (hmax t).2⟩
-
-def GenericFloatingInterfaces : Prop := GenericFloatingTypeLimits ∧
+def GenericFloatingInterfaces : Prop :=
+  (∀ (T : FTy) (x : FV T),
+    let m := floatmin_AbstractFloat floatmin_float T x
+    let M := floatmax_AbstractFloat floatmax_float T x
+    m = floatmin_float T ∧
+    M = floatmax_float T ∧
+    m.isfinite = true ∧
+    issubnormal m = false ∧
+    lt_IEEEFloat (zero_float T) m = true ∧
+    issubnormal (prevfloat m) = true ∧
+    (∀ z : FV T, z.isfinite = true → z.signbit = false → z.expField ≠ 0 →
+      le_IEEEFloat m z = true) ∧
+    M.isfinite = true ∧
+    (nextfloat M).isinf = true ∧
+    (nextfloat M).signbit = false ∧
+    (∀ z : FV T, z.isfinite = true → le_IEEEFloat z M = true)) ∧
+  floatmin_default = floatmin_AbstractFloat floatmin_float .f64 (zero_float .f64) ∧
+  floatmax_default = floatmax_AbstractFloat floatmax_float .f64 (zero_float .f64) ∧
   (∀ (Ty : Type) (t : Ty), float_Type_AbstractFloat t = t) ∧
   (∀ (A : Type) (a : A), float_AbstractArray_AbstractFloat a = a)
 
 theorem genericFloatingInterfaces_proven : GenericFloatingInterfaces := by
-  exact ⟨genericFloatingTypeLimits_proven, fun _ _ => rfl, fun _ _ => rfl⟩
+  refine ⟨?_, rfl, rfl, fun _ _ => rfl, fun _ _ => rfl⟩
+  intro T x
+  have hex := floatExtrema_proven T
+  have hadj :
+      issubnormal (floatmin_float T) = false ∧
+      issubnormal (prevfloat (floatmin_float T)) = true ∧
+      (nextfloat (floatmax_float T)).isinf = true ∧
+      (nextfloat (floatmax_float T)).signbit = false := by
+    clear x hex; cases T <;> decide
+  dsimp only [floatmin_AbstractFloat, floatmax_AbstractFloat]
+  refine ⟨rfl, rfl, hex.1, hadj.1, hex.2.2.2.2.1, hadj.2.1, ?_, hex.2.2.2.2.2.2.1, hadj.2.2.1, hadj.2.2.2, ?_⟩
+  · intro z hz hs he
+    have hlt := hex.2.2.2.2.2.1 z hz hs he
+    have hnz : z.isnan = false := Fl.isnan_of_finite hz
+    have hnm : (floatmin_float T).isnan = false := Fl.isnan_of_finite hex.1
+    rw [lt_IEEEFloat_eq, Fl.lt_key hnz hnm] at hlt
+    rw [le_IEEEFloat_key _ _ hnm hnz]
+    have := of_decide_eq_false hlt
+    exact decide_eq_true (by omega)
+  · intro z hz
+    have hlt := hex.2.2.2.2.2.2.2.2 z hz
+    have hnz : z.isnan = false := Fl.isnan_of_finite hz
+    have hnM : (floatmax_float T).isnan = false := Fl.isnan_of_finite hex.2.2.2.2.2.2.1
+    rw [lt_IEEEFloat_eq, Fl.lt_key hnM hnz] at hlt
+    rw [le_IEEEFloat_key _ _ hnz hnM]
+    have := of_decide_eq_false hlt
+    exact decide_eq_true (by omega)
 
+def FloatWidenConvertRoundtrip : Prop := FloatWidenConvertRoundtripCore ∧
+  Integer128AllFormatsRounded ∧
+  NarrowFloatConversions ∧
+  (∀ (x y : FV .f16),
+    (Float32_Float16 x).isnan = x.isnan ∧
+    (Float32_Float16 x).isinf = x.isinf ∧
+    (Float32_Float16 x).isfinite = x.isfinite ∧
+    (x.isfinite = true →
+      (Float32_Float16 x).toRat.1 * (x.toRat.2 : Int) = x.toRat.1 * ((Float32_Float16 x).toRat.2 : Int)) ∧
+    eq_IEEEFloat (Float32_Float16 x) (Float32_Float16 y) = eq_IEEEFloat x y ∧
+    lt_IEEEFloat (Float32_Float16 x) (Float32_Float16 y) = lt_IEEEFloat x y ∧
+    le_IEEEFloat (Float32_Float16 x) (Float32_Float16 y) = le_IEEEFloat x y ∧
+    (Float64_Float16 x).isnan = x.isnan ∧
+    (Float64_Float16 x).isinf = x.isinf ∧
+    (Float64_Float16 x).isfinite = x.isfinite ∧
+    (x.isfinite = true →
+      (Float64_Float16 x).toRat.1 * (x.toRat.2 : Int) = x.toRat.1 * ((Float64_Float16 x).toRat.2 : Int)) ∧
+    eq_IEEEFloat (Float64_Float16 x) (Float64_Float16 y) = eq_IEEEFloat x y ∧
+    lt_IEEEFloat (Float64_Float16 x) (Float64_Float16 y) = lt_IEEEFloat x y ∧
+    le_IEEEFloat (Float64_Float16 x) (Float64_Float16 y) = le_IEEEFloat x y) ∧
+  (∀ (x y : FV .f32),
+    (Float64_Float32 x).isnan = x.isnan ∧
+    (Float64_Float32 x).isinf = x.isinf ∧
+    (Float64_Float32 x).isfinite = x.isfinite ∧
+    (x.isfinite = true →
+      (Float64_Float32 x).toRat.1 * (x.toRat.2 : Int) = x.toRat.1 * ((Float64_Float32 x).toRat.2 : Int)) ∧
+    eq_IEEEFloat (Float64_Float32 x) (Float64_Float32 y) = eq_IEEEFloat x y ∧
+    lt_IEEEFloat (Float64_Float32 x) (Float64_Float32 y) = lt_IEEEFloat x y ∧
+    le_IEEEFloat (Float64_Float32 x) (Float64_Float32 y) = le_IEEEFloat x y) ∧
+  (widen_Float16.fmt.width = 2 * FTy.f16.fmt.width ∧
+    FTy.f16.fmt.sb < widen_Float16.fmt.sb ∧
+    widen_Float32.fmt.width = 2 * FTy.f32.fmt.width ∧
+    FTy.f32.fmt.sb < widen_Float32.fmt.sb ∧
+    promote_rule_Float32_Float16.fmt.width = max FTy.f32.fmt.width FTy.f16.fmt.width ∧
+    promote_rule_Float64_Float16.fmt.width = max FTy.f64.fmt.width FTy.f16.fmt.width ∧
+    promote_rule_Float64_Float32.fmt.width = max FTy.f64.fmt.width FTy.f32.fmt.width)
+
+theorem floatWidenConvertRoundtrip_proven : FloatWidenConvertRoundtrip := by
+  refine ⟨floatWidenConvertRoundtripCore_proven, integer128AllFormatsRounded_proven,
+    narrowFloatConversions_proven, ?_, ?_, by decide⟩
+  · intro x y
+    have hx32 : Float32_Float16 x = (Fl.convert x : FV .f32) := convertFloat_eq .f32 x
+    have hy32 : Float32_Float16 y = (Fl.convert y : FV .f32) := convertFloat_eq .f32 y
+    have hx64 : Float64_Float16 x = (Fl.convert x : FV .f64) := convertFloat_eq .f64 x
+    have hy64 : Float64_Float16 y = (Fl.convert y : FV .f64) := convertFloat_eq .f64 y
+    obtain ⟨hn32, hi32, hf32, -, hr32⟩ :=
+      Fl.convert_widen_key (good_fty .f16) (good_fty .f32) (by decide) (by decide) (by decide) x
+    obtain ⟨heq32, hlt32, hle32⟩ :=
+      Fl.convert_widen_cmp (good_fty .f16) (good_fty .f32) (by decide) (by decide) (by decide) x y
+    obtain ⟨hn64, hi64, hf64, -, hr64⟩ :=
+      Fl.convert_widen_key (good_fty .f16) (good_fty .f64) (by decide) (by decide) (by decide) x
+    obtain ⟨heq64, hlt64, hle64⟩ :=
+      Fl.convert_widen_cmp (good_fty .f16) (good_fty .f64) (by decide) (by decide) (by decide) x y
+    simp only [hx32, hy32, hx64, hy64, eq_IEEEFloat_eq, lt_IEEEFloat_eq, le_IEEEFloat_eq]
+    exact ⟨hn32, hi32, hf32, fun h => (hr32 h).2, heq32, hlt32, hle32,
+      hn64, hi64, hf64, fun h => (hr64 h).2, heq64, hlt64, hle64⟩
+  · intro x y
+    have hx64 : Float64_Float32 x = (Fl.convert x : FV .f64) := convertFloat_eq .f64 x
+    have hy64 : Float64_Float32 y = (Fl.convert y : FV .f64) := convertFloat_eq .f64 y
+    obtain ⟨hn64, hi64, hf64, -, hr64⟩ :=
+      Fl.convert_widen_key (good_fty .f32) (good_fty .f64) (by decide) (by decide) (by decide) x
+    obtain ⟨heq64, hlt64, hle64⟩ :=
+      Fl.convert_widen_cmp (good_fty .f32) (good_fty .f64) (by decide) (by decide) (by decide) x y
+    simp only [hx64, hy64, eq_IEEEFloat_eq, lt_IEEEFloat_eq, le_IEEEFloat_eq]
+    exact ⟨hn64, hi64, hf64, fun h => (hr64 h).2, heq64, hlt64, hle64⟩
+
+theorem issubnormal_finite_lt_floatmin {T : FTy} (x : FV T) (hf : x.isfinite = true) :
+    issubnormal x = (!iszero_float x && lt_IEEEFloat (abs_IEEEFloat x) (floatmin_float T)) := by
+  have hnx : x.isnan = false := Fl.isnan_of_finite hf
+  have hT :
+      (zero_float T).isnan = false ∧ (zero_float T).magnitude = 0 ∧
+      (floatmin_float T).isnan = false ∧ (floatmin_float T).signbit = false ∧
+      (floatmin_float T).magnitude = 2 ^ T.fmt.sb := by
+    clear x hf hnx; cases T <;> decide
+  have hz_eq : iszero_float x = (x.magnitude == 0) := by
+    change eq_IEEEFloat x (zero_float T) = _
+    rw [fl_eq_parts x (zero_float T) hnx hT.1, hT.2.1]
+    cases (x.magnitude == 0) <;> cases x.signbit <;> simp
+  have habs := (floatArithmeticAndNanPropagation_proven T x x x).1 hnx
+  have habs_nan : (abs_IEEEFloat x).isnan = false := by
+    rw [Bool.eq_false_iff, ne_eq, isnan_iff_mag, habs.2.2.2.2.1]
+    rw [Bool.eq_false_iff, ne_eq, isnan_iff_mag] at hnx
+    exact hnx
+  have hlt_eq : lt_IEEEFloat (abs_IEEEFloat x) (floatmin_float T) = decide (x.magnitude < 2 ^ T.fmt.sb) := by
+    rw [lt_IEEEFloat_eq, Fl.lt_key habs_nan hT.2.2.1]
+    unfold Fl.key
+    rw [habs.2.2.2.1, habs.2.2.2.2.1, hT.2.2.2.1, hT.2.2.2.2]
+    simp only [Bool.false_eq_true, ↓reduceIte, Int.ofNat_lt]
+    apply decide_eq_decide.mpr
+    constructor
+    · intro hmk
+      cases Nat.lt_or_ge x.magnitude (2 ^ T.fmt.sb) with
+      | inl hlt => exact hlt
+      | inr hge =>
+        have := magKey_mono T.fmt hge
+        omega
+    · intro hlt
+      exact magKey_strictMono T.fmt hlt
+  rw [issubnormal_eq x, hz_eq, hlt_eq]
+  obtain ⟨hm, hfr⟩ := mag_decomp x
+  have hP := Nat.two_pow_pos T.fmt.sb
+  by_cases he : x.expField = 0
+  · rw [he, Nat.zero_mul, Nat.zero_add] at hm
+    simp [he, hm, hfr, bne]
+  · have hge : 2 ^ T.fmt.sb ≤ x.magnitude := by
+      have h := Nat.mul_le_mul_right (2 ^ T.fmt.sb) (show 1 ≤ x.expField by omega)
+      omega
+    simp [he, show ¬(x.magnitude < 2 ^ T.fmt.sb) by omega]
+
+def FloatBoundsAndEps : Prop := FloatBoundsAndEpsCore ∧
+  (∀ (T : FTy) (x : FV T),
+    (_precision_with_base_2 T).val = (T.fmt.sb : Int) + 1 ∧
+    _precision_with_base_2_Float16.val = 11 ∧
+    _precision_with_base_2_Float32.val = 24 ∧
+    _precision_with_base_2_Float64.val = 53 ∧
+    issubnormal x = (x.expField == 0 && x.frac != 0) ∧
+    (x.isfinite = true →
+      issubnormal x = (!iszero_float x && lt_IEEEFloat (abs_IEEEFloat x) (floatmin_float T))) ∧
+    (x.isnan = false →
+      le_IEEEFloat (typemin_float T) x = true ∧
+      le_IEEEFloat x (typemax_float T) = true) ∧
+    (x.isfinite = false → (eps_IEEEFloat x).isnan = true) ∧
+    ((eps_IEEEFloat x).isnan = false → (eps_IEEEFloat x).signbit = false)) ∧
+  GenericBinaryPowerOfTwo ∧
+  GenericFloatParity ∧
+  FloatExtrema ∧
+  MachineEpsilonGap ∧
+  EpsilonProofs.FiniteEpsilonBitSpacing ∧
+  EpsilonNeighborProofs.DocumentedEpsilonSpacing ∧
+  GenericEpsilonSpacing
+theorem floatBoundsAndEps_proven : FloatBoundsAndEps := by
+  refine ⟨floatBoundsAndEpsCore_proven, ?_, genericBinaryPowerOfTwo_proven,
+    genericFloatParity_proven, floatExtrema_proven, machineEpsilonGap_proven,
+    EpsilonProofs.finiteEpsilonBitSpacing_proven,
+    EpsilonNeighborProofs.documentedEpsilonSpacing_proven, genericEpsilonSpacing_proven⟩
+  intro T x
+  refine ⟨?_, ?_, ?_, ?_, issubnormal_eq x, ?_, ?_, ?_, ?_⟩
+  · cases T <;> decide
+  · decide
+  · decide
+  · decide
+  · intro hf
+    exact issubnormal_finite_lt_floatmin x hf
+  · intro hn
+    exact typemin_typemax_le x hn
+  · exact (eps_IEEEFloat_nonfinite_and_sign x).1
+  · exact (eps_IEEEFloat_nonfinite_and_sign x).2
+
+
+def FloatBswapAndCollections : Prop := FloatBswapAndCollectionsCore ∧
+  GenericArrayFloatConversion ∧
+  (∀ (t : IntTy),
+    (∀ (sr : JuliaLean.base.range.StepRange (JInt t) (JInt t)),
+      let fsr := float_StepRange float_BitInteger float_BitInteger (fun r => r.stop) (fun a s b => (a, s, b)) sr
+      fsr.1 = (Fl.roundRat sr.start.val 1 false : FV .f64) ∧
+      fsr.2.1 = (Fl.roundRat sr.step.val 1 false : FV .f64) ∧
+      fsr.2.2 = (Fl.roundRat sr.stop.val 1 false : FV .f64)) ∧
+    (∀ (ur : JuliaLean.base.range.UnitRange (JInt t)),
+      let fur := float_UnitRange float_BitInteger (fun r => r.stop) JuliaLean.base.range.UnitRange.mk ur
+      fur.start = (Fl.roundRat ur.start.val 1 false : FV .f64) ∧
+      fur.stop = (Fl.roundRat ur.stop.val 1 false : FV .f64)) ∧
+    (∀ (srl : JuliaLean.base.range.StepRangeLen (JInt t) (JInt t) (JInt t) (JInt .i64)),
+      let fsrl := float_StepRangeLen id float_BitInteger (fun _ => FTy.f64) float_BitInteger float_BitInteger
+        JuliaLean.base.range.length_StepRangeLen
+        (fun _ ref step len off => @JuliaLean.base.range.StepRangeLen.mk (FV .f64) (FV .f64) (FV .f64) (JInt .i64) ref step len off) srl
+      fsrl.ref = (Fl.roundRat srl.ref.val 1 false : FV .f64) ∧
+      fsrl.step = (Fl.roundRat srl.step.val 1 false : FV .f64) ∧
+      JuliaLean.base.range.length_StepRangeLen fsrl = JuliaLean.base.range.length_StepRangeLen srl ∧
+      fsrl.offset = srl.offset) ∧
+    (∀ (lr : JuliaLean.base.range.LinRange (JInt t) (JInt .i64)),
+      let flr := float_LinRange float_BitInteger JuliaLean.base.range.length_LinRange
+        (fun a b n => JuliaLean.base.range.LinRange.mk a b n n) lr
+      JuliaLean.base.range.first_LinRange flr = (Fl.roundRat lr.start.val 1 false : FV .f64) ∧
+      JuliaLean.base.range.last_LinRange flr = (Fl.roundRat lr.stop.val 1 false : FV .f64) ∧
+      JuliaLean.base.range.length_LinRange flr = JuliaLean.base.range.length_LinRange lr))
+theorem floatBswapAndCollections_proven : FloatBswapAndCollections := by
+  refine ⟨floatBswapAndCollectionsCore_proven, genericArrayFloatConversion_proven, ?_⟩
+  intro t
+  refine ⟨?_, ?_, ?_, ?_⟩
+  · intro sr
+    simp [float_StepRange, float_BitInteger, float_any, AbstractFloat_BitInteger, floatOfInt_roundRat]
+  · intro ur
+    simp [float_UnitRange, float_BitInteger, float_any, AbstractFloat_BitInteger, floatOfInt_roundRat]
+  · intro srl
+    simp [float_StepRangeLen, float_BitInteger, float_any, AbstractFloat_BitInteger, floatOfInt_roundRat,
+      JuliaLean.base.range.length_StepRangeLen]
+  · intro lr
+    simp [float_LinRange, float_BitInteger, float_any, AbstractFloat_BitInteger, floatOfInt_roundRat,
+      JuliaLean.base.range.first_LinRange, JuliaLean.base.range.last_LinRange,
+      JuliaLean.base.range.length_LinRange]
+
+namespace FloatRoundDirections
+open JuliaLean JuliaLean.C JuliaLean.base.float JuliaLean.Promotion.Fl NextProofs TruncProofs
+open JuliaLean.Promotion hiding FTy FV FTy.fmt FTy.bytes FTy.f16 FTy.f32 FTy.f64
+set_option maxRecDepth 8192
+set_option maxHeartbeats 10000000
+
+theorem roundToZeroLLVMCase {T : FTy} (x : FV T) :
+    (x.isnan = false → (!x.isfinite || x.iszero) = true → round_ToZero_llvm x = x) ∧
+    (x.isfinite = true → x.iszero = false →
+      round_ToZero_llvm x = Fl.roundRat x.truncVal 1 x.signbit) ∧
+    (x.isnan = true → isnan_IEEEFloat (round_ToZero_llvm x) = true) := by
+  refine ⟨?_, ?_, ?_⟩
+  · intro hn hs
+    unfold round_ToZero_llvm trunc_llvm jlTruncLlvm unaryFloat
+    simp [roundFloat, finishFloat_eq, hn, hs]
+  · intro hf hz
+    have hn := Fl.isnan_of_finite hf
+    unfold round_ToZero_llvm trunc_llvm jlTruncLlvm unaryFloat roundFloat
+    simp only [finishFloat_eq, hn, hf, hz, Bool.and_false, Bool.not_true,
+      Bool.false_or, Bool.false_eq_true, ↓reduceIte]
+    rfl
+  · intro hn
+    have hinput : (if T.fmt == half && x.isnan then quietFloat x else x).isnan = true := by
+      cases T with
+      | f16 =>
+        change (if true && x.isnan then quietFloat x else x).isnan = true
+        simp only [Bool.true_and, hn, if_pos]
+        exact quietFloat_isnan x hn
+      | f32 =>
+        have hfmt : (single == half) = false := by decide
+        change (if single == half && x.isnan then quietFloat x else x).isnan = true
+        simp [hfmt, hn]
+      | f64 =>
+        have hfmt : (double == half) = false := by decide
+        change (if double == half && x.isnan then quietFloat x else x).isnan = true
+        simp [hfmt, hn]
+    rw [isnan_IEEEFloat_eq]
+    unfold round_ToZero_llvm trunc_llvm jlTruncLlvm unaryFloat
+    rw [finishFloat_eq]
+    unfold roundFloat
+    simp only [hinput, ↓reduceIte]
+    exact quietFloat_isnan _ hinput
+
+theorem roundDownLLVMCase {T : FTy} (x : FV T) :
+    (x.isnan = false → (!x.isfinite || x.iszero) = true → round_Down_llvm x = x) ∧
+    (x.isfinite = true → x.iszero = false →
+      round_Down_llvm x = Fl.roundRat (x.toRat.1 / (x.toRat.2 : Int)) 1 x.signbit) ∧
+    (x.isnan = true → isnan_IEEEFloat (round_Down_llvm x) = true) := by
+  refine ⟨?_, ?_, ?_⟩
+  · intro hn hs
+    unfold round_Down_llvm floor_llvm jlFloorLlvm unaryFloat
+    simp [roundFloat, finishFloat_eq, hn, hs]
+  · intro hf hz
+    have hn := Fl.isnan_of_finite hf
+    unfold round_Down_llvm floor_llvm jlFloorLlvm unaryFloat roundFloat
+    simp only [finishFloat_eq, hn, hf, hz, Bool.and_false, Bool.not_true,
+      Bool.false_or, Bool.false_eq_true, ↓reduceIte]
+    rfl
+  · intro hn
+    have hinput : (if T.fmt == half && x.isnan then quietFloat x else x).isnan = true := by
+      cases T with
+      | f16 =>
+        change (if true && x.isnan then quietFloat x else x).isnan = true
+        simp only [Bool.true_and, hn, if_pos]
+        exact quietFloat_isnan x hn
+      | f32 =>
+        have hfmt : (single == half) = false := by decide
+        change (if single == half && x.isnan then quietFloat x else x).isnan = true
+        simp [hfmt, hn]
+      | f64 =>
+        have hfmt : (double == half) = false := by decide
+        change (if double == half && x.isnan then quietFloat x else x).isnan = true
+        simp [hfmt, hn]
+    rw [isnan_IEEEFloat_eq]
+    unfold round_Down_llvm floor_llvm jlFloorLlvm unaryFloat
+    rw [finishFloat_eq]
+    unfold roundFloat
+    simp only [hinput, ↓reduceIte]
+    exact quietFloat_isnan _ hinput
+
+theorem roundUpLLVMCase {T : FTy} (x : FV T) :
+    (x.isnan = false → (!x.isfinite || x.iszero) = true → round_Up_llvm x = x) ∧
+    (x.isfinite = true → x.iszero = false →
+      round_Up_llvm x = Fl.roundRat (-((-x.toRat.1) / (x.toRat.2 : Int))) 1 x.signbit) ∧
+    (x.isnan = true → isnan_IEEEFloat (round_Up_llvm x) = true) := by
+  refine ⟨?_, ?_, ?_⟩
+  · intro hn hs
+    unfold round_Up_llvm ceil_llvm jlCeilLlvm unaryFloat
+    simp [roundFloat, finishFloat_eq, hn, hs]
+  · intro hf hz
+    have hn := Fl.isnan_of_finite hf
+    unfold round_Up_llvm ceil_llvm jlCeilLlvm unaryFloat roundFloat
+    simp only [finishFloat_eq, hn, hf, hz, Bool.and_false, Bool.not_true,
+      Bool.false_or, Bool.false_eq_true, ↓reduceIte]
+    rfl
+  · intro hn
+    have hinput : (if T.fmt == half && x.isnan then quietFloat x else x).isnan = true := by
+      cases T with
+      | f16 =>
+        change (if true && x.isnan then quietFloat x else x).isnan = true
+        simp only [Bool.true_and, hn, if_pos]
+        exact quietFloat_isnan x hn
+      | f32 =>
+        have hfmt : (single == half) = false := by decide
+        change (if single == half && x.isnan then quietFloat x else x).isnan = true
+        simp [hfmt, hn]
+      | f64 =>
+        have hfmt : (double == half) = false := by decide
+        change (if double == half && x.isnan then quietFloat x else x).isnan = true
+        simp [hfmt, hn]
+    rw [isnan_IEEEFloat_eq]
+    unfold round_Up_llvm ceil_llvm jlCeilLlvm unaryFloat
+    rw [finishFloat_eq]
+    unfold roundFloat
+    simp only [hinput, ↓reduceIte]
+    exact quietFloat_isnan _ hinput
+
+theorem roundNearestLLVMCase {T : FTy} (x : FV T) :
+    (x.isnan = false → (!x.isfinite || x.iszero) = true → round_Nearest_llvm x = x) ∧
+    (x.isfinite = true → x.iszero = false →
+      round_Nearest_llvm x = Fl.roundRat
+        (if x.toRat.1 < 0 then -(Fl.roundQuotient x.toRat.1.natAbs x.toRat.2 : Int)
+         else (Fl.roundQuotient x.toRat.1.natAbs x.toRat.2 : Int)) 1 x.signbit) ∧
+    (x.isnan = true → isnan_IEEEFloat (round_Nearest_llvm x) = true) := by
+  refine ⟨?_, ?_, ?_⟩
+  · intro hn hs
+    unfold round_Nearest_llvm rint_llvm jlRintLlvm unaryFloat
+    simp [roundFloat, finishFloat_eq, hn, hs]
+  · intro hf hz
+    have hn := Fl.isnan_of_finite hf
+    unfold round_Nearest_llvm rint_llvm jlRintLlvm unaryFloat roundFloat
+    simp only [finishFloat_eq, hn, hf, hz, Bool.and_false, Bool.not_true,
+      Bool.false_or, Bool.false_eq_true, ↓reduceIte]
+    rfl
+  · intro hn
+    have hinput : (if T.fmt == half && x.isnan then quietFloat x else x).isnan = true := by
+      cases T with
+      | f16 =>
+        change (if true && x.isnan then quietFloat x else x).isnan = true
+        simp only [Bool.true_and, hn, if_pos]
+        exact quietFloat_isnan x hn
+      | f32 =>
+        have hfmt : (single == half) = false := by decide
+        change (if single == half && x.isnan then quietFloat x else x).isnan = true
+        simp [hfmt, hn]
+      | f64 =>
+        have hfmt : (double == half) = false := by decide
+        change (if double == half && x.isnan then quietFloat x else x).isnan = true
+        simp [hfmt, hn]
+    rw [isnan_IEEEFloat_eq]
+    unfold round_Nearest_llvm rint_llvm jlRintLlvm unaryFloat
+    rw [finishFloat_eq]
+    unfold roundFloat
+    simp only [hinput, ↓reduceIte]
+    exact quietFloat_isnan _ hinput
+theorem floatRoundLlvmCases :
+    (∀ (T : FTy) (x : FV T),
+      (x.isnan = false → (!x.isfinite || x.iszero) = true →
+        round_ToZero_llvm x = x ∧ round_Down_llvm x = x ∧
+        round_Up_llvm x = x ∧ round_Nearest_llvm x = x) ∧
+      (x.isfinite = true → x.iszero = false →
+        round_ToZero_llvm x = Fl.roundRat x.truncVal 1 x.signbit ∧
+        round_Down_llvm x = Fl.roundRat (x.toRat.1 / (x.toRat.2 : Int)) 1 x.signbit ∧
+        round_Up_llvm x = Fl.roundRat (-((-x.toRat.1) / (x.toRat.2 : Int))) 1 x.signbit ∧
+        round_Nearest_llvm x = Fl.roundRat
+          (if x.toRat.1 < 0 then -(Fl.roundQuotient x.toRat.1.natAbs x.toRat.2 : Int)
+           else (Fl.roundQuotient x.toRat.1.natAbs x.toRat.2 : Int)) 1 x.signbit) ∧
+      (x.isnan = true →
+        isnan_IEEEFloat (round_ToZero_llvm x) = true ∧
+        isnan_IEEEFloat (round_Down_llvm x) = true ∧
+        isnan_IEEEFloat (round_Up_llvm x) = true ∧
+        isnan_IEEEFloat (round_Nearest_llvm x) = true)) := by
+  intro T x
+  rcases roundToZeroLLVMCase x with ⟨hzero, htrunc, hnanZero⟩
+  rcases roundDownLLVMCase x with ⟨hdown, hfloor, hnanDown⟩
+  rcases roundUpLLVMCase x with ⟨hup, hceil, hnanUp⟩
+  rcases roundNearestLLVMCase x with ⟨hnear, hrint, hnanNear⟩
+  refine ⟨?_, ?_, ?_⟩
+  · intro hn hs
+    exact ⟨hzero hn hs, hdown hn hs, hup hn hs, hnear hn hs⟩
+  · intro hf hz
+    exact ⟨htrunc hf hz, hfloor hf hz, hceil hf hz, hrint hf hz⟩
+  · intro hn
+    exact ⟨hnanZero hn, hnanDown hn, hnanUp hn, hnanNear hn⟩
+
+theorem roundsUpCases (T : FTy) (x : FV T) :
+    rounds_up signbit_float x .Down = false ∧
+    rounds_up signbit_float x .Up = true ∧
+    rounds_up signbit_float x .ToZero = signbit_float x ∧
+    rounds_up signbit_float x .FromZero = !signbit_float x := by
+  exact ⟨rfl,rfl,rfl,rfl⟩
+
+theorem convert_nan {f g : Fmt} (hg : g.Good) (x : Fl f) (hx : x.isnan = true) :
+    (Fl.convert x : Fl g).isnan = true := by
+  by_cases heq : (g == f) = true
+  · have he : g = f := by simpa using heq
+    subst g
+    simp [Fl.convert,Fl.ofBits_toBits,hx]
+  · have hneq : (g == f) = false := Bool.eq_false_iff.mpr heq
+    let payload := if g.sb ≥ f.sb then x.frac * 2 ^ (g.sb-f.sb)
+      else x.frac / 2 ^ (f.sb-g.sb)
+    have hpay : payload < 2 ^ g.sb := by
+      dsimp [payload]
+      have hfr : x.frac < 2 ^ f.sb := by
+        rw [Fl.frac_eq]
+        exact Nat.mod_lt _ (Nat.two_pow_pos _)
+      split
+      · rename_i hle
+        calc x.frac * 2 ^ (g.sb-f.sb) < 2 ^ f.sb * 2 ^ (g.sb-f.sb) :=
+            (Nat.mul_lt_mul_right (Nat.two_pow_pos _)).mpr hfr
+          _ = 2 ^ g.sb := by rw [← Nat.pow_add]; congr 1; omega
+      · rename_i hlt
+        apply (Nat.div_lt_iff_lt_mul (Nat.two_pow_pos _)).mpr
+        calc x.frac < 2 ^ f.sb := hfr
+          _ = 2 ^ g.sb * 2 ^ (f.sb-g.sb) := by rw [← Nat.pow_add]; congr 1; omega
+    have hhalf : 2 ^ (g.sb-1) < 2 ^ g.sb :=
+      Nat.pow_lt_pow_right (by decide) (by have := hg.sb_pos; omega)
+    have hlor := Nat.or_lt_two_pow hpay hhalf
+    have hemax : g.emax < 2 ^ g.eb := by have := hg.emax_succ; omega
+    have hp : (Fl.ofBits ((if x.signbit then 2 ^ (g.eb+g.sb) else 0) + g.emax * 2 ^ g.sb +
+        Nat.lor payload (2 ^ (g.sb-1))) : Fl g) =
+        pack x.signbit g.emax (Nat.lor payload (2 ^ (g.sb-1))) := by
+      unfold pack
+      rw [Nat.add_assoc]
+    obtain ⟨_,he,hfr,_⟩ := pack_parts (f := g) x.signbit g.emax _ hemax hlor
+    simp only [Fl.convert,hneq,Bool.false_eq_true,↓reduceIte,hx]
+    change (Fl.ofBits ((if x.signbit then 2 ^ (g.eb+g.sb) else 0) + g.emax * 2 ^ g.sb +
+        Nat.lor payload (2 ^ (g.sb-1))) : Fl g).isnan = true
+    rw [hp]
+    simp [Fl.isnan,he,hfr]
+
+theorem convertFloat_nan {S : FTy} (T : FTy) (x : FV S) (hx : x.isnan = true) :
+    (convertFloat T x).isnan = true := by
+  rw [convertFloat_eq]
+  exact convert_nan (good_fty T) x hx
+
+theorem roundInput_nan {S : FTy} (x : FV S) (r : RoundingMode)
+    (hr : r = .Down ∨ r = .Up ∨ r = .ToZero ∨ r = .FromZero) (hx : x.isnan = true) :
+    (roundInput x r).isnan = true := by
+  rcases hr with h | h | h | h <;> subst r
+  · exact (isnan_IEEEFloat_eq _).symm.trans ((roundDownLLVMCase x).2.2 hx)
+  · exact (isnan_IEEEFloat_eq _).symm.trans ((roundUpLLVMCase x).2.2 hx)
+  · exact (isnan_IEEEFloat_eq _).symm.trans ((roundToZeroLLVMCase x).2.2 hx)
+  · dsimp [roundInput]
+    split
+    · exact (isnan_IEEEFloat_eq _).symm.trans ((roundDownLLVMCase x).2.2 hx)
+    · exact (isnan_IEEEFloat_eq _).symm.trans ((roundUpLLVMCase x).2.2 hx)
+
+theorem roundConvert_nan {S T : FTy} (x : FV S) (r : RoundingMode)
+    (hr : r = .Down ∨ r = .Up ∨ r = .ToZero ∨ r = .FromZero) (hx : x.isnan = true) :
+    isnan_IEEEFloat (_round_convert (convertFloat T) signbit_float
+      (fun y z => lt_IEEEFloat (convertFloat .f64 y) (convertFloat .f64 z))
+      (fun y z => lt_IEEEFloat (convertFloat .f64 z) (convertFloat .f64 y))
+      nextfloat prevfloat (roundInput x r) x r) = true := by
+  have hn := convertFloat_nan T (roundInput x r) (roundInput_nan x r hr hx)
+  have hx64 := convertFloat_nan .f64 x hx
+  have hn64 := convertFloat_nan .f64 (convertFloat T (roundInput x r)) hn
+  simp [ _round_convert,lt_IEEEFloat_eq,Fl.lt,hx64,hn64,isnan_IEEEFloat_eq,hn]
+
+theorem roundRat_smallKey {f : Fmt} (hf : f.Good) (n : Int) (z : Bool)
+    (hn : n.natAbs < 2 ^ (f.sb+1)) :
+    (Fl.roundRat n 1 z : Fl f).isfinite = true ∧
+      (Fl.roundRat n 1 z : Fl f).key = n * (f.den : Int) := by
+  by_cases h0 : n = 0
+  · subst n
+    simpa [Fl.roundRat] using zero_spec hf z
+  · have hc : n.natAbs ≠ 0 := by omega
+    have hlc := (sig_bounds (f := f) n.natAbs hc hn).1
+    have := hf.sb_le
+    have := hf.emax_eq
+    have := hf.bias_pos
+    obtain ⟨h1,h2⟩ := roundRat_key hf n n.natAbs 0 0 z (by simp) (by omega) hn
+      (by omega) (by omega)
+    exact ⟨h1,by simpa using h2⟩
+
+theorem floor_roundRat_key {f : Fmt} (hf : f.Good) (m i j : Nat) (s z b : Bool)
+    (hm : m < 2 ^ (f.sb+1))
+    (hrange : m ≠ 0 → j+1 ≤ m.log2+i+f.bias+f.sb ∧ m.log2+i ≤ j+f.bias) :
+    let n : Int := if s then -((m * 2 ^ i : Nat) : Int) else ((m * 2 ^ i : Nat) : Int)
+    let q := n / ((2 ^ j : Nat) : Int)
+    let v := if b then -q else q
+    (Fl.roundRat v 1 z : Fl f).isfinite = true ∧
+      (Fl.roundRat v 1 z : Fl f).key = v * (f.den : Int) := by
+  dsimp only
+  by_cases hm0 : m = 0
+  · subst m
+    simpa [Fl.roundRat] using zero_spec hf z
+  let n : Int := if s then -((m * 2 ^ i : Nat) : Int) else ((m * 2 ^ i : Nat) : Int)
+  have hd : (0 : Int) < ((2 ^ j : Nat) : Int) := by exact_mod_cast Nat.two_pow_pos j
+  by_cases hij : j ≤ i
+  · let q : Int := if s then -((m * 2 ^ (i-j) : Nat) : Int) else ((m * 2 ^ (i-j) : Nat) : Int)
+    have hpow : m * 2 ^ i = m * 2 ^ (i-j) * 2 ^ j := by
+      rw [Nat.mul_assoc,← Nat.pow_add]
+      congr 2
+      omega
+    have hn : n = q * ((2 ^ j : Nat) : Int) := by
+      dsimp [n,q]
+      cases s <;> simp only [Bool.false_eq_true,↓reduceIte,ite_true]
+      · exact_mod_cast hpow
+      · rw [Int.neg_mul]
+        congr 1
+        exact_mod_cast hpow
+    have hq : n / ((2 ^ j : Nat) : Int) = q := by
+      rw [hn,Int.mul_ediv_cancel _ (Int.ne_of_gt hd)]
+    change (Fl.roundRat (if b then -(n / ((2 ^ j : Nat) : Int)) else n / ((2 ^ j : Nat) : Int)) 1 z : Fl f).isfinite = true ∧ _
+    rw [hq]
+    have hqabs : (if b then -q else q).natAbs = m * 2 ^ (i-j) := by
+      cases b <;> cases s <;> simp [q,Int.natAbs_mul,Int.natAbs_pow]
+    have hr := hrange hm0
+    have hE := hf.emax_eq
+    have hB := hf.bias_pos
+    obtain ⟨h1,h2⟩ := roundRat_key hf (if b then -q else q) m (i-j) 0 z hqabs (by omega) hm (by omega) (by omega)
+    exact ⟨h1,by simpa using h2⟩
+  · have hpow : 2 ^ i ≤ 2 ^ j := Nat.pow_le_pow_right (by decide) (by omega)
+    have hmul : m * 2 ^ i ≤ m * 2 ^ j := Nat.mul_le_mul_left m hpow
+    have hmul' : (m : Int) * 2 ^ i ≤ (m : Int) * 2 ^ j := by exact_mod_cast hmul
+    have hnonneg : (0 : Int) ≤ (m : Int) * 2 ^ i :=
+      Int.mul_nonneg (by omega) (by exact_mod_cast Nat.zero_le (2 ^ i))
+    have hnlo : -((m : Nat) : Int) * ((2 ^ j : Nat) : Int) ≤ n := by
+      change -(m : Int) * 2 ^ j ≤ if s then -((m : Int) * 2 ^ i) else (m : Int) * 2 ^ i
+      rw [Int.neg_mul]
+      cases s <;> simp only [Bool.false_eq_true,↓reduceIte,ite_true] <;> omega
+    have hnhi : n ≤ (m : Int) * ((2 ^ j : Nat) : Int) := by
+      change (if s then -((m : Int) * 2 ^ i) else (m : Int) * 2 ^ i) ≤ (m : Int) * 2 ^ j
+      cases s <;> simp only [Bool.false_eq_true,↓reduceIte,ite_true] <;> omega
+    have hqlo : -(m : Int) ≤ n / ((2 ^ j : Nat) : Int) :=
+      (Int.le_ediv_iff_mul_le hd).mpr hnlo
+    have hqhi : n / ((2 ^ j : Nat) : Int) ≤ m := by
+      calc n / ((2 ^ j : Nat) : Int) ≤ (m : Int) * ((2 ^ j : Nat) : Int) / ((2 ^ j : Nat) : Int) :=
+            Int.ediv_le_ediv hd hnhi
+        _ = m := Int.mul_ediv_cancel _ (Int.ne_of_gt hd)
+    have hqabs : (if b then -(n / ((2 ^ j : Nat) : Int)) else n / ((2 ^ j : Nat) : Int)).natAbs ≤ m := by
+      cases b <;> simp only [Bool.false_eq_true,↓reduceIte,ite_true,Int.natAbs_neg] <;> omega
+    have hsmall := roundRat_smallKey hf (if b then -(n / ((2 ^ j : Nat) : Int)) else n / ((2 ^ j : Nat) : Int)) z (by omega)
+    exact hsmall
+
+theorem finite_zero_key {T : FTy} (x : FV T) (hz : x.iszero = true) : x.key = 0 := by
+  have hm : x.magnitude = 0 := by simpa [Fl.iszero] using hz
+  simp [Fl.key,hm,magKey_zero]
+
+theorem roundDown_finite_key {T : FTy} (x : FV T) (hf : x.isfinite = true) :
+    (round_Down_llvm x).isfinite = true ∧
+    (round_Down_llvm x).key = (x.toRat.1 / (x.toRat.2 : Int)) * (T.fmt.den : Int) := by
+  obtain ⟨m,i,j,hr,hk,hm,hrange⟩ := toRat_cases (good_fty T) x hf
+  have hrounded := floor_roundRat_key (good_fty T) m i j x.signbit x.signbit false hm hrange
+  have hrounded' : (Fl.roundRat (x.toRat.1 / (x.toRat.2 : Int)) 1 x.signbit : FV T).isfinite = true ∧
+      (Fl.roundRat (x.toRat.1 / (x.toRat.2 : Int)) 1 x.signbit : FV T).key =
+        (x.toRat.1 / (x.toRat.2 : Int)) * (T.fmt.den : Int) := by
+    simpa only [hr,Bool.false_eq_true,↓reduceIte] using hrounded
+  by_cases hz : x.iszero = true
+  · have hpreserve := (roundDownLLVMCase x).1 (Fl.isnan_of_finite hf) (by simp [hz])
+    rw [hpreserve]
+    have hxkey := finite_zero_key x hz
+    have hrat := (toRat_key (good_fty T) x hf).2
+    have hden : (0 : Int) < T.fmt.den := by exact_mod_cast T.fmt.den_pos
+    have hnum : x.toRat.1 = 0 := by
+      rw [hxkey,Int.zero_mul] at hrat
+      exact (Int.mul_eq_zero.mp hrat).resolve_right (Int.ne_of_gt hden)
+    exact ⟨hf,by rw [hxkey,hnum]; simp⟩
+  · have hzf : x.iszero = false := Bool.eq_false_iff.mpr hz
+    rw [(roundDownLLVMCase x).2.1 hf hzf]
+    exact hrounded'
+
+theorem roundUp_finite_key {T : FTy} (x : FV T) (hf : x.isfinite = true) :
+    (round_Up_llvm x).isfinite = true ∧
+    (round_Up_llvm x).key = (-((-x.toRat.1) / (x.toRat.2 : Int))) * (T.fmt.den : Int) := by
+  obtain ⟨m,i,j,hr,hk,hm,hrange⟩ := toRat_cases (good_fty T) x hf
+  have hrounded := floor_roundRat_key (good_fty T) m i j (!x.signbit) x.signbit true hm hrange
+  have hrounded' : (Fl.roundRat (-((-x.toRat.1) / (x.toRat.2 : Int))) 1 x.signbit : FV T).isfinite = true ∧
+      (Fl.roundRat (-((-x.toRat.1) / (x.toRat.2 : Int))) 1 x.signbit : FV T).key =
+        (-((-x.toRat.1) / (x.toRat.2 : Int))) * (T.fmt.den : Int) := by
+    cases hs : x.signbit <;> simpa [hr,hs] using hrounded
+  by_cases hz : x.iszero = true
+  · have hpreserve := (roundUpLLVMCase x).1 (Fl.isnan_of_finite hf) (by simp [hz])
+    rw [hpreserve]
+    have hxkey := finite_zero_key x hz
+    have hrat := (toRat_key (good_fty T) x hf).2
+    have hden : (0 : Int) < T.fmt.den := by exact_mod_cast T.fmt.den_pos
+    have hnum : x.toRat.1 = 0 := by
+      rw [hxkey,Int.zero_mul] at hrat
+      exact (Int.mul_eq_zero.mp hrat).resolve_right (Int.ne_of_gt hden)
+    exact ⟨hf,by rw [hxkey,hnum]; simp⟩
+  · have hzf : x.iszero = false := Bool.eq_false_iff.mpr hz
+    rw [(roundUpLLVMCase x).2.1 hf hzf]
+    exact hrounded'
+
+theorem integral_of_key {T : FTy} (y : FV T) (hy : y.isfinite = true)
+    (n : Int) (hk : y.key = n * (T.fmt.den : Int)) : integralFloatOrInfinity y := by
+  refine ⟨Fl.isnan_of_finite hy,Or.inr ?_⟩
+  have hrat := (toRat_key (good_fty T) y hy).2
+  have hden : (0 : Int) < T.fmt.den := by exact_mod_cast T.fmt.den_pos
+  have hn : y.toRat.1 = n * (y.toRat.2 : Int) := by
+    apply Int.eq_of_mul_eq_mul_right (Int.ne_of_gt hden)
+    rw [hrat,hk,Int.mul_right_comm]
+  simp [hn]
+
+theorem roundRat_integer_normal (T : FTy) (n : Int) (z : Bool) (hn : n ≠ 0)
+    (hb : n.natAbs.log2 + T.fmt.bias < T.fmt.emax)
+    (hl : T.fmt.sb ≤ n.natAbs.log2) :
+    (Fl.roundRat n 1 z : FV T) = Fl.packRounded (decide (n < 0))
+      (Fl.roundQuotient n.natAbs (2 ^ (n.natAbs.log2 - T.fmt.sb)))
+      ((n.natAbs.log2 - T.fmt.sb : Nat) : Int) := by
+  have hn0 : n.natAbs ≠ 0 := by omega
+  have he : Fl.floorLog2Rat n.natAbs 1 = (n.natAbs.log2 : Int) := by
+    have h := floorLog2Rat_pow n.natAbs 0 hn0
+    simpa using h
+  have hlarge : ¬ (n.natAbs.log2 : Int) ≥ (T.fmt.emax : Int) - T.fmt.bias := by omega
+  have htiny : ¬ (n.natAbs.log2 : Int) < -((T.fmt.bias : Int) + T.fmt.sb) - 1 := by omega
+  have hk : max ((n.natAbs.log2 : Int) - T.fmt.sb) (1 - (T.fmt.bias : Int) - T.fmt.sb) =
+      ((n.natAbs.log2 - T.fmt.sb : Nat) : Int) := by
+    have := (good_fty T).bias_pos
+    omega
+  simp only [Fl.roundRat,beq_iff_eq,hn,↓reduceIte,he,hlarge,htiny,hk]
+  simp only [show (0 : Int) ≤ ((n.natAbs.log2 - T.fmt.sb : Nat) : Int) by omega,
+    ↓reduceIte,Int.toNat_natCast,Nat.one_mul]
+  simp
+
+theorem roundRat_integer_key (T : FTy) (n : Int) (z : Bool) (hn : n ≠ 0)
+    (hb : n.natAbs.log2 + T.fmt.bias < T.fmt.emax)
+    (hl : T.fmt.sb ≤ n.natAbs.log2) :
+    (Fl.roundRat n 1 z : FV T).key =
+      if n < 0 then -((Fl.roundQuotient n.natAbs (2 ^ (n.natAbs.log2 - T.fmt.sb)) *
+        2 ^ (n.natAbs.log2 - T.fmt.sb) * T.fmt.den : Nat) : Int)
+      else ((Fl.roundQuotient n.natAbs (2 ^ (n.natAbs.log2 - T.fmt.sb)) *
+        2 ^ (n.natAbs.log2 - T.fmt.sb) * T.fmt.den : Nat) : Int) := by
+  have hn0 : n.natAbs ≠ 0 := by omega
+  have hq := rounded_significand_bounds T.fmt n.natAbs hn0
+  simp only [hl,↓reduceIte] at hq
+  have hk : n.natAbs.log2 - T.fmt.sb + T.fmt.bias + T.fmt.sb < T.fmt.emax := by omega
+  rw [roundRat_integer_normal T n z hn hb hl,
+    packRounded_integer_key (good_fty T) _ _ _ hq hk]
+  simp only [decide_eq_true_eq]
+
+theorem roundRat_integer_projection (T : FTy) (n : Int)
+    (hb : n.natAbs.log2 + T.fmt.bias < T.fmt.emax) (x : FV T) :
+    (x.key < (Fl.roundRat n 1 false : FV T).key → x.key < n * (T.fmt.den : Int)) ∧
+    ((Fl.roundRat n 1 false : FV T).key < x.key → n * (T.fmt.den : Int) < x.key) := by
+  by_cases hs : n.natAbs < 2 ^ (T.fmt.sb + 1)
+  · have hk := (Fl.ofInt_key (good_fty T) n hs).2
+    change (Fl.roundRat n 1 false : FV T).key = _ at hk
+    rw [hk]
+    exact ⟨id, id⟩
+  · have hn : n ≠ 0 := by intro hz; simp only [hz, Int.natAbs_zero] at hs; have := Nat.two_pow_pos (T.fmt.sb + 1); omega
+    have hn0 : n.natAbs ≠ 0 := by omega
+    have hnpos : 0 < n.natAbs := by omega
+    have hnegval : n < 0 → n = -(n.natAbs : Int) := by intro h; omega
+    have hposval : ¬ n < 0 → n = (n.natAbs : Int) := by intro h; omega
+    have hl : T.fmt.sb ≤ n.natAbs.log2 := by
+      have h := (Nat.le_log2 hn0).mpr (show 2 ^ (T.fmt.sb + 1) ≤ n.natAbs by omega)
+      omega
+    let k := n.natAbs.log2 - T.fmt.sb
+    let G := 2 ^ k * T.fmt.den
+    let N := n.natAbs * T.fmt.den
+    let Q := Fl.roundQuotient n.natAbs (2 ^ k) * G
+    have hd := T.fmt.den_pos
+    have hG : 0 < G := Nat.mul_pos (Nat.two_pow_pos k) hd
+    have hE : G = 2 ^ (k + T.fmt.bias + T.fmt.sb - 1) := by
+      dsimp only [G]
+      unfold Fmt.den
+      rw [← Nat.pow_add]
+      congr 1
+      have := (good_fty T).bias_pos
+      omega
+    have hN : 2 ^ T.fmt.sb * G ≤ N := by
+      have hpow : 2 ^ T.fmt.sb * 2 ^ k = 2 ^ n.natAbs.log2 := by
+        rw [← Nat.pow_add]; congr 1; dsimp only [k]; omega
+      dsimp only [G, N]
+      rw [← Nat.mul_assoc, hpow]
+      exact Nat.mul_le_mul_right _ (Nat.log2_self_le hn0)
+    have hgrid : 2 ^ T.fmt.sb * G ≤ magKey T.fmt x.magnitude →
+        ∃ a : Nat, magKey T.fmt x.magnitude = a * G := by
+      intro hm
+      rw [hE] at hm
+      obtain ⟨a, ha⟩ := magKey_grid_of_ge T.fmt _ x.magnitude hm
+      exact ⟨a, by rw [hE]; exact ha⟩
+    have hprojection := rounding_projection_grid N G (2 ^ T.fmt.sb) (magKey T.fmt x.magnitude) hG hN hgrid
+    have hq : Fl.roundQuotient N G * G = Q := by
+      dsimp only [N, G, Q]
+      rw [roundQuotient_scale _ _ _ hd]
+    rw [hq] at hprojection
+    have hqbound := rounded_significand_bounds T.fmt n.natAbs hn0
+    simp only [hl, ↓reduceIte] at hqbound
+    have hQ : 0 < Q := by
+      have hqpos : 0 < Fl.roundQuotient n.natAbs (2 ^ k) := by
+        have := Nat.two_pow_pos T.fmt.sb
+        have hlo := hqbound.1
+        change 2 ^ T.fmt.sb ≤ Fl.roundQuotient n.natAbs (2 ^ k) at hlo
+        omega
+      exact Nat.mul_pos hqpos hG
+    have hNpos : 0 < N := Nat.mul_pos hnpos hd
+    have hnD : n * (T.fmt.den : Int) = if n < 0 then -(N : Int) else (N : Int) := by
+      by_cases hneg : n < 0
+      · simp only [hneg, ↓reduceIte]
+        have hv : n = -(n.natAbs : Int) := hnegval hneg
+        calc n * (T.fmt.den : Int) = -(n.natAbs : Int) * (T.fmt.den : Int) := congrArg (fun a => a * (T.fmt.den : Int)) hv
+          _ = -(N : Int) := by dsimp only [N]; rw [Int.neg_mul, Int.natCast_mul]
+      · simp only [hneg, ↓reduceIte]
+        have hv : n = (n.natAbs : Int) := hposval hneg
+        calc n * (T.fmt.den : Int) = (n.natAbs : Int) * (T.fmt.den : Int) := congrArg (fun a => a * (T.fmt.den : Int)) hv
+          _ = (N : Int) := by dsimp only [N]; rw [Int.natCast_mul]
+    have hkey := roundRat_integer_key T n false hn hb hl
+    change (Fl.roundRat n 1 false : FV T).key =
+      if n < 0 then -((Fl.roundQuotient n.natAbs (2 ^ k) * 2 ^ k * T.fmt.den : Nat) : Int)
+      else ((Fl.roundQuotient n.natAbs (2 ^ k) * 2 ^ k * T.fmt.den : Nat) : Int) at hkey
+    simp only [Nat.mul_assoc] at hkey
+    change (Fl.roundRat n 1 false : FV T).key = if n < 0 then -(Q : Int) else (Q : Int) at hkey
+    rw [hkey, hnD]
+    unfold Fl.key
+    cases hx : x.signbit <;> by_cases hneg : n < 0 <;> simp only [hx, hneg, Bool.false_eq_true, ↓reduceIte]
+    all_goals constructor <;> intro h
+    all_goals first
+      | omega
+      | (have hh := hprojection.1 (by omega); omega)
+      | (have hh := hprojection.2 (by omega); omega)
+
+theorem roundRat_integer_overflow (T : FTy) (n : Int) (z : Bool) (hn : n ≠ 0)
+    (hb : T.fmt.emax ≤ n.natAbs.log2 + T.fmt.bias) :
+    (Fl.roundRat n 1 z : FV T) = Fl.inf (decide (n < 0)) := by
+  have hn0 : n.natAbs ≠ 0 := by omega
+  have he : Fl.floorLog2Rat n.natAbs 1 = (n.natAbs.log2 : Int) := by
+    have h := floorLog2Rat_pow n.natAbs 0 hn0
+    simpa using h
+  have hlarge : (n.natAbs.log2 : Int) ≥ (T.fmt.emax : Int) - T.fmt.bias := by omega
+  simp [Fl.roundRat,hn,he,hlarge]
+
+theorem roundRat_integer_integral (T : FTy) (n : Int) (z : Bool) :
+    integralFloatOrInfinity (Fl.roundRat n 1 z : FV T) := by
+  by_cases hs : n.natAbs < 2 ^ (T.fmt.sb+1)
+  · have h := roundRat_smallKey (good_fty T) n z hs
+    exact integral_of_key _ h.1 n h.2
+  · have hn : n ≠ 0 := by
+      intro h
+      simp only [h,Int.natAbs_zero] at hs
+      have := Nat.two_pow_pos (T.fmt.sb+1)
+      omega
+    have hn0 : n.natAbs ≠ 0 := by omega
+    by_cases hb : n.natAbs.log2 + T.fmt.bias < T.fmt.emax
+    · have hl : T.fmt.sb ≤ n.natAbs.log2 := by
+        have h := (Nat.le_log2 hn0).mpr (show 2 ^ (T.fmt.sb+1) ≤ n.natAbs by omega)
+        omega
+      have hq := rounded_significand_bounds T.fmt n.natAbs hn0
+      simp only [hl,↓reduceIte] at hq
+      have hk : n.natAbs.log2 - T.fmt.sb + T.fmt.bias + T.fmt.sb < T.fmt.emax := by omega
+      have hnan : (Fl.roundRat n 1 z : FV T).isnan = false := by
+        rw [roundRat_integer_normal T n z hn hb hl]
+        exact packRounded_integer_notnan (good_fty T) _ _ _ hq hk
+      let r : Int := if n < 0 then -((Fl.roundQuotient n.natAbs (2 ^ (n.natAbs.log2-T.fmt.sb)) *
+          2 ^ (n.natAbs.log2-T.fmt.sb) : Nat) : Int)
+        else ((Fl.roundQuotient n.natAbs (2 ^ (n.natAbs.log2-T.fmt.sb)) *
+          2 ^ (n.natAbs.log2-T.fmt.sb) : Nat) : Int)
+      have hr : (Fl.roundRat n 1 z : FV T).key = r * (T.fmt.den : Int) := by
+        rw [roundRat_integer_key T n z hn hb hl]
+        dsimp only [r]
+        split <;> simp only [Int.natCast_mul,Int.neg_mul]
+      by_cases hf : (Fl.roundRat n 1 z : FV T).isfinite = true
+      · exact integral_of_key _ hf r hr
+      · exact ⟨hnan,Or.inl (Bool.eq_false_iff.mpr hf)⟩
+    · rw [roundRat_integer_overflow T n z hn (by omega)]
+      have hinf : ∀ s : Bool, (Fl.inf s : FV T).isnan = false ∧ (Fl.inf s : FV T).isfinite = false := by
+        intro s
+        cases T <;> cases s <;> decide
+      exact ⟨(hinf _).1,Or.inl (hinf _).2⟩
+
+theorem inf_key_parts (T : FTy) (s : Bool) :
+    (Fl.inf s : FV T).key = if s then -((magKey T.fmt (infMag T) : Nat) : Int)
+      else ((magKey T.fmt (infMag T) : Nat) : Int) := by
+  have hp := pack_parts (f := T.fmt) s T.fmt.emax 0
+    (by have := (good_fty T).emax_succ; omega) (Nat.two_pow_pos _)
+  have hi : (Fl.inf s : FV T) = pack s T.fmt.emax 0 := by simp [Fl.inf,pack]
+  rw [hi]
+  simp only [Fl.key,hp.1,hp.2.2.2,Nat.add_zero]
+  rfl
+
+theorem infinity_key_scale (T : FTy) :
+    magKey T.fmt (infMag T) = 2 ^ (T.fmt.emax-T.fmt.bias) * T.fmt.den := by
+  have hb := (good_fty T).bias_pos
+  have he := (good_fty T).emax_eq
+  have hpos : T.fmt.emax ≠ 0 := by omega
+  have hrepr : (Fl.inf false : FV T) = pack false T.fmt.emax 0 := by simp [Fl.inf,pack]
+  have hkey := pack_key (f := T.fmt) false T.fmt.emax 0
+    (by have := (good_fty T).emax_succ; omega) (Nat.two_pow_pos _)
+  rw [← hrepr,inf_key_parts] at hkey
+  simp only [Bool.false_eq_true,↓reduceIte,hpos,Nat.zero_add] at hkey
+  have hn : magKey T.fmt (infMag T) = 2 ^ T.fmt.sb * 2 ^ (T.fmt.emax-1) := by omega
+  rw [hn]
+  unfold Fmt.den
+  rw [← Nat.pow_add,← Nat.pow_add]
+  congr 1
+  omega
+
+theorem nonnan_key_interval {T : FTy} (x : FV T) (hx : x.isnan = false) :
+    -((magKey T.fmt (infMag T) : Nat) : Int) ≤ x.key ∧
+      x.key ≤ ((magKey T.fmt (infMag T) : Nat) : Int) := by
+  have hm := not_nan_mag hx
+  have hle : magKey T.fmt x.magnitude ≤ magKey T.fmt (infMag T) := by
+    by_cases he : x.magnitude = infMag T
+    · rw [he]; exact Nat.le_refl _
+    · exact Nat.le_of_lt (magKey_strictMono T.fmt (by omega))
+  unfold Fl.key
+  cases x.signbit <;> simp only [Bool.false_eq_true,↓reduceIte] <;> omega
+
+theorem roundRat_all_projection (T : FTy) (n : Int) (s : Bool) (x : FV T)
+    (hx : x.isnan = false) :
+    (x.key < (Fl.roundRat n 1 s : FV T).key → x.key < n*(T.fmt.den : Int)) ∧
+    ((Fl.roundRat n 1 s : FV T).key < x.key → n*(T.fmt.den : Int) < x.key) := by
+  by_cases hn : n = 0
+  · subst n
+    have hz := (zero_spec (good_fty T) s).2
+    simp [Fl.roundRat,hz]
+  · by_cases hb : n.natAbs.log2 + T.fmt.bias < T.fmt.emax
+    · rw [roundRat_zeroSign_irrel n 1 s false hn]
+      exact roundRat_integer_projection T n hb x
+    · rw [roundRat_integer_overflow T n s hn (by omega),inf_key_parts]
+      have hn0 : n.natAbs ≠ 0 := by omega
+      have hpow : 2 ^ (T.fmt.emax-T.fmt.bias) ≤ n.natAbs := by
+        exact Nat.le_trans (Nat.pow_le_pow_right (by decide) (by omega)) (Nat.log2_self_le hn0)
+      have hbound : ((magKey T.fmt (infMag T) : Nat) : Int) ≤
+          (n.natAbs : Int)*(T.fmt.den : Int) := by
+        rw [infinity_key_scale,Int.natCast_mul]
+        exact (Int.mul_le_mul_right (by exact_mod_cast T.fmt.den_pos)).mpr (by exact_mod_cast hpow)
+      have hxi := nonnan_key_interval x hx
+      by_cases hneg : n < 0
+      · simp only [hneg,decide_true,↓reduceIte]
+        have he : n = -(n.natAbs : Int) := by omega
+        rw [he,Int.neg_mul]
+        constructor <;> intro h <;> omega
+      · simp only [hneg,decide_false,Bool.false_eq_true,↓reduceIte]
+        have he : n = (n.natAbs : Int) := by omega
+        rw [he]
+        constructor <;> intro h <;> omega
+
+theorem widen64_finite_key {S : FTy} (x : FV S) (hx : x.isfinite = true) :
+    (convertFloat .f64 x).isfinite = true ∧
+    (convertFloat .f64 x).key * (S.fmt.den : Int) = x.key * (FTy.f64.fmt.den : Int) := by
+  rw [convertFloat_eq]
+  cases S
+  · have h := convert_widen_key good_half good_double (by decide) (by decide) (by decide) x
+    exact ⟨h.2.2.1.trans hx,(h.2.2.2.2 hx).1⟩
+  · have h := convert_widen_key good_single good_double (by decide) (by decide) (by decide) x
+    exact ⟨h.2.2.1.trans hx,(h.2.2.2.2 hx).1⟩
+  · simp [Fl.convert,Fl.ofBits_toBits,hx]
+
+theorem le_key {f : Fmt} (x y : Fl f) (hx : x.isnan = false) (hy : y.isnan = false) :
+    Fl.le x y = decide (x.key ≤ y.key) := by
+  simp only [Fl.le,Fl.lt_key hx hy,Fl.eq_key hx hy,← Bool.decide_or]
+  congr 1
+  apply propext
+  omega
+
+theorem rational_order_scale (a b A B d e D : Int)
+    (hd : 0 < d) (he : 0 < e) (hD : 0 < D)
+    (ha : A*d = a*D) (hb : B*e = b*D) :
+    A ≤ B ↔ a*e ≤ b*d := by
+  rw [← Int.mul_le_mul_right (Int.mul_pos hd he)]
+  have ha' : A * (d*e) = (a*e)*D := by
+    rw [← Int.mul_assoc,ha,Int.mul_right_comm]
+  have hb' : B * (d*e) = (b*d)*D := by
+    rw [Int.mul_comm d e,← Int.mul_assoc,hb,Int.mul_right_comm]
+  rw [ha',hb',Int.mul_le_mul_right hD]
+
+theorem integral_rat {S : FTy} (y : FV S) (hy : y.isfinite = true)
+    (n : Int) (hk : y.key = n * (S.fmt.den : Int)) :
+    y.toRat.1 = n * (y.toRat.2 : Int) := by
+  have hrat := (toRat_key (good_fty S) y hy).2
+  have hden : (0 : Int) < S.fmt.den := by exact_mod_cast S.fmt.den_pos
+  apply Int.eq_of_mul_eq_mul_right (Int.ne_of_gt hden)
+  rw [hrat,hk,Int.mul_right_comm]
+
+theorem roundRat_int_scale {f : Fmt} (n : Int) (j : Nat) (s : Bool) :
+    (Fl.roundRat (n * ((2 ^ j : Nat) : Int)) (2 ^ j) s : Fl f) = Fl.roundRat n 1 s := by
+  by_cases hn : n < 0
+  · have he : n = -(n.natAbs : Int) := by omega
+    rw [he,Int.neg_mul,← Int.natCast_mul]
+    exact roundRat_signed_scale_pow n.natAbs j true s
+  · have he : n = (n.natAbs : Int) := by omega
+    rw [he,← Int.natCast_mul]
+    exact roundRat_signed_scale_pow n.natAbs j false s
+
+theorem convert_integral_ne {S T : FTy} (y : FV S) (hy : y.isfinite = true)
+    (hne : T.fmt ≠ S.fmt) (n : Int) (hk : y.key = n * (S.fmt.den : Int)) :
+    convertFloat T y = (Fl.roundRat n 1 y.signbit : FV T) := by
+  have heq : (T.fmt == S.fmt) = false := by simpa using hne
+  have hr := integral_rat y hy n hk
+  obtain ⟨m,i,j,hyr,_,_,_⟩ := toRat_cases (good_fty S) y hy
+  have hd : y.toRat.2 = 2 ^ j := congrArg Prod.snd hyr
+  rw [convertFloat_eq]
+  simp only [Fl.convert,heq,Fl.isnan_of_finite hy,Fl.isinf_of_finite hy,
+    Bool.false_eq_true,↓reduceIte]
+  rw [hr,hd]
+  exact roundRat_int_scale n j y.signbit
+
+def commonKey {T : FTy} (x : FV T) : Int := (convertFloat .f64 x).key
+
+theorem widen64_notnan {T : FTy} (x : FV T) (hx : x.isnan = false) :
+    (convertFloat .f64 x).isnan = false := by
+  rw [convertFloat_eq]
+  cases T
+  · exact (convert_widen_key good_half good_double (by decide) (by decide) (by decide) x).1.trans hx
+  · exact (convert_widen_key good_single good_double (by decide) (by decide) (by decide) x).1.trans hx
+  · simp [Fl.convert,Fl.ofBits_toBits,hx]
+
+theorem widen64_lt {T : FTy} (x y : FV T) :
+    lt_IEEEFloat (convertFloat .f64 x) (convertFloat .f64 y) = lt_IEEEFloat x y := by
+  simp only [convertFloat_eq,lt_IEEEFloat_eq]
+  cases T
+  · exact (convert_widen_cmp good_half good_double (by decide) (by decide) (by decide) x y).2.1
+  · exact (convert_widen_cmp good_single good_double (by decide) (by decide) (by decide) x y).2.1
+  · simp [Fl.convert,Fl.ofBits_toBits]
+
+theorem common_lt {T : FTy} (x y : FV T) (hx : x.isnan = false) (hy : y.isnan = false) :
+    lt_IEEEFloat x y = decide (commonKey x < commonKey y) := by
+  rw [← widen64_lt x y,lt_IEEEFloat_eq,Fl.lt_key (widen64_notnan x hx) (widen64_notnan y hy)]
+  rfl
+
+theorem convert_inf (S T : FTy) (s : Bool) :
+    convertFloat T (Fl.inf s : FV S) = (Fl.inf s : FV T) := by
+  rw [convertFloat_eq]
+  cases S <;> cases T <;> cases s <;> decide
+
+theorem nonfinite_eq_inf {T : FTy} (x : FV T) (hx : x.isnan = false)
+    (hf : x.isfinite = false) : x = (Fl.inf x.signbit : FV T) := by
+  have hm := not_nan_mag hx
+  have hlt : ¬ x.magnitude < infMag T := by
+    intro h
+    have ht := (isfinite_iff_mag x).mpr h
+    rw [hf] at ht
+    contradiction
+  have he : x.magnitude = infMag T := by omega
+  have hi := encode_input x
+  rw [he,EpsilonNeighborProofs.encode_infinity] at hi
+  exact hi.symm
+
+theorem nonfinite_commonKey {T : FTy} (x : FV T) (hx : x.isnan = false)
+    (hf : x.isfinite = false) :
+    commonKey x = if x.signbit then -((magKey FTy.f64.fmt (infMag .f64) : Nat) : Int)
+      else ((magKey FTy.f64.fmt (infMag .f64) : Nat) : Int) := by
+  have hi := nonfinite_eq_inf x hx hf
+  unfold commonKey
+  conv => lhs; rw [hi,convert_inf]
+  exact inf_key_parts .f64 _
+
+theorem common_integral_key {T : FTy} (x : FV T) (hx : x.isfinite = true)
+    (hint : integralFloatOrInfinity x) :
+    ∃ n : Int, commonKey x = n * (FTy.f64.fmt.den : Int) := by
+  have hm : x.toRat.1 % (x.toRat.2 : Int) = 0 := by
+    rcases hint.2 with h | h
+    · rw [hx] at h; contradiction
+    · exact h
+  let n := x.toRat.1 / (x.toRat.2 : Int)
+  have hnum : x.toRat.1 = n * (x.toRat.2 : Int) := by
+    exact (Int.ediv_mul_cancel (Int.dvd_of_emod_eq_zero hm)).symm
+  have hr := toRat_key (good_fty T) x hx
+  have hd : (0 : Int) < (x.toRat.2 : Int) := by exact_mod_cast hr.1
+  have hkey : x.key = n * (T.fmt.den : Int) := by
+    apply Int.eq_of_mul_eq_mul_right (Int.ne_of_gt hd)
+    rw [← hr.2,hnum,Int.mul_right_comm]
+  have hw := (widen64_finite_key x hx).2
+  refine ⟨n,?_⟩
+  have hD : (T.fmt.den : Int) ≠ 0 := by exact_mod_cast (Nat.ne_of_gt T.fmt.den_pos)
+  apply Int.eq_of_mul_eq_mul_right hD
+  change (convertFloat .f64 x).key * (T.fmt.den : Int) = _
+  rw [hw,hkey,Int.mul_right_comm]
+
+theorem scaled_floor_bounds (n K d D : Int) (hd : 0 < d) (hD : 0 < D)
+    (hr : n*D = K*d) : (n/d)*D ≤ K ∧ K < (n/d+1)*D := by
+  have hlo : (n/d)*d ≤ n := (Int.le_ediv_iff_mul_le hd).mp (Int.le_refl _)
+  have hhi : n < (n/d+1)*d := (Int.ediv_lt_iff_lt_mul hd).mp (by omega)
+  constructor
+  · apply (Int.mul_le_mul_right hd).mp
+    calc (n/d*D)*d = (n/d*d)*D := by rw [Int.mul_right_comm]
+      _ ≤ n*D := (Int.mul_le_mul_right hD).mpr hlo
+      _ = K*d := hr
+  · apply (Int.mul_lt_mul_right hd).mp
+    calc K*d = n*D := hr.symm
+      _ < ((n/d+1)*d)*D := (Int.mul_lt_mul_right hD).mpr hhi
+      _ = ((n/d+1)*D)*d := by rw [Int.mul_right_comm]
+
+theorem scaled_ceil_bounds (n K d D : Int) (hd : 0 < d) (hD : 0 < D)
+    (hr : n*D = K*d) : K ≤ (-((-n)/d))*D ∧ ((-((-n)/d))-1)*D < K := by
+  have hneg : (-n)*D = (-K)*d := by rw [Int.neg_mul,Int.neg_mul,hr]
+  have h := scaled_floor_bounds (-n) (-K) d D hd hD hneg
+  simp only [Int.add_mul,Int.neg_mul,Int.sub_mul,Int.one_mul] at h ⊢
+  omega
+
+theorem finite_floor_bounds {T : FTy} (x : FV T) (hf : x.isfinite = true) :
+    (x.toRat.1 / (x.toRat.2 : Int)) * (T.fmt.den : Int) ≤ x.key ∧
+      x.key < (x.toRat.1 / (x.toRat.2 : Int) + 1) * (T.fmt.den : Int) := by
+  have hr := toRat_key (good_fty T) x hf
+  exact scaled_floor_bounds _ _ _ _ (by exact_mod_cast hr.1)
+    (by exact_mod_cast T.fmt.den_pos) hr.2
+
+theorem finite_ceil_bounds {T : FTy} (x : FV T) (hf : x.isfinite = true) :
+    x.key ≤ (-((-x.toRat.1) / (x.toRat.2 : Int))) * (T.fmt.den : Int) ∧
+      ((-((-x.toRat.1) / (x.toRat.2 : Int))) - 1) * (T.fmt.den : Int) < x.key := by
+  have hr := toRat_key (good_fty T) x hf
+  exact scaled_ceil_bounds _ _ _ _ (by exact_mod_cast hr.1)
+    (by exact_mod_cast T.fmt.den_pos) hr.2
+
+theorem finite_integer_common {T : FTy} (x : FV T) (hx : x.isfinite = true)
+    (n : Int) (hk : x.key = n*(T.fmt.den : Int)) :
+    commonKey x = n*(FTy.f64.fmt.den : Int) := by
+  have h := (widen64_finite_key x hx).2
+  have hD : (T.fmt.den : Int) ≠ 0 := by exact_mod_cast (Nat.ne_of_gt T.fmt.den_pos)
+  apply Int.eq_of_mul_eq_mul_right hD
+  change (convertFloat .f64 x).key * (T.fmt.den : Int) = _
+  rw [h,hk,Int.mul_right_comm]
+
+theorem finite_common_le_integer {T : FTy} (x : FV T) (hx : x.isfinite = true) (n : Int) :
+    commonKey x ≤ n*(FTy.f64.fmt.den : Int) ↔ x.key ≤ n*(T.fmt.den : Int) := by
+  have h := rational_order_scale x.key n (commonKey x) (n*(FTy.f64.fmt.den : Int))
+    (T.fmt.den : Int) 1 (FTy.f64.fmt.den : Int)
+    (by exact_mod_cast T.fmt.den_pos) (by decide) (by exact_mod_cast FTy.f64.fmt.den_pos)
+    (widen64_finite_key x hx).2 (by simp)
+  simpa only [Int.mul_one] using h
+
+theorem finite_integer_le_common {T : FTy} (x : FV T) (hx : x.isfinite = true) (n : Int) :
+    n*(FTy.f64.fmt.den : Int) ≤ commonKey x ↔ n*(T.fmt.den : Int) ≤ x.key := by
+  have h := rational_order_scale n x.key (n*(FTy.f64.fmt.den : Int)) (commonKey x)
+    1 (T.fmt.den : Int) (FTy.f64.fmt.den : Int)
+    (by decide) (by exact_mod_cast T.fmt.den_pos) (by exact_mod_cast FTy.f64.fmt.den_pos)
+    (by simp) (widen64_finite_key x hx).2
+  simpa only [Int.mul_one] using h
+
+theorem finite_common_lt_integer {T : FTy} (x : FV T) (hx : x.isfinite = true) (n : Int) :
+    commonKey x < n*(FTy.f64.fmt.den : Int) ↔ x.key < n*(T.fmt.den : Int) := by
+  have h := finite_integer_le_common x hx n
+  omega
+
+theorem finite_integer_lt_common {T : FTy} (x : FV T) (hx : x.isfinite = true) (n : Int) :
+    n*(FTy.f64.fmt.den : Int) < commonKey x ↔ n*(T.fmt.den : Int) < x.key := by
+  have h := finite_common_le_integer x hx n
+  omega
+
+theorem floor_common_bounds {T : FTy} (x : FV T) (hx : x.isfinite = true) :
+    commonKey (round_Down_llvm x) ≤ commonKey x ∧
+      commonKey x < commonKey (round_Down_llvm x) + (FTy.f64.fmt.den : Int) := by
+  have hk := roundDown_finite_key x hx
+  have hb := finite_floor_bounds x hx
+  rw [finite_integer_common _ hk.1 _ hk.2]
+  constructor
+  · exact (finite_integer_le_common x hx _).mpr hb.1
+  · simpa only [Int.add_mul,Int.one_mul] using (finite_common_lt_integer x hx _).mpr hb.2
+
+theorem ceil_common_bounds {T : FTy} (x : FV T) (hx : x.isfinite = true) :
+    commonKey x ≤ commonKey (round_Up_llvm x) ∧
+      commonKey (round_Up_llvm x) - (FTy.f64.fmt.den : Int) < commonKey x := by
+  have hk := roundUp_finite_key x hx
+  have hb := finite_ceil_bounds x hx
+  rw [finite_integer_common _ hk.1 _ hk.2]
+  constructor
+  · exact (finite_common_le_integer x hx _).mpr hb.1
+  · simpa only [Int.sub_mul,Int.one_mul] using (finite_integer_lt_common x hx _).mpr hb.2
+
+theorem common_raw_lt {T : FTy} (x y : FV T) (hx : x.isnan = false) (hy : y.isnan = false) :
+    commonKey x < commonKey y ↔ x.key < y.key := by
+  have h := common_lt x y hx hy
+  rw [lt_IEEEFloat_eq,Fl.lt_key hx hy] at h
+  by_cases h1 : commonKey x < commonKey y <;> by_cases h2 : x.key < y.key <;> simp_all <;> omega
+
+theorem finite_common_interval {T : FTy} (x : FV T) (hx : x.isfinite = true) :
+    -((magKey FTy.f64.fmt (infMag .f64) : Nat) : Int) < commonKey x ∧
+      commonKey x < ((magKey FTy.f64.fmt (infMag .f64) : Nat) : Int) := by
+  have hf := (widen64_finite_key x hx).1
+  have hm := (isfinite_iff_mag _).mp hf
+  have hk := magKey_strictMono FTy.f64.fmt hm
+  change magKey FTy.f64.fmt (convertFloat .f64 x).magnitude < magKey FTy.f64.fmt (infMag .f64) at hk
+  unfold commonKey Fl.key
+  cases (convertFloat .f64 x).signbit <;> simp only [Bool.false_eq_true,↓reduceIte] <;> omega
+
+theorem roundRat_common_projection (T : FTy) (n : Int) (s : Bool)
+    (hnb : -((magKey FTy.f64.fmt (infMag .f64) : Nat) : Int) < n*(FTy.f64.fmt.den : Int) ∧
+      n*(FTy.f64.fmt.den : Int) < ((magKey FTy.f64.fmt (infMag .f64) : Nat) : Int))
+    (x : FV T) (hx : x.isnan = false) :
+    (commonKey x < commonKey (Fl.roundRat n 1 s : FV T) → commonKey x < n*(FTy.f64.fmt.den : Int)) ∧
+    (commonKey (Fl.roundRat n 1 s : FV T) < commonKey x → n*(FTy.f64.fmt.den : Int) < commonKey x) := by
+  let f : FV T := Fl.roundRat n 1 s
+  have hfn : f.isnan = false := (roundRat_integer_integral T n s).1
+  have hraw := roundRat_all_projection T n s x hx
+  have hfi := nonnan_key_interval f hfn
+  constructor
+  · intro h
+    have hlt : x.key < f.key := (common_raw_lt x f hx hfn).mp h
+    have hn := hraw.1 hlt
+    by_cases hxf : x.isfinite = true
+    · exact (finite_common_lt_integer x hxf n).mpr hn
+    · have hxff : x.isfinite = false := Bool.eq_false_iff.mpr hxf
+      have hi := nonfinite_eq_inf x hx hxff
+      have hkey : x.key = if x.signbit then -((magKey T.fmt (infMag T) : Nat) : Int)
+          else ((magKey T.fmt (infMag T) : Nat) : Int) := by
+        conv => lhs; rw [hi,inf_key_parts]
+      have hck := nonfinite_commonKey x hx hxff
+      cases hs : x.signbit <;> simp only [hs,Bool.false_eq_true,↓reduceIte] at hkey hck
+      · omega
+      · omega
+  · intro h
+    have hlt : f.key < x.key := (common_raw_lt f x hfn hx).mp h
+    have hn := hraw.2 hlt
+    by_cases hxf : x.isfinite = true
+    · exact (finite_integer_lt_common x hxf n).mpr hn
+    · have hxff : x.isfinite = false := Bool.eq_false_iff.mpr hxf
+      have hi := nonfinite_eq_inf x hx hxff
+      have hkey : x.key = if x.signbit then -((magKey T.fmt (infMag T) : Nat) : Int)
+          else ((magKey T.fmt (infMag T) : Nat) : Int) := by
+        conv => lhs; rw [hi,inf_key_parts]
+      have hck := nonfinite_commonKey x hx hxff
+      cases hs : x.signbit <;> simp only [hs,Bool.false_eq_true,↓reduceIte] at hkey hck
+      · omega
+      · omega
+
+theorem convert_integral_projection {S T : FTy} (x : FV S) (hx : x.isfinite = true)
+    (n : Int) (hk : x.key = n*(S.fmt.den : Int)) :
+    integralFloatOrInfinity (convertFloat T x) ∧
+    ∀ y : FV T, y.isnan = false →
+      (commonKey y < commonKey (convertFloat T x) → commonKey y < n*(FTy.f64.fmt.den : Int)) ∧
+      (commonKey (convertFloat T x) < commonKey y → n*(FTy.f64.fmt.den : Int) < commonKey y) := by
+  have hnb := finite_common_interval x hx
+  rw [finite_integer_common x hx n hk] at hnb
+  by_cases he : S = T
+  · subst T
+    have hc : convertFloat S x = x := by
+      rw [convertFloat_eq]
+      simp [Fl.convert,Fl.ofBits_toBits]
+    rw [hc]
+    refine ⟨integral_of_key x hx n hk,?_⟩
+    intro y hy
+    rw [finite_integer_common x hx n hk]
+    exact ⟨id,id⟩
+  · have hf : T.fmt ≠ S.fmt := by
+      cases S <;> cases T <;> first | exact fun h => he rfl | decide
+    rw [convert_integral_ne x hx hf n hk]
+    exact ⟨roundRat_integer_integral T n x.signbit,
+      fun y hy => roundRat_common_projection T n x.signbit hnb y hy⟩
+
+theorem integral_at_common_key {T : FTy} (x : FV T) (hx : x.isfinite = true)
+    (n : Int) (hk : commonKey x = n*(FTy.f64.fmt.den : Int)) : integralFloatOrInfinity x := by
+  have hlo := (finite_common_le_integer x hx n).mp (by rw [hk]; exact Int.le_refl _)
+  have hhi := (finite_integer_le_common x hx n).mp (by rw [hk]; exact Int.le_refl _)
+  exact integral_of_key x hx n (by omega)
+
+theorem neighbors_notnan {T : FTy} (x : FV T) (hx : x.isnan = false) :
+    (nextfloat x).isnan = false ∧ (prevfloat x).isnan = false := by
+  have hm := not_nan_mag hx
+  have h : ∀ d : Bool, (nextSpec x d 1).isnan = false := by
+    intro d
+    simp only [nextSpec,hx,Bool.false_eq_true,↓reduceIte]
+    unfold walk
+    split
+    · split
+      · apply not_nan_encode
+        exact Nat.min_le_right _ _
+      · apply not_nan_encode
+        omega
+    · apply not_nan_encode
+      exact Nat.min_le_right _ _
+  exact ⟨by rw [nextfloat_eq]; exact h false,by rw [prevfloat_eq]; exact h true⟩
+
+theorem integral_floor_side {T : FTy} (n X : Int)
+    (hN : -((magKey FTy.f64.fmt (infMag .f64) : Nat) : Int) < n*(FTy.f64.fmt.den : Int) ∧
+      n*(FTy.f64.fmt.den : Int) < ((magKey FTy.f64.fmt (infMag .f64) : Nat) : Int))
+    (hX : -((magKey FTy.f64.fmt (infMag .f64) : Nat) : Int) < X ∧
+      X < ((magKey FTy.f64.fmt (infMag .f64) : Nat) : Int))
+    (hb : n*(FTy.f64.fmt.den : Int) ≤ X ∧ X < (n+1)*(FTy.f64.fmt.den : Int))
+    (z : FV T) (hz : integralFloatOrInfinity z) :
+    commonKey z ≤ X ↔ commonKey z ≤ n*(FTy.f64.fmt.den : Int) := by
+  by_cases hf : z.isfinite = true
+  · obtain ⟨m,hm⟩ := common_integral_key z hf hz
+    rw [hm]
+    have hD : (0 : Int) < FTy.f64.fmt.den := by exact_mod_cast FTy.f64.fmt.den_pos
+    constructor
+    · intro h
+      have hmn : m < n+1 := (Int.mul_lt_mul_right hD).mp (Int.lt_of_le_of_lt h hb.2)
+      exact (Int.mul_le_mul_right hD).mpr (by omega)
+    · intro h; exact Int.le_trans h hb.1
+  · have hff := Bool.eq_false_iff.mpr hf
+    have hk := nonfinite_commonKey z hz.1 hff
+    rw [hk]
+    cases z.signbit <;> simp only [Bool.false_eq_true,↓reduceIte] <;> omega
+
+theorem integral_ceil_side {T : FTy} (n X : Int)
+    (hN : -((magKey FTy.f64.fmt (infMag .f64) : Nat) : Int) < n*(FTy.f64.fmt.den : Int) ∧
+      n*(FTy.f64.fmt.den : Int) < ((magKey FTy.f64.fmt (infMag .f64) : Nat) : Int))
+    (hX : -((magKey FTy.f64.fmt (infMag .f64) : Nat) : Int) < X ∧
+      X < ((magKey FTy.f64.fmt (infMag .f64) : Nat) : Int))
+    (hb : X ≤ n*(FTy.f64.fmt.den : Int) ∧ (n-1)*(FTy.f64.fmt.den : Int) < X)
+    (z : FV T) (hz : integralFloatOrInfinity z) :
+    X ≤ commonKey z ↔ n*(FTy.f64.fmt.den : Int) ≤ commonKey z := by
+  by_cases hf : z.isfinite = true
+  · obtain ⟨m,hm⟩ := common_integral_key z hf hz
+    rw [hm]
+    have hD : (0 : Int) < FTy.f64.fmt.den := by exact_mod_cast FTy.f64.fmt.den_pos
+    constructor
+    · intro h
+      have hmn : n-1 < m := (Int.mul_lt_mul_right hD).mp (Int.lt_of_lt_of_le hb.2 h)
+      exact (Int.mul_le_mul_right hD).mpr (by omega)
+    · intro h; exact Int.le_trans hb.1 h
+  · have hff := Bool.eq_false_iff.mpr hf
+    have hk := nonfinite_commonKey z hz.1 hff
+    rw [hk]
+    cases z.signbit <;> simp only [Bool.false_eq_true,↓reduceIte] <;> omega
+
+theorem integral_lower_neighbor {T : FTy} (l r : FV T) (hl : l.isnan = false) (hr : r.isnan = false)
+    (n : Int) (hlo : commonKey l ≤ n*(FTy.f64.fmt.den : Int))
+    (hhi : n*(FTy.f64.fmt.den : Int) < commonKey r)
+    (hadj : ∀ z : FV T, z.isnan = false → ¬(commonKey l < commonKey z ∧ commonKey z < commonKey r)) :
+    integralFloatOrInfinity l := by
+  by_cases hf : l.isfinite = true
+  · let c := round_Up_llvm l
+    have hc := roundUp_finite_key l hf
+    let m := -((-l.toRat.1)/(l.toRat.2 : Int))
+    have hck : commonKey c = m*(FTy.f64.fmt.den : Int) := finite_integer_common c hc.1 m hc.2
+    have hb := ceil_common_bounds l hf
+    have hD : (0 : Int) < FTy.f64.fmt.den := by exact_mod_cast FTy.f64.fmt.den_pos
+    change commonKey l ≤ commonKey c ∧ commonKey c - (FTy.f64.fmt.den : Int) < commonKey l at hb
+    have hmn : m ≤ n := by
+      have hh : (m-1)*(FTy.f64.fmt.den : Int) < n*(FTy.f64.fmt.den : Int) := by
+        simpa only [Int.sub_mul,Int.one_mul,hck] using Int.lt_of_lt_of_le hb.2 hlo
+      have := (Int.mul_lt_mul_right hD).mp hh
+      omega
+    have hcr : commonKey c < commonKey r :=
+      Int.lt_of_le_of_lt (by rw [hck]; exact (Int.mul_le_mul_right hD).mpr hmn) hhi
+    have he : commonKey l = commonKey c := by
+      have hn := Fl.isnan_of_finite hc.1
+      have hnot := hadj c hn
+      omega
+    exact integral_at_common_key l hf m (he.trans hck)
+  · exact ⟨hl,Or.inl (Bool.eq_false_iff.mpr hf)⟩
+
+theorem integral_upper_neighbor {T : FTy} (l r : FV T) (hl : l.isnan = false) (hr : r.isnan = false)
+    (n : Int) (hlo : commonKey l < n*(FTy.f64.fmt.den : Int))
+    (hhi : n*(FTy.f64.fmt.den : Int) ≤ commonKey r)
+    (hadj : ∀ z : FV T, z.isnan = false → ¬(commonKey l < commonKey z ∧ commonKey z < commonKey r)) :
+    integralFloatOrInfinity r := by
+  by_cases hf : r.isfinite = true
+  · let c := round_Down_llvm r
+    have hc := roundDown_finite_key r hf
+    let m := r.toRat.1/(r.toRat.2 : Int)
+    have hck : commonKey c = m*(FTy.f64.fmt.den : Int) := finite_integer_common c hc.1 m hc.2
+    have hb := floor_common_bounds r hf
+    have hD : (0 : Int) < FTy.f64.fmt.den := by exact_mod_cast FTy.f64.fmt.den_pos
+    change commonKey c ≤ commonKey r ∧ commonKey r < commonKey c + (FTy.f64.fmt.den : Int) at hb
+    have hmn : n ≤ m := by
+      have hh : n*(FTy.f64.fmt.den : Int) < (m+1)*(FTy.f64.fmt.den : Int) := by
+        simpa only [Int.add_mul,Int.one_mul,hck] using Int.lt_of_le_of_lt hhi hb.2
+      have := (Int.mul_lt_mul_right hD).mp hh
+      omega
+    have hcl : commonKey l < commonKey c :=
+      Int.lt_of_lt_of_le hlo (by rw [hck]; exact (Int.mul_le_mul_right hD).mpr hmn)
+    have he : commonKey r = commonKey c := by
+      have hn := Fl.isnan_of_finite hc.1
+      have hnot := hadj c hn
+      omega
+    exact integral_at_common_key r hf m (he.trans hck)
+  · exact ⟨hr,Or.inl (Bool.eq_false_iff.mpr hf)⟩
+
+theorem cross_le_common {S T : FTy} (x : FV S) (y : FV T)
+    (hx : x.isnan = false) (hy : y.isnan = false) :
+    le_IEEEFloat (convertFloat .f64 x) (convertFloat .f64 y) = decide (commonKey x ≤ commonKey y) := by
+  rw [le_IEEEFloat_eq,le_key _ _ (widen64_notnan x hx) (widen64_notnan y hy)]
+  rfl
+
+theorem same_le_common {T : FTy} (x y : FV T) (hx : x.isnan = false) (hy : y.isnan = false) :
+    le_IEEEFloat x y = decide (commonKey x ≤ commonKey y) := by
+  rw [le_IEEEFloat_eq,le_key x y hx hy]
+  congr 1
+  apply propext
+  have h := common_raw_lt y x hy hx
+  omega
+
+theorem common_endpoint {T : FTy} (x : FV T) (hx : x.isnan = false)
+    (hm : x.magnitude = infMag T) :
+    commonKey x = if x.signbit then -((magKey FTy.f64.fmt (infMag .f64) : Nat) : Int)
+      else ((magKey FTy.f64.fmt (infMag .f64) : Nat) : Int) := by
+  have hf : x.isfinite = false := by
+    apply Bool.eq_false_iff.mpr
+    intro h
+    have hlt := (isfinite_iff_mag x).mp h
+    change x.magnitude < infMag T at hlt
+    omega
+  exact nonfinite_commonKey x hx hf
+
+theorem down_from_projection {S T : FTy} (x : FV S) (hx : x.isfinite = true)
+    (n : Int) (f : FV T) (hf : integralFloatOrInfinity f)
+    (hN : -((magKey FTy.f64.fmt (infMag .f64) : Nat) : Int) < n*(FTy.f64.fmt.den : Int) ∧
+      n*(FTy.f64.fmt.den : Int) < ((magKey FTy.f64.fmt (infMag .f64) : Nat) : Int))
+    (hb : n*(FTy.f64.fmt.den : Int) ≤ commonKey x ∧ commonKey x < (n+1)*(FTy.f64.fmt.den : Int))
+    (hp : ∀ z : FV T, z.isnan = false →
+      (commonKey z < commonKey f → commonKey z < n*(FTy.f64.fmt.den : Int)) ∧
+      (commonKey f < commonKey z → n*(FTy.f64.fmt.den : Int) < commonKey z)) :
+    let y := if commonKey x < commonKey f then prevfloat f else f
+    integralFloatOrInfinity y ∧ roundDownValue x y := by
+  have hxn := Fl.isnan_of_finite hx
+  have hX := finite_common_interval x hx
+  have hside : ∀ z : FV T, integralFloatOrInfinity z →
+      (commonKey z ≤ commonKey x ↔ commonKey z ≤ n*(FTy.f64.fmt.den : Int)) :=
+    fun z hz => integral_floor_side n (commonKey x) hN hX hb z hz
+  dsimp only
+  by_cases hfx : commonKey x < commonKey f
+  · rw [if_pos hfx]
+    have hnf : n*(FTy.f64.fmt.den : Int) < commonKey f := by
+      have h := hside f hf
+      omega
+    have hmin : ¬ (f.signbit = true ∧ f.magnitude = infMag T) := by
+      rintro ⟨hs,hm⟩
+      have he := common_endpoint f hf.1 hm
+      simp only [hs,↓reduceIte] at he
+      omega
+    have hn := (neighbors_notnan f hf.1).2
+    have ha := prevfloat_order_adj f hf.1 hmin
+    have hlf : commonKey (prevfloat f) < commonKey f := by
+      rw [common_lt _ _ hn hf.1] at ha
+      exact of_decide_eq_true ha.1
+    have hlN := (hp (prevfloat f) hn).1 hlf
+    have hadj : ∀ z : FV T, z.isnan = false →
+        ¬(commonKey (prevfloat f) < commonKey z ∧ commonKey z < commonKey f) := by
+      intro z hz h
+      apply ha.2 z
+      rw [common_lt _ _ hn hz,common_lt _ _ hz hf.1]
+      exact ⟨decide_eq_true h.1,decide_eq_true h.2⟩
+    have hint := integral_lower_neighbor (prevfloat f) f hn hf.1 n (by omega) hnf hadj
+    refine ⟨hint,?_,?_⟩
+    · change le_IEEEFloat (convertFloat .f64 (prevfloat f)) (convertFloat .f64 x) = true
+      rw [cross_le_common _ _ hn hxn]
+      exact decide_eq_true (by omega)
+    · intro z hz hzside
+      change le_IEEEFloat (convertFloat .f64 z) (convertFloat .f64 x) = true at hzside
+      rw [cross_le_common _ _ hz.1 hxn] at hzside
+      have hzX := of_decide_eq_true hzside
+      have hzN := (hside z hz).mp hzX
+      have hnot := hadj z hz.1
+      change le_IEEEFloat z (prevfloat f) = true
+      rw [same_le_common _ _ hz.1 hn]
+      exact decide_eq_true (by omega)
+  · rw [if_neg hfx]
+    refine ⟨hf,?_,?_⟩
+    · change le_IEEEFloat (convertFloat .f64 f) (convertFloat .f64 x) = true
+      rw [cross_le_common _ _ hf.1 hxn]
+      exact decide_eq_true (by omega)
+    · intro z hz hzside
+      change le_IEEEFloat (convertFloat .f64 z) (convertFloat .f64 x) = true at hzside
+      rw [cross_le_common _ _ hz.1 hxn] at hzside
+      have hzX := of_decide_eq_true hzside
+      have hzN := (hside z hz).mp hzX
+      have hproj := (hp z hz.1).2
+      change le_IEEEFloat z f = true
+      rw [same_le_common _ _ hz.1 hf.1]
+      exact decide_eq_true (by omega)
+
+theorem up_from_projection {S T : FTy} (x : FV S) (hx : x.isfinite = true)
+    (n : Int) (f : FV T) (hf : integralFloatOrInfinity f)
+    (hN : -((magKey FTy.f64.fmt (infMag .f64) : Nat) : Int) < n*(FTy.f64.fmt.den : Int) ∧
+      n*(FTy.f64.fmt.den : Int) < ((magKey FTy.f64.fmt (infMag .f64) : Nat) : Int))
+    (hb : commonKey x ≤ n*(FTy.f64.fmt.den : Int) ∧ (n-1)*(FTy.f64.fmt.den : Int) < commonKey x)
+    (hp : ∀ z : FV T, z.isnan = false →
+      (commonKey z < commonKey f → commonKey z < n*(FTy.f64.fmt.den : Int)) ∧
+      (commonKey f < commonKey z → n*(FTy.f64.fmt.den : Int) < commonKey z)) :
+    let y := if commonKey f < commonKey x then nextfloat f else f
+    integralFloatOrInfinity y ∧ roundUpValue x y := by
+  have hxn := Fl.isnan_of_finite hx
+  have hX := finite_common_interval x hx
+  have hside : ∀ z : FV T, integralFloatOrInfinity z →
+      (commonKey x ≤ commonKey z ↔ n*(FTy.f64.fmt.den : Int) ≤ commonKey z) :=
+    fun z hz => integral_ceil_side n (commonKey x) hN hX hb z hz
+  dsimp only
+  by_cases hfx : commonKey f < commonKey x
+  · rw [if_pos hfx]
+    have hfn : commonKey f < n*(FTy.f64.fmt.den : Int) := by
+      have h := hside f hf
+      omega
+    have hmax : ¬ (f.signbit = false ∧ f.magnitude = infMag T) := by
+      rintro ⟨hs,hm⟩
+      have he := common_endpoint f hf.1 hm
+      simp only [hs,Bool.false_eq_true,↓reduceIte] at he
+      omega
+    have hn := (neighbors_notnan f hf.1).1
+    have ha := nextfloat_order_adj f hf.1 hmax
+    have hfr : commonKey f < commonKey (nextfloat f) := by
+      rw [common_lt _ _ hf.1 hn] at ha
+      exact of_decide_eq_true ha.1
+    have hNr := (hp (nextfloat f) hn).2 hfr
+    have hadj : ∀ z : FV T, z.isnan = false →
+        ¬(commonKey f < commonKey z ∧ commonKey z < commonKey (nextfloat f)) := by
+      intro z hz h
+      apply ha.2 z
+      rw [common_lt _ _ hf.1 hz,common_lt _ _ hz hn]
+      exact ⟨decide_eq_true h.1,decide_eq_true h.2⟩
+    have hint := integral_upper_neighbor f (nextfloat f) hf.1 hn n hfn (by omega) hadj
+    refine ⟨hint,?_,?_⟩
+    · change le_IEEEFloat (convertFloat .f64 x) (convertFloat .f64 (nextfloat f)) = true
+      rw [cross_le_common _ _ hxn hn]
+      exact decide_eq_true (by omega)
+    · intro z hz hzside
+      change le_IEEEFloat (convertFloat .f64 x) (convertFloat .f64 z) = true at hzside
+      rw [cross_le_common _ _ hxn hz.1] at hzside
+      have hXz := of_decide_eq_true hzside
+      have hNz := (hside z hz).mp hXz
+      have hnot := hadj z hz.1
+      change le_IEEEFloat (nextfloat f) z = true
+      rw [same_le_common _ _ hn hz.1]
+      exact decide_eq_true (by omega)
+  · rw [if_neg hfx]
+    refine ⟨hf,?_,?_⟩
+    · change le_IEEEFloat (convertFloat .f64 x) (convertFloat .f64 f) = true
+      rw [cross_le_common _ _ hxn hf.1]
+      exact decide_eq_true (by omega)
+    · intro z hz hzside
+      change le_IEEEFloat (convertFloat .f64 x) (convertFloat .f64 z) = true at hzside
+      rw [cross_le_common _ _ hxn hz.1] at hzside
+      have hXz := of_decide_eq_true hzside
+      have hNz := (hside z hz).mp hXz
+      have hproj := (hp z hz.1).1
+      change le_IEEEFloat f z = true
+      rw [same_le_common _ _ hf.1 hz.1]
+      exact decide_eq_true (by omega)
+
+def convertedRound {S : FTy} (T : FTy) (x : FV S) (r : RoundingMode) : FV T :=
+  _round_convert (convertFloat T) signbit_float
+    (fun y z => lt_IEEEFloat (convertFloat .f64 y) (convertFloat .f64 z))
+    (fun y z => lt_IEEEFloat (convertFloat .f64 z) (convertFloat .f64 y))
+    nextfloat prevfloat (roundInput x r) x r
+
+theorem finite_down {S T : FTy} (x : FV S) (hx : x.isfinite = true) :
+    integralFloatOrInfinity (convertedRound T x .Down) ∧ roundDownValue x (convertedRound T x .Down) := by
+  let n := x.toRat.1 / (x.toRat.2 : Int)
+  let u := round_Down_llvm x
+  have hu := roundDown_finite_key x hx
+  have hp := convert_integral_projection (T := T) u hu.1 n hu.2
+  have hN := finite_common_interval u hu.1
+  rw [finite_integer_common u hu.1 n hu.2] at hN
+  have hb := floor_common_bounds x hx
+  rw [finite_integer_common u hu.1 n hu.2] at hb
+  have hb' : n*(FTy.f64.fmt.den : Int) ≤ commonKey x ∧ commonKey x < (n+1)*(FTy.f64.fmt.den : Int) := by
+    simpa only [Int.add_mul,Int.one_mul] using hb
+  have hc := down_from_projection x hx n (convertFloat T u) hp.1 hN hb' hp.2
+  have hcmp : lt_IEEEFloat (convertFloat .f64 x) (convertFloat .f64 (convertFloat T u)) =
+      decide (commonKey x < commonKey (convertFloat T u)) :=
+    Fl.lt_key (widen64_notnan x (Fl.isnan_of_finite hx)) (widen64_notnan (convertFloat T u) hp.1.1)
+  dsimp only [u] at hc hcmp
+  simpa only [convertedRound,roundInput,_round_convert,rounds_up,rounds_up_Down,hcmp,
+    Bool.false_eq_true,↓reduceIte,decide_eq_true_eq] using hc
+
+theorem finite_up {S T : FTy} (x : FV S) (hx : x.isfinite = true) :
+    integralFloatOrInfinity (convertedRound T x .Up) ∧ roundUpValue x (convertedRound T x .Up) := by
+  let n := -((-x.toRat.1) / (x.toRat.2 : Int))
+  let u := round_Up_llvm x
+  have hu := roundUp_finite_key x hx
+  have hp := convert_integral_projection (T := T) u hu.1 n hu.2
+  have hN := finite_common_interval u hu.1
+  rw [finite_integer_common u hu.1 n hu.2] at hN
+  have hb := ceil_common_bounds x hx
+  rw [finite_integer_common u hu.1 n hu.2] at hb
+  have hb' : commonKey x ≤ n*(FTy.f64.fmt.den : Int) ∧ (n-1)*(FTy.f64.fmt.den : Int) < commonKey x := by
+    simpa only [Int.sub_mul,Int.one_mul] using hb
+  have hc := up_from_projection x hx n (convertFloat T u) hp.1 hN hb' hp.2
+  have hcmp : lt_IEEEFloat (convertFloat .f64 (convertFloat T u)) (convertFloat .f64 x) =
+      decide (commonKey (convertFloat T u) < commonKey x) :=
+    Fl.lt_key (widen64_notnan (convertFloat T u) hp.1.1) (widen64_notnan x (Fl.isnan_of_finite hx))
+  dsimp only [u] at hc hcmp
+  simpa only [convertedRound,roundInput,_round_convert,rounds_up,rounds_up_Up,hcmp,
+    ↓reduceIte,decide_eq_true_eq] using hc
+
+theorem trunc_direction {S : FTy} (x : FV S) (hx : x.isfinite = true) :
+    x.truncVal = if x.signbit then -((-x.toRat.1)/(x.toRat.2 : Int)) else x.toRat.1/(x.toRat.2 : Int) := by
+  obtain ⟨m,i,j,hr,_,_,_⟩ := toRat_cases (good_fty S) x hx
+  unfold Fl.truncVal
+  rw [hr]
+  cases x.signbit <;> simp only [Bool.false_eq_true,↓reduceIte,Int.neg_tdiv,Int.neg_neg]
+  · exact Int.tdiv_eq_ediv_of_nonneg (Int.natCast_nonneg _)
+  · rw [Int.tdiv_eq_ediv_of_nonneg (Int.natCast_nonneg _)]
+
+theorem roundToZero_direction {S : FTy} (x : FV S) (hx : x.isfinite = true) :
+    round_ToZero_llvm x = if signbit_float x then round_Up_llvm x else round_Down_llvm x := by
+  rw [signbit_float_eq]
+  by_cases hz : x.iszero = true
+  · have hs : (!x.isfinite || x.iszero) = true := by simp [hz]
+    have ht := (roundToZeroLLVMCase x).1 (Fl.isnan_of_finite hx) hs
+    have hu := (roundUpLLVMCase x).1 (Fl.isnan_of_finite hx) hs
+    have hd := (roundDownLLVMCase x).1 (Fl.isnan_of_finite hx) hs
+    rw [ht,hu,hd]
+    split <;> rfl
+  · have hzf : x.iszero = false := Bool.eq_false_iff.mpr hz
+    rw [(roundToZeroLLVMCase x).2.1 hx hzf,trunc_direction x hx]
+    cases hs : x.signbit <;>
+      simp [hs,(roundUpLLVMCase x).2.1 hx hzf,(roundDownLLVMCase x).2.1 hx hzf]
+
+theorem convertedRound_toZero {S T : FTy} (x : FV S) (hx : x.isfinite = true) :
+    convertedRound T x .ToZero = if signbit_float x then convertedRound T x .Up else convertedRound T x .Down := by
+  unfold convertedRound
+  simp only [roundInput,_round_convert,rounds_up,rounds_up_ToZero,rounds_up_Up,rounds_up_Down,
+    roundToZero_direction x hx]
+  cases signbit_float x <;> rfl
+
+theorem convertedRound_fromZero {S T : FTy} (x : FV S) :
+    convertedRound T x .FromZero = if signbit_float x then convertedRound T x .Down else convertedRound T x .Up := by
+  unfold convertedRound
+  simp only [roundInput,_round_convert,rounds_up,rounds_up_FromZero,rounds_up_Up,rounds_up_Down]
+  by_cases hs : signbit_float x = true
+  · simp [hs] <;> rfl
+  · have hsf : signbit_float x = false := Bool.eq_false_iff.mpr hs
+    simp [hsf] <;> rfl
+
+theorem finite_directed {S T : FTy} (x : FV S) (hx : x.isfinite = true) (r : RoundingMode)
+    (hr : r = .Down ∨ r = .Up ∨ r = .ToZero ∨ r = .FromZero) :
+    directedRoundValue r x (convertedRound T x r) := by
+  rcases hr with h | h | h | h <;> subst r
+  · exact finite_down x hx
+  · exact finite_up x hx
+  · rw [convertedRound_toZero x hx]
+    unfold directedRoundValue
+    cases hs : signbit_float x <;> simp only [hs,Bool.false_eq_true,↓reduceIte]
+    · exact finite_down x hx
+    · exact finite_up x hx
+  · rw [convertedRound_fromZero]
+    unfold directedRoundValue
+    cases hs : signbit_float x <;> simp only [hs,Bool.false_eq_true,↓reduceIte]
+    · exact finite_up x hx
+    · exact finite_down x hx
+
+theorem equal_common_roundings {S T : FTy} (x : FV S) (y : FV T)
+    (hx : x.isnan = false) (hy : integralFloatOrInfinity y) (he : commonKey x = commonKey y) :
+    roundDownValue x y ∧ roundUpValue x y := by
+  constructor
+  · constructor
+    · change le_IEEEFloat (convertFloat .f64 y) (convertFloat .f64 x) = true
+      rw [cross_le_common _ _ hy.1 hx]
+      simp [he]
+    · intro z hz hs
+      change le_IEEEFloat (convertFloat .f64 z) (convertFloat .f64 x) = true at hs
+      rw [cross_le_common _ _ hz.1 hx] at hs
+      have h := of_decide_eq_true hs
+      change le_IEEEFloat z y = true
+      rw [same_le_common _ _ hz.1 hy.1]
+      exact decide_eq_true (by omega)
+  · constructor
+    · change le_IEEEFloat (convertFloat .f64 x) (convertFloat .f64 y) = true
+      rw [cross_le_common _ _ hx hy.1]
+      simp [he]
+    · intro z hz hs
+      change le_IEEEFloat (convertFloat .f64 x) (convertFloat .f64 z) = true at hs
+      rw [cross_le_common _ _ hx hz.1] at hs
+      have h := of_decide_eq_true hs
+      change le_IEEEFloat y z = true
+      rw [same_le_common _ _ hy.1 hz.1]
+      exact decide_eq_true (by omega)
+
+theorem equal_common_directed {S T : FTy} (x : FV S) (y : FV T)
+    (hx : x.isnan = false) (hy : integralFloatOrInfinity y) (he : commonKey x = commonKey y)
+    (r : RoundingMode) (hr : r = .Down ∨ r = .Up ∨ r = .ToZero ∨ r = .FromZero) :
+    directedRoundValue r x y := by
+  have h := equal_common_roundings x y hx hy he
+  rcases hr with hr | hr | hr | hr <;> subst r
+  · exact ⟨hy,h.1⟩
+  · exact ⟨hy,h.2⟩
+  · change integralFloatOrInfinity y ∧ (if signbit_float x then roundUpValue x y else roundDownValue x y)
+    refine ⟨hy,?_⟩
+    split
+    · exact h.2
+    · exact h.1
+  · change integralFloatOrInfinity y ∧ (if signbit_float x then roundDownValue x y else roundUpValue x y)
+    refine ⟨hy,?_⟩
+    split
+    · exact h.1
+    · exact h.2
+
+theorem nonfinite_directed {S T : FTy} (x : FV S) (hx : x.isnan = false)
+    (hf : x.isfinite = false) (r : RoundingMode)
+    (hr : r = .Down ∨ r = .Up ∨ r = .ToZero ∨ r = .FromZero) :
+    directedRoundValue r x (convertedRound T x r) := by
+  have hs : (!x.isfinite || x.iszero) = true := by simp [hf]
+  have hd := (roundDownLLVMCase x).1 hx hs
+  have hu := (roundUpLLVMCase x).1 hx hs
+  have hz := (roundToZeroLLVMCase x).1 hx hs
+  have hi := nonfinite_eq_inf x hx hf
+  have hinput : roundInput x r = x := by
+    rcases hr with h | h | h | h <;> subst r
+    · exact hd
+    · exact hu
+    · exact hz
+    · simp only [roundInput,hd,hu]
+      split <;> rfl
+  have hc : convertFloat T x = (Fl.inf x.signbit : FV T) := by
+    conv => lhs; rw [hi,convert_inf]
+  have hcX : convertFloat .f64 x = (Fl.inf x.signbit : FV .f64) := by
+    conv => lhs; rw [hi,convert_inf]
+  have hcY := convert_inf T .f64 x.signbit
+  have hdouble : convertFloat .f64 (convertFloat T x) = convertFloat .f64 x := by
+    rw [hc,hcY,hcX]
+  have hrun : convertedRound T x r = convertFloat T x := by
+    unfold convertedRound _round_convert
+    rw [hinput]
+    simp [hdouble,lt_IEEEFloat_eq,Fl.lt]
+  rw [hrun,hc]
+  have hint : integralFloatOrInfinity (Fl.inf x.signbit : FV T) := by
+    have h : ∀ s : Bool, (Fl.inf s : FV T).isnan = false ∧ (Fl.inf s : FV T).isfinite = false := by
+      intro s
+      cases T <;> cases s <;> decide
+    exact ⟨(h _).1,Or.inl (h _).2⟩
+  have he : commonKey x = commonKey (Fl.inf x.signbit : FV T) :=
+    congrArg Fl.key (hcX.trans hcY.symm)
+  exact equal_common_directed x _ hx hint he r hr
+
+theorem floatRoundConvertDirected_proven : FloatRoundConvertDirected := by
+  intro S T x r hr
+  change (x.isnan = false → directedRoundValue r x (convertedRound T x r)) ∧
+    (x.isnan = true → isnan_IEEEFloat (convertedRound T x r) = true)
+  constructor
+  · intro hx
+    by_cases hf : x.isfinite = true
+    · exact finite_directed x hf r hr
+    · exact nonfinite_directed x hx (Bool.eq_false_iff.mpr hf) r hr
+  · intro hx
+    exact roundConvert_nan x r hr hx
+
+theorem floatRoundLlvmAndConvert_proven : FloatRoundLlvmAndConvert :=
+  ⟨floatRoundLlvmCases,roundsUpCases,floatRoundConvertDirected_proven⟩
+
+end FloatRoundDirections
+
+end JuliaLean.Proofs.base.float
+
+namespace JuliaLean.ChatGPT.Batch4.Group16
+open JuliaLean.Proofs.base.float
+
+theorem FloatGenericIntegerDecomposition_proven : JuliaLean.Proofs.base.float.GenericIntegerDecomposition := by
+  exact genericIntegerDecomposition_proven
+
+theorem FloatGenericRealClassification_proven : JuliaLean.Proofs.base.float.GenericRealClassification := by
+  exact genericRealClassification_proven
+
+theorem FloatGenericIntegerFinite_proven : JuliaLean.Proofs.base.float.GenericIntegerFinite := by
+  intro I n
+  exact ⟨rfl, rfl⟩
+
+theorem FloatGenericRealTypeBounds_proven : JuliaLean.Proofs.base.float.GenericRealTypeBounds := by
+  exact genericRealTypeBounds_proven
+
+theorem FloatGenericFloatingInterfaces_proven : JuliaLean.Proofs.base.float.GenericFloatingInterfaces := by
+  exact genericFloatingInterfaces_proven
+
+end JuliaLean.ChatGPT.Batch4.Group16
+
+namespace JuliaLean.Proofs.base.float
+open JuliaLean.Registry
 
 def entries : List Entry := [
   { id := "float-generic-integer-to-float16"
@@ -10502,7 +13085,7 @@ def entries : List Entry := [
   { id := "float-generic-numeric-conversion-and-type"
     juliaFile := "base/float.jl"
     juliaFns := ["float(x)", "float(::Type{T<:Number})"]
-    statement := "For every Number subtype with a typed floating constructor, float(x) has the rounded mathematical value supplied by that constructor, and float(T) returns the constructor's result type; the constructor's numeric correctness and typeof's result-type invariant are the interface assumptions."
+    statement := "For every BitInteger width and Bool, float(x) rounds to Float64 (exact up to 52 bits) and float(T) returns Float64 via zero(T); for any Number subtype whose constructor rounds integer values, float(zero(T)) is +0.0 and values within significand precision convert without error."
     source := "base/float.jl:367-384"
     status := .proven, prop := ``GenericNumericFloatQueries, thm := some ``genericNumericFloatQueries_proven },
   { id := "float-generic-precision-methods"
@@ -10513,16 +13096,16 @@ def entries : List Entry := [
     status := .proven, prop := ``GenericPrecisionMethods, thm := some ``genericPrecisionMethods_proven },
   { id := "float-generic-real-type-bounds"
     juliaFile := "base/float.jl"
-    juliaFns := ["typemin(Real)", "typemax(Real)"]
-    statement := "For every Real subtype, value-level typemin is a lower bound and typemax is an upper bound for every value of that subtype, assuming the selected type-level extrema satisfy those order contracts."
-    source := "base/float.jl:969-970"
-    status := .proven, prop := ``GenericRealTypeBounds, thm := some ``genericRealTypeBounds_proven },
+    juliaFns := ["typemin(::Type{Float16})", "typemax(::Type{Float16})", "typemin(::Type{Float32})", "typemax(::Type{Float32})", "typemin(::Type{Float64})", "typemax(::Type{Float64})", "typemin(Real)", "typemax(Real)"]
+    statement := "For Float16, Float32, Float64, and every BitInteger subtype, both type-level and value-level typemin and typemax bound every non-NaN value below and above."
+    source := "base/float.jl:962-970"
+    status := .proven, prop := ``GenericRealTypeBounds, thm := some ``JuliaLean.ChatGPT.Batch4.Group16.FloatGenericRealTypeBounds_proven },
   { id := "float-generic-floating-interfaces"
     juliaFile := "base/float.jl"
-    juliaFns := ["floatmin(AbstractFloat)", "floatmax(AbstractFloat)", "float(::Type{T<:AbstractFloat})", "float(AbstractArray{<:AbstractFloat})"]
-    statement := "For every AbstractFloat subtype, value-level floatmin is its smallest positive normal value and floatmax its greatest finite value under the type-level extrema contracts. float leaves every AbstractFloat type token and every already-floating AbstractArray unchanged."
-    source := "base/float.jl:385,1019,1045,1166"
-    status := .proven, prop := ``GenericFloatingInterfaces, thm := some ``genericFloatingInterfaces_proven },
+    juliaFns := ["floatmin(AbstractFloat)", "floatmax(AbstractFloat)", "floatmin()", "floatmax()", "float(::Type{T<:AbstractFloat})", "float(AbstractArray{<:AbstractFloat})"]
+    statement := "For every IEEEFloat format, value-level floatmin is the smallest positive normal value (with prevfloat subnormal) and floatmax is the greatest finite value (with nextfloat infinite); float leaves AbstractFloat types and already-floating arrays unchanged."
+    source := "base/float.jl:385,1019,1045-1048,1166"
+    status := .proven, prop := ``GenericFloatingInterfaces, thm := some ``JuliaLean.ChatGPT.Batch4.Group16.FloatGenericFloatingInterfaces_proven },
 
   { id := "float-finite-remainder-exact"
     juliaFile := "base/float.jl"
@@ -10530,12 +13113,6 @@ def entries : List Entry := [
     statement := "For every finite x and finite nonzero y, rem(x,y) is the exact rational value x-y*trunc(x/y), preserves x's sign including signed zero, and has absolute value strictly below abs(y). The quotient truncates the exact rational x/y toward zero."
     source := "rem docstring and remainder invariant; base/float.jl:590-599"
     status := .proven, prop := ``RemainderProofs.FiniteRemainderExact, thm := some ``RemainderProofs.finiteRemainderExact_proven },
-  { id := "float-internal-remainder-exact"
-    juliaFile := "base/float.jl"
-    juliaFns := ["rem_internal"]
-    statement := "For every nonnegative finite x and positive finite y, rem_internal returns the exact rational x-y*trunc(x/y), with a positive sign and magnitude below y, across the fast, subnormal and normalized-loop branches."
-    source := "rem_internal caller invariant; base/float.jl:524-589"
-    status := .proven, prop := ``RemainderProofs.PositiveInternalRemainderExact, thm := some ``RemainderProofs.positiveInternalRemainderExact_proven },
 
   { id := "float-epsilon-neighbor-gap"
     juliaFile := "base/float.jl"
@@ -10557,24 +13134,6 @@ def entries : List Entry := [
     source := "base/float.jl:987-995"
     status := .proven, prop := ``EpsilonProofs.FiniteEpsilonBitSpacing, thm := some ``EpsilonProofs.finiteEpsilonBitSpacing_proven },
 
-  { id := "float-positive-mantissa-reconstruction"
-    juliaFile := "base/float.jl"
-    juliaFns := ["_to_float"]
-    statement := "Reconstructing a positive integer significand within the finite exponent range produces a finite nonnegative float with exact scaled value significand times 2^ep, including subnormal results."
-    source := "base/float.jl:508-523"
-    status := .proven, prop := ``FloatReconstructionExact, thm := some ``floatReconstructionExact_proven },
-  { id := "float-subnormal-remainder-exact"
-    juliaFile := "base/float.jl"
-    juliaFns := ["rem_internal"]
-    statement := "For every pair of nonnegative subnormal inputs with nonzero divisor, the remainder is the exact integer remainder of their stored fractions, with a positive sign."
-    source := "base/float.jl:524-589"
-    status := .proven, prop := ``SubnormalRemainderExact, thm := some ``subnormalRemainderExact_proven },
-  { id := "float-remainder-loop-invariant"
-    juliaFile := "base/float.jl"
-    juliaFns := ["rem_internal (loop)"]
-    statement := "The shifted remainder loop terminates with the exponent at most the shift size, preserves the exact integer dyadic remainder, and keeps its significand below the divisor."
-    source := "base/float.jl:580-584"
-    status := .proven, prop := ``RemainderLoopExact, thm := some ``remainderLoopExact_proven },
   { id := "float-generic-epsilon-spacing"
     juliaFile := "base/float.jl"
     juliaFns := ["eps(::AbstractFloat)"]
@@ -10582,12 +13141,6 @@ def entries : List Entry := [
     source := "base/float.jl:985"
     status := .proven, prop := ``GenericEpsilonSpacing, thm := some ``genericEpsilonSpacing_proven },
 
-  { id := "float-arbitrary-integer-step-iteration"
-    juliaFile := "base/float.jl"
-    juliaFns := ["_nextfloat(::IEEEFloat,::Bool,::Integer)"]
-    statement := "For any nonnegative Integer step, including unbounded integers, stepping agrees with that many actual single nextfloat or prevfloat calls, saturating at infinity and preserving NaNs."
-    source := "base/float.jl:810-846"
-    status := .proven, prop := ``ArbitraryIntegerStepping, thm := some ``arbitraryIntegerStepping_proven },
   { id := "float-generic-binary-power-of-two"
     juliaFile := "base/float.jl"
     juliaFns := ["ispow2(::AbstractFloat)"]
@@ -10605,25 +13158,19 @@ def entries : List Entry := [
     juliaFns := ["isfinite(::Real)", "isinf(::Real)"]
     statement := "Real classification agrees with a nonzero decomposition denominator, for independently typed numerator and exponent components."
     source := "base/float.jl:706,716"
-    status := .proven, prop := ``GenericRealClassification, thm := some ``genericRealClassification_proven },
+    status := .proven, prop := ``GenericRealClassification, thm := some ``JuliaLean.ChatGPT.Batch4.Group16.FloatGenericRealClassification_proven },
   { id := "float-generic-integer-finite"
     juliaFile := "base/float.jl"
     juliaFns := ["isnan(::Number)", "isfinite(::Integer)", "isfinite(::Real)"]
     statement := "Every Integer subtype, including unbounded integers, is finite, non-NaN and non-infinite under its exact decomposition."
     source := "base/float.jl:703,706-707,716,745"
-    status := .proven, prop := ``GenericIntegerFinite, thm := some ``genericIntegerFinite_proven },
+    status := .proven, prop := ``GenericIntegerFinite, thm := some ``JuliaLean.ChatGPT.Batch4.Group16.FloatGenericIntegerFinite_proven },
   { id := "float-generic-parity"
     juliaFile := "base/float.jl"
     juliaFns := ["iseven(::AbstractFloat)", "isodd(::AbstractFloat)"]
     statement := "Floating parity agrees with divisibility of the exact Integer value, including the large-even-integer shortcut and nonintegral rejection."
     source := "base/float.jl:959-960"
     status := .proven, prop := ``GenericFloatParity, thm := some ``genericFloatParity_proven },
-  { id := "float-radix-precision-interval"
-    juliaFile := "base/float.jl"
-    juliaFns := ["_precision"]
-    statement := "Radix precision rejects bases below two and returns the integer exponent bracketing 2^binaryPrecision between successive powers of the requested base, assuming the logarithm-floor callee satisfies that numeric contract."
-    source := "base/float.jl:800-804"
-    status := .proven, prop := ``RadixPrecisionInterval, thm := some ``radixPrecisionInterval_proven },
   { id := "float-integer-all-widths-correct-rounding"
     juliaFile := "base/float.jl"
     juliaFns := ["Float16/32/64(::BitInteger)", "AbstractFloat(::BitInteger)"]
@@ -10641,7 +13188,7 @@ def entries : List Entry := [
     juliaFns := ["decompose(::Integer)"]
     statement := "Every Integer representation has a nonzero denominator and reconstructs its mathematical integer value exactly."
     source := "base/float.jl:745"
-    status := .proven, prop := ``GenericIntegerDecomposition, thm := some ``genericIntegerDecomposition_proven },
+    status := .proven, prop := ``GenericIntegerDecomposition, thm := some ``JuliaLean.ChatGPT.Batch4.Group16.FloatGenericIntegerDecomposition_proven },
   { id := "float-generic-array-conversion"
     juliaFile := "base/float.jl"
     juliaFns := ["float(::AbstractArray{T})"]
@@ -10735,8 +13282,8 @@ def entries : List Entry := [
     status := .proven, prop := ``MixedCompareSmall, thm := some ``mixedCompareSmall_proven },
   { id := "floatfuncs-trunc-int-exact"
     juliaFile := "base/float.jl"
-    juliaFns := ["round(::Type{Ti}, ::Tf, ::RoundingMode{:ToZero})", "unsafe_trunc(::Type{Ti}, ::Tf)", "round(::Type{Signed}, ::IEEEFloat, ::RoundingMode)", "round(::Type{Unsigned}, ::IEEEFloat, ::RoundingMode)", "round(::Type{Integer}, ::IEEEFloat, ::RoundingMode)"]
-    statement := "For every IEEEFloat format Tf and BitInteger type Ti, round(Ti, x, RoundToZero) returns the exact integer truncation toward zero when x is finite and in Ti's range and throws InexactError(:round) otherwise; unsafe_trunc agrees on all in-range inputs."
+    juliaFns := ["round(::Type{Ti}, ::Tf, ::RoundingMode{:ToZero})", "unsafe_trunc(::Type{Ti}, ::Tf)", "unsafe_trunc(::Type{Int8/16/32/64}, ::IEEEFloat)", "unsafe_trunc(::Type{UInt8/16/32/64}, ::IEEEFloat)", "round(::Type{Signed}, ::IEEEFloat, ::RoundingMode)", "round(::Type{Unsigned}, ::IEEEFloat, ::RoundingMode)", "round(::Type{Integer}, ::IEEEFloat, ::RoundingMode)"]
+    statement := "For every IEEEFloat format Tf and BitInteger type Ti, round(Ti, x, RoundToZero) returns the exact integer truncation toward zero when x is finite and in Ti's range and throws InexactError(:round) otherwise; unsafe_trunc (including the signed and unsigned 8/16/32/64-bit fptosi/fptoui loops and 128-bit methods) agrees on all in-range inputs."
     source := "base/float.jl:408-456,881-931"
     status := .proven, prop := ``TruncIntExact, thm := some ``truncIntExact_proven },
   { id := "floatfuncs-int-convert-exact"
@@ -10757,12 +13304,6 @@ def entries : List Entry := [
     statement := "For Float16, Float32, and Float64, sign_mask, exponent_mask, and significand_mask are disjoint and partition all bits; exponent/significand metadata match IEEE 754 parameters; mantissa extracts the significand bits; and reinterpret round-trips with integer bit patterns."
     source := "base/float.jl:1-170,1135-1150"
     status := .proven, prop := ``FloatBitLayoutInvariants, thm := some ``floatBitLayoutInvariants_proven },
-  { id := "float-ieee754-representation-spec"
-    juliaFile := "base/float.jl"
-    juliaFns := ["ieee754_representation"]
-    statement := "ieee754_representation packs sign, biased exponent, and significand into the exact IEEE 754 bit pattern, and its :omega, :nan, :inf, :subnormal, and :zero overloads produce ±floatmax, quiet/payload NaNs, ±Inf, subnormals, and ±0.0."
-    source := "base/float.jl:171-224"
-    status := .proven, prop := ``FloatIeee754RepresentationSpec, thm := some ``floatIeee754RepresentationSpec_proven },
   { id := "float-classification-and-decompose"
     juliaFile := "base/float.jl"
     juliaFns := ["isnan", "isfinite", "isinf", "decompose(::Integer)", "decompose(::Float16)", "decompose(::Float32)", "decompose(::Float64)"]
@@ -10783,10 +13324,10 @@ def entries : List Entry := [
     status := .proven, prop := ``FloatIeeeEqLtLe, thm := some ``floatIeeeEqLtLe_proven },
   { id := "float-round-llvm-and-convert"
     juliaFile := "base/float.jl"
-    juliaFns := ["round(::IEEEFloat, ::RoundingMode{:ToZero})", "round(::IEEEFloat, ::RoundingMode{:Down})", "round(::IEEEFloat, ::RoundingMode{:Up})", "round(::IEEEFloat, ::RoundingMode{:Nearest})", "rounds_up", "_round_convert"]
-    statement := "IEEEFloat round modes preserve non-finite and zero inputs, round finite non-zero values by truncated/floored/ceiled integer quotients with sign preservation, and _round_convert adjusts converted integers by one ulp according to rounds_up."
-    source := "base/float.jl:457-476"
-    status := .proven, prop := ``FloatRoundLlvmAndConvert, thm := some ``floatRoundLlvmAndConvert_proven },
+    juliaFns := ["round(::Type{T},x,r)@490", "_round_convert@467"]
+    statement := "IEEEFloat rounding preserves infinities and zeros, rounds finite nonzero inputs by the documented quotient rules, and directed conversion chooses the extremal integer-valued float on the requested side. NaN results are stated by class only, without sign or payload claims."
+    source := "base/rounding.jl:335-354,490-491; base/float.jl:458-473; base/floatfuncs.jl:160-162; src/runtime_intrinsics.c:1812-1825; JuliaLean/base/float.lean:2238-2239"
+    status := .proven, prop := ``FloatRoundLlvmAndConvert, thm := some ``FloatRoundDirections.floatRoundLlvmAndConvert_proven },
   { id := "float-arithmetic-and-nan-propagation"
     juliaFile := "base/float.jl"
     juliaFns := ["-(::IEEEFloat)", "+(::IEEEFloat, ::IEEEFloat)", "-(::IEEEFloat, ::IEEEFloat)", "*(::IEEEFloat, ::IEEEFloat)", "/(::IEEEFloat, ::IEEEFloat)", "muladd(::IEEEFloat, ::IEEEFloat, ::IEEEFloat)", "abs(::IEEEFloat)"]
@@ -10810,7 +13351,7 @@ def entries : List Entry := [
     juliaFns := ["bswap(::IEEEFloat)", "float(::AbstractArray)", "float(::StepRange)", "float(::UnitRange)", "float(::StepRangeLen)", "float(::LinRange)"]
     statement := "bswap on IEEEFloat reverses the byte order of the underlying unsigned bit pattern as an involution, and float on arrays and ranges converts concrete elements or range endpoints while rejecting abstractly-typed arrays with ErrorException."
     source := "base/float.jl:1132-1134,1166-1180"
-    status := .proven, prop := ``FloatBswapAndCollections, thm := some ``floatBswapAndCollections_proven }
+    status := .proven, prop := ``FloatBswapAndCollections, thm := some ``floatBswapAndCollections_proven },
 ]
 
 

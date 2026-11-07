@@ -67,5 +67,5 @@ duplicates:
   issues: []
   queries: ["nextfloat typemin BigFloat", "prevfloat typemin BigFloat", "nextfloat! hang", "PR nextfloat typemin BigFloat", "PR prevfloat typemin BigFloat"]
 lean:
-  property: JuliaLean.BigNumsCov.Mpfr.BigFloatStepTerminates
-  theorem: JuliaLean.BigNumsCov.Mpfr.bigFloatStepTerminates_refuted
+  property: JuliaLean.Proofs.base.mpfr.LegacyRetired.BigFloatStepTerminates
+  theorem: JuliaLean.Proofs.base.mpfr.LegacyRetired.bigFloatStepTerminates_refuted

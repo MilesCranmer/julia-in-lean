@@ -1,4 +1,6 @@
 import JuliaLean.base.operators
+import JuliaLean.base.generator
+import JuliaLean.base.reduce
 
 /-!
 # Model of `base/anyall.jl`
@@ -124,6 +126,24 @@ def anyAny {ε I α : Type} (items : I → List α) (f : α → Except ε Predic
         | .ok (.bool false) => loop anymissing rest
         | .ok .other => .error .typeError
   loop false (items itr)
+
+/-- anyall.jl:120-132 `_any(f, itr, :)` with `for x in itr` lowered to the
+collection's own `iterate` (`iterate(itr)`, then `iterate(itr, state)`): a `missing` value sets
+`anymissing` and iteration continues (anyall.jl:125-127), `v && return true` stops at the first
+`true` without iterating further, and once `iterate` returns `nothing` the result is `missing`
+if `anymissing`, else `false`. An exception from `iterate` or `f` propagates; an `iterate`
+that never returns `nothing` gives `none`. -/
+def anyIterate {E A St : Type} (iterate : Option St → ExceptT E Option (Option (A × St)))
+    (f : A → ExceptT E Option operators.Truth) (anymissing : Bool) (state : Option St) :
+    ExceptT E Option operators.Truth := do
+  match ← iterate state with
+  | none => pure (if anymissing then .missing else .false)
+  | some (x, next) =>
+      match ← f x with
+      | .missing => anyIterate iterate f true (some next)
+      | .true => pure .true
+      | .false => anyIterate iterate f anymissing (some next)
+partial_fixpoint
 
 /--
 Julia source: base/anyall.jl:137-147 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -379,3 +399,90 @@ def allBoolTupleCall {ε : Type} (_f : Bool → Except ε PredicateValue)
   .ok (some (allBoolTuple itr c))
 
 end JuliaLean.base.anyall
+
+namespace JuliaLean.IteratorsCov
+
+inductive Truth where
+  | false_ | true_ | missing | other
+  deriving Repr, DecidableEq
+
+abbrev TruthResult := R (Option Bool)
+
+/-- The generated `_any(f, itr, :)` loop at `base/anyall.jl:120-132`. -/
+def anyLoop : Bool → List Truth → TruthResult
+  | anymissing, [] => .ok (if anymissing then none else some false)
+  | _, .true_ :: _ => .ok (some true)
+  | anymissing, .false_ :: rest => anyLoop anymissing rest
+  | _, .other :: _ => .error .typeError
+  | _, .missing :: rest => anyLoop true rest
+
+/-- The recursive `_any_tuple` methods at `base/anyall.jl:159-168`. -/
+def anyTuple : Bool → List Truth → TruthResult
+  | anymissing, [] => .ok (if anymissing then none else some false)
+  | _, .true_ :: _ => .ok (some true)
+  | anymissing, .false_ :: rest => anyTuple anymissing rest
+  | _, .other :: _ => .error .typeError
+  | _, .missing :: rest => anyTuple true rest
+
+/-- The side-effect-free Bool tuple specialization at `base/anyall.jl:137-147`. -/
+def anyBoolTuple : List Bool → Bool
+  | [] => false
+  | x :: xs => x || anyBoolTuple xs
+
+/-- `any(itr) = any(identity, itr)` (41) and `any(f, itr) = _any(f, itr, :)`
+(115), after applying the predicate. -/
+def anyIdentity (xs : List Truth) : TruthResult := anyLoop false xs
+def anyPred (f : α → Truth) (xs : List α) : TruthResult := anyLoop false (xs.map f)
+
+/-- The generated `_all(f, itr, :)` loop at `base/anyall.jl:207-219`. -/
+def allLoop : Bool → List Truth → TruthResult
+  | anymissing, [] => .ok (if anymissing then none else some true)
+  | _, .false_ :: _ => .ok (some false)
+  | anymissing, .true_ :: rest => allLoop anymissing rest
+  | _, .other :: _ => .error .typeError
+  | _, .missing :: rest => allLoop true rest
+
+/-- The recursive `_all_tuple` methods at `base/anyall.jl:245-257`. -/
+def allTuple : Bool → List Truth → TruthResult
+  | anymissing, [] => .ok (if anymissing then none else some true)
+  | _, .false_ :: _ => .ok (some false)
+  | anymissing, .true_ :: rest => allTuple anymissing rest
+  | _, .other :: _ => .error .typeError
+  | _, .missing :: rest => allTuple true rest
+
+/-- The side-effect-free Bool tuple specialization at `base/anyall.jl:224-234`. -/
+def allBoolTuple : List Bool → Bool
+  | [] => true
+  | x :: xs => x && allBoolTuple xs
+
+/-- `all(itr) = all(identity, itr)` (80) and `all(f, itr) = _all(f, itr, :)`
+(202), after applying the predicate. -/
+def allIdentity (xs : List Truth) : TruthResult := allLoop false xs
+def allPred (f : α → Truth) (xs : List α) : TruthResult := allLoop false (xs.map f)
+
+end JuliaLean.IteratorsCov
+
+namespace JuliaLean.Reduce.Vec
+
+/-- `any(f, itr)`, `base/anyall.jl:115-130`: short-circuits on the first `true`; a
+non-`Bool`, non-`missing` value of `f` throws `TypeError` in `v && return true`. -/
+def any (f : Val → Val) : List Val → R Val
+  | [] => .ok (.bool false)
+  | x :: rest =>
+    match f x with
+    | .missing => (any f rest).map fun r => if r = .bool false then .missing else r
+    | .bool true => .ok (.bool true)
+    | .bool false => any f rest
+    | _ => .error .typeError
+
+/-- `all(f, itr)`, `base/anyall.jl:202-217`. -/
+def all (f : Val → Val) : List Val → R Val
+  | [] => .ok (.bool true)
+  | x :: rest =>
+    match f x with
+    | .missing => (all f rest).map fun r => if r = .bool true then .missing else r
+    | .bool false => .ok (.bool false)
+    | .bool true => all f rest
+    | _ => .error .typeError
+
+end JuliaLean.Reduce.Vec

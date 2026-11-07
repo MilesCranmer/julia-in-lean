@@ -1,6 +1,10 @@
 import JuliaLean.base.abstractarraymath
 import JuliaLean.base.array
 import JuliaLean.Registry.Types
+import JuliaLean.Proofs.base.abstractarraymath.broadcast_arrays
+import JuliaLean.Proofs.base.abstractarraymath.cartesian_shapes
+import JuliaLean.Proofs.base.abstractarraymath.cartesian_refutations
+import JuliaLean.Proofs.base.abstractarraymath.circshift
 
 /-!
 # Properties of `base/abstractarraymath.jl`
@@ -137,7 +141,7 @@ def ArrayTransformSpec : Prop :=
 
 def ArrayIdentitySpec : Prop :=
   ∀ (A : Type) (a : A),
-    conjRealArray a = a ∧ realRealArray a = a ∧
+    conjBangReal a = a ∧ conjRealArray a = a ∧ realRealArray a = a ∧
     unaryPlusArray a = a ∧ unaryMulArray a = a
 
 def ImaginaryRealArraySpec : Prop :=
@@ -175,6 +179,7 @@ structure SelectdimInterfaces (A D Ix Ax V : Type) where
   colon : Ix
   setindex : Ix → D → List Ix → List Ix
   dimensionAtLeastOne : D → Result Bool
+  showDim : D → String
   ndims : A → I64
   dimensionGreater : D → I64 → Result Bool
   indexEqualsOne : Ix → Result Bool
@@ -199,7 +204,7 @@ def SelectdimInRange : Prop :=
     ops.dimensionGreater d (ops.ndims a) = .ok false →
     ops.oneDimensional i →
     selectdim ops.axes ops.colon ops.setindex
-      (selectdimInternal ops.dimensionAtLeastOne ops.ndims ops.dimensionGreater
+      (selectdimInternal ops.dimensionAtLeastOne ops.showDim ops.ndims ops.dimensionGreater
         ops.indexEqualsOne ops.minusOne ops.ntupleColons ops.boundsError ops.view)
       a d i = ops.view a (selectedIndices (ops.ndims a).val.toNat (ops.dimensionToNat d) i ops.colon)
 
@@ -211,7 +216,7 @@ def SelectdimViewAgrees : Prop :=
     ops.dimensionAtLeastOne d = .ok true →
     ops.oneDimensional i →
     selectdim ops.axes ops.colon ops.setindex
-      (selectdimInternal ops.dimensionAtLeastOne ops.ndims ops.dimensionGreater
+      (selectdimInternal ops.dimensionAtLeastOne ops.showDim ops.ndims ops.dimensionGreater
         ops.indexEqualsOne ops.minusOne ops.ntupleColons ops.boundsError ops.view)
       a d i = ops.view a (selectedIndices (ops.ndims a).val.toNat (ops.dimensionToNat d) i ops.colon)
 
@@ -222,7 +227,7 @@ def SelectdimInBounds : Prop :=
         selectedIndices (ops.ndims a).val.toNat (ops.dimensionToNat d) i ops.colon) →
     ¬ ops.isSlice i →
     match selectdim ops.axes ops.colon ops.setindex
-      (selectdimInternal ops.dimensionAtLeastOne ops.ndims ops.dimensionGreater
+      (selectdimInternal ops.dimensionAtLeastOne ops.showDim ops.ndims ops.dimensionGreater
         ops.indexEqualsOne ops.minusOne ops.ntupleColons ops.boundsError ops.view)
       a d i with
     | .error _ => True
@@ -316,6 +321,7 @@ structure RepeatContext (α A E C I Ix Selector : Type) where
   any : (C → MutationM α Bool) → CountArg C I → MutationM α Bool
   countLength : CountArg C I → MutationM α I64
   ndims : A → I64
+  showCounts : CountArg C I → String
   collect : I → MutationM α (List C)
   tuple : List C → List C
   fillToLength : List C → C → Nat → List C
@@ -339,7 +345,7 @@ def RepeatShape : Prop :=
     let innerArg := inner.map CountArg.tuple
     let outerArg := outer.map CountArg.tuple
     let check := RepeatInnerOuter.checkDispatch ctx.requireOneBased ctx.isInteger ctx.isNegative
-      ctx.all ctx.any ctx.countLength ctx.ndims
+      ctx.all ctx.any ctx.countLength ctx.ndims ctx.showCounts
     let resolve := RepeatInnerOuter.resolveDispatch ctx.rank ctx.arrayOps.size ctx.collect ctx.tuple
       ctx.fillToLength ctx.arrayOps.one ctx.reshape
     let repeatFn := RepeatInnerOuter.repeatInnerOuterDispatch ctx.arrayOps ctx.rank
@@ -393,7 +399,7 @@ def RepeatCheckSpec : Prop :=
     innerInvalid ∨ (outerInvalid ∧ innerValid)) →
     match (runMutation
       (RepeatInnerOuter.check ctx.requireOneBased ctx.isInteger ctx.isNegative
-        ctx.all ctx.any ctx.countLength ctx.ndims a inner outer) state).1 with
+        ctx.all ctx.any ctx.countLength ctx.ndims ctx.showCounts a inner outer) state).1 with
     | .error (.argument _) => True
     | _ => False
 def RepeatFullSpec : Prop := RepeatShape ∧ RepeatCheckSpec
@@ -428,87 +434,719 @@ def RepeatVectorSpec : Prop := RepeatVectorContent ∧ RepeatVectorOverflow ∧ 
 
 /-! ## Registry entries -/
 
+end JuliaLean.Proofs.base.abstractarraymath
+
+
+/-! Completed array contracts and reusable partial results for batch 4, group 24. -/
+
+namespace JuliaLean.ChatGPT.Batch4.Group24
+open JuliaLean
+open JuliaLean.base.array JuliaLean.base.abstractarraymath
+open JuliaLean.Proofs.base.abstractarraymath
+
+/-- aam-array-predicates -/
+theorem AamArrayPredicates : JuliaLean.Proofs.base.abstractarraymath.ArrayPredicateSpec := by
+  intro E A all elements isreal iszero a hall
+  constructor
+  · change all isreal a = .ok true ↔ _
+    rw [hall]
+    simp only [Except.ok.injEq, List.all_eq_true]
+  constructor
+  · change all iszero a = .ok true ↔ _
+    rw [hall]
+    simp only [Except.ok.injEq, List.all_eq_true]
+  · rfl
+
+/-- Vectorization's documented conclusion once the input length is known to succeed. -/
+theorem aam_vec_when_length_succeeds (A B : Type)
+    (length : A → Except Error (JInt .i64))
+    (reshape : A → JInt .i64 → Except Error B)
+    (size : B → Except Error (JInt .i64)) (sharesStorage : A → B → Prop)
+    (a : A) (n : JInt .i64) (hlen : length a = .ok n)
+    (hreshape : ∀ n, length a = .ok n → ∃ b, reshape a n = .ok b)
+    (hresult : ∀ n b, reshape a n = .ok b → size b = .ok n ∧ sharesStorage a b) :
+    (∃ b, vecArray length reshape a = .ok b ∧ size b = length a ∧ sharesStorage a b) ∧
+      vecVector a = a := by
+  obtain ⟨b, hb⟩ := hreshape n hlen
+  refine ⟨⟨b, ?_, (hresult n b hb).1.trans hlen.symm, (hresult n b hb).2⟩, rfl⟩
+  simp only [vecArray, hlen, bind, Except.bind, hb]
+
+/-- Length failures propagate; the frozen vectorization statement omits this possibility. -/
+theorem aam_vec_length_error (A B : Type)
+    (length : A → Except Error (JInt .i64))
+    (reshape : A → JInt .i64 → Except Error B) (a : A) (error : Error)
+    (h : length a = .error error) : vecArray length reshape a = .error error := by
+  simp only [vecArray, h, bind, Except.bind]
+
+/-- Conversion-error component of the dropdims contract. -/
+theorem aam_dropdims_conversion_error (A D B : Type)
+    (toInt : D → Except Error (JInt .i64))
+    (drop : A → List (JInt .i64) → Except Error B) (a : A) (dim : D) (error : Error)
+    (h : toInt dim = .error error) : dropdimsInteger toInt drop a dim = .error error := by
+  simp only [dropdimsInteger, h, bind, Except.bind]
+
+/-- A successful scalar conversion forwards one dimension to the dropdims implementation. -/
+theorem aam_dropdims_conversion_success (A D B : Type)
+    (toInt : D → Except Error (JInt .i64))
+    (drop : A → List (JInt .i64) → Except Error B) (a : A) (dim : D) (d : JInt .i64)
+    (h : toInt dim = .ok d) : dropdimsInteger toInt drop a dim = drop a [d] := by
+  simp only [dropdimsInteger, h, bind, Except.bind]
+
+/-- Conversion-error component of the insertdims contract. -/
+theorem aam_insertdims_conversion_error (A D B : Type)
+    (toInt : D → Except Error (JInt .i64))
+    (insert : A → List (JInt .i64) → Except Error B) (a : A) (dim : D) (error : Error)
+    (h : toInt dim = .error error) : insertdimsInteger toInt insert a dim = .error error := by
+  simp only [insertdimsInteger, h, bind, Except.bind]
+
+/-- A successful scalar conversion forwards one dimension to the insertdims implementation. -/
+theorem aam_insertdims_conversion_success (A D B : Type)
+    (toInt : D → Except Error (JInt .i64))
+    (insert : A → List (JInt .i64) → Except Error B) (a : A) (dim : D) (d : JInt .i64)
+    (h : toInt dim = .ok d) : insertdimsInteger toInt insert a dim = insert a [d] := by
+  simp only [insertdimsInteger, h, bind, Except.bind]
+
+/-- aam-elementwise -/
+theorem AamElementwise : JuliaLean.Proofs.base.abstractarraymath.ArrayTransformSpec := by
+  intro A E F B broadcast elements outputElements shape outputShape conj real imag neg a h
+  exact ⟨h conj a, h real a, h imag a, h neg a⟩
+
+/-- aam-array-identities -/
+theorem AamArrayIdentities : JuliaLean.Proofs.base.abstractarraymath.ArrayIdentitySpec := by
+  intro A a
+  exact ⟨rfl, rfl, rfl, rfl, rfl⟩
+
+/-- aam-imag-real-zero -/
+theorem AamImagRealZero : JuliaLean.Proofs.base.abstractarraymath.ImaginaryRealArraySpec := by
+  intro A B zero shape outputShape allZero a h
+  exact h
+
+/-- A stateful effect followed by returning the input retains the effect's final state. -/
+theorem aam_effect_then_return {E A : Type}
+    (effect : JuliaLean.base.array.MutationM E Unit) (a out : A)
+    (before after : MutableMemory E)
+    (h : runMutation (do effect; pure a) before = (.ok out, after)) :
+    out = a ∧ runMutation effect before = (.ok (), after) := by
+  simp only [runMutation, bind, ExceptT.bind, StateT.bind, pure, ExceptT.pure,
+    ExceptT.run, ExceptT.mk, ExceptT.bindCont, StateT.run] at h
+  cases he : effect.run before with
+  | mk result final =>
+    cases result with
+    | error error =>
+      simp only [ExceptT.run] at he
+      rw [he] at h
+      cases h
+    | ok value =>
+      cases value
+      simp only [ExceptT.run] at he
+      rw [he] at h
+      simp only [StateT.pure, pure, Prod.mk.injEq, Except.ok.injEq] at h
+      refine ⟨h.1.symm, ?_⟩
+      change effect before = (Except.ok (), after)
+      rw [he, h.2]
+
+/-- aam-conj-bang-numbers -/
+theorem AamConjBangNumbers : JuliaLean.Proofs.base.abstractarraymath.ConjBangNumbersSpec := by
+  intro E A contents broadcastBang conj a before after out hb h
+  obtain ⟨hout, heffect⟩ := aam_effect_then_return (broadcastBang conj a a) a out before after h
+  exact ⟨hout, hb conj a before after heffect⟩
+
+/-- aam-conj-bang-nested -/
+theorem AamConjBangNested : JuliaLean.Proofs.base.abstractarraymath.ConjBangNestedSpec := by
+  intro E A contents allConjugated foreach conjBang a before after out hf h
+  obtain ⟨hout, heffect⟩ := aam_effect_then_return (foreach conjBang a) a out before after h
+  exact ⟨hout, hf conjBang a before after heffect⟩
+
+/-- multidim-selectdim-in-range -/
+theorem MultidimSelectdimInRange : JuliaLean.Proofs.base.abstractarraymath.SelectdimInRange := by
+  intro A D Ix Ax V ops a d i haxes hmin hmax hi
+  obtain ⟨axes, haxes, hindices⟩ := haxes
+  simp only [selectdim, haxes, Except.bind, bind]
+  rw [hindices]
+  simp only [selectdimInternal, hmin, hmax, Except.bind, bind,
+    Bool.not_true, Bool.false_eq_true, ↓reduceIte]
+
+inductive AamTrailingIndex where
+  | colon
+  | oneRange
+  deriving DecidableEq
+
+def aamTrailingView (a : List Int) (indices : List AamTrailingIndex) :
+    Except Error (List Nat) :=
+  match indices with
+  | [] => if a.length = 1 then .ok [] else .error .bounds
+  | index :: rest =>
+      if index = .oneRange ∧ a.isEmpty then .error .bounds
+      else .ok ((if index = .colon then a.length else 1) :: rest.map (fun _ => 1))
+
+def aamTrailingOps : SelectdimInterfaces (List Int) Nat AamTrailingIndex Nat (List Nat) where
+  axes a := .ok [a.length]
+  colon := .colon
+  setindex i d indices := indices.take (d - 1) ++
+    List.replicate (d - 1 - indices.length) .colon ++ [i] ++ indices.drop d
+  dimensionAtLeastOne d := .ok (decide (1 ≤ d))
+  showDim d := toString d
+  ndims _ := int 1
+  dimensionGreater d n := .ok (decide (n.val < Int.ofNat d))
+  indexEqualsOne _ := .ok false
+  minusOne d := .ok (d - 1)
+  ntupleColons d := .ok (List.replicate d .colon)
+  boundsError _ _ := .bounds
+  view := aamTrailingView
+  dimensionToNat d := d
+  oneDimensional _ := True
+  isSlice i := i = .colon
+  viewInBounds _ _ := true
+
+theorem MultidimSelectdimTrailing :
+    ¬ JuliaLean.Proofs.base.abstractarraymath.SelectdimViewAgrees := by
+  intro h
+  have bad := h (List Int) Nat AamTrailingIndex Nat (List Nat) aamTrailingOps
+    [10, 20] 2 .oneRange ⟨[2], rfl, rfl⟩ rfl True.intro
+  change (Except.error Error.bounds : Except Error (List Nat)) = .ok [2, 1] at bad
+  cases bad
+
+theorem aam_run_bind {E A B : Type} (m : JuliaLean.base.array.MutationM E A)
+    (f : A → JuliaLean.base.array.MutationM E B) (state : MutableMemory E) :
+    runMutation (m >>= f) state =
+      match runMutation m state with
+      | (.error error, after) => (.error error, after)
+      | (.ok value, after) => runMutation (f value) after := by
+  simp only [runMutation, bind, ExceptT.bind, ExceptT.run, ExceptT.mk, StateT.bind, StateT.run]
+  cases h : m state with
+  | mk result after =>
+    cases result <;> rfl
+
+theorem aam_run_pure {E A : Type} (value : A) (state : MutableMemory E) :
+    runMutation (pure value) state = (Except.ok value, state) := rfl
+
+theorem aam_run_throw {E A : Type} (error : Error) (state : MutableMemory E) :
+    runMutation (throw error : JuliaLean.base.array.MutationM E A) state =
+      (Except.error error, state) := rfl
+
+theorem aam_run_bind_success {E A B : Type} (m : JuliaLean.base.array.MutationM E A)
+    (f : A → JuliaLean.base.array.MutationM E B) (before : MutableMemory E)
+    (out : B) (after : MutableMemory E)
+    (h : runMutation (m >>= f) before = (Except.ok out, after)) :
+    ∃ value middle, runMutation m before = (Except.ok value, middle) ∧
+      runMutation (f value) middle = (Except.ok out, after) := by
+  rw [aam_run_bind] at h
+  cases hfirst : runMutation m before with
+  | mk result middle =>
+    cases result with
+    | error error => rw [hfirst] at h; cases h
+    | ok value =>
+      rw [hfirst] at h
+      exact ⟨value, middle, rfl, h⟩
+
+
+/-- Successful mapping preserves every observation preserved by each individual conversion. -/
+theorem aam_mapMList_preserves {E R S O : Type}
+    (f : R → JuliaLean.base.array.MutationM E S) (observe : MutableMemory E → O)
+    (hf : ∀ value before out after,
+      runMutation (f value) before = (.ok out, after) → observe after = observe before)
+    (values : List R) (before after : MutableMemory E) (out : List S)
+    (h : runMutation (mapMList f values) before = (.ok out, after)) :
+    observe after = observe before := by
+  induction values generalizing before after out with
+  | nil =>
+      rw [mapMList, aam_run_pure] at h
+      have hs : before = after := congrArg Prod.snd h
+      rw [← hs]
+  | cons value values ih =>
+      obtain ⟨converted, middle, hconverted, hrest⟩ :=
+        aam_run_bind_success (f value)
+          (fun converted => do
+            let rest ← mapMList f values
+            pure (converted :: rest)) before out after h
+      obtain ⟨rest, final, hrest, hpure⟩ :=
+        aam_run_bind_success (mapMList f values)
+          (fun rest => pure (converted :: rest)) middle out after hrest
+      rw [aam_run_pure] at hpure
+      have hs : final = after := congrArg Prod.snd hpure
+      rw [← hs]
+      exact (ih middle final rest hrest).trans (hf value before converted middle hconverted)
+
+/-- The dimension-tuple circshift branch is correct when transformed indices remain observable. -/
+theorem aam_circshift_dims_with_index_closure (E A Ix : Type)
+    (observation : ShiftObservation E A Ix)
+    (similar : A → JuliaLean.base.array.MutationM E A)
+    (circshiftBang : A → A → List (JInt .i64) → JuliaLean.base.array.MutationM E A)
+    (a : A) (shifts : List (JInt .i64)) (state : MutableMemory E)
+    (out : A) (final : MutableMemory E)
+    (hsimilar : ∀ x dest before after,
+      runMutation (similar x) before = (.ok dest, after) →
+        ∀ ix ∈ observation.indices x,
+          observation.contents after x ix = observation.contents before x ix)
+    (hshift : ∀ dest src shifts before out final,
+      runMutation (circshiftBang dest src shifts) before = (.ok out, final) →
+        ∀ ix ∈ observation.indices src,
+          observation.contents final out ix =
+            observation.contents before src
+              (observation.indexAt src
+                (shiftedCoordinates (observation.coordinates ix) (observation.shape src)
+                  (shifts.map fun x => x.val))))
+    (hclosed : ∀ ix ∈ observation.indices a,
+      observation.indexAt a (shiftedCoordinates (observation.coordinates ix)
+        (observation.shape a) (shifts.map fun x => x.val)) ∈ observation.indices a)
+    (h : runMutation (circshiftDims similar circshiftBang a shifts) state = (.ok out, final)) :
+    ∀ ix ∈ observation.indices a,
+      observation.contents final out ix =
+        observation.contents state a
+          (observation.indexAt a (shiftedCoordinates (observation.coordinates ix)
+            (observation.shape a) (shifts.map fun x => x.val))) := by
+  obtain ⟨dest, middle, hsimilarRun, hshiftRun⟩ :=
+    aam_run_bind_success (similar a) (fun dest => circshiftBang dest a shifts) state out final h
+  intro ix hix
+  exact (hshift dest a shifts middle out final hshiftRun ix hix).trans
+    (hsimilar a dest state middle hsimilarRun _ (hclosed ix hix))
+
+/-- The messages of the inner (`true`) and outer (`false`) count checks. -/
+def aamRepeatMessages {α A E C I Ix Selector : Type}
+    (ctx : RepeatContext α A E C I Ix Selector) (a : A) (counts : CountArg C I) :
+    Bool → String × String × (JInt .i64 → String)
+  | true => ("repeat requires integer counts, got inner = " ++ ctx.showCounts counts,
+      "no inner repetition count may be negative; got " ++ ctx.showCounts counts,
+      fun n => "number of inner repetitions (" ++ toString n.val ++
+        ") cannot be less than number of dimensions of input array (" ++
+        toString (ctx.ndims a).val ++ ")")
+  | false => ("repeat requires integer counts, got outer = " ++ ctx.showCounts counts,
+      "no outer repetition count may be negative; got " ++ ctx.showCounts counts,
+      fun n => "number of outer repetitions (" ++ toString n.val ++
+        ") cannot be less than number of dimensions of input array (" ++
+        toString (ctx.ndims a).val ++ ")")
+
+/-- The count-validation block shared by the inner and outer repeat checks. -/
+def aam_repeat_count_check {α A E C I Ix Selector : Type}
+    (ctx : RepeatContext α A E C I Ix Selector) (a : A)
+    (counts : CountArg C I) (checkLength isInner : Bool) : JuliaLean.base.array.MutationM α Unit := do
+  if !(<- ctx.all (fun x => pure (ctx.isInteger x)) counts) then
+    throw (.argument (aamRepeatMessages ctx a counts isInner).1)
+  if <- ctx.any (fun x => pure (ctx.isNegative x)) counts then
+    throw (.argument (aamRepeatMessages ctx a counts isInner).2.1)
+  if (<- ctx.countLength counts) < ctx.ndims a then
+    if checkLength then
+      throw (.argument ((aamRepeatMessages ctx a counts isInner).2.2 (<- ctx.countLength counts)))
+
+theorem aam_repeat_count_check_failure {α A E C I Ix Selector : Type}
+    (ctx : RepeatContext α A E C I Ix Selector) (a : A)
+    (state : MutableMemory α) (counts : CountArg C I) (checkLength : Bool)
+    (isInner : Bool)
+    (h : repeatCountFailure ctx a state counts checkLength) :
+    ∃ message, runMutation (aam_repeat_count_check ctx a counts checkLength isInner)
+      state = (.error (.argument message), state) := by
+  dsimp only [repeatCountFailure] at h
+  rcases h with ⟨hstate, hall | ⟨hall, hnstate, hnegative | ⟨hnegative, hcheck, n, hn, hlt⟩⟩⟩
+  · have ha : runMutation (ctx.all (fun x => pure (ctx.isInteger x)) counts) state =
+        (.ok false, state) := Prod.ext hall hstate
+    refine ⟨(aamRepeatMessages ctx a counts isInner).1, ?_⟩
+    simp only [aam_repeat_count_check, aam_run_bind, ha, Bool.not_false,
+      ↓reduceIte, aam_run_throw, aam_run_pure]
+  · have ha : runMutation (ctx.all (fun x => pure (ctx.isInteger x)) counts) state =
+        (.ok true, state) := Prod.ext hall hstate
+    have hb : runMutation (ctx.any (fun x => pure (ctx.isNegative x)) counts) state =
+        (.ok true, state) := Prod.ext hnegative hnstate
+    refine ⟨(aamRepeatMessages ctx a counts isInner).2.1, ?_⟩
+    simp only [aam_repeat_count_check, aam_run_bind, ha, hb, Bool.not_true,
+      Bool.false_eq_true, ↓reduceIte, aam_run_throw, aam_run_pure]
+  · have ha : runMutation (ctx.all (fun x => pure (ctx.isInteger x)) counts) state =
+        (.ok true, state) := Prod.ext hall hstate
+    have hb : runMutation (ctx.any (fun x => pure (ctx.isNegative x)) counts) state =
+        (.ok false, state) := Prod.ext hnegative hnstate
+    refine ⟨(aamRepeatMessages ctx a counts isInner).2.2 n, ?_⟩
+    simp only [aam_repeat_count_check, aam_run_bind, ha, hb, hn, hlt, hcheck,
+      Bool.not_true, Bool.false_eq_true, ↓reduceIte, aam_run_throw, aam_run_pure]
+
+theorem aam_repeat_count_check_valid {α A E C I Ix Selector : Type}
+    (ctx : RepeatContext α A E C I Ix Selector) (a : A)
+    (state : MutableMemory α) (counts : CountArg C I) (checkLength : Bool)
+    (isInner : Bool)
+    (h : repeatCountValid ctx a state counts) :
+    runMutation (aam_repeat_count_check ctx a counts checkLength isInner)
+      state = (.ok (), state) := by
+  rcases h with ⟨ha, hb, n, hn, hge⟩
+  have hnot : ¬ n < ctx.ndims a := by
+    change ¬ n.val < (ctx.ndims a).val
+    exact Int.not_lt.mpr hge
+  simp only [aam_repeat_count_check, aam_run_bind, ha, hb, hn, hnot,
+    Bool.not_true, Bool.false_eq_true, ↓reduceIte, aam_run_throw, aam_run_pure]
+
+theorem aam_bind_ite {E A B : Type} (p : Prop) [Decidable p]
+    (yes no : JuliaLean.base.array.MutationM E A)
+    (next : A → JuliaLean.base.array.MutationM E B) :
+    ((if p then yes else no) >>= next) =
+      (if p then yes >>= next else no >>= next) := by
+  split <;> rfl
+
+theorem aam_throw_bind {E A B : Type} (error : Error)
+    (next : A → JuliaLean.base.array.MutationM E B) :
+    ((throw error : JuliaLean.base.array.MutationM E A) >>= next) = throw error := rfl
+
+theorem aam_repeat_check_decompose {α A E C I Ix Selector : Type}
+    (ctx : RepeatContext α A E C I Ix Selector) (a : A)
+    (inner outer : Option (CountArg C I)) :
+    RepeatInnerOuter.check ctx.requireOneBased ctx.isInteger ctx.isNegative ctx.all ctx.any
+      ctx.countLength ctx.ndims ctx.showCounts a inner outer =
+    (do
+      if let some counts := inner then
+        ctx.requireOneBased a
+        aam_repeat_count_check ctx a counts true true
+      if let some counts := outer then
+        aam_repeat_count_check ctx a counts inner.isSome false) := by
+  cases inner <;> cases outer <;>
+    simp only [RepeatInnerOuter.check, aam_repeat_count_check, aamRepeatMessages,
+      Option.isSome_some, Option.isSome_none, bind_assoc, aam_bind_ite, aam_throw_bind, pure_bind,
+      bind_pure, ↓reduceIte]
+
+/-- The validation half of RepeatFullSpec follows from its stated inspection hypotheses. -/
+theorem aam_repeat_check_spec : JuliaLean.Proofs.base.abstractarraymath.RepeatCheckSpec := by
+  intro α A E C I Ix Selector ctx a inner outer state hrequire hbad
+  rw [aam_repeat_check_decompose]
+  cases hi : inner with
+  | none =>
+      cases ho : outer with
+      | none => simp only [hi, ho, false_or, false_and] at hbad
+      | some counts =>
+          simp only [hi, ho, Option.isSome_none, false_or, and_true] at hbad
+          obtain ⟨message, hm⟩ := aam_repeat_count_check_failure ctx a state counts false false hbad
+          simp only [hi, ho, Option.isSome_none, aam_run_bind, aam_run_pure, hm]
+  | some counts =>
+      have hr : runMutation (ctx.requireOneBased a) state = (.ok (), state) :=
+        hrequire (by simp only [hi, Option.isSome_some])
+      cases ho : outer with
+      | none =>
+          simp only [hi, ho, false_and, or_false] at hbad
+          obtain ⟨message, hm⟩ := aam_repeat_count_check_failure ctx a state counts true true hbad
+          simp only [hi, ho, aam_run_bind, aam_run_pure, hr, hm]
+      | some outerCounts =>
+          simp only [hi, ho, Option.isSome_some] at hbad
+          rcases hbad with hf | ⟨hf, hv⟩
+          · obtain ⟨message, hm⟩ := aam_repeat_count_check_failure ctx a state counts true true hf
+            simp only [hi, ho, aam_run_bind, aam_run_pure, hr, hm]
+          · have hm := aam_repeat_count_check_valid ctx a state counts true true hv
+            obtain ⟨message, hoFail⟩ :=
+              aam_repeat_count_check_failure ctx a state outerCounts true false hf
+            simp only [hi, ho, Option.isSome_some, aam_run_bind, aam_run_pure, hr, hm, hoFail]
+
+
+end JuliaLean.ChatGPT.Batch4.Group24
+
+
+/-!
+Finite diagnostics for missing interface assumptions. These are not claims about Julia bugs.
+The frozen properties and their target theorem names are left unchanged and unfilled.
+-/
+namespace JuliaLean.ChatGPT.Batch4.Group24
+open JuliaLean JuliaLean.base.array JuliaLean.base.abstractarraymath
+open JuliaLean.Proofs.base.abstractarraymath
+
+def aamFailingLength (_ : Unit) : Except Error (JInt .i64) := .error .bounds
+def aamFailingReshape (_ : Unit) (_ : JInt .i64) : Except Error Unit := .error .bounds
+
+theorem aam_vectorization_vacuous_premises :
+    (∀ n, aamFailingLength () = .ok n → ∃ b, aamFailingReshape () n = .ok b) ∧
+    (∀ n b, aamFailingReshape () n = .ok b →
+      (Except.ok (int 0) : Except Error (JInt .i64)) = .ok n ∧ True) ∧
+    ¬ (∃ b, vecArray aamFailingLength aamFailingReshape () = .ok b) := by
+  constructor
+  · intro n h
+    cases h
+  constructor
+  · intro n b h
+    cases h
+  · intro ⟨b, h⟩
+    cases h
+
+def aamNeverShares (_ _ : Unit) : Prop := False
+
+def aamEmptyDrop : Except Error Unit :=
+  dropdimsDims (fun _ => []) (fun _ _ => .error .bounds)
+    (fun _ : Unit => int 0) (fun _ _ => .ok ()) (fun _ => .ok (int 1))
+    (fun _ => .ok ([] : List Unit)) (fun {S} _ (seed : S) _ => .ok seed)
+    (fun _ => false) subTupleDispatch (fun _ => "") (fun _ xs => .ok xs)
+    (fun _ _ => .ok ()) () []
+
+theorem aam_empty_drop_missing_storage_law :
+    aamEmptyDrop = .ok () ∧ ¬ aamNeverShares () () := ⟨rfl, id⟩
+
+def aamEmptyInsert : Except Error Unit :=
+  insertdimsDims (fun _ => []) (fun _ _ => .error .bounds) 0
+    (fun _ : Unit => fun _ => .ok ()) (fun _ => ())
+    (fun {S} _ (seed : S) _ => .ok seed) (fun _ _ => .ok ()) () []
+
+theorem aam_empty_insert_missing_storage_law :
+    aamEmptyInsert = .ok () ∧ ¬ aamNeverShares () () := ⟨rfl, id⟩
+
+def aamUncheckedViewOps : SelectdimInterfaces Unit Unit Unit Unit Unit where
+  axes _ := .ok [()]
+  colon := ()
+  setindex _ _ _ := [()]
+  dimensionAtLeastOne _ := .ok true
+  showDim _ := ""
+  ndims _ := int 1
+  dimensionGreater _ _ := .ok false
+  indexEqualsOne _ := .ok true
+  minusOne _ := .ok ()
+  ntupleColons _ := .ok []
+  boundsError _ _ := .bounds
+  view _ _ := .ok ()
+  dimensionToNat _ := 1
+  oneDimensional _ := True
+  isSlice _ := False
+  viewInBounds _ _ := false
+
+theorem aam_selectdim_missing_bounds_law :
+    (∃ axes, aamUncheckedViewOps.axes () = .ok axes ∧
+      aamUncheckedViewOps.setindex () () (axes.map fun _ => aamUncheckedViewOps.colon) =
+        selectedIndices (aamUncheckedViewOps.ndims ()).val.toNat
+          (aamUncheckedViewOps.dimensionToNat ()) () aamUncheckedViewOps.colon) ∧
+    ¬ aamUncheckedViewOps.isSlice () ∧
+    selectdim aamUncheckedViewOps.axes aamUncheckedViewOps.colon aamUncheckedViewOps.setindex
+      (selectdimInternal aamUncheckedViewOps.dimensionAtLeastOne aamUncheckedViewOps.showDim
+        aamUncheckedViewOps.ndims
+        aamUncheckedViewOps.dimensionGreater aamUncheckedViewOps.indexEqualsOne
+        aamUncheckedViewOps.minusOne aamUncheckedViewOps.ntupleColons
+        aamUncheckedViewOps.boundsError aamUncheckedViewOps.view) () () () = .ok () ∧
+    aamUncheckedViewOps.viewInBounds () () = false := by
+  exact ⟨⟨[()], rfl, rfl⟩, id, rfl, rfl⟩
+
+/-- Two observed locations, only one of which is protected by the frozen shift hypotheses. -/
+def aamShiftObservation : ShiftObservation Nat Bool Bool where
+  shape _ := [1]
+  indices _ := [false]
+  coordinates _ := [1]
+  indexAt _ _ := true
+  contents state array index :=
+    if array then some state.arrays.length
+    else if index then some state.memories.length else some 0
+
+def aamShiftDummyArray : MutableVector := ⟨(0, int 1), int 0⟩
+
+def aamShiftSimilar (_ : Bool) : JuliaLean.base.array.MutationM Nat Bool :=
+  ExceptT.mk (fun state => (.ok true, { state with memories := [] :: state.memories }))
+
+def aamShiftBang (_dest src : Bool) (_shifts : List (JInt .i64)) :
+    JuliaLean.base.array.MutationM Nat Bool :=
+  ExceptT.mk (fun state => (.ok true,
+    { state with arrays := (List.replicate
+        (if src then state.arrays.length else state.memories.length) aamShiftDummyArray) }))
+
+theorem aam_shift_similar_preserves_observed :
+    ∀ x dest before after,
+      runMutation (aamShiftSimilar x) before = (.ok dest, after) →
+        ∀ ix ∈ aamShiftObservation.indices x,
+          aamShiftObservation.contents after x ix = aamShiftObservation.contents before x ix := by
+  intro x dest before after h ix hix
+  have hs : { before with memories := [] :: before.memories } = after := congrArg Prod.snd h
+  have hi : ix = false := List.mem_singleton.mp hix
+  rw [← hs, hi]
+  cases x <;> rfl
+
+theorem aam_shift_bang_obeys_stated_data_law :
+    ∀ dest src shifts before out final,
+      runMutation (aamShiftBang dest src shifts) before = (.ok out, final) →
+        ∀ ix ∈ aamShiftObservation.indices src,
+          aamShiftObservation.contents final out ix =
+            aamShiftObservation.contents before src
+              (aamShiftObservation.indexAt src
+                (shiftedCoordinates (aamShiftObservation.coordinates ix)
+                  (aamShiftObservation.shape src) (shifts.map fun x => x.val))) := by
+  intro dest src shifts before out final h ix hix
+  have ho : true = out := Except.ok.inj (congrArg Prod.fst h)
+  have hs : { before with arrays := (List.replicate
+      (if src then before.arrays.length else before.memories.length) aamShiftDummyArray) } = final :=
+    congrArg Prod.snd h
+  rw [← hs, ← ho]
+  change some (List.replicate
+      (if src then before.arrays.length else before.memories.length) aamShiftDummyArray).length = _
+  rw [List.length_replicate]
+  cases src <;> rfl
+
+def aamShiftBefore : MutableMemory Nat := ⟨[], []⟩
+def aamShiftAfter : MutableMemory Nat := ⟨[[]], [aamShiftDummyArray]⟩
+
+theorem aam_shift_missing_index_closure :
+    runMutation (circshiftDims aamShiftSimilar aamShiftBang false []) aamShiftBefore =
+      (.ok true, aamShiftAfter) ∧
+    false ∈ aamShiftObservation.indices false ∧
+    aamShiftObservation.contents aamShiftAfter true false = some 1 ∧
+    aamShiftObservation.contents aamShiftBefore false
+      (aamShiftObservation.indexAt false (shiftedCoordinates
+        (aamShiftObservation.coordinates false) (aamShiftObservation.shape false) [])) = some 0 ∧
+    aamShiftObservation.indexAt false [] ∉ aamShiftObservation.indices false := by
+  refine ⟨rfl, by decide, rfl, rfl, ?_⟩
+  decide
+
+/-- All arithmetic is ordinary Int arithmetic; the unregulated allocation callback is the defect. -/
+def aamRepeatOps : RepeatArrayOps Unit Nat Unit Int Unit Unit where
+  size _ := pure [1]
+  sizeAt _ _ := pure 1
+  length _ := pure 1
+  similar1 _ _ := pure 1
+  similar2 _ _ _ := pure 1
+  similarDims _ _ := pure 1
+  one := 1
+  add := (· + ·)
+  sub := (· - ·)
+  mul := (· * ·)
+  checkedMul x y := pure (x * y)
+  range _ _ := pure []
+  rangeSelector _ _ := pure ()
+  matrixIndex _ _ := ()
+  vectorIndex _ := ()
+  cartesianIndicesArray _ := pure []
+  cartesianIndicesDims _ := pure []
+  tupleIndex _ := []
+  cartesianIndex _ := ()
+  zipMap3 _ _ _ _ := []
+  getindex _ _ := pure ()
+  setindex _ _ _ := pure ()
+  setBlock _ _ _ := pure ()
+
+def aamRepeatContext : RepeatContext Unit Nat Unit Int Unit Unit Unit where
+  arrayOps := aamRepeatOps
+  rank _ := 1
+  requireOneBased _ := pure ()
+  isInteger _ := true
+  isNegative n := decide (n < 0)
+  all _ _ := pure true
+  any _ _ := pure false
+  countLength _ := pure (int 1)
+  ndims _ := int 1
+  showCounts _ := ""
+  collect _ := pure []
+  tuple := id
+  fillToLength xs one n := xs ++ List.replicate (n - xs.length) one
+  reshape _ _ := throw .bounds
+
+def aamRepeatState : MutableMemory Unit := ⟨[], []⟩
+
+def aamRepeatCheck := RepeatInnerOuter.checkDispatch
+  aamRepeatContext.requireOneBased aamRepeatContext.isInteger aamRepeatContext.isNegative
+  aamRepeatContext.all aamRepeatContext.any aamRepeatContext.countLength aamRepeatContext.ndims
+  aamRepeatContext.showCounts
+
+def aamRepeatResolve := RepeatInnerOuter.resolveDispatch
+  aamRepeatContext.rank aamRepeatOps.size aamRepeatContext.collect aamRepeatContext.tuple
+  aamRepeatContext.fillToLength aamRepeatOps.one aamRepeatContext.reshape
+
+def aamRepeatExecute := RepeatInnerOuter.repeatInnerOuterDispatch aamRepeatOps aamRepeatContext.rank
+
+theorem aam_repeat_reshape_premise_vacuous :
+    ∀ a dims before reshaped after,
+      runMutation (aamRepeatContext.reshape a dims) before = (.ok reshaped, after) →
+        runMutation (aamRepeatOps.size reshaped) after = (.ok dims, after) := by
+  intro a dims before reshaped after h
+  change (Except.error Error.bounds, before) = (Except.ok reshaped, after) at h
+  cases h
+
+theorem aam_repeat_shape_missing_allocation_law :
+    runMutation (aamRepeatOps.size 0) aamRepeatState = (.ok [1], aamRepeatState) ∧
+    runMutation (aamRepeatCheck 0 (some (.tuple [2])) (some (.tuple [1]))) aamRepeatState =
+      (.ok (), aamRepeatState) ∧
+    runMutation (repeatKeyword
+      (fun a inner outer => RepeatInnerOuter.repeatModule aamRepeatCheck aamRepeatResolve
+        aamRepeatExecute a inner outer)
+      0 (some (.tuple [2])) (some (.tuple [1]))) aamRepeatState = (.ok 1, aamRepeatState) ∧
+    (runMutation (aamRepeatOps.size 1) aamRepeatState).1 = .ok [1] ∧
+    expectedRepeatShape aamRepeatOps.one aamRepeatOps.mul [1] (some [2]) (some [1]) = [2] := by
+  exact ⟨rfl, rfl, rfl, rfl, rfl⟩
+
+def aamRepeatFailingAllocationOps : RepeatArrayOps Unit Nat Unit Int Unit Unit :=
+  { aamRepeatOps with similarDims := fun _ _ => throw .bounds }
+
+theorem aam_repeat_vector_missing_allocation_success :
+    runMutation (aamRepeatFailingAllocationOps.length 0) aamRepeatState =
+      (.ok (1 : Int), aamRepeatState) ∧
+    runMutation
+      (RepeatInnerOuter.repeatInnerOuterBoth
+        (RepeatInnerOuter.repeatInner aamRepeatFailingAllocationOps)
+        (RepeatInnerOuter.repeatOuterDispatch aamRepeatFailingAllocationOps (fun _ => 1))
+        0 [1] [1]) aamRepeatState = (.error .bounds, aamRepeatState) := by
+  exact ⟨rfl, rfl⟩
+
+
+end JuliaLean.ChatGPT.Batch4.Group24
+
+namespace JuliaLean.Proofs.base.abstractarraymath
+
+open JuliaLean.Registry
 def entries : List Entry := [
   { id := "aam-array-predicates", juliaFile := "base/abstractarraymath.jl"
     juliaFns := ["isreal(::AbstractArray)", "iszero(::AbstractArray)", "isreal(::AbstractArray{<:Real})"]
     statement := "Array isreal and iszero quantify the corresponding predicate over all elements; every real-element array is real."
     source := "base/abstractarraymath.jl:5-7"
-    status := .todo, prop := ``ArrayPredicateSpec, thm := none },
+    status := .proven, prop := ``ArrayPredicateSpec, thm := some ``JuliaLean.ChatGPT.Batch4.Group24.AamArrayPredicates },
   { id := "aam-vectorization", juliaFile := "base/abstractarraymath.jl"
     juliaFns := ["vec(::AbstractArray)", "vec(::AbstractVector)"]
     statement := "vec gives an array the one-dimensional shape of its length while sharing its storage, and returns an existing vector unchanged."
     source := "base/abstractarraymath.jl:11-42 (vec docstring)"
-    status := .todo, prop := ``VectorizationSpec, thm := none },
+    status := .todo, prop := ``VectorizationSpec, thm := none, notes := "Prop allows length to fail while both callback premises hold vacuously, yet requires a successful vector result." },
   { id := "aam-dropdims", juliaFile := "base/abstractarraymath.jl"
     juliaFns := ["dropdims", "_dropdims(::AbstractArray,::Dims)", "_dropdims(::AbstractArray,::Integer)"]
     statement := "dropdims removes each requested singleton axis, rejects out-of-range, repeated, and non-singleton dimensions, and shares the input storage."
     source := "base/abstractarraymath.jl:48-104 (dropdims docstring and implementation)"
-    status := .todo, prop := ``DropdimsSpec, thm := none },
+    status := .todo, prop := ``DropdimsSpec, thm := none, notes := "Prop leaves reshape, axes, storage and dimension enumeration unconstrained; even empty dimensions do not imply the promised shared storage." },
   { id := "aam-insertdims", juliaFile := "base/abstractarraymath.jl"
     juliaFns := ["insertdims", "_insertdims(::AbstractArray,::NTuple)", "_insertdims(::AbstractArray,::Integer)"]
     statement := "insertdims adds unique singleton axes at the requested positions, rejects positions outside 1:ndims(A)+length(dims), and shares the input storage."
     source := "base/abstractarraymath.jl:106-166 (insertdims docstring and implementation)"
-    status := .todo, prop := ``InsertdimsSpec, thm := none },
+    status := .todo, prop := ``InsertdimsSpec, thm := none, notes := "Prop does not connect successful reshape with output axes or shared storage, even for empty dimensions." },
   { id := "aam-elementwise", juliaFile := "base/abstractarraymath.jl"
     juliaFns := ["conj(::AbstractArray)", "real(::AbstractArray)", "imag(::AbstractArray)", "-(::AbstractArray)"]
     statement := "The conjugate, real, imaginary, and unary-negation array methods preserve shape and apply the corresponding scalar operation to each element."
     source := "base/abstractarraymath.jl:198-270, 293 (conj, real, imag docstrings and unary array operation)"
-    status := .todo, prop := ``ArrayTransformSpec, thm := none },
+    status := .proven, prop := ``ArrayTransformSpec, thm := some ``JuliaLean.ChatGPT.Batch4.Group24.AamElementwise },
   { id := "aam-array-identities", juliaFile := "base/abstractarraymath.jl"
     juliaFns := ["conj!(::AbstractArray{<:Real})", "conj(::AbstractArray{<:Real})", "real(::AbstractArray{<:Real})", "+(::AbstractArray{<:Number})", "*(::AbstractArray{<:Number,2})"]
     statement := "Real-array conjugation and real-part projection return the original array; unary plus and unary multiplication preserve their numeric array argument."
     source := "base/abstractarraymath.jl:195, 221, 246, 295-296"
-    status := .todo, prop := ``ArrayIdentitySpec, thm := none },
+    status := .proven, prop := ``ArrayIdentitySpec, thm := some ``JuliaLean.ChatGPT.Batch4.Group24.AamArrayIdentities },
   { id := "aam-imag-real-zero", juliaFile := "base/abstractarraymath.jl"
     juliaFns := ["imag(::AbstractArray{<:Real})"]
     statement := "The imaginary part of a real-element array is a zero array with the input shape."
     source := "base/abstractarraymath.jl:249-270 (imag docstring and real-array overload)"
-    status := .todo, prop := ``ImaginaryRealArraySpec, thm := none },
+    status := .proven, prop := ``ImaginaryRealArraySpec, thm := some ``JuliaLean.ChatGPT.Batch4.Group24.AamImagRealZero },
   { id := "aam-conj-bang-numbers", juliaFile := "base/abstractarraymath.jl"
     juliaFns := ["conj!(::AbstractArray{<:Number})"]
     statement := "conj! transforms each numeric element in place and returns the same array."
     source := "base/abstractarraymath.jl:172-194 (conj! docstring and numeric method)"
-    status := .todo, prop := ``ConjBangNumbersSpec, thm := none },
+    status := .proven, prop := ``ConjBangNumbersSpec, thm := some ``JuliaLean.ChatGPT.Batch4.Group24.AamConjBangNumbers },
   { id := "aam-conj-bang-nested", juliaFile := "base/abstractarraymath.jl"
     juliaFns := ["conj!(::AbstractArray)"]
     statement := "The generic conj! method applies conjugation to each element through conj! and returns the outer array."
     source := "base/abstractarraymath.jl:196"
-    status := .todo, prop := ``ConjBangNestedSpec, thm := none },
+    status := .proven, prop := ``ConjBangNestedSpec, thm := some ``JuliaLean.ChatGPT.Batch4.Group24.AamConjBangNested },
   { id := "multidim-selectdim-in-range", juliaFile := "base/abstractarraymath.jl"
     juliaFns := ["selectdim(A::AbstractArray, d::Integer, i)"]
     statement := "For 1 ≤ d ≤ ndims(A) and a one-dimensional index i, selectdim(A,d,i) agrees with view(A, :, ..., i, ..., :) in size or exception."
     source := "base/abstractarraymath.jl:300-305 (selectdim docstring)"
-    status := .todo, prop := ``SelectdimInRange, thm := none },
+    status := .proven, prop := ``SelectdimInRange, thm := some ``JuliaLean.ChatGPT.Batch4.Group24.MultidimSelectdimInRange },
   { id := "multidim-selectdim-cartesian-oob", juliaFile := "base/abstractarraymath.jl"
     juliaFns := ["selectdim(A::AbstractArray, d::Integer, i)", "_selectdim"]
     statement := "Every position addressed by a successful selectdim view lies inside A."
     source := "base/abstractarraymath.jl:300-305 (selectdim docstring); invariant: views are bounds-checked"
-    status := .todo, prop := ``SelectdimInBounds, thm := none },
+    status := .todo, prop := ``SelectdimInBounds, thm := none, notes := "Prop does not relate successful view execution to its arbitrary viewInBounds observation, so the promised bounds conclusion can fail." },
   { id := "multidim-selectdim-trailing", juliaFile := "base/abstractarraymath.jl"
     juliaFns := ["selectdim(A::AbstractArray, d::Integer, i)", "_selectdim"]
     statement := "selectdim(A,d,i) agrees with view(A, :, ..., i, ..., :) for every d ≥ 1 and one-dimensional index i."
     source := "base/abstractarraymath.jl:300-305 (selectdim docstring)"
-    status := .todo, prop := ``SelectdimViewAgrees, thm := none },
+    status := .refuted, prop := ``SelectdimViewAgrees, thm := some ``JuliaLean.ChatGPT.Batch4.Group24.MultidimSelectdimTrailing , issue := "bugs/multidim-selectdim-trailing.yaml" },
   { id := "aam-circshift", juliaFile := "base/abstractarraymath.jl"
     juliaFns := ["circshift(::AbstractArray,::Real)", "circshift(::AbstractArray,::DimsInteger)", "circshift(::AbstractArray,shiftamt)"]
     statement := "circshift rotates each dimension by its shift amount, with missing shifts zero and wrapped indices."
     source := "base/abstractarraymath.jl:335-413 (circshift docstring and overloads)"
-    status := .todo, prop := ``CircularShiftSpec, thm := none },
+    status := .todo, prop := ``CircularShiftSpec, thm := none, notes := "Prop permits transformed coordinates outside the index set protected by its source-preservation premises; the coordinate promise needs index closure." },
   { id := "arrayops-repeat", juliaFile := "base/abstractarraymath.jl"
     juliaFns := ["repeat(A::AbstractArray; inner, outer)", "repeat_inner", "repeat_outer(::AbstractVector)"]
     statement := "For a vector and nonnegative Int counts, inner repetition duplicates each entry consecutively, outer repetition duplicates the whole vector, and checked size products reject overflow."
     source := "base/abstractarraymath.jl:449-481 (repeat docstring), 573-612"
-    status := .todo, prop := ``RepeatVectorSpec, thm := none },
-  { id := "aam-repeat-checks", juliaFile := "base/abstractarraymath.jl"
-    juliaFns := ["_RepeatInnerOuter.check"]
-    statement := "The repeat count checker rejects non-integer or negative counts and count lists shorter than the required rank."
-    source := "base/abstractarraymath.jl:526-554"
-    status := .todo, prop := ``RepeatCheckSpec, thm := none },
+    status := .todo, prop := ``RepeatVectorSpec, thm := none, notes := "Prop permits a length-one count-one input to fail through the unconstrained allocator; the promised result needs allocation and element-access laws." },
   { id := "multidim-repeat-size", juliaFile := "base/abstractarraymath.jl"
     juliaFns := ["repeat(A::AbstractArray; inner, outer)", "_RepeatInnerOuter.check", "_RepeatInnerOuter.resolve", "repeat_inner_outer", "repeat_inner", "repeat_outer"]
     statement := "repeat(A; inner, outer) pads sizes and counts to a common rank, multiplies dimensions componentwise, rejects negative counts and invalid ranks, and returns the repeated array."
     source := "base/abstractarraymath.jl:449-456 (repeat docstring) and lines 488-612"
-    status := .todo, prop := ``RepeatFullSpec, thm := none }
+    status := .todo, prop := ``RepeatFullSpec, thm := none, notes := "Prop omits allocation/shape laws: an unconstrained allocator may return shape [1] for a size-[1] input repeated with inner=[2], outer=[1]." }
 ]
 
 /-! ## Method coverage

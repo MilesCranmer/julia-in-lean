@@ -21,7 +21,8 @@ def source_path(value):
 
 def model_paths(root, source):
     suffix = {'.jl': '', '.c': '_c', '.h': '_h'}[source.suffix]
-    relative = source.with_name(source.stem + suffix + '.lean')
+    # Lean module names can't contain '-' (base/locks-mt.jl -> base/locks_mt.lean).
+    relative = source.with_name(source.stem.replace('-', '_') + suffix + '.lean')
     return root / 'JuliaLean' / relative, root / 'JuliaLean' / 'Proofs' / relative
 
 
@@ -121,8 +122,9 @@ def blocks(repo, model, source):
     index = 0
     while index < len(physical):
         line = physical[index]
-        if line.startswith(b'-- Source:'):
-            match = HEADER.fullmatch(line)
+        if line.startswith((b'-- Source:', b'Julia source:')):
+            doc = line.startswith(b'Julia source:')
+            match = (DOC_HEADER if doc else HEADER).fullmatch(line)
             if not match:
                 raise ValueError(f'{model}:{index + 1}: malformed source header')
             path, first, last, sha = match.groups()
@@ -132,8 +134,8 @@ def blocks(repo, model, source):
             if revision(repo, sha) != sha:
                 raise ValueError(f'{model}:{index + 1}: invalid commit')
             original = blob(repo, sha, source)
-            expected = render(source, sha, first, last, lines(original))
-            count = last - first + 3
+            expected = (render_doc if doc else render)(source, sha, first, last, lines(original))
+            count = expected.count(b'\n')
             actual = b''.join(physical[index:index + count])
             if actual != expected:
                 raise ValueError(f'{model}:{index + 1}: source block differs from {sha}:{source}:{first}-{last}')

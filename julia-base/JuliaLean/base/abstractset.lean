@@ -1,5 +1,8 @@
 import JuliaLean.Core
 import JuliaLean.base.int
+import JuliaLean.base.hashing
+import JuliaLean.Runtime.Collections
+import JuliaLean.base.set
 
 /-!
 # Model of `base/abstractset.jl`
@@ -19,14 +22,6 @@ abbrev I64 := JInt .i64
 
 def int (n : Int) : I64 := JInt.lit .i64 n
 
-/-- The type token inspected by `max_values`. -/
-inductive JuliaType where
-  | other
-  | bitInteger (t : IntTy)
-  | bool
-  | nothing
-  | union (a b : JuliaType)
-  deriving Repr, DecidableEq
 
 /-- Interface calls made by methods in `abstractset.jl`. -/
 structure Calls (α : Type) where
@@ -249,7 +244,8 @@ end
 -/
 def copyBangAbstractSet {α : Type} (o : Calls α) (same : Bool) (dst src : o.C) : Except o.Error o.C :=
   if same then pure dst else do
-    unionBangAbstractSetMany o (← o.empty dst) [src]
+    let empty ← o.empty dst
+    unionBangAbstractSetIterator o (o.elementType empty) empty src
 
 def mapfilterLoop {α : Type} (o : Calls α) (pred : α → Except o.Error Bool)
     (f : o.C → α → Except o.Error o.C) (xs : List α) (res : o.C) :
@@ -340,7 +336,8 @@ end
 ```
 -/
 def intersectAbstractSetTwo {α : Type} (o : Calls α) (s itr : o.C) : Except o.Error o.C := do
-  if o.hasLength itr && o.hasFastIn itr && (← o.length s) < (← o.length itr) then
+  if ← (pure (o.hasLength itr && o.hasFastIn itr) <&&>
+      do pure ((← o.length s) < (← o.length itr))) then
     mapfilter o (fun x => o.member itr x) o.push s
       (← o.emptyMutable s (← o.promoteEltype s [itr]))
   else
@@ -354,8 +351,8 @@ def intersectAbstractSetTail {α : Type} (o : Calls α) (s itr : o.C) (itrs : Li
     intersectAbstractSetTwo o s itr
   else do
     let out ← o.emptyMutable s T
-    let out ← unionBangAbstractSetMany o out [s]
-    intersectBangAbstractSetIterator o out itr
+    let out ← unionBangAbstractSetIterator o (o.elementType out) out s
+    intersectBangDispatch o out itr
   intersectBangAbstractSetMany o out itrs
 
 /--
@@ -590,13 +587,13 @@ end
 def issubsetSetRight {α : Type} (o : Calls α) (a b : o.C) : Except o.Error Bool := do
   if o.hasLength b && (o.isAbstractSet a || !o.hasFastIn b) then
     let blen ← o.length b
-    if o.isAbstractSet a && (← o.length a) > blen then return false
+    if ← (pure (o.isAbstractSet a) <&&> do pure ((← o.length a) > blen)) then return false
   issubsetElements o b (o.elements a)
 
 def issubset {α : Type} (o : Calls α) (a b : o.C) : Except o.Error Bool := do
   if o.hasLength b && (o.isAbstractSet a || !o.hasFastIn b) then
     let blen ← o.length b
-    if o.isAbstractSet a && (← o.length a) > blen then
+    if ← (pure (o.isAbstractSet a) <&&> do pure ((← o.length a) > blen)) then
       return false
     if !o.hasFastIn b && blen > int 70 then
       return ← issubsetSetRight o a (← o.makeSet b)
@@ -811,7 +808,7 @@ end
 -/
 def issetequalOtherAbstractSet {α : Type} (o : Calls α) (a b : o.C) :
     Except o.Error Bool := do
-  if o.hasLength a && (← o.length a) < (← o.length b) then
+  if ← (pure (o.hasLength a) <&&> do pure ((← o.length a) < (← o.length b))) then
     return false
   issetequalAbstractSetSet o (← o.makeSet a) b
 
@@ -871,7 +868,7 @@ Julia source: base/abstractset.jl:573-579 @ f755f49a9e41380d7da126b3c1db9fe7f83d
 def isdisjointInner {α : Type} (o : Calls α) (a b : o.C) : Except o.Error Bool := do
   if o.hasFastIn b then return !(← anyMember o b (o.elements a))
   if o.hasFastIn a then return !(← anyMember o a (o.elements b))
-  if o.hasLength b && (← o.length b) < int 70 then
+  if ← (pure (o.hasLength b) <&&> do pure ((← o.length b) < int 70)) then
     return !(← anyMember o b (o.elements a))
   let setB ← o.makeSet b
   return !(← anyMember o setB (o.elements a))
@@ -895,7 +892,8 @@ end
 ```
 -/
 def isdisjoint {α : Type} (o : Calls α) (a b : o.C) : Except o.Error Bool := do
-  if o.hasLength a && o.hasLength b && (← o.length b) < (← o.length a) then
+  if ← (pure (o.hasLength a && o.hasLength b) <&&>
+      do pure ((← o.length b) < (← o.length a))) then
     isdisjointInner o b a
   else
     isdisjointInner o a b
@@ -924,15 +922,11 @@ end
 -/
 def overlappingRangeInteger {α : Type} (o : Calls α) (a b : o.C) :
     Except o.Error Bool := do
-  let stepA ← o.step a
-  let stepB ← o.step b
-  let absA ← o.abs stepA
-  let absB ← o.abs stepB
+  let absA ← o.abs (← o.step a)
+  let absB ← o.abs (← o.step b)
   if o.equal absA absB then
-    let minA ← o.minimum a
-    let minB ← o.minimum b
-    let residueA ← o.mod minA stepA
-    let residueB ← o.mod minB stepA
+    let residueA ← o.mod (← o.minimum a) (← o.step a)
+    let residueB ← o.mod (← o.minimum b) (← o.step a)
     return !o.equal residueA residueB
   else
     isdisjoint o a b
@@ -1017,3 +1011,415 @@ def unsafeFilterAbstractSet {α : Type} (o : Calls α) (pred : α → Except o.E
   mapfilter o (fun x => do return !(← pred x)) o.delete s s
 
 end JuliaLean.base.abstractset
+
+namespace JuliaLean.HashOps
+
+def setHash (values : List Nat) (h : Nat) : Nat :=
+  mixNat (values.foldl (fun acc x => Nat.xor acc (mixNat x 0)) 0x852ada37cfe8e0ce) h
+
+end JuliaLean.HashOps
+
+namespace JuliaLean.BitSetsCov.Bugs
+
+inductive RangeOutcome where
+  | value (disjoint : Bool)
+  | divideError
+  deriving DecidableEq
+
+/-- Integer `_overlapping_range_isdisjoint`, `base/abstractset.jl:612-618`:
+equal absolute steps compare the minima modulo `step(a)`. -/
+def overlappingRangeIsdisjoint (minimumA stepA minimumB stepB : Int) : RangeOutcome :=
+  if Int.natAbs stepA = Int.natAbs stepB then
+    if stepA = 0 then .divideError
+    else .value (decide (minimumA % stepA ≠ minimumB % stepA))
+  else .value false
+
+inductive EqValue where
+  | positiveZero
+  | negativeZero
+  | one
+  deriving DecidableEq
+
+/-- Julia `==` identifies signed zeros. -/
+def valueEq : EqValue → EqValue → Bool
+  | .positiveZero, .negativeZero | .negativeZero, .positiveZero => true
+  | x, y => decide (x = y)
+
+/-- Julia `isequal` distinguishes signed zeros. -/
+def valueIsequal (x y : EqValue) : Bool := decide (x = y)
+
+def anyEqual (eq : EqValue → EqValue → Bool) (a b : List EqValue) : Bool :=
+  a.any (fun x => b.any (eq x))
+
+/-- The generic `isdisjoint` path, `base/abstractset.jl:572-584`: short
+vectors scan with `in` (`==`); vectors of at least 70 elements are converted
+to `Set` and use `isequal`. -/
+def isdisjointThreshold (a b : List EqValue) : Bool :=
+  if b.length < 70 then !anyEqual valueEq a b else !anyEqual valueIsequal a b
+
+end JuliaLean.BitSetsCov.Bugs
+
+/-!
+# `Set`, `AbstractSet`, and `IdSet` source models
+
+The models use natural numbers as equality classes for ordinary `isequal`
+sets. `IdValue.identity` is the `===` key used by `IdSet`; its separate
+`value` field lets documented value-based operations be stated independently.
+Every definition cites the master source path implemented by its branches and
+loops.
+-/
+
+namespace JuliaLean.BitSetsCov
+
+namespace Coll
+
+open Bugs
+
+def unionOne (s : SetState) (xs : List Nat) : SetState := xs.foldl insert s
+
+def unionMany (s : SetState) (xss : List (List Nat)) : SetState := xss.foldl unionOne s
+
+def intersectOne (s xs : List Nat) : SetState := s.filter (fun x => decide (x ∈ xs))
+
+def intersectMany (s : SetState) (xss : List (List Nat)) : SetState := xss.foldl intersectOne s
+
+def setdiffOne (s xs : List Nat) : SetState := xs.foldl erase s
+
+def setdiffMany (s : SetState) (xss : List (List Nat)) : SetState := xss.foldl setdiffOne s
+
+def symdiffOne (s xs : List Nat) : SetState :=
+  (ofList xs).foldl (fun r x => if x ∈ r then erase r x else insert r x) s
+
+def symdiffMany (s : SetState) (xss : List (List Nat)) : SetState := xss.foldl symdiffOne s
+
+def subset (a b : List Nat) : Bool := a.all (fun x => decide (x ∈ b))
+
+def setequal (a b : List Nat) : Bool := subset a b && subset b a
+
+def properSubset (a b : List Nat) : Bool := decide (a.length < b.length) && subset a b
+
+def disjointEq (eq : Nat → Nat → Bool) (a b : List Nat) : Bool :=
+  !a.any (fun x => b.any (eq x))
+
+/-! ## `base/abstractset.jl` -/
+
+/-- Lines 3-4. -/
+def abstractEltype (defined : Bool) (declared : Nat) : Nat := if defined then declared else 0
+def abstractSizehint (s : SetState) (_n : Int) : SetState := s
+
+/-- Lines 6-9. -/
+def abstractCopyBang (same : Bool) (dst src : SetState) : SetState :=
+  if same then dst else unionOne [] src
+
+/-- Lines 55-58 and 105-112. -/
+def abstractUnion (s : SetState) (sets : List (List Nat)) : SetState :=
+  unionMany [] (s :: sets)
+def abstractUnionUnary (s : SetState) : SetState := s
+def abstractUnionBangMany (s : SetState) (sets : List (List Nat)) : SetState := unionMany s sets
+def abstractUnionBangOne (s : SetState) (itr : SetState) (maxValues : Nat)
+    (eltypeSubtype : Bool) : SetState :=
+  match itr with
+  | [] => s
+  | x :: xs =>
+    let next := insert s x
+    if eltypeSubtype && next.length == maxValues then next
+    else abstractUnionBangOne next xs maxValues eltypeSubtype
+
+/-- `union!` with fallible element conversion; a failed insertion leaves the
+previously inserted elements in the destination. -/
+def abstractUnionConvert (convert : Nat → Except JlError Nat) (maxValues : Nat)
+    (eltypeSubtype : Bool) (s : SetState) : List Nat → SetState × Option JlError
+  | [] => (s, none)
+  | x :: xs =>
+    match convert x with
+    | .error e => (s, some e)
+    | .ok y =>
+      let next := insert s y
+      if eltypeSubtype && next.length == maxValues then (next, none)
+      else abstractUnionConvert convert maxValues eltypeSubtype next xs
+
+/-- Lines 92-103. -/
+def maxValuesGeneric : Nat := 9223372036854775807
+def maxValuesSmall (bytes : Nat) : Nat := 2 ^ (8 * bytes)
+def maxValuesUnion (a b : Nat) : Nat :=
+  if maxValuesGeneric - a < b then maxValuesGeneric else a + b
+def maxValuesBool : Nat := 2
+def maxValuesNothing : Nat := 1
+
+/-- Lines 155-180. The first branch models the shortest-set rotation; both
+branches then call the two-argument body and fold `intersect!` over `itrs`. -/
+def abstractIntersect (s itr : SetState) (itrs : List SetState) : SetState :=
+  let candidates := itr :: itrs
+  let first := candidates.foldl (fun best x => if x.length < best.length then x else best) itr
+  intersectMany (intersectOne s first) (candidates.erase first)
+def abstractIntersectUnary (s : SetState) : SetState := abstractUnionUnary s
+def abstractIntersectTwo (s itr : SetState) : SetState :=
+  if s.length < itr.length then intersectOne s itr else intersectOne itr s
+def abstractIntersectBangMany (s : SetState) (itrs : List SetState) : SetState := intersectMany s itrs
+def abstractIntersectBangSet (s s2 : SetState) : SetState := intersectOne s s2
+def abstractIntersectBangItr (s itr : SetState) : SetState := intersectOne s (ofList itr)
+
+/-- Lines 222-255. -/
+def abstractSetdiff (s : SetState) (itrs : List SetState) : SetState := setdiffMany s itrs
+def abstractSetdiffUnary (s : SetState) : SetState := abstractUnionUnary s
+def abstractSetdiffBangMany (s : SetState) (itrs : List SetState) : SetState := setdiffMany s itrs
+def abstractSetdiffBangItr (s itr : SetState) : SetState := setdiffOne s itr
+
+/-- Lines 278-304. -/
+def abstractSymdiff (s : SetState) (sets : List SetState) : SetState := symdiffMany [] (s :: sets)
+def abstractSymdiffUnary (s : SetState) : SetState := symdiffOne s []
+def abstractSymdiffBangMany (s : SetState) (itrs : List SetState) : SetState := symdiffMany s itrs
+def abstractSymdiffBangItr (s itr : SetState) : SetState := symdiffOne s (ofList itr)
+def abstractSymdiffBangSet (s itr : SetState) : SetState := symdiffOne s itr
+
+/-- Lines 335-369. `fastB` and `setA` are the two source traits. -/
+def abstractIssubset (setA fastB : Bool) (a b : SetState) : Bool :=
+  if !fastB && b.length > 70 then subset a (ofList b)
+  else if setA && a.length > b.length then false
+  else subset a b
+def hasfastinType (isSetOrDictOrRange : Bool) : Bool := isSetOrDictOrRange
+def hasfastinValue (isSetOrDictOrRange : Bool) : Bool := hasfastinType isSetOrDictOrRange
+
+/-- The operator wrappers and curried `Fix2` methods, lines 309-500. -/
+def superset (a b : SetState) : Bool := subset b a
+def subsetFix (a y : SetState) : Bool := subset y a
+def supersetFix (a y : SetState) : Bool := superset y a
+def properSuperset (a b : SetState) : Bool := properSubset b a
+def properSubsetConverted (a b : List Nat) : Bool := properSubset (ofList a) (ofList b)
+def properSupersetFix (a y : SetState) : Bool := properSuperset y a
+def properSubsetFix (a y : SetState) : Bool := properSubset y a
+def notSubset (a b : SetState) : Bool := !subset a b
+def notSuperset (a b : SetState) : Bool := notSubset b a
+def notSupersetFix (a y : SetState) : Bool := notSuperset y a
+def notSubsetFix (a y : SetState) : Bool := notSubset y a
+
+/-- Lines 521-549. -/
+def abstractSetequalSet (a b : SetState) : Bool := setequal a b
+def abstractSetequalLeft (a b : List Nat) : Bool := abstractSetequalSet a (ofList b)
+def abstractSetequalRight (a b : List Nat) : Bool :=
+  if a.length < (ofList b).length then false else abstractSetequalSet (ofList a) b
+def abstractSetequalGeneric (a b : List Nat) : Bool := abstractSetequalSet (ofList a) (ofList b)
+def abstractSetequalFix (a y : List Nat) : Bool := abstractSetequalGeneric y a
+
+/-- Lines 572-610. This is the ordinary-value analogue of the signed-zero
+model in `CollectionBugs`. -/
+def abstractIsdisjoint (a b : List Nat) : Bool :=
+  if b.length < a.length then disjointEq (fun x y => decide (x = y)) b a
+  else if b.length < 70 then disjointEq (fun x y => decide (x = y)) a b
+  else disjointEq (fun x y => decide (x = y)) a (ofList b)
+def abstractIsdisjointFix (a y : List Nat) : Bool := abstractIsdisjoint y a
+
+structure IntRange where
+  first : Int
+  step : Int
+  len : Nat
+  deriving DecidableEq
+
+def rangeValues (r : IntRange) : List Int :=
+  (List.range r.len).map (fun (i : Nat) => r.first + r.step * (i : Int))
+
+def rangeDisjoint (a b : IntRange) : RangeOutcome :=
+  if a.len = 0 || b.len = 0 then .value true
+  else
+    let av := rangeValues a
+    let bv := rangeValues b
+    let amin := av.foldl min a.first
+    let bmin := bv.foldl min b.first
+    overlappingRangeIsdisjoint amin a.step bmin b.step
+
+def overlappingRangeGeneric (a b : IntRange) : Bool :=
+  disjointEq (fun x y => decide (x = y)) ((rangeValues a).map Int.natAbs) ((rangeValues b).map Int.natAbs)
+
+/-- Lines 625-641. -/
+def abstractLt (a b : SetState) : Bool := properSubset a b
+def abstractLe (a b : SetState) : Bool := subset a b
+def mapfilter (pred : Nat → Bool) (f : SetState → Nat → SetState)
+    (itr res : SetState) : SetState :=
+  itr.foldl (fun out x => if pred x then f out x else out) res
+def abstractFilter (pred : Nat → Bool) (s : SetState) : SetState := mapfilter pred insert s []
+def abstractUnsafeFilter (pred : Nat → Bool) (s : SetState) : SetState :=
+  mapfilter (fun x => !pred x) erase s s
+
+end Coll
+
+end JuliaLean.BitSetsCov
+
+namespace JuliaLean.Dicts
+
+variable {K Q E : Type}
+
+/-- The loop of `union!(s::AbstractSet{T}, itr)`, `base/abstractset.jl:107-110`. -/
+def unionLoop (o : KeyOps K) (c : Conv Q K) : SetT K → List Q → DR (SetT K)
+  | s, [] => pure s
+  | s, x :: xs => do
+    let s ← pushConv o c s x
+    if c.eltypeSubtype && (s.count : Int) == o.maxValues.val then pure s else unionLoop o c s xs
+
+/-- Historical loop before the iterator element-type check. -/
+def unionLoopHistorical (o : KeyOps K) (c : Conv Q K) : SetT K → List Q → DR (SetT K)
+  | s, [] => pure s
+  | s, x :: xs => do
+    let s ← pushConv o c s x
+    if (s.count : Int) == o.maxValues.val then pure s else unionLoopHistorical o c s xs
+
+/-- `union!(s::AbstractSet{T}, itr)`, `base/abstractset.jl:105-112`, for an
+iterator with a length (a vector or a set, listed in iteration order). -/
+def unionBang (o : KeyOps K) (c : Conv Q K) (s : SetT K) (itr : List Q) : DR (SetT K) := do
+  let s ← sizehint o s (JInt.lit .i64 (s.count + itr.length)) false
+  unionLoop o c s itr
+
+/-- `for x in s; (!keep(x)) && delete!(s, x); end`: the iteration of
+`mapfilter(!pred, delete!, s, s)` (`base/abstractset.jl:633-641`) over a set
+that is mutated inside the loop. The iteration state is the slot index,
+`base/dict.jl:717-723`; `left` bounds the steps (each strictly increases it). -/
+def filterLoop (o : KeyOps K) (keep : K → DR Bool) : Nat → SetT K → Nat → DR (SetT K)
+  | 0, s, _ => pure s
+  | left + 1, s, i =>
+    let j := skipDeleted s i
+    if j == 0 then pure s else
+    match s.keys j with
+    | none => throw .undefRef
+    | some x => do
+      let k ← keep x
+      let s ← if !k then setDelete o s x else pure s
+      filterLoop o keep left s (j + 1)
+
+/-- `intersect!(s::AbstractSet, s2::AbstractSet) = filter!(in(s2), s)`, `base/abstractset.jl:198`. -/
+def intersectBang (o : KeyOps K) (s t : SetT K) : DR (SetT K) :=
+  setFilterBang filterLoop o (fun x => setIn o t x) s
+
+/-- `symdiff!(s::AbstractSet, itr::AbstractSet)`, `base/abstractset.jl:299-304`. -/
+def symdiffBang (o : KeyOps K) (s t : SetT K) : DR (SetT K) := do
+  (← elems t).foldlM (fun s x => do
+    if ← setIn o s x then setDelete o s x else push o s x) s
+
+/-- The loop `for elt in a; elt in b || return false; end`, `base/abstractset.jl:348-351`. -/
+def allIn (o : KeyOps K) (b : SetT K) : List K → DR Bool
+  | [] => pure true
+  | x :: xs => do
+    if ← setIn o b x then allIn o b xs else pure false
+
+/-- `issubset(a::Set, b::Set)`, `base/abstractset.jl:335-352`: `b` has a length
+and `a` is an `AbstractSet`, so `length(a) > length(b)` returns early;
+`hasfastin(b)` holds, so `b` is not converted. -/
+def issubsetSet (o : KeyOps K) (a b : SetT K) : DR Bool := do
+  if a.count > b.count then return false
+  allIn o b (← elems a)
+
+/-- `==(a::AbstractSet, b::AbstractSet)`, `base/abstractset.jl:622`. -/
+def setEq (o : KeyOps K) (a b : SetT K) : DR Bool := do
+  if a.count == b.count then issubsetSet o a b else pure false
+
+/-- `issubset(a::Vector, b::Vector)`, `base/abstractset.jl:335-352`. A vector has
+a length and no fast `in` (`hasfastin(::Type{<:Vector}) = false`,
+`base/abstractset.jl:367`), so for `length(b) > FASTIN_SET_THRESHOLD = 70` the
+call becomes `issubset(a, Set(b))`; otherwise each `elt in b` is
+`any(y -> y == elt, b)` with the element `==` (`eqeq`). -/
+def issubsetVec (o : KeyOps E) (eqeq : E → E → Bool) (a b : List E) : DR Bool := do
+  if b.length > 70 then
+    let sb ← setOf unionBang o (Conv.self o) b
+    -- issubset(a, Set(b)): hasfastin(Set) holds, so straight to the loop
+    allIn o sb a
+  else
+    pure (a.all fun x => b.any fun y => eqeq y x)
+
+end JuliaLean.Dicts
+
+namespace JuliaLean.IdDicts
+
+/-- `max_values(T)`, base/abstractset.jl:92-103: `typemax(Int)` except
+`Nothing` (1); none of the other types of the universe is a small bits type. -/
+def maxValues : JTy → Nat
+  | .nothing => 1
+  | _ => 2 ^ 63 - 1
+
+/-- `union!(s::AbstractSet{T}, itr)`, `base/abstractset.jl:105-112`. The
+Boolean records whether the iterator's declared element type is a subtype of `T`.
+The `sizehint!` call is a no-op for `IdSet` (`base/idset.jl:85-97`). -/
+def IdSet.unionTyped (s : IdSet) (eltypeSubtype : Bool) : List JVal → Out IdSet Unit
+  | [] => (s, .ok ())
+  | x :: xs =>
+    let r := s.push x
+    match r.2 with
+    | .error e => (r.1, .error e)
+    | .ok () =>
+      if eltypeSubtype && r.1.length == maxValues s.T then (r.1, .ok ())
+      else r.1.unionTyped eltypeSubtype xs
+
+/-- Union with an iterator whose declared element type is `Any`. -/
+def IdSet.union (s : IdSet) : List JVal → Out IdSet Unit
+  | [] => (s, .ok ())
+  | x :: xs =>
+    let r := s.push x
+    match r.2 with
+    | .error e => (r.1, .error e)
+    | .ok () =>
+      if (s.T == .any) && r.1.length == maxValues s.T then (r.1, .ok ()) else r.1.union xs
+
+/-- `setdiff!(s, itr)`, base/abstractset.jl:250-255. -/
+def IdSet.setdiff (s : IdSet) (xs : List JVal) : IdSet := xs.foldl IdSet.delete s
+
+/-- The collections handed to the generic set functions. -/
+inductive Coll where
+  /-- a `Vector{Any}`: `haslength`, no fast `in`, `in` uses `==` -/
+  | vec (xs : List JVal)
+  /-- a `Set{Any}` with these (pairwise non-`isequal`) elements -/
+  | set (xs : List JVal)
+  /-- an `IdSet{Any}` -/
+  | ids (s : IdSet)
+
+def Coll.isSet : Coll → Bool
+  | .vec _ => false
+  | _ => true
+
+/-- `hasfastin`, base/abstractset.jl:367-368 -/
+def Coll.hasfastin : Coll → Bool := Coll.isSet
+
+def Coll.length : Coll → Nat
+  | .vec xs | .set xs => xs.length
+  | .ids s => s.length
+
+/-- Iteration (for an `IdSet{Any}` the `::Any` cast never throws). -/
+def Coll.elems : Coll → List JVal
+  | .vec xs | .set xs => xs
+  | .ids s => s.elems
+
+def Coll.mem : Coll → JVal → Bool
+  | .vec xs, x => xs.any (isequal x)
+  | .set xs, x => xs.any (isequal x)
+  | .ids s, x => s.mem x
+
+/-- The body of `issubset(a, b)`, base/abstractset.jl:335-350, once `b` is
+known to have fast `in` (a `Set` or `IdSet`). -/
+def issubsetFast (a b : Coll) : Bool :=
+  if a.isSet && a.length > b.length then false else a.elems.all b.mem
+
+/-- `issubset(a, b)`, base/abstractset.jl:335-350: a vector `b` longer than
+`FASTIN_SET_THRESHOLD = 70` is replaced by `Set(b)` and the call repeated. -/
+def issubset (a b : Coll) : Bool :=
+  if b.hasfastin then issubsetFast a b
+  else if a.isSet && a.length > b.length then false
+  else if b.length > 70 then issubsetFast a (.set (jsetOf b.elems))
+  else a.elems.all b.mem
+
+/-- `==(a::AbstractSet, b::AbstractSet)`, base/abstractset.jl:622. -/
+def setEq (a b : Coll) : Bool := a.length == b.length && issubset a b
+
+/-- `issetequal(a, b)`, base/abstractset.jl:521-536. -/
+def issetequal (a b : Coll) : Bool :=
+  match a.isSet, b.isSet with
+  | true, true => setEq a b
+  | true, false => setEq a (.set (jsetOf b.elems))
+  | false, true => if a.length < b.length then false else setEq (.set (jsetOf a.elems)) b
+  | false, false => setEq (.set (jsetOf a.elems)) (.set (jsetOf b.elems))
+
+/-- `symdiff!(s::AbstractSet, itr::AbstractSet)`, base/abstractset.jl:299-304. -/
+def IdSet.symdiffSet (s : IdSet) : List JVal → IdSet
+  | [] => s
+  | x :: xs => (if s.mem x then s.delete x else (s.push x).1).symdiffSet xs
+
+/-- `symdiff!(s, itr)` for a vector `itr`: `symdiff!(s, Set(itr))`,
+base/abstractset.jl:297. -/
+def IdSet.symdiffVec (s : IdSet) (xs : List JVal) : IdSet := s.symdiffSet (jsetOf xs)
+
+end JuliaLean.IdDicts

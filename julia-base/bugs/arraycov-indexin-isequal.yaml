@@ -1,19 +1,32 @@
 id: arraycov-indexin-isequal
-title: "indexin uses isequal rather than membership equality for signed zero and NaN"
-priority: P2
-kind: wrong-result
+title: indexin documents membership without explaining its isequal key semantics
+priority: P3
+kind: documentation
 area: ArrayCov
-files: [base/array.jl]
-functions: ["indexin(a, b::AbstractArray)"]
+files:
+  - base/array.jl
+  - base/operators.jl
+functions:
+  - indexin(a, b::AbstractArray)
 summary: |
-  `indexin(a, b)` documents the first index where each value from `a` is a member of `b`, but the implementation hashes `b` in a `Dict` and therefore uses `isequal`. It reports no index for `-0.0` in `[0.0]`, where `in` is true, and reports index 1 for `NaN` in `[NaN]`, where `in` is false.
+  indexin([-0.0], [0.0]) returns [nothing] although -0.0 in [0.0] is true.
+  indexin([NaN], [NaN]) returns [1] although NaN in [NaN] is false. The
+  docstring describes membership without explaining that indexin uses Dict key
+  equality, isequal, rather than the == membership of an ordinary array.
 likelihood: |
-  Moderate. `indexin` is a common lookup operation and signed zero occurs in normal floating-point computations, though code may prefer `isequal` semantics for key lookup.
+  A caller using indexin for floating-point lookup can reasonably infer the
+  scalar in result from the word "member". Signed zero and NaN make that
+  interpretation incorrect without raising an error.
 maybe_intended: |
-  `isequal` is useful for hash-based lookup and makes `indexin` fast, but the docstring says "member" without documenting equality different from `in`.
+  Dict-based lookup intentionally provides efficient key matching, and isequal
+  is a useful policy for NaNs. The docstring never explicitly promises ==.
+  This is therefore a documentation ambiguity, rather than proof that the
+  hash-based implementation must change.
 reproducer: |
   indexin([-0.0], [0.0])
+  -0.0 in [0.0]
   indexin([NaN], [NaN])
+  NaN in [NaN]
 output:
   release: |
     -0.0 in [0.0]: true; indexin: Union{Nothing, Int64}[nothing]
@@ -25,18 +38,47 @@ output:
     NaN in [NaN]: false; indexin: Union{Nothing, Int64}[1]
     Expected: [1] for signed zero and [nothing] for NaN
     REPRODUCED arraycov-indexin-isequal
-reproduced: {release: true, nightly: true}
+reproduced:
+  release: true
+  nightly: true
 expected: |
-  The signed-zero result is `[1]` and the NaN result is `[nothing]`, matching scalar membership in the documented collection.
+  State that indexin matches values using isequal, including signed-zero and
+  NaN examples. The reproducer's "Expected" line describes the alternative
+  == interpretation; it is not evidence that this interpretation was intended.
 promised_by: |
-  The `indexin` docstring at base/array.jl:2861-2868 says it returns the first index in `b` for each value in `a` that is a member of `b`.
+  base/array.jl:2859-2861 at f755f49a9e41380d7da126b3c1db9fe7f83dd027:
+  "Return an array containing the first index in `b` for
+  each value in `a` that is a member of `b`. The output
+  array contains `nothing` wherever `a` is not a member of `b`."
+  This wording leaves the equality relation unstated. The ordinary iterable
+  membership implementation is in(x, itr::Any) = any(==(x), itr) at
+  base/operators.jl:1455.
 cause: |
-  base/array.jl:2892-2900 stores `b` in a `Dict` and looks up each value from `a`. Dict keys use `isequal`, while collection membership uses `==`; those relations differ for signed zero and NaN.
+  base/array.jl:2887-2896 builds a Dict with get! retaining each value's first
+  index, then retrieves each input with get(bdict, i, nothing). Dict keys use
+  isequal. Consequently signed zeros are distinct keys and NaNs match each other,
+  unlike == membership in the input array.
 possible_fix: |
-  Document `isequal` key semantics, or avoid the Dict specialization for element types where `isequal` and `==` differ.
+  Document isequal explicitly and show how signed zero and NaN are treated.
+  A change to == lookup would be a separate API policy decision and could break
+  callers relying on the current key semantics.
 duplicates:
-  issues: []
-  queries: ["indexin isequal", "indexin NaN signed zero", "indexin -0.0", "indexin equality Dict", "indexin membership"]
+  issues:
+    - number: 10593
+      state: closed
+      relation: related
+  prs: []
+  queries:
+    - 'gh search issues --repo JuliaLang/julia indexin isequal'
+    - 'gh search issues --repo JuliaLang/julia indexin NaN'
+    - 'gh search issues --repo JuliaLang/julia indexin equality'
+    - 'gh search prs --repo JuliaLang/julia indexin isequal'
+    - 'gh search prs --repo JuliaLang/julia indexin NaN'
+    - 'gh search prs --repo JuliaLang/julia indexin equality'
+  notes: |
+    Issue #10593, the search/find API unification discussion, includes indexin
+    but does not establish a duplicate of this documentation ambiguity. No
+    exact duplicate and no targeted fix PR are known.
 lean:
-  property: JuliaLean.ArrayCov.IndexinMembershipSpec
-  theorem: JuliaLean.ArrayCov.indexinMembershipSpec_refuted
+  property: JuliaLean.Proofs.base.array.IndexinMembershipAgreement
+  theorem: JuliaLean.ChatGPT.Batch4.Group2.ArraycovIndexinIsequal_refuted

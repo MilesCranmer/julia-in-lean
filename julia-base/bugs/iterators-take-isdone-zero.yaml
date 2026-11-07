@@ -20,23 +20,17 @@ likelihood: |
   Needs take(itr, 0) of a stateful iterator with a definite isdone (Stateful,
   eachline, readeach, DirEntryIterator). A count of 0 arises naturally from
   computed lengths; the wrong isempty is silent.
-maybe_intended: ''
+maybe_intended: |
+  No documented exception permits a zero-count take to be nonempty. Upstream
+  issue #64151 reports this exact failure and merged PR #64340 fixes it.
 reproducer: |
-  # isempty(Iterators.take(itr, 0)) is false when itr is a nonempty stateful iterator
   s = Iterators.Stateful([1, 2, 3])
   t = Iterators.take(s, 0)
-  e1 = isempty(t)
-  println("isempty(take(Stateful([1,2,3]), 0)) = ", e1, ", collect = ", collect(t))
-  e2 = isempty(Iterators.take(eachline(IOBuffer("a\nb\n")), 0))
-  println("isempty(take(eachline(io), 0)) = ", e2)
-  # zip promises not to advance a stateful iterator when another one is finished
+  isempty(t)  # false
+  collect(t)  # Int64[]
   a = Iterators.Stateful([10, 20, 30])
-  z = collect(zip(a, Iterators.take(Iterators.Stateful([1]), 0)))
-  rest_a = collect(a)
-  println("collect(zip(a, take(Stateful([1]), 0))) = ", z, ", then collect(a) = ", rest_a)
-  if !e1 && !e2 && isempty(z) && rest_a == [20, 30]
-      println("REPRODUCED iterators-take-isdone-zero")
-  end
+  collect(zip(a, Iterators.take(Iterators.Stateful([1]), 0)))
+  collect(a)  # [20, 30]; the leading 10 was consumed
 output:
   release: |
     isempty(take(Stateful([1,2,3]), 0)) = false, collect = Int64[]
@@ -55,29 +49,38 @@ expected: |
   isempty(take(itr, 0)) == true for every itr, and zip(a, take(s, 0)) leaves a
   untouched (collect(a) == [10, 20, 30]).
 promised_by: |
-  isdone docstring, base/essentials.jl:1574-1587: stateful iterators define
-  isdone "that returns true/false depending on whether the iterator is done or
-  not". isempty docstring, base/essentials.jl:1204-1206. zip docstring,
-  base/iterators.jl:346-348: "zip orders the calls to its subiterators in such a
-  way that stateful iterators will not advance when another iterator finishes
-  in the current iteration."
+  Pinned source f755f49a9e41380d7da126b3c1db9fe7f83dd027:
+  base/essentials.jl:1216: "Determine whether a collection is empty (has no elements)."
+  base/iterators.jl:347-348: "`zip` orders the calls to its subiterators in such a way that stateful iterators will
+  not advance when another iterator finishes in the current iteration."
 cause: |
   base/iterators.jl:824, isdone(t::Take) = isdone(t.xs), ignores t.n. The
   stateful version, line 825, does check state[1] <= 0. isempty
-  (base/essentials.jl:1225-1229) and _zip_isdone (base/iterators.jl:496-501)
+  (base/essentials.jl:1235-1238) and _zip_isdone (base/iterators.jl:496-501)
   take the false at face value.
 possible_fix: |
   isdone(t::Take) = (t.n <= 0) | isdone(t.xs).
 duplicates:
   issues:
-  - number: 63733
-    state: merged
-    relation: related
+    - number: 64151
+      state: closed
+      relation: duplicate
+    - number: 28497
+      state: closed
+      relation: related
+  prs:
+    - number: 64340
+      state: merged
+      relation: duplicate
+      note: "fixes duplicate issue 64151"
+    - number: 63733
+      state: merged
+      relation: related
+      note: "related stateful Take isdone path"
   queries:
-  - isdone Take
-  - isempty take Stateful
-  - isempty Stateful take 0
-  - zip Stateful advance
+    - isdone take
+    - isempty take Stateful
+    - zip Stateful advance
 lean:
-  property: JuliaLean.Iterators.TakeIsemptyCorrect
-  theorem: JuliaLean.Iterators.takeIsemptyCorrect_refuted
+  property: JuliaLean.Proofs.base.iterators.TakeIsemptyCorrect
+  theorem: JuliaLean.ChatGPT.Batch4.Group5.IteratorsTakeIsdoneZero_refuted

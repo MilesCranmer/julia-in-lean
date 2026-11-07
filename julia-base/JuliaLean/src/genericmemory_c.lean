@@ -1,3 +1,7 @@
+import JuliaLean.base.genericmemory
+import JuliaLean.base.pointer
+import JuliaLean.base.runtime_internals
+import JuliaLean.Runtime.Collections
 
 -- UNTRANSLATED
 -- Source: src/genericmemory.c:1-54 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -58,7 +62,7 @@
 -- /Source
 
 -- UNTRANSLATED
--- Source: src/genericmemory.c:74-631 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+-- Source: src/genericmemory.c:74-401 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 -- 
 -- JL_DLLEXPORT jl_genericmemory_t *jl_alloc_genericmemory(jl_value_t *mtype, size_t nel)
 -- {
@@ -387,49 +391,445 @@
 --     return _jl_memoryref_isassigned(m, isatomic) ? jl_true : jl_false;
 -- }
 -- 
--- void jl_memoryrefunset(jl_genericmemoryref_t m, int isatomic)
--- {
---     const jl_datatype_layout_t *layout = ((jl_datatype_t*)jl_typetagof(m.mem))->layout;
---     assert(isatomic == (layout->flags.arrayelem_isatomic || layout->flags.arrayelem_islocked));
---     if (layout->flags.arrayelem_isboxed) {
---         assert((char*)m.ptr_or_offset - (char*)m.mem->ptr < sizeof(jl_value_t*) * m.mem->length);
---         _Atomic(jl_value_t*) *p = (_Atomic(jl_value_t*)*)m.ptr_or_offset;
---         // Deletion barrier: snapshot the overwritten reference for SATB collectors.
---         jl_gc_wb(jl_genericmemory_owner(m.mem), (void*)p, NULL);
---         if (isatomic)
---             jl_atomic_store(p, (jl_value_t*)NULL);
---         else
---             jl_atomic_store_release(p, (jl_value_t*)NULL);
---         return;
---     }
---     if (layout->flags.arrayelem_isunion)
---         return;
---     if (layout->first_ptr < 0)
---         return;
---     jl_datatype_t *dt = (jl_datatype_t*)normalize_typeofbottom_layout_alias(jl_tparam1(jl_typetagof(m.mem)));
---     assert(jl_is_datatype(dt)); // implied by !isboxed && !isunion
---     size_t fsz = jl_datatype_size(dt);
---     char *data = (char*)m.ptr_or_offset;
---     int needlock = layout->flags.arrayelem_islocked;
---     char *payload = needlock ? data + LLT_ALIGN(sizeof(jl_mutex_t), JL_SMALL_BYTE_ALIGNMENT) : data;
---     // Deletion barriers: one per reference field being cleared.
---     jl_value_t *owner = jl_genericmemory_owner(m.mem);
---     for (size_t i = 0; i < dt->layout->npointers; i++)
---         jl_gc_wb(owner, (jl_value_t**)payload + jl_ptr_offset(dt, i), NULL);
---     if (isatomic && !needlock) {
---         _Alignas(MAX_POINTERATOMIC_SIZE) char zero_buf[MAX_POINTERATOMIC_SIZE] = {0};
---         assert(fsz <= MAX_POINTERATOMIC_SIZE);
---         jl_atomic_store_bits(data, (jl_value_t*)zero_buf, fsz);
---     }
---     else if (needlock) {
---         jl_lock_field((jl_mutex_t*)data);
---         memset(payload, 0, fsz);
---         jl_unlock_field((jl_mutex_t*)data);
---     }
---     else {
---         memset(data, 0, fsz);
---     }
--- }
+-- /Source
+
+namespace JuliaLean.src.genericmemory_c
+
+open JuliaLean
+open JuliaLean.base.genericmemory
+abbrev Layout := JuliaLean.base.runtime_internals.DataTypeLayout
+abbrev ByteHeap := JuliaLean.base.pointer.ByteHeap
+abbrev Byte := JInt .u8
+
+/-- Native layout construction; conversions are exactly the declared C/Julia field widths. -/
+def nativeLayout (size nfields npointers : Nat) (firstptr : Int) (alignment flags : Nat) : Layout :=
+  ⟨JInt.wrap .u32 size, JInt.wrap .u32 nfields, JInt.wrap .u32 npointers,
+    JInt.wrap .i32 firstptr, JInt.wrap .u16 alignment, JInt.wrap .u16 flags⟩
+
+/-- Last entry of the nonempty pointer vector supplied to jl_get_layout. -/
+def lastPointer (first : JInt .u32) : List (JInt .u32) → JInt .u32
+  | [] => first
+  | x :: rest => lastPointer x rest
+
+/-- The nfields=0 GenericMemory specialization of src/datatype.c:191-253.
+The post-layout-construction pointer vector is nonempty even for pointer-free
+elements: its first value is UINT32_MAX, yielding descriptor type 2 and firstptr=-1.
+`arrayelem` is the four-bit result of datatype.c:613-623, not the element's flags. -/
+def genericMemoryHeader (size alignment arrayelem : Nat) (firstptr : Int)
+    (rest : List Nat := []) : Layout :=
+  let first := JInt.wrap .u32 firstptr
+  let tail := rest.map (fun (n : Nat) => JInt.wrap .u32 (n : Int))
+  let maximumOffset := (lastPointer first tail).val.toNat
+  let descriptor := if maximumOffset < 256 then 0 else if maximumOffset < 65536 then 1 else 2
+  nativeLayout size 0 (tail.length + 1) (JInt.wrap .i32 first.val).val alignment
+    (1 + 2 * descriptor + 8 * (arrayelem % 16))
+
+/-- Runtime type metadata, not a user-selected unset effect. `direct` is dt->layout;
+`wrapper` is jl_unwrap_unionall(dt->name->wrapper)->layout, used only by jl_datatype_layout.
+`pointerTable` is the unsigned table at jl_dt_layout_ptrs(direct), in pointer-word units.
+Sources: src/julia.h:1679-1686,1783-1797. -/
+structure Datatype where
+  direct : Layout
+  wrapper : Layout
+  pointerTable : Nat → Nat
+
+/-- The only alias normalized by src/julia_internal.h:1324-1328. A union/boxed
+metadata record need not be a datatype, since unset returns before reading it. -/
+inductive ElementType where
+  | datatype (dt : Datatype)
+  | typeEqBottom
+  | other
+
+def normalizeTypeofbottomLayoutAlias (typeofBottom : Option Datatype) : ElementType → ElementType
+  | .typeEqBottom => match typeofBottom with
+    | some dt => .datatype dt
+    | none => .typeEqBottom
+  | ty => ty
+
+def datatypeLayout (dt : Datatype) : Layout :=
+  if dt.direct.nfields.val == 0 && dt.direct.npointers.val != 0 then dt.wrapper else dt.direct
+
+def datatypeSize (dt : Datatype) : Nat := (datatypeLayout dt).size.val.toNat
+
+/-- A typed snapshot of the same runtime memory type: layout is
+((jl_datatype_t*)jl_typetagof(m.mem))->layout, elementType is its tparam1,
+and kind is its tparam0. These are runtime metadata reads, not separately
+chosen layouts/element types; sources genericmemory.c:404,421 and builtins.c:2383.
+elementTag is the existing abstractset reflection of that same tparam1. -/
+structure RuntimeTypeSnapshot where
+  identity : Nat
+  layout : Layout
+  elementType : ElementType
+  elementTag : JuliaLean.base.abstractset.JuliaType
+  kind : MemoryKind
+
+/-- The runtime type snapshot, owner, and ABI inputs do not contain storage operations.
+The mutex size is an ABI primitive at genericmemory.c:426; small alignment is 16
+(julia_internal.h:672), pointer width 8 and atomic maximum 16 (julia.h:58-67). -/
+structure Metadata where
+  runtimeType : RuntimeTypeSnapshot
+  typeofBottom : Option Datatype
+  owner : Nat
+  mutexBytes : Nat
+
+def Metadata.memoryLayout (m : Metadata) : Layout := m.runtimeType.layout
+def Metadata.elementType (m : Metadata) : ElementType := m.runtimeType.elementType
+def Metadata.kind (m : Metadata) : MemoryKind := m.runtimeType.kind
+
+/-- Native UInt16 bit test from the installed runtime-internals model. -/
+def flag (l : Layout) (bit : Nat) : Bool :=
+  JuliaLean.base.runtime_internals.has16 l.flags (2 ^ bit)
+
+def isBoxed (m : Metadata) : Bool := flag m.memoryLayout 3
+def isUnion (m : Metadata) : Bool := flag m.memoryLayout 4
+def isAtomic (m : Metadata) : Bool := flag m.memoryLayout 5
+def isLocked (m : Metadata) : Bool := flag m.memoryLayout 6
+
+def lockPayloadOffset (m : Metadata) : Nat :=
+  (JuliaLean.base.runtime_internals.lltAlign
+    JuliaLean.base.int.add
+    (fun x : JInt .u64 => JuliaLean.base.int.sub x (JInt.wrap .u64 1))
+    JuliaLean.base.int.neg JuliaLean.base.int.band
+    (JInt.wrap .u64 m.mutexBytes) (JInt.wrap .u64 16)).val.toNat
+
+/-- `jl_ptr_offset(dt,i)`: the unsigned table read selected by fielddesc_type.
+The C table is already typed uint8_t/uint16_t/uint32_t. Modulo is that unsigned read;
+no byte-order convention is imposed on the host ABI. Foreign descriptors are excluded
+by the C assertion at julia.h:1795. -/
+def ptrOffset (dt : Datatype) (i : Nat) : Nat :=
+  let fielddesc := (JuliaLean.base.runtime_internals.datatypeFielddescTypeLayout dt.direct).val
+  let width := if fielddesc == 0 then 8 else if fielddesc == 1 then 16 else 32
+  dt.pointerTable i % 2 ^ width
+
+inductive StoreOrder where
+  | seqCst
+  | release
+  deriving Repr, DecidableEq
+
+/-- Calls in their C execution order. Barriers carry the exact address of the
+reference being overwritten, rather than a value guessed from an Option slot. -/
+inductive Effect where
+  | deletionBarrier (owner address : Nat)
+  | storePointerNull (address : Nat) (order : StoreOrder)
+  | storeBitsZero (address size : Nat)
+  | lock (address : Nat)
+  | memsetZero (address size : Nat)
+  | unlock (address : Nat)
+  deriving Repr, DecidableEq
+
+/-- C assertions are not Julia exceptions. `invalidDatatype` identifies an
+unreachable metadata combination, never a silent preserve/clear fallback. -/
+inductive Failure where
+  | invalidDatatype
+  | invalidAtomicOrdering
+  | nonAtomicWrite
+  | atomicWrite
+  | bounds
+  deriving Repr, DecidableEq
+
+/--
+Julia source: src/genericmemory.c:402-444 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
+```julia
+void jl_memoryrefunset(jl_genericmemoryref_t m, int isatomic)
+{
+    const jl_datatype_layout_t *layout = ((jl_datatype_t*)jl_typetagof(m.mem))->layout;
+    assert(isatomic == (layout->flags.arrayelem_isatomic || layout->flags.arrayelem_islocked));
+    if (layout->flags.arrayelem_isboxed) {
+        assert((char*)m.ptr_or_offset - (char*)m.mem->ptr < sizeof(jl_value_t*) * m.mem->length);
+        _Atomic(jl_value_t*) *p = (_Atomic(jl_value_t*)*)m.ptr_or_offset;
+        // Deletion barrier: snapshot the overwritten reference for SATB collectors.
+        jl_gc_wb(jl_genericmemory_owner(m.mem), (void*)p, NULL);
+        if (isatomic)
+            jl_atomic_store(p, (jl_value_t*)NULL);
+        else
+            jl_atomic_store_release(p, (jl_value_t*)NULL);
+        return;
+    }
+    if (layout->flags.arrayelem_isunion)
+        return;
+    if (layout->first_ptr < 0)
+        return;
+    jl_datatype_t *dt = (jl_datatype_t*)normalize_typeofbottom_layout_alias(jl_tparam1(jl_typetagof(m.mem)));
+    assert(jl_is_datatype(dt)); // implied by !isboxed && !isunion
+    size_t fsz = jl_datatype_size(dt);
+    char *data = (char*)m.ptr_or_offset;
+    int needlock = layout->flags.arrayelem_islocked;
+    char *payload = needlock ? data + LLT_ALIGN(sizeof(jl_mutex_t), JL_SMALL_BYTE_ALIGNMENT) : data;
+    // Deletion barriers: one per reference field being cleared.
+    jl_value_t *owner = jl_genericmemory_owner(m.mem);
+    for (size_t i = 0; i < dt->layout->npointers; i++)
+        jl_gc_wb(owner, (jl_value_t**)payload + jl_ptr_offset(dt, i), NULL);
+    if (isatomic && !needlock) {
+        _Alignas(MAX_POINTERATOMIC_SIZE) char zero_buf[MAX_POINTERATOMIC_SIZE] = {0};
+        assert(fsz <= MAX_POINTERATOMIC_SIZE);
+        jl_atomic_store_bits(data, (jl_value_t*)zero_buf, fsz);
+    }
+    else if (needlock) {
+        jl_lock_field((jl_mutex_t*)data);
+        memset(payload, 0, fsz);
+        jl_unlock_field((jl_mutex_t*)data);
+    }
+    else {
+        memset(data, 0, fsz);
+    }
+}
+```
+`data` is already the reference's byte address, except in no-op union/zero-sized
+branches. fsz comes from the normalized element datatype, not memoryLayout.size.
+The barriers precede lock acquisition.
+-/
+def memoryrefUnsetProgram (m : Metadata) (data : Nat) (atomic : Bool) :
+    Except Failure (List Effect) := do
+  if isBoxed m then
+    return [.deletionBarrier m.owner data,
+      .storePointerNull data (if atomic then .seqCst else .release)]
+  if isUnion m then return []
+  if m.memoryLayout.firstptr.val < 0 then return []
+  let dt ← match normalizeTypeofbottomLayoutAlias m.typeofBottom m.elementType with
+    | .datatype dt => pure dt
+    | _ => throw .invalidDatatype
+  let fsz := datatypeSize dt
+  let payload := if isLocked m then data + lockPayloadOffset m else data
+  let barriers := (List.range dt.direct.npointers.val.toNat).map fun i =>
+    Effect.deletionBarrier m.owner (payload + 8 * ptrOffset dt i)
+  if atomic && !isLocked m then
+    return barriers ++ [.storeBitsZero data fsz]
+  else if isLocked m then
+    return barriers ++ [.lock data, .memsetZero payload fsz, .unlock data]
+  else
+    return barriers ++ [.memsetZero data fsz]
+
+/-- Domain of the assertions reached by jl_memoryrefunset, not additional
+preconditions on the public Julia API. Other layout consistency is supplied by the
+runtime type constructor, not asserted as a law of a user callback. -/
+def RuntimeValid (m : Metadata) (data base length : Nat) (atomic : Bool) : Prop :=
+  atomic = (isAtomic m || isLocked m) ∧
+  (isBoxed m = true → base ≤ data ∧ data - base < 8 * length) ∧
+  (isBoxed m = false → isUnion m = false → 0 ≤ m.memoryLayout.firstptr.val →
+    ∃ dt, normalizeTypeofbottomLayoutAlias m.typeofBottom m.elementType = .datatype dt ∧
+      (JuliaLean.base.runtime_internals.datatypeFielddescTypeLayout dt.direct).val < 3 ∧
+      (atomic = true → isLocked m = false → datatypeSize dt ≤ 16))
+
+/-- Symbols represented by the installed MemoryOrder, including arbitrary symbols. -/
+def orderSymbol : MemoryOrder → String
+  | .notAtomic => "not_atomic"
+  | .monotonic => "monotonic"
+  | .acquire => "acquire"
+  | .release => "release"
+  | .acqRel => "acquire_release"
+  | .seqCst => "sequentially_consistent"
+  | .other name => name
+
+/-- Store-order validation at src/builtins.c:1146-1170,2375-2398. The boundscheck
+Bool argument is type-checked but does not suppress the zero-length check. -/
+def checkStoreOrder (order : MemoryOrder) : Except Failure Unit :=
+  if ["not_atomic", "unordered", "monotonic", "release", "sequentially_consistent"].contains
+      (orderSymbol order) then .ok () else .error .invalidAtomicOrdering
+
+def memoryrefUnsetBuiltinProgram (m : Metadata) (data length : Nat)
+    (order : MemoryOrder) (_boundsChecking : Bool) : Except Failure (List Effect) := do
+  match m.kind with
+  | .notAtomic =>
+    if orderSymbol order != "not_atomic" then
+      checkStoreOrder order
+      throw .nonAtomicWrite
+  | .atomic =>
+    checkStoreOrder order
+    if orderSymbol order == "not_atomic" then throw .atomicWrite
+  if length == 0 then throw .bounds
+  memoryrefUnsetProgram m data (m.kind == .atomic)
+
+/-- Observable runtime-call trace. The barrier snapshots all eight old pointer
+bytes before any clear; collector-internal state is outside the storage model.
+Lock/unlock calls are preserved as events, not replaced by storage callbacks. -/
+inductive Event where
+  | barrier (owner address : Nat) (oldPointer : List Byte)
+  | storePointer (address : Nat) (order : StoreOrder)
+  | storeBits (address size : Nat)
+  | lock (address : Nat)
+  | memset (address size : Nat)
+  | unlock (address : Nat)
+  deriving Repr
+
+/-- The installed raw GenericMemory storage representation, pointer.ByteHeap,
+plus a trace of the C primitive calls that are not byte storage. -/
+structure RawState where
+  heap : ByteHeap
+  events : List Event := []
+
+def zeroBytes (h : ByteHeap) (address size : Nat) : ByteHeap :=
+  h.writeBytes address (List.replicate size (JInt.wrap .u8 0))
+
+/-- jl_atomic_store_bits writes the next supported scalar width, including zeroed
+padding above fsz, src/datatype.c:1263-1287. RuntimeValid restricts fsz to ≤ 16. -/
+def atomicStoreWidth (fsz : Nat) : Nat :=
+  if fsz = 0 then 0 else if fsz = 1 then 1 else 2 ^ (Nat.log2 (fsz - 1) + 1)
+
+def interpretRawEffect (s : RawState) : Effect → RawState
+  | .deletionBarrier owner address =>
+    { s with events := s.events ++ [.barrier owner address (s.heap.readBytes address 8)] }
+  | .storePointerNull address order =>
+    { heap := zeroBytes s.heap address 8, events := s.events ++ [.storePointer address order] }
+  | .storeBitsZero address size =>
+    { heap := zeroBytes s.heap address (atomicStoreWidth size),
+      events := s.events ++ [.storeBits address size] }
+  | .lock address => { s with events := s.events ++ [.lock address] }
+  | .memsetZero address size =>
+    { heap := zeroBytes s.heap address size, events := s.events ++ [.memset address size] }
+  | .unlock address => { s with events := s.events ++ [.unlock address] }
+
+def interpretRaw (effects : List Effect) (s : RawState) : RawState :=
+  effects.foldl interpretRawEffect s
+
+/-- Existing GenericMemoryRef is used unchanged. Length/ptr/metadata are runtime
+object fields, not new free storage operations. -/
+structure MemoryObject where
+  ptr : Nat
+  length : Nat
+  metadata : Metadata
+
+abbrev RawRef := GenericMemoryRef MemoryObject Nat
+
+def rawMemoryrefUnset (ref : RawRef) (order : MemoryOrder) (boundsChecking : Bool) :
+    ExceptT Failure (StateM RawState) Unit := do
+  match memoryrefUnsetBuiltinProgram ref.mem.metadata ref.ptr_or_offset ref.mem.length
+      order boundsChecking with
+  | .error e => throw e
+  | .ok effects => modify (interpretRaw effects)
+
+/-- Reference construction uses the memory-layout stride, src/genericmemory.c:256-263,
+especially line 262. Incrementing a reference is at :311-321. -/
+def refAt (mem : MemoryObject) (index0 : Nat) : RawRef :=
+  ⟨mem, if isUnion mem.metadata || mem.metadata.memoryLayout.size.val == 0 then index0
+    else mem.ptr + mem.metadata.memoryLayout.size.val.toNat * index0⟩
+
+/-- Option storage is the installed Dict contents model. Inline values with a
+pointer become unassigned when the first pointer is zero; union and pointer-free
+values retain their old Option. It is a projection of the *same* program, not a
+second Bool/isbits dispatcher. The full byte clear and call trace remain in RawState. -/
+def interpretSlotEffect {α : Type} (index : Nat) (slots : Nat → Option α) :
+    Effect → Nat → Option α
+  | .storePointerNull _ _ => fun j => if j = index then none else slots j
+  | .storeBitsZero _ _ => fun j => if j = index then none else slots j
+  | .memsetZero _ _ => fun j => if j = index then none else slots j
+  | _ => slots
+
+def interpretSlots {α : Type} (effects : List Effect) (index : Nat)
+    (slots : Nat → Option α) : Nat → Option α :=
+  effects.foldl (interpretSlotEffect index) slots
+
+/-- Runtime metadata for a valid Memory{T}, with the C datatype assertion made
+explicit at construction. This is runtime data, not a correctness-law callback.
+Non-atomic Dict memories cannot have either atomic/locked flag. -/
+structure DictLayout where
+  metadata : Metadata
+  nonAtomicKind : metadata.kind = .notAtomic
+  nonAtomicFlag : isAtomic metadata = false
+  unlocked : isLocked metadata = false
+  inlineDatatype : isBoxed metadata = false → isUnion metadata = false →
+    0 ≤ metadata.memoryLayout.firstptr.val →
+    ∃ dt, normalizeTypeofbottomLayoutAlias metadata.typeofBottom metadata.elementType = .datatype dt
+
+/-- The Option projection has no recoverable failure on valid runtime metadata.
+The dependent match consumes the *C datatype assertion*, without a fallback. -/
+def dictUnsetEffects (l : DictLayout) (index0 : Nat) : List Effect :=
+  match he : memoryrefUnsetProgram l.metadata (l.metadata.memoryLayout.size.val.toNat * index0) false with
+  | .ok effects => effects
+  | .error _ => False.elim (by
+      cases hb : isBoxed l.metadata with
+      | true => simp [memoryrefUnsetProgram, hb, pure, Except.pure] at he
+      | false =>
+        cases hu : isUnion l.metadata with
+        | true => simp [memoryrefUnsetProgram, hb, hu, pure, Except.pure] at he
+        | false =>
+          by_cases hp : l.metadata.memoryLayout.firstptr.val < 0
+          · simp [memoryrefUnsetProgram, hb, hu, hp, pure, Except.pure] at he
+          · obtain ⟨dt, hdt⟩ := l.inlineDatatype hb hu (by omega)
+            simp [memoryrefUnsetProgram, hb, hu, hp, hdt, l.unlocked,
+              pure, Except.pure, bind, Except.bind] at he)
+
+/-- Replacement for dict.round2's rt parameter. On the source domain (1 ≤ index ≤
+size), C memoryrefAt points to index-1; all Option indices remain one-based. -/
+def dictMemoryrefUnset {α : Type} (layout : DictLayout) (index : Nat) :
+    StateM (Nat → Option α) Unit :=
+  fun slots => ((), interpretSlots (dictUnsetEffects layout (index - 1)) index slots)
+
+/-- The Nothing element layout and the Memory{Nothing} header are distinct.
+The header follows datatype.c:543-553,567-585,613-625: npointers=1,
+firstptr=-1, descriptor=2, haspadding=1, isbitsegal=0, hence flags=5. -/
+def nothingElementLayout : Layout := nativeLayout 0 0 0 (-1) 1 128
+def nothingMemoryLayout : Layout := genericMemoryHeader 0 1 0 (-1)
+def nothingMetadata : Metadata :=
+  { runtimeType :=
+      { identity := 0
+        layout := nothingMemoryLayout
+        elementType := .datatype ⟨nothingElementLayout, nothingElementLayout, fun _ => 0⟩
+        elementTag := .nothing
+        kind := .notAtomic }
+    typeofBottom := none
+    owner := 0
+    mutexBytes := 0 }
+
+def nothingDictLayout : DictLayout where
+  metadata := nothingMetadata
+  nonAtomicKind := rfl
+  nonAtomicFlag := rfl
+  unlocked := rfl
+  inlineDatatype := by
+    intro _ _ _
+    exact ⟨⟨nothingElementLayout, nothingElementLayout, fun _ => 0⟩, rfl⟩
+
+/-- Actual boxed-memory header: datatype.c:543-553,607-625 leaves npointers=1,
+firstptr=-1; the UINT32_MAX pointer sentinel selects descriptor 2, so flags=13.
+The element representation is boxed and need not be a datatype. -/
+def boxedLayout : Layout := genericMemoryHeader 8 8 1 (-1)
+def boxedDictLayout : DictLayout where
+  metadata :=
+    { nothingMetadata with runtimeType :=
+        { identity := 1
+          layout := boxedLayout
+          elementType := .other
+          elementTag := .other
+          kind := .notAtomic } }
+  nonAtomicKind := rfl
+  nonAtomicFlag := rfl
+  unlocked := rfl
+  inlineDatatype := by
+    intro hb
+    change true = false at hb
+    cases hb
+
+
+/-- MemoryRef operations on raw Option slots, using the native unset program. -/
+def runtimeAccessOps {α : Type} (layout : DictLayout) :
+    JuliaLean.base.genericmemory.MemoryAccessOps (StateM (Nat → Option α))
+      Unit Nat (Option α) (Option α) where
+  memoryref _ := pure ⟨(), 1⟩
+  memoryrefAt _ i := pure ⟨(), i.val.toNat⟩
+  memoryrefNew ref i _ := pure ⟨ref.mem, i.val.toNat⟩
+  memoryrefIsAssigned ref _ _ := fun s => ((s ref.ptr_or_offset).isSome, s)
+  memoryrefUnset ref _ _ := dictMemoryrefUnset layout ref.ptr_or_offset
+  memoryrefSet ref v _ _ := fun s => ((), fun j => if j = ref.ptr_or_offset then v else s j)
+  defaultOrderMemory _ := .notAtomic
+  defaultOrderRef _ := .notAtomic
+  checkboundsBool _ _ := pure true
+  checkbounds _ _ := pure ()
+  castElement := some
+  convertElement v := pure v
+  getindex _ i := fun s => (s i.val.toNat, s)
+
+/-- Project the selected raw slot after the MemoryRef wrapper at
+`base/genericmemory.jl:119`; byte and GC effects remain in the native program. -/
+def unsetCell {α : Type} (layout : DictLayout) (index : Nat) (old : Option α) : Option α :=
+  let slots : Nat → Option α := fun _ => old
+  let result := Id.run ((JuliaLean.base.genericmemory.unsetindexRef
+    (runtimeAccessOps layout) false ⟨(), index⟩).run slots)
+  result.2 index
+
+end JuliaLean.src.genericmemory_c
+
+-- UNTRANSLATED
+-- Source: src/genericmemory.c:445-631 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
 -- 
 -- void jl_memoryrefset(jl_genericmemoryref_t m, jl_value_t *rhs JL_ROOTED_BY_ARG(0) JL_MAYBE_UNROOTED, int isatomic)
 -- {

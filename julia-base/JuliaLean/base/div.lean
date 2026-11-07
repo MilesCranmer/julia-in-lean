@@ -1,5 +1,6 @@
 import JuliaLean.base.int
 import JuliaLean.base.float
+import JuliaLean.base.promotion
 
 /-!
 # Model of `base/div.jl`
@@ -919,7 +920,7 @@ private def mixedDivremSameSign {s u : IntTy} (x : JInt s) (y : JInt u) :
   let (a, b) := JuliaLean.base.int.promoteSameSign x y
   divremBitIntegerMode a b .ToZero
 
-private def mixedDivRoundSameSign {s u : IntTy} (x : JInt s) (y : JInt u)
+def mixedDivRoundSameSign {s u : IntTy} (x : JInt s) (y : JInt u)
     (mode : JuliaLean.base.float.RoundingMode) : Jl (JInt (s.promote u)) := do
   let (a, b) := JuliaLean.base.int.promoteSameSign x y
   divBitIntegerMode a b mode
@@ -955,29 +956,178 @@ private def mixedDivremSameSignRound {s u : IntTy} (x : JInt s) (y : JInt u)
       (JuliaLean.base.int.binop JuliaLean.base.int.sub_int) x y .Up
   else .error (.methodError "divrem")
 
-private def mixedDivSignedUnsignedUpDown {s u : IntTy} (x : JInt s) (y : JInt u)
-    (mode : JuliaLean.base.float.RoundingMode) :
-    Jl (JInt (s.toUnsigned.promote u).toSigned) :=
-  if mode = .Down then
-    div_Signed_Unsigned_Down
-      (JuliaLean.base.int.divrem_BitSigned_Unsigned mixedDivremSameSign)
-      JuliaLean.base.int.signbit mixedIsZero mixedBoolSub x y
-  else if mode = .Up then
-    div_Signed_Unsigned_Up
-      (JuliaLean.base.int.divrem_BitSigned_Unsigned mixedDivremSameSign)
-      JuliaLean.base.int.signbit mixedIsZero mixedBoolAdd x y
-  else .error (.methodError "div")
+inductive NearestRemainder (R RA RS : Type) where
+  | unchanged : R → NearestRemainder R RA RS
+  | added : RA → NearestRemainder R RA RS
+  | subtracted : RS → NearestRemainder R RA RS
 
-private def mixedDivSignedUnsigned {s u : IntTy} (x : JInt s) (y : JInt u)
-    (mode : JuliaLean.base.float.RoundingMode) :
-    Jl (JInt (s.toUnsigned.promote u).toSigned) :=
-  if mode = .ToZero then
-    JuliaLean.base.int.div_BitSigned_Unsigned mixedDivSameSign x y
+structure NearestTypedOps
+    (A B Q R H SH NH NSH HP NP HM NM RA RS : Type) where
+  truncDivrem : A → B → Jl (Q × R)
+  nonnegativeX : A → Jl Bool
+  nonnegativeY : B → Jl Bool
+  half : B → Jl H
+  signedHalf : H → Jl SH
+  negateHalf : H → Jl NH
+  negateSignedHalf : SH → Jl NSH
+  oddY : B → Jl Bool
+  evenQ : Q → Jl Bool
+  addHalf : H → Bool → Jl HP
+  addNegativeHalf : NH → Bool → Jl NP
+  subtractHalf : H → Bool → Jl HM
+  subtractNegativeSignedHalf : NSH → Bool → Jl NM
+  gePositiveThreshold : R → HP → Jl Bool
+  geNegativeThreshold : R → NP → Jl Bool
+  leNegativeSignedThreshold : R → NM → Jl Bool
+  leHalfThreshold : R → HM → Jl Bool
+  addQ : Q → Bool → Jl Q
+  subtractQ : Q → Bool → Jl Q
+  addR : R → B → Jl RA
+  subtractR : R → B → Jl RS
+
+def nearestDivremTyped
+    {A B Q R H SH NH NSH HP NP HM NM RA RS : Type}
+    (o : NearestTypedOps A B Q R H SH NH NSH HP NP HM NM RA RS)
+    (mode : NearestMode) (x : A) (y : B) :
+    Jl (Q × NearestRemainder R RA RS) := do
+  let (q,r) ← o.truncDivrem x y
+  let tie := fun (_ : Unit) => do
+    let odd ← o.oddY y
+    if mode = .Nearest then
+      let even ← o.evenQ q
+      pure (odd || even)
+    else pure odd
+  if ← o.nonnegativeX x then
+    if ← o.nonnegativeY y then
+      let h ← o.half y
+      let threshold ← o.addHalf h (← tie ())
+      if ← o.gePositiveThreshold r threshold then
+        let q ← o.addQ q true
+        let r ← o.subtractR r y
+        pure (q,.subtracted r)
+      else pure (q,.unchanged r)
+    else
+      let h ← o.negateHalf (← o.half y)
+      let tie ← if mode = .NearestTiesUp then pure true else tie ()
+      let threshold ← o.addNegativeHalf h tie
+      if ← o.geNegativeThreshold r threshold then
+        let q ← o.subtractQ q true
+        let r ← o.addR r y
+        pure (q,.added r)
+      else pure (q,.unchanged r)
+  else if ← o.nonnegativeY y then
+    let h ← o.negateSignedHalf (← o.signedHalf (← o.half y))
+    let tie ← if mode = .NearestTiesUp then pure true else tie ()
+    let threshold ← o.subtractNegativeSignedHalf h tie
+    if ← o.leNegativeSignedThreshold r threshold then
+      let q ← o.subtractQ q true
+      let r ← o.addR r y
+      pure (q,.added r)
+    else pure (q,.unchanged r)
+  else
+    let h ← o.half y
+    let threshold ← o.subtractHalf h (← tie ())
+    if ← o.leHalfThreshold r threshold then
+      let q ← o.addQ q true
+      let r ← o.subtractR r y
+      pure (q,.subtracted r)
+    else pure (q,.unchanged r)
+
+def sameSignTruncDivrem {a b : IntTy} (x : JInt a) (y : JInt b) :
+    Jl (JInt (a.promote b) × JInt (a.promote b)) := do
+  let (x,y) := JuliaLean.base.int.promoteSameSign x y
+  divremBitIntegerToZero x y
+
+def mixedNativeMode {A B Q R H SH NH NSH HP NP HM NM RA RS : Type}
+    (o : NearestTypedOps A B Q R H SH NH NSH HP NP HM NM RA RS)
+    (trunc down up : A → B → Jl Q)
+    (signbitX : A → Bool) (signbitY : B → Bool)
+    (x : A) (y : B) (mode : JuliaLean.base.float.RoundingMode) : Jl Q :=
+  if mode = .ToZero then trunc x y
+  else if mode = .Down then down x y
+  else if mode = .Up then up x y
   else if mode = .FromZero then
-    div_Integer_FromZero JuliaLean.base.int.signbit JuliaLean.base.int.signbit
-      mixedDivSignedUnsignedUpDown x y
-  else mixedDivSignedUnsignedUpDown x y mode
+    div_Integer_FromZero signbitX signbitY
+      (fun a b r => if r = .Up then up a b else down a b) x y
+  else
+    div_Integer_Nearest
+      (fun a b r => nearestDivremTyped o
+        (if r = .Nearest then .Nearest
+         else if r = .NearestTiesAway then .NearestTiesAway
+         else .NearestTiesUp) a b)
+      (if mode = .Nearest then .Nearest
+       else if mode = .NearestTiesAway then .NearestTiesAway
+       else .NearestTiesUp) x y
 
+private def isoddUnsigned {u : IntTy} (y : JInt u) : Jl Bool := do
+  let r ← JuliaLean.base.int.rem_Unsigned_BitSigned mixedRemSameSign y (JInt.lit .i64 2)
+  pure (JuliaLean.base.int.isodd_Real (fun _ => true) id (fun _ _ => r)
+    (fun z => JuliaLean.base.int.eq z (JInt.lit .i64 0)) y)
+
+private def isoddSigned {s : IntTy} (y : JInt s) : Jl Bool := do
+  let r ← mixedRemSameSign y (JInt.lit .i64 2)
+  pure (JuliaLean.base.int.isodd_Real (fun _ => true) id (fun _ _ => r)
+    (fun z => JuliaLean.base.int.eq z (JInt.lit .i64 0)) y)
+
+private def isevenSigned {s : IntTy} (q : JInt s) : Jl Bool := do
+  let r ← mixedRemSameSign q (JInt.lit .i64 2)
+  pure (JuliaLean.base.int.iseven_Real (fun _ => true) id (fun _ _ => r)
+    (fun z => JuliaLean.base.int.eq z (JInt.lit .i64 0)) q)
+
+private def isevenUnsigned {u : IntTy} (q : JInt u) : Jl Bool := do
+  let r ← JuliaLean.base.int.rem_Unsigned_BitSigned mixedRemSameSign q (JInt.lit .i64 2)
+  pure (JuliaLean.base.int.iseven_Real (fun _ => true) id (fun _ _ => r)
+    (fun z => JuliaLean.base.int.eq z (JInt.lit .i64 0)) q)
+
+def signedUnsignedNearestOps {s u : IntTy} :
+    NearestTypedOps
+      (JInt s) (JInt u)
+      (JInt (s.toUnsigned.promote u).toSigned)
+      (JInt (s.toUnsigned.promote u).toSigned)
+      (JInt (u.promote IntTy.i64.toUnsigned).toSigned.toUnsigned)
+      (JInt (JuliaLean.base.int.signedType (u.promote IntTy.i64.toUnsigned).toSigned.toUnsigned))
+      (JInt (u.promote IntTy.i64.toUnsigned).toSigned.toUnsigned)
+      (JInt (JuliaLean.base.int.signedType (u.promote IntTy.i64.toUnsigned).toSigned.toUnsigned))
+      (JInt (u.promote IntTy.i64.toUnsigned).toSigned.toUnsigned)
+      (JInt (u.promote IntTy.i64.toUnsigned).toSigned.toUnsigned)
+      (JInt (u.promote IntTy.i64.toUnsigned).toSigned.toUnsigned)
+      (JInt (JuliaLean.base.int.signedType (u.promote IntTy.i64.toUnsigned).toSigned.toUnsigned))
+      (JInt (((s.toUnsigned.promote u).toSigned).promote u))
+      (JInt (((s.toUnsigned.promote u).toSigned).promote u)) where
+  truncDivrem := JuliaLean.base.int.divrem_BitSigned_Unsigned sameSignTruncDivrem
+  nonnegativeX x := .ok (JuliaLean.base.int.le (JInt.lit .i64 0) x)
+  nonnegativeY y := .ok (JuliaLean.base.int.le (JInt.lit .i64 0) y)
+  half y := JuliaLean.base.int.div_Unsigned_BitSigned mixedDivSameSign y (JInt.lit .i64 2)
+  signedHalf h := .ok (JuliaLean.base.int.signed h)
+  negateHalf h := .ok (JuliaLean.base.int.neg h)
+  negateSignedHalf sh := .ok (JuliaLean.base.int.neg sh)
+  oddY := isoddUnsigned
+  evenQ := isevenSigned
+  addHalf h b := .ok (bitAddBool h b)
+  addNegativeHalf nh b := .ok (bitAddBool nh b)
+  subtractHalf h b := .ok (bitSubBool h b)
+  subtractNegativeSignedHalf nsh b := .ok (bitSubBool nsh b)
+  gePositiveThreshold r hp := .ok (JuliaLean.base.int.le hp r)
+  geNegativeThreshold r np := .ok (JuliaLean.base.int.le np r)
+  leNegativeSignedThreshold r nm := .ok (JuliaLean.base.int.le r nm)
+  leHalfThreshold r hm := .ok (JuliaLean.base.int.le r hm)
+  addQ q b := .ok (bitAddBool q b)
+  subtractQ q b := .ok (bitSubBool q b)
+  addR r y := .ok (JuliaLean.base.int.binop JuliaLean.base.int.add r y)
+  subtractR r y := .ok (JuliaLean.base.int.binop JuliaLean.base.int.sub r y)
+
+def mixedDivSignedUnsigned {s u : IntTy} (x : JInt s) (y : JInt u)
+    (mode : JuliaLean.base.float.RoundingMode) :
+    Jl (JInt (s.toUnsigned.promote u).toSigned) :=
+  mixedNativeMode signedUnsignedNearestOps
+    (JuliaLean.base.int.div_BitSigned_Unsigned mixedDivSameSign)
+    (div_Signed_Unsigned_Down
+      (JuliaLean.base.int.divrem_BitSigned_Unsigned sameSignTruncDivrem)
+      JuliaLean.base.int.signbit mixedIsZero mixedBoolSub)
+    (div_Signed_Unsigned_Up
+      (JuliaLean.base.int.divrem_BitSigned_Unsigned sameSignTruncDivrem)
+      JuliaLean.base.int.signbit mixedIsZero mixedBoolAdd)
+    JuliaLean.base.int.signbit JuliaLean.base.int.signbit x y mode
 private def mixedFldSignedUnsigned {s u : IntTy} (x : JInt s) (y : JInt u) :
     Jl (JInt (s.toUnsigned.promote u).toSigned) :=
   fld_Signed_Unsigned mixedDivSignedUnsigned x y
@@ -1006,29 +1156,55 @@ private def mixedDivremSignedUnsignedRound {s u : IntTy} (x : JInt s) (y : JInt 
       (JuliaLean.base.int.binop JuliaLean.base.int.sub_int) x y .Up
   else .error (.methodError "divrem")
 
-private def mixedDivUnsignedSignedUpDown {u s : IntTy} (x : JInt u) (y : JInt s)
+def unsignedSignedNearestOps {u s : IntTy} :
+    NearestTypedOps
+      (JInt u) (JInt s)
+      (JInt (u.promote s.toUnsigned).toSigned.toUnsigned)
+      (JInt (u.promote s.toUnsigned))
+      (JInt (s.promote .i64))
+      (JInt (JuliaLean.base.int.signedType (s.promote .i64)))
+      (JInt (s.promote .i64))
+      (JInt (JuliaLean.base.int.signedType (s.promote .i64)))
+      (JInt (s.promote .i64))
+      (JInt (s.promote .i64))
+      (JInt (s.promote .i64))
+      (JInt (JuliaLean.base.int.signedType (s.promote .i64)))
+      (JInt ((u.promote s.toUnsigned).promote s))
+      (JInt ((u.promote s.toUnsigned).promote s)) where
+  truncDivrem := JuliaLean.base.int.divrem_Unsigned_BitSigned sameSignTruncDivrem
+  nonnegativeX x := .ok (JuliaLean.base.int.le (JInt.lit .i64 0) x)
+  nonnegativeY y := .ok (JuliaLean.base.int.le (JInt.lit .i64 0) y)
+  half y := mixedDivSameSign y (JInt.lit .i64 2)
+  signedHalf h := .ok (JuliaLean.base.int.signed h)
+  negateHalf h := .ok (JuliaLean.base.int.neg h)
+  negateSignedHalf sh := .ok (JuliaLean.base.int.neg sh)
+  oddY := isoddSigned
+  evenQ := isevenUnsigned
+  addHalf h b := .ok (bitAddBool h b)
+  addNegativeHalf nh b := .ok (bitAddBool nh b)
+  subtractHalf h b := .ok (bitSubBool h b)
+  subtractNegativeSignedHalf nsh b := .ok (bitSubBool nsh b)
+  gePositiveThreshold r hp := .ok (JuliaLean.base.int.le hp r)
+  geNegativeThreshold r np := .ok (JuliaLean.base.int.le np r)
+  leNegativeSignedThreshold r nm := .ok (JuliaLean.base.int.le r nm)
+  leHalfThreshold r hm := .ok (JuliaLean.base.int.le r hm)
+  addQ q b := .ok (bitAddBool q b)
+  subtractQ q b := .ok (bitSubBool q b)
+  addR r y := .ok (JuliaLean.base.int.binop JuliaLean.base.int.add r y)
+  subtractR r y := .ok (JuliaLean.base.int.binop JuliaLean.base.int.sub r y)
+
+def mixedDivUnsignedSigned {u s : IntTy} (x : JInt u) (y : JInt s)
     (mode : JuliaLean.base.float.RoundingMode) :
     Jl (JInt (u.promote s.toUnsigned).toSigned.toUnsigned) :=
-  if mode = .Down then
-    div_Unsigned_Signed_Down
-      (JuliaLean.base.int.divrem_Unsigned_BitSigned mixedDivremSameSign)
-      JuliaLean.base.int.signbit mixedIsZero mixedBoolSub x y
-  else if mode = .Up then
-    div_Unsigned_Signed_Up
-      (JuliaLean.base.int.divrem_Unsigned_BitSigned mixedDivremSameSign)
-      JuliaLean.base.int.signbit mixedIsZero mixedBoolAdd x y
-  else .error (.methodError "div")
-
-private def mixedDivUnsignedSigned {u s : IntTy} (x : JInt u) (y : JInt s)
-    (mode : JuliaLean.base.float.RoundingMode) :
-    Jl (JInt (u.promote s.toUnsigned).toSigned.toUnsigned) :=
-  if mode = .ToZero then
-    JuliaLean.base.int.div_Unsigned_BitSigned mixedDivSameSign x y
-  else if mode = .FromZero then
-    div_Integer_FromZero JuliaLean.base.int.signbit JuliaLean.base.int.signbit
-      mixedDivUnsignedSignedUpDown x y
-  else mixedDivUnsignedSignedUpDown x y mode
-
+  mixedNativeMode unsignedSignedNearestOps
+    (JuliaLean.base.int.div_Unsigned_BitSigned mixedDivSameSign)
+    (div_Unsigned_Signed_Down
+      (JuliaLean.base.int.divrem_Unsigned_BitSigned sameSignTruncDivrem)
+      JuliaLean.base.int.signbit mixedIsZero mixedBoolSub)
+    (div_Unsigned_Signed_Up
+      (JuliaLean.base.int.divrem_Unsigned_BitSigned sameSignTruncDivrem)
+      JuliaLean.base.int.signbit mixedIsZero mixedBoolAdd)
+    JuliaLean.base.int.signbit JuliaLean.base.int.signbit x y mode
 private def mixedFldUnsignedSigned {u s : IntTy} (x : JInt u) (y : JInt s) :
     Jl (JInt (u.promote s.toUnsigned).toSigned.toUnsigned) :=
   fld_Unsigned_Signed mixedDivUnsignedSigned x y
@@ -1085,4 +1261,336 @@ def modMixedUnsignedSigned {u s : IntTy} (x : JInt u) (y : JInt s) :
     Jl (JInt ((u.promote s.toUnsigned).toSigned.promote s)) :=
   JuliaLean.base.int.mod_Unsigned_Signed mixedRemSameSign x y
 
+def divMixedResultTy (s u : IntTy) : IntTy :=
+  if s.signed == u.signed then s.promote u
+  else if s.signed then (s.toUnsigned.promote u).toSigned
+  else (s.promote u.toUnsigned).toSigned.toUnsigned
+
+/-- *dispatch*: heterogeneous BitInteger rounded `div(x, y, mode)` across all signedness combinations
+and all source rounding modes (`base/div.jl:326-373,391-417,448-456`). -/
+def divBitIntegerMixedMode {s u : IntTy} (x : JInt s) (y : JInt u)
+    (mode : JuliaLean.base.float.RoundingMode) : Jl (JInt (divMixedResultTy s u)) :=
+  let rec go (b1 b2 : Bool) :
+      Jl (JInt (if b1 then s.promote u
+        else if b2 then (s.toUnsigned.promote u).toSigned
+        else (s.promote u.toUnsigned).toSigned.toUnsigned)) :=
+    match b1, b2 with
+    | true, _ => mixedDivRoundSameSign x y mode
+    | false, true => mixedDivSignedUnsigned x y mode
+    | false, false => mixedDivUnsignedSigned x y mode
+  go (s.signed == u.signed) s.signed
+
 end JuliaLean.base.div
+
+namespace JuliaLean.Float.F64
+
+/-- `base/div.jl:127-149`, `base/math.jl:1122-1145`: mode-specific remainder dispatch. -/
+def remMode (x y : F64) (mode : Rounding) : F64 := Id.run do
+  match mode with
+  | .RoundToZero => return rem x y
+  | .RoundDown => return mod x y
+  | .RoundUp => return mod x (neg y)
+  | .RoundNearest => return JuliaLean.Float.F64.extraRemNearest x y
+  | .RoundNearestTiesAway =>
+    let r := mod x y
+    if isnan r then return r
+    if !iszero r then
+      let two := ofInt 2
+      let (m, n) := if lt (abs r) (div floatmax two) then (abs (mul two r), abs y)
+                    else (abs r, abs (div y two))
+      if lt m n then return r
+      if lt n m then return mod x (neg y)
+    return if signbit x == signbit y then mod x (neg y) else r
+/-- `base/div.jl:77,480`: each division and subtraction rounds before nearest-even rounding. -/
+def divInteger (x y : F64) (mode : Rounding := .RoundToZero) : F64 :=
+  round (sub (div x y) (div (remMode x y mode) y))
+/-- `base/div.jl:432`: floored quotient wrapper. -/
+def fld (x y : F64) : F64 := divInteger x y .RoundDown
+/-- `base/div.jl:433`: ceiling quotient wrapper. -/
+def cld (x y : F64) : F64 := divInteger x y .RoundUp
+
+/--
+Julia 1.13.2 (`45b6d15e34b`), `base/div.jl:111-122` and `base/math.jl:1137-1160`.
+The release has no Float64 ties-away remainder method; master adds it at
+`base/div.jl:139-149`.
+-/
+def remModeRelease (x y : F64) (mode : Rounding) : Jl F64 :=
+  match mode with
+  | .RoundToZero => .ok (rem x y)
+  | .RoundDown => .ok (mod x y)
+  | .RoundUp => .ok (mod x (neg y))
+  | .RoundNearest => .ok (JuliaLean.Float.F64.extraRemNearest x y)
+  | .RoundNearestTiesAway => .error (.methodError "rem")
+
+/--
+Julia 1.13.2 (`45b6d15e34b`), `base/div.jl:383`: subtraction precedes division.
+Master `base/div.jl:480` instead divides both terms before subtracting.
+-/
+def divIntegerRelease (x y : F64) (mode : Rounding := .RoundToZero) : Jl F64 := do
+  let r ← remModeRelease x y mode
+  pure (round (div (sub x r) y))
+
+/-- Julia 1.13.2 (`45b6d15e34b`), `base/div.jl:336`: release floored quotient. -/
+def fldRelease (x y : F64) : Jl F64 := divIntegerRelease x y .RoundDown
+/-- Julia 1.13.2 (`45b6d15e34b`), `base/div.jl:337`: release ceiling quotient. -/
+def cldRelease (x y : F64) : Jl F64 := divIntegerRelease x y .RoundUp
+
+end JuliaLean.Float.F64
+
+namespace JuliaLean.IntArith.Division
+
+/-- Same-signedness division after checked promotion, `base/div.jl:448-455`;
+`base/int.jl:355-358,1085-1089` supplies the primitive (64-bit platform). -/
+def promotedDiv (x y : Value) : Jl Value := do
+  let t := IntTy.promote x.ty y.ty
+  let a ← JInt.convert (t.name) t x.int.val
+  let b ← JInt.convert (t.name) t y.int.val
+  pure (pack (← JInt.div a b))
+
+/-- Same-signedness `divrem`, `base/div.jl:290-324`: quotient first,
+then wrapping multiply and subtract, including at typemin. -/
+def promotedDivrem (x y : Value) : Jl (Value × Value) := do
+  let q ← promotedDiv x y
+  pure (q, sub x (mul q y))
+
+/-- `base/div.jl:391-398,438-443,460-464`: mixed floor uses mixed
+`divrem`; same-signedness operands use checked promotion and same-type fld. -/
+def fld (x y : Value) : Jl Value := do
+  if x.ty.signed != y.ty.signed then
+    let (q, r) ← divrem promotedDivrem x y
+    let neg := if x.ty.signed then signbit x else signbit y
+    pure (pack (q.int - JInt.lit q.ty (if neg && r.int.val != 0 then 1 else 0)))
+  else
+    let t := IntTy.promote x.ty y.ty
+    let a ← JInt.convert (t.name) t x.int.val
+    let b ← JInt.convert (t.name) t y.int.val
+    pure (pack (← JInt.fld a b))
+
+/-- `base/div.jl:400-407,438-443,467-474`: ceiled mixed quotient
+corrects unsigned-magnitude divrem and wraps in the quotient's own type. -/
+def cld (x y : Value) : Jl Value := do
+  if x.ty.signed != y.ty.signed then
+    let (q, r) ← divrem promotedDivrem x y
+    let neg := if x.ty.signed then signbit x else signbit y
+    pure (pack (q.int + JInt.lit q.ty (if !neg && r.int.val != 0 then 1 else 0)))
+  else
+    let t := IntTy.promote x.ty y.ty
+    let a ← JInt.convert (t.name) t x.int.val
+    let b ← JInt.convert (t.name) t y.int.val
+    pure (pack (← JInt.cld a b))
+
+/-- `base/div.jl:290-324,387`: fldmod uses the generic integer
+reconstruction, rather than calling mixed mod. -/
+def fldmod (x y : Value) : Jl (Value × Value) := do
+  let q ← fld x y
+  pure (q, sub x (mul q y))
+
+end JuliaLean.IntArith.Division
+
+namespace JuliaLean.IntArith.PowersDigits
+
+/-- `base/int.jl:275-288`, `base/div.jl:391-407,438-443`: mixed-sign division
+uses magnitude division followed by wrapping sign/rounding corrections.
+Same-sign arguments use promotion and the Core checked quotient. -/
+def quotient (roundUp roundDown : Bool) (a b : Box) : Jl Box := do
+  let ⟨ta,x⟩ := a
+  let ⟨tb,y⟩ := b
+  if ta.signed = tb.signed then
+    let t := IntTy.promote ta tb
+    let x := JInt.rem t x
+    let y := JInt.rem t y
+    let q ← if roundUp then JInt.cld x y else if roundDown then JInt.fld x y else JInt.div x y
+    pure ⟨t,q⟩
+  else
+    let u := IntTy.promote ta.toUnsigned tb.toUnsigned
+    let ax := JInt.rem u (if x.val < 0 then -x else x)
+    let ay := JInt.rem u (if y.val < 0 then -y else y)
+    let q ← JInt.div ax ay
+    let r ← JInt.remInt ax ay
+    let s := JInt.rem u.toSigned q
+    let s := if (x.val < 0) != (y.val < 0) then -s else s
+    let t := if ta.signed then u.toSigned else u
+    let q := JInt.rem t s
+    let q := if roundDown && ((x.val < 0) != (y.val < 0)) && r.val != 0 then
+      q - JInt.lit t 1 else q
+    let q := if roundUp && ((x.val < 0) == (y.val < 0)) && r.val != 0 then
+      q + JInt.lit t 1 else q
+    pure ⟨t,q⟩
+
+end JuliaLean.IntArith.PowersDigits
+
+namespace JuliaLean.IntArith.Rational
+
+/-- Integer rounding mirrors every sign and tie branch of `divrem`, using
+wrapping intermediates, including the explicit signed half-divisor;
+base/div.jl:326-373,409-416,421,460-474. -/
+def roundedDiv {t} (x y : JInt t) (mode : Rounding) : Jl (JInt t) := do
+  match mode with
+  | .toZero => JInt.div x y
+  | .down => JInt.fld x y
+  | .up => JInt.cld x y
+  | .fromZero => if x.val < 0 ↔ y.val < 0 then JInt.cld x y else JInt.fld x y
+  | .nearest | .nearestAway | .nearestUp =>
+    let q ← JInt.div x y
+    let r := x - q * y
+    let half ← JInt.div y (JInt.lit t 2)
+    let oddY := decide (y.val % 2 ≠ 0)
+    let evenQ := decide (q.val % 2 = 0)
+    let tie : Bool := match mode with
+      | .nearest => oddY || evenQ
+      | .nearestAway => oddY
+      | _ => if x.val < 0 ↔ y.val < 0 then oddY else true
+    let c := JInt.lit t (if tie then 1 else 0)
+    if x.val ≥ 0 then
+      if y.val ≥ 0 then return if r ≥ half + c then q + JInt.lit t 1 else q
+      else return if r ≥ -half + c then q - JInt.lit t 1 else q
+    else
+      if y.val ≥ 0 then
+        let shalf := JInt.wrap t.toSigned half.val
+        let threshold := -shalf - JInt.lit t.toSigned (if tie then 1 else 0)
+        return if r.val ≤ threshold.val then q - JInt.lit t 1 else q
+      else return if r ≤ half - c then q + JInt.lit t 1 else q
+
+end JuliaLean.IntArith.Rational
+
+namespace JuliaLean.FloatIntCov.Div
+
+open JuliaLean JuliaLean.IntArith.Division JuliaLean.Float
+
+inductive Mode where
+  | toZero | down | up | nearest | tiesAway | tiesUp | fromZero
+  deriving DecidableEq, Repr
+
+/-- `base/div.jl:326-373`: nearest integer quotient adjustments. -/
+def nearestDivrem (x y : Value) (mode : Mode) : Jl (Value × Value) := do
+  let (q, r) ← divrem promotedDivrem x y
+  let yh := y.int.val.tdiv 2
+  let odd := y.int.val % 2 != 0
+  let evenq := q.int.val % 2 = 0
+  let adjustUp := match mode with
+    | .nearest => odd || evenq
+    | .tiesAway | .tiesUp => odd
+    | _ => false
+  let posAdjust := add q (lit q.ty 1)
+  let negAdjust := sub q (lit q.ty 1)
+  if x.int.val ≥ 0 then
+    if y.int.val ≥ 0 then
+      if r.int.val ≥ yh + (if adjustUp then 1 else 0) then pure (posAdjust, sub r y) else pure (q, r)
+    else
+      let tie := if mode = .tiesUp then 1 else if adjustUp then 1 else 0
+      if r.int.val ≥ -yh + tie then pure (negAdjust, add r y) else pure (q, r)
+  else if y.int.val ≥ 0 then
+    let tie := if mode = .tiesUp then 1 else if adjustUp then 1 else 0
+    if r.int.val ≤ -yh - tie then pure (negAdjust, add r y) else pure (q, r)
+  else if r.int.val ≤ yh - (if adjustUp then 1 else 0) then pure (posAdjust, sub r y)
+  else pure (q, r)
+
+/-- `base/div.jl:290-325`: quotient first, then source-type reconstruction. -/
+def directedDivrem (x y : Value) : Mode → Jl (Value × Value)
+  | .toZero => divrem promotedDivrem x y
+  | .down => do
+      let q ← fld x y
+      pure (q, sub x (mul q y))
+  | .up => do
+      let q ← cld x y
+      pure (q, sub x (mul q y))
+  | m => nearestDivrem x y m
+
+/-- `base/div.jl:273-286,375-377`: complete mode dispatch. -/
+def divremMode (x y : Value) : Mode → Jl (Value × Value)
+  | .toZero => directedDivrem x y .toZero
+  | .down => directedDivrem x y .down
+  | .up => directedDivrem x y .up
+  | .nearest => nearestDivrem x y .nearest
+  | .tiesAway => nearestDivrem x y .tiesAway
+  | .tiesUp => nearestDivrem x y .tiesUp
+  | .fromZero => if signbit x = signbit y then directedDivrem x y .up else directedDivrem x y .down
+
+/-- `base/div.jl:77,127-138,196,243,252,387,391-475`. -/
+def divMode (x y : Value) (m : Mode := .toZero) : Jl Value := do
+  pure (← divremMode x y m).1
+
+def negValue (x : Value) : Value := pack (-x.int)
+
+/-- The actual remainder methods at `base/div.jl:127-138`; unlike `divrem`,
+RoundUp negates the fixed-width divisor before calling mod. -/
+def remMode (x y : Value) : Mode → Jl Value
+  | .toZero => rem promotedRem x y
+  | .down => mod (rem promotedRem) x y
+  | .up => mod (rem promotedRem) x (negValue y)
+  | .nearest => do pure (← divremMode x y .nearest).2
+  | .tiesAway => do pure (← divremMode x y .tiesAway).2
+  | .tiesUp => do pure (← divremMode x y .tiesUp).2
+  | .fromZero => if signbit x = signbit y then mod (rem promotedRem) x (negValue y) else mod (rem promotedRem) x y
+
+def fldMethod (x y : Value) : Jl Value := divMode x y .down
+def cldMethod (x y : Value) : Jl Value := divMode x y .up
+def fld1Method (x y : Value) : Jl Value := cldMethod x y
+def fldmodMethod (x y : Value) : Jl (Value × Value) := divremMode x y .down
+
+/-- `base/div.jl:422-430`: Bool division ignores the supplied rounding mode. -/
+def boolDiv (_mode : Mode) (x y : Bool) : Jl Bool :=
+  if !y then .error .divideError else .ok x
+
+/-- `base/div.jl:139-149`: Float64 nearest ties-away and ties-up remainder. -/
+def floatTieRem (x y : F64) (tiesUp : Bool) : F64 := Id.run do
+  let r := F64.mod x y
+  if F64.isnan r then return r
+  if !F64.iszero r then
+    let two := F64.ofInt 2
+    let (m, n) := if F64.lt (F64.abs r) (F64.div F64.floatmax two)
+      then (F64.abs (F64.mul two r), F64.abs y)
+      else (F64.abs r, F64.abs (F64.div y two))
+    if F64.lt m n then return r
+    if F64.lt n m then return F64.mod x (F64.neg y)
+  return if tiesUp || F64.signbit x == F64.signbit y then F64.mod x (F64.neg y) else r
+
+/-- Binary64 remainder dispatch at `base/div.jl:127-149`. -/
+def floatRemMode (x y : F64) : Mode → F64
+  | .toZero => F64.rem x y
+  | .down => F64.mod x y
+  | .up => F64.mod x (F64.neg y)
+  | .nearest => F64.remMode x y .RoundNearest
+  | .tiesAway => floatTieRem x y false
+  | .tiesUp => floatTieRem x y true
+  | .fromZero => if F64.signbit x == F64.signbit y then F64.mod x (F64.neg y) else F64.mod x y
+
+/-- `base/div.jl:480`, with the requested integral-rounding primitive explicit. -/
+def floatDivMode (rounder : F64 → Mode → F64) (x y : F64) (m : Mode) : F64 :=
+  rounder (F64.sub (F64.div x y) (F64.div (floatRemMode x y m) y)) m
+
+/-- Generic compatibility/promotion routes at `base/div.jl:276-286,438-455`. -/
+def defaultDiv {α : Type} (divRound : α → α → Mode → Jl α) (x y : α) : Jl α :=
+  divRound x y .toZero
+
+def genericRemMode {α : Type} (rem mod : α → α → Jl α) (neg : α → α)
+    (sub mul : α → α → α) (divRound : α → α → Mode → Jl α)
+    (signbit : α → Bool) (x y : α) : Mode → Jl α
+  | .toZero => rem x y
+  | .down => mod x y
+  | .up => mod x (neg y)
+  | .nearest => do pure (sub x (mul y (← divRound x y .nearest)))
+  | .fromZero => if signbit x == signbit y then mod x (neg y) else mod x y
+  | m => do pure (sub x (mul y (← divRound x y m)))
+
+def genericFld {α : Type} (divRound : α → α → Mode → Jl α) (x y : α) : Jl α :=
+  divRound x y .down
+
+def genericCld {α : Type} (divRound : α → α → Mode → Jl α) (x y : α) : Jl α :=
+  divRound x y .up
+
+def genericDivrem {α : Type} (div rem fld mod : α → α → Jl α)
+    (divRound remRound : α → α → Mode → Jl α) (x y : α) (m : Mode) : Jl (α × α) :=
+  match m with
+  | .toZero => do pure (← div x y, ← rem x y)
+  | .down => do pure (← fld x y, ← mod x y)
+  | _ => do pure (← divRound x y m, ← remRound x y m)
+
+def promotedDiv {α : Type} (sameType : Bool) (promote : α → α → α × α)
+    (div divRound : α → α → Mode → Jl α) (x y : α) (m : Mode) : Jl α :=
+  if sameType then .error (.methodError "div")
+  else
+    let p := promote x y
+    if m = .toZero then div p.1 p.2 .toZero else divRound p.1 p.2 m
+
+end JuliaLean.FloatIntCov.Div

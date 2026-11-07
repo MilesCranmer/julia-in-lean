@@ -1,287 +1,287 @@
 file	line	endline	name	signature	status	entry	note
-base/range.jl	3	3	:	(:)(a::Real, b::Real)	todo		
-base/range.jl	5	5	:	(:)(start::T, stop::T) where {T<:Real}	todo		
-base/range.jl	7	7	:	(:)(start::T, stop::T) where {T}	todo		
-base/range.jl	10	11	:	(:)(start::A, step, stop::C) where {A<:Real, C<:Real}	todo		
-base/range.jl	14	14	:	(:)(a::T, b::T) where {T<:AbstractFloat}	todo		
-base/range.jl	16	16	:	(:)(a::T, b::AbstractFloat, c::T) where {T<:Real}	todo		
-base/range.jl	17	17	:	(:)(a::T, b::AbstractFloat, c::T) where {T<:AbstractFloat}	todo		
-base/range.jl	18	18	:	(:)(a::T, b::Real, c::T) where {T<:AbstractFloat}	todo		
-base/range.jl	20	21	:	(:)(start::T, step::T, stop::T) where {T<:AbstractFloat}	todo		
-base/range.jl	22	23	:	(:)(start::T, step::T, stop::T) where {T<:Real}	todo		
-base/range.jl	24	24	_colon	_colon(::Ordered, ::Any, start::T, step, stop::T) where {T}	todo		
-base/range.jl	26	27	_colon	_colon(::Ordered, ::ArithmeticRounds, start::T, step, stop::T) where {T}	todo		
-base/range.jl	28	29	_colon	_colon(::Any, ::Any, start::T, step, stop::T) where {T}	todo		
-base/range.jl	34	34	_range_wrapping_add	_range_wrapping_add(x::_RangeWrappingInteger, y::_RangeWrappingInteger)	todo		
-base/range.jl	35	35	_range_wrapping_add	_range_wrapping_add(x, y)	todo		
-base/range.jl	36	36	_range_wrapping_sub	_range_wrapping_sub(x::_RangeWrappingInteger, y::_RangeWrappingInteger)	todo		
-base/range.jl	37	37	_range_wrapping_sub	_range_wrapping_sub(x, y)	todo		
-base/range.jl	38	38	_range_wrapping_mul	_range_wrapping_mul(x::_RangeWrappingInteger, y::_RangeWrappingInteger)	todo		
-base/range.jl	39	39	_range_wrapping_mul	_range_wrapping_mul(x, y)	todo		
-base/range.jl	64	64	:	(:)(start::T, step, stop::T) where {T}	todo		
-base/range.jl	65	65	:	(:)(start::T, step, stop::T) where {T<:Real}	todo		
-base/range.jl	68	71	_colon	_colon(start::T, step, stop::T) where T	todo		
-base/range.jl	165	165	range	range	todo		
-base/range.jl	167	168	range	range(start; stop=nothing, length::Union{Integer,Nothing}=nothing, step=nothing)	todo		
-base/range.jl	169	169	range	range(start, stop; length::Union{Integer,Nothing}=nothing, step=nothing)	todo		
-base/range.jl	170	170	range	range(start, stop, length::Integer)	todo		
-base/range.jl	172	173	range	range(;start=nothing, stop=nothing, length::Union{Integer, Nothing}=nothing, step=nothing)	todo		
-base/range.jl	175	175	_range	_range(start::Nothing, step::Nothing, stop::Nothing, len::Nothing)	todo		
-base/range.jl	176	176	_range	_range(start::Nothing, step::Nothing, stop::Nothing, len::Any )	todo		
-base/range.jl	177	177	_range	_range(start::Nothing, step::Nothing, stop::Any , len::Nothing)	todo		
-base/range.jl	178	178	_range	_range(start::Nothing, step::Nothing, stop::Any , len::Any )	todo		
-base/range.jl	179	179	_range	_range(start::Nothing, step::Any , stop::Nothing, len::Nothing)	todo		
-base/range.jl	180	180	_range	_range(start::Nothing, step::Any , stop::Nothing, len::Any )	todo		
-base/range.jl	181	181	_range	_range(start::Nothing, step::Any , stop::Any , len::Nothing)	todo		
-base/range.jl	182	182	_range	_range(start::Nothing, step::Any , stop::Any , len::Any )	todo		
-base/range.jl	183	183	_range	_range(start::Any , step::Nothing, stop::Nothing, len::Nothing)	todo		
-base/range.jl	184	184	_range	_range(start::Any , step::Nothing, stop::Nothing, len::Any )	todo		
-base/range.jl	185	185	_range	_range(start::Any , step::Nothing, stop::Any , len::Nothing)	todo		
-base/range.jl	186	186	_range	_range(start::Any , step::Nothing, stop::Any , len::Any )	todo		
-base/range.jl	187	187	_range	_range(start::Any , step::Any , stop::Nothing, len::Nothing)	todo		
-base/range.jl	188	188	_range	_range(start::Any , step::Any , stop::Nothing, len::Any )	todo		
-base/range.jl	189	189	_range	_range(start::Any , step::Any , stop::Any , len::Nothing)	todo		
-base/range.jl	190	190	_range	_range(start::Any , step::Any , stop::Any , len::Any )	todo		
-base/range.jl	193	193	range_length	range_length(len::Integer)	todo		
-base/range.jl	196	196	range_stop	range_stop(stop)	todo		
-base/range.jl	197	197	range_stop	range_stop(stop::Integer)	todo		
-base/range.jl	199	206	range_step_stop_length	range_step_stop_length(step, a, len::Integer)	todo		
-base/range.jl	209	217	range_stop_length	range_stop_length(a, len::Integer)	todo		
-base/range.jl	220	228	range_start_length	range_start_length(a, len::Integer)	todo		
-base/range.jl	230	230	range_start_stop	range_start_stop(start, stop)	todo		
-base/range.jl	232	239	range_start_step_length	range_start_step_length(a, step, len::Integer)	todo		
-base/range.jl	241	241	range_start_step_stop	range_start_step_stop(start, step, stop)	todo		
-base/range.jl	243	270	range_error	range_error(start, step, stop, length)	todo		
-base/range.jl	285	285	RangeStepStyle	RangeStepStyle(::Type{<:AbstractRange})	todo		
-base/range.jl	286	286	RangeStepStyle	RangeStepStyle(::Type{<:AbstractRange{<:Integer}})	todo		
-base/range.jl	288	288	convert	convert(::Type{T}, r::AbstractRange) where {T<:AbstractRange}	todo		
-base/range.jl	344	349	StepRange{T,S}	StepRange{T,S}(start, step, stop) where {T,S}	todo		
-base/range.jl	353	387	steprange_last	steprange_last(start, step, stop)::typeof(stop)	todo		
-base/range.jl	377	377	overflow_case	overflow_case(absdiff, absstep)	todo		
-base/range.jl	389	398	steprange_last_empty	steprange_last_empty(start::Integer, step, stop)::typeof(stop)	todo		
-base/range.jl	399	399	steprange_last_empty	steprange_last_empty(start::Bool, step, stop)	todo		
-base/range.jl	401	401	steprange_last_empty	steprange_last_empty(start, step, stop)	todo		
-base/range.jl	403	403	StepRange{T}	StepRange{T}(start, step::S, stop) where {T,S}	todo		
-base/range.jl	404	404	StepRange	StepRange(start::T, step::S, stop::T) where {T,S}	todo		
-base/range.jl	428	428	UnitRange{T}	UnitRange{T}(start::T, stop::T) where {T<:Real}	todo		
-base/range.jl	430	430	UnitRange{T}	UnitRange{T}(start, stop) where {T<:Real}	todo		
-base/range.jl	431	431	UnitRange	UnitRange(start::T, stop::T) where {T<:Real}	todo		
-base/range.jl	432	436	UnitRange	UnitRange(start, stop)	todo		
-base/range.jl	439	441	unitrange_last	unitrange_last(start::Integer, stop::Integer)	todo		
-base/range.jl	443	445	unitrange_last	unitrange_last(start, stop)	todo		
-base/range.jl	447	447	unitrange	unitrange(x::AbstractUnitRange)	todo		
-base/range.jl	451	465	getindex	getindex(@nospecialize(t::Tuple), r::AbstractUnitRange)	todo		
-base/range.jl	487	491	OneTo{T}	OneTo{T}(stop) where {T<:Integer}	todo		
-base/range.jl	488	488	throwbool	throwbool(r)	todo		trivial: restates a definition body or holds by unfolding (classification.tsv)
-base/range.jl	493	501	OneTo{T}	OneTo{T}(r::AbstractRange) where {T<:Integer}	todo		
-base/range.jl	494	494	throwstart	throwstart(r)	todo		
-base/range.jl	495	495	throwstep	throwstep(r)	todo		
-base/range.jl	496	496	throwbool	throwbool(r)	todo		
-base/range.jl	503	503	unchecked_oneto	unchecked_oneto(stop::Integer)	todo		
-base/range.jl	505	505	OneTo	OneTo(stop::T) where {T<:Integer}	todo		
-base/range.jl	506	506	OneTo	OneTo(r::AbstractRange{T}) where {T<:Integer}	todo		
-base/range.jl	507	507	oneto	oneto(r)	todo		
-base/range.jl	533	543	StepRangeLen{T,R,S,L}	StepRangeLen{T,R,S,L}(ref::R, step::S, len::Integer, offset::Integer = 1) where {T,R,S,L}	todo		
-base/range.jl	546	547	StepRangeLen{T,R,S}	StepRangeLen{T,R,S}(ref::R, step::S, len::Integer, offset::Integer = 1) where {T,R,S}	todo		
-base/range.jl	548	549	StepRangeLen	StepRangeLen(ref::R, step::S, len::Integer, offset::Integer = 1) where {R,S}	todo		
-base/range.jl	550	551	StepRangeLen{T}	StepRangeLen{T}(ref::R, step::S, len::Integer, offset::Integer = 1) where {T,R,S}	todo		
-base/range.jl	597	609	LinRange{T,L}	LinRange{T,L}(start::T, stop::T, len::L) where {T,L<:Integer}	todo		
-base/range.jl	612	614	LinRange{T,L}	LinRange{T,L}(start, stop, len::Integer) where {T,L}	todo		
-base/range.jl	616	618	LinRange{T}	LinRange{T}(start, stop, len::Integer) where T	todo		
-base/range.jl	620	623	LinRange	LinRange(start, stop, len::Integer)	todo		
-base/range.jl	625	626	range_start_stop_length	range_start_stop_length(start, stop, len::Integer)	todo		
-base/range.jl	627	627	range_start_stop_length	range_start_stop_length(start::T, stop::T, len::Integer) where {T}	todo		
-base/range.jl	628	629	range_start_stop_length	range_start_stop_length(start::T, stop::T, len::Integer) where {T<:Integer}	todo		
-base/range.jl	632	632	_linspace	_linspace(::Type{T}, start::Integer, stop::Integer, len::Integer) where T	todo		
-base/range.jl	634	645	show	show(io::IO, r::LinRange{T}) where {T}	todo		
-base/range.jl	660	701	print_range	"print_range(io::IO, r::AbstractArray, pre::AbstractString = "" "", sep::AbstractString = "", "", post::AbstractString = """", hdots::AbstractString = "", \u2026, "")"	todo		
-base/range.jl	705	705	length	length(r::AbstractRange)	todo		
-base/range.jl	706	706	size	size(r::AbstractRange)	todo		
-base/range.jl	708	710	isempty	isempty(r::StepRange)	todo		
-base/range.jl	711	711	isempty	isempty(r::AbstractUnitRange)	todo		
-base/range.jl	712	712	isempty	isempty(r::StepRangeLen)	todo		
-base/range.jl	713	713	isempty	isempty(r::LinRange)	todo		
-base/range.jl	735	735	step	step(r::StepRange)	todo		
-base/range.jl	736	736	step	step(r::AbstractUnitRange{T}) where {T}	todo		
-base/range.jl	737	737	step	step(r::AbstractUnitRange{Bool})	todo		
-base/range.jl	738	738	step	step(r::StepRangeLen)	todo		
-base/range.jl	739	739	step	step(r::StepRangeLen{T}) where {T<:AbstractFloat}	todo		
-base/range.jl	740	740	step	step(r::LinRange)	todo		
-base/range.jl	743	743	step_hp	step_hp(r::StepRangeLen)	todo		
-base/range.jl	744	744	step_hp	step_hp(r::AbstractRange)	todo		
-base/range.jl	747	747	has_offset_axes	has_offset_axes(::StepRange)	todo		
-base/range.jl	751	766	checked_length	checked_length(r::OrdinalRange{T}) where T	todo		
-base/range.jl	768	775	checked_length	checked_length(r::AbstractUnitRange{T}) where T	todo		
-base/range.jl	777	792	length	length(r::OrdinalRange{T}) where T	todo		
-base/range.jl	794	804	length	length(r::AbstractUnitRange{T}) where T	todo		
-base/range.jl	806	806	length	length(r::OneTo)	todo		
-base/range.jl	807	807	length	length(r::StepRangeLen)	todo		
-base/range.jl	808	808	length	length(r::LinRange)	todo		
-base/range.jl	817	817	length	length(r::OneTo{T}) where {T<:bigints}	todo		
-base/range.jl	820	830	length	length(r::OrdinalRange{T}) where T<:bigints	todo		
-base/range.jl	831	849	checked_length	checked_length(r::OrdinalRange{T}) where T<:bigints	todo		
-base/range.jl	850	850	firstindex	firstindex(r::StepRange{<:bigints,<:bitints})	todo		
-base/range.jl	853	858	length	length(r::OrdinalRange{<:smallints})	todo		
-base/range.jl	859	859	length	length(r::AbstractUnitRange{<:smallints})	todo		
-base/range.jl	860	860	length	length(r::OneTo{<:smallints})	todo		
-base/range.jl	861	861	checked_length	checked_length(r::OrdinalRange{<:smallints})	todo		
-base/range.jl	862	862	checked_length	checked_length(r::AbstractUnitRange{<:smallints})	todo		
-base/range.jl	863	863	checked_length	checked_length(r::OneTo{<:smallints})	todo		
-base/range.jl	864	864	firstindex	firstindex(::StepRange{<:smallints,<:bitints})	todo		
-base/range.jl	867	867	first	first(r::OrdinalRange{T}) where {T}	todo		
-base/range.jl	868	868	first	first(r::OneTo{T}) where {T}	todo		
-base/range.jl	869	869	first	first(r::StepRangeLen)	todo		
-base/range.jl	870	870	first	first(r::LinRange)	todo		
-base/range.jl	872	875	first	first(r::OneTo, n::Integer)	todo		
-base/range.jl	877	877	last	last(r::OrdinalRange{T}) where {T}	todo		
-base/range.jl	878	878	last	last(r::StepRangeLen)	todo		
-base/range.jl	879	879	last	last(r::LinRange)	todo		
-base/range.jl	881	881	minimum	minimum(r::AbstractUnitRange)	todo		
-base/range.jl	882	882	maximum	maximum(r::AbstractUnitRange)	todo		
-base/range.jl	883	883	minimum	minimum(r::AbstractRange)	todo		
-base/range.jl	884	884	maximum	maximum(r::AbstractRange)	todo		
-base/range.jl	893	901	argmin	argmin(r::AbstractRange)	todo		
-base/range.jl	910	918	argmax	argmax(r::AbstractRange)	todo		
-base/range.jl	920	920	extrema	extrema(r::AbstractRange)	todo		
-base/range.jl	923	923	copy	copy(r::AbstractRange)	todo		
-base/range.jl	928	933	iterate	iterate(r::Union{StepRangeLen,LinRange}, i::Integer=zero(length(r)))	todo		
-base/range.jl	935	935	iterate	iterate(r::OrdinalRange)	todo		
-base/range.jl	937	942	iterate	iterate(r::OrdinalRange{T}, i) where {T}	todo		
-base/range.jl	946	949	isassigned	isassigned(r::AbstractRange, i::Integer)	todo		
-base/range.jl	952	955	_getindex	_getindex(v::AbstractRange, i::Integer)	todo		
-base/range.jl	957	957	_in_unit_range	_in_unit_range(v::UnitRange, val, i::Integer)	todo		
-base/range.jl	959	963	_getindex	_getindex(v::UnitRange{T}, i::Integer) where T	todo		
-base/range.jl	968	972	_getindex	_getindex(v::UnitRange{T}, i::Integer) where {T<:OverflowSafe}	todo		
-base/range.jl	975	978	checkbounds	checkbounds(::Type{Bool}, v::StepRange{<:BitInteger64, <:BitInteger64}, i::BitInteger64)	todo		
-base/range.jl	984	984	unsafe_getindex	unsafe_getindex(v::OneTo{T}, i::Integer) where T	todo		
-base/range.jl	985	985	unsafe_getindex	unsafe_getindex(v::AbstractRange{T}, i::Integer) where T	todo		
-base/range.jl	986	989	unsafe_getindex	unsafe_getindex(r::StepRangeLen{T}, i::Integer) where T	todo		
-base/range.jl	990	990	unsafe_getindex	unsafe_getindex(r::LinRange, i::Integer)	todo		
-base/range.jl	992	996	lerpi	lerpi(j::Integer, d::Integer, a::T, b::T) where T	todo		
-base/range.jl	1000	1000	getindex	getindex(r::AbstractRange, ::Colon)	todo		
-base/range.jl	1002	1011	_empty_stop	_empty_stop(start, step)	todo		
-base/range.jl	1013	1026	getindex	getindex(r::AbstractUnitRange, s::AbstractUnitRange{T}) where {T<:Integer}	todo		
-base/range.jl	1028	1032	getindex	getindex(r::OneTo{T}, s::OneTo) where T	todo		
-base/range.jl	1034	1049	getindex	getindex(r::AbstractUnitRange, s::StepRange{T}) where {T<:Integer}	todo		
-base/range.jl	1051	1073	getindex	getindex(r::StepRange, s::AbstractRange{T}) where {T<:Integer}	todo		
-base/range.jl	1075	1103	getindex	getindex(r::StepRangeLen{T}, s::OrdinalRange{S}) where {T, S<:Integer}	todo		
-base/range.jl	1105	1108	_getindex_hiprec	_getindex_hiprec(r::StepRangeLen, i::Integer)	todo		
-base/range.jl	1110	1133	getindex	getindex(r::LinRange{T}, s::OrdinalRange{S}) where {T, S<:Integer}	todo		
-base/range.jl	1135	1135	show	show(io::IO, r::AbstractRange)	todo		
-base/range.jl	1136	1140	show	show(io::IO, r::UnitRange)	todo		
-base/range.jl	1141	1141	show	show(io::IO, r::OneTo)	todo		
-base/range.jl	1142	1149	show	show(io::IO, r::StepRangeLen)	todo		
-base/range.jl	1151	1155	==	==(r::T, s::T) where {T<:AbstractRange}	todo		
-base/range.jl	1157	1161	==	==(r::OrdinalRange, s::OrdinalRange)	todo		
-base/range.jl	1163	1164	==	==(r::AbstractUnitRange, s::AbstractUnitRange)	todo		
-base/range.jl	1166	1166	==	==(r::OneTo, s::OneTo)	todo		
-base/range.jl	1168	1169	==	==(r::T, s::T) where {T<:Union{StepRangeLen,LinRange}}	todo		
-base/range.jl	1171	1175	==	==(r::Union{StepRange{T},StepRangeLen{T,T}}, s::Union{StepRange{T},StepRangeLen{T,T}}) where {T}	todo		
-base/range.jl	1177	1177	_has_length_one	_has_length_one(r::OrdinalRange)	todo		
-base/range.jl	1178	1178	_has_length_one	_has_length_one(r::AbstractRange)	todo		
-base/range.jl	1180	1193	==	==(r::AbstractRange, s::AbstractRange)	todo		
-base/range.jl	1195	1204	cmp	cmp(r1::T, r2::T) where {T <: AbstractRange}	todo		
-base/range.jl	1206	1206	intersect	intersect(r::OneTo, s::OneTo)	todo		
-base/range.jl	1207	1207	union	union(r::OneTo, s::OneTo)	todo		
-base/range.jl	1209	1209	intersect	intersect(r::AbstractUnitRange{<:Integer}, s::AbstractUnitRange{<:Integer})	todo		
-base/range.jl	1211	1211	intersect	intersect(i::Integer, r::AbstractUnitRange{<:Integer})	todo		
-base/range.jl	1213	1213	intersect	intersect(r::AbstractUnitRange{<:Integer}, i::Integer)	todo		
-base/range.jl	1215	1227	intersect	intersect(r::AbstractUnitRange{<:Integer}, s::StepRange{<:Integer})	todo		
-base/range.jl	1229	1235	first_step_last_ascending	first_step_last_ascending(r::StepRange)	todo		
-base/range.jl	1237	1243	intersect	intersect(r::StepRange{<:Integer}, s::AbstractUnitRange{<:Integer})	todo		
-base/range.jl	1245	1275	intersect	intersect(r::StepRange, s::StepRange)	todo		
-base/range.jl	1277	1285	intersect	intersect(r1::AbstractRange, r2::AbstractRange)	todo		
-base/range.jl	1287	1293	intersect	intersect(r1::AbstractRange, r2::AbstractRange, r3::AbstractRange, r::AbstractRange...)	todo		
-base/range.jl	1296	1313	_findin	_findin(r::AbstractRange{<:Integer}, span::AbstractUnitRange{<:Integer})	todo		
-base/range.jl	1315	1315	issubset	issubset(r::OneTo, s::OneTo)	todo		
-base/range.jl	1317	1318	issubset	issubset(r::AbstractUnitRange{<:Integer}, s::AbstractUnitRange{<:Integer})	todo		
-base/range.jl	1322	1322	-	-(r::OrdinalRange)	todo		
-base/range.jl	1323	1324	-	-(r::StepRangeLen{T,R,S,L}) where {T,R,S,L}	todo		
-base/range.jl	1325	1328	-	-(r::LinRange)	todo		
-base/range.jl	1331	1331	el_same	el_same(::Type{T}, a::Type{<:AbstractArray{T,n}}, b::Type{<:AbstractArray{T,n}}) where {T,n}	todo		
-base/range.jl	1332	1332	el_same	el_same(::Type{T}, a::Type{<:AbstractArray{T,n}}, b::Type{<:AbstractArray{S,n}}) where {T,S,n}	todo		
-base/range.jl	1333	1333	el_same	el_same(::Type{T}, a::Type{<:AbstractArray{S,n}}, b::Type{<:AbstractArray{T,n}}) where {T,S,n}	todo		
-base/range.jl	1334	1334	el_same	el_same(::Type, a, b)	todo		
-base/range.jl	1336	1337	promote_rule	promote_rule(a::Type{UnitRange{T1}}, b::Type{UnitRange{T2}}) where {T1,T2}	todo		
-base/range.jl	1338	1338	UnitRange{T}	UnitRange{T}(r::UnitRange{T}) where {T<:Real}	todo		
-base/range.jl	1339	1339	UnitRange{T}	UnitRange{T}(r::UnitRange) where {T<:Real}	todo		
-base/range.jl	1341	1342	promote_rule	promote_rule(a::Type{OneTo{T1}}, b::Type{OneTo{T2}}) where {T1,T2}	todo		
-base/range.jl	1343	1343	OneTo{T}	OneTo{T}(r::OneTo{T}) where {T<:Integer}	todo		
-base/range.jl	1344	1344	OneTo{T}	OneTo{T}(r::OneTo) where {T<:Integer}	todo		
-base/range.jl	1346	1347	promote_rule	promote_rule(a::Type{OneTo{T1}}, ::Type{UR}) where {T1,UR<:AbstractUnitRange}	todo		
-base/range.jl	1349	1350	promote_rule	promote_rule(a::Type{UnitRange{T1}}, ::Type{UR}) where {T1,UR<:AbstractUnitRange}	todo		
-base/range.jl	1351	1351	UnitRange{T}	UnitRange{T}(r::AbstractUnitRange) where {T<:Real}	todo		
-base/range.jl	1352	1352	UnitRange	UnitRange(r::AbstractUnitRange)	todo		
-base/range.jl	1354	1354	AbstractUnitRange{T}	AbstractUnitRange{T}(r::AbstractUnitRange{T}) where {T}	todo		
-base/range.jl	1355	1355	AbstractUnitRange{T}	AbstractUnitRange{T}(r::UnitRange) where {T}	todo		
-base/range.jl	1356	1356	AbstractUnitRange{T}	AbstractUnitRange{T}(r::OneTo) where {T}	todo		
-base/range.jl	1358	1358	OrdinalRange{T, S}	OrdinalRange{T, S}(r::OrdinalRange) where {T, S}	todo		
-base/range.jl	1359	1359	OrdinalRange{T, T}	OrdinalRange{T, T}(r::AbstractUnitRange) where {T}	todo		
-base/range.jl	1361	1365	promote_rule	promote_rule(::Type{StepRange{T1a,T1b}}, ::Type{StepRange{T2a,T2b}}) where {T1a,T1b,T2a,T2b}	todo		
-base/range.jl	1366	1366	StepRange{T1,T2}	StepRange{T1,T2}(r::StepRange{T1,T2}) where {T1,T2}	todo		
-base/range.jl	1367	1367	StepRange{T}	StepRange{T}(r::StepRange{T}) where {T}	todo		
-base/range.jl	1368	1368	StepRange	StepRange(r::StepRange)	todo		
-base/range.jl	1370	1371	promote_rule	promote_rule(a::Type{StepRange{T1a,T1b}}, ::Type{UR}) where {T1a,T1b,UR<:AbstractUnitRange}	todo		
-base/range.jl	1372	1373	StepRange{T1,T2}	StepRange{T1,T2}(r::AbstractRange) where {T1,T2}	todo		
-base/range.jl	1374	1374	StepRange	StepRange(r::OrdinalRange{T,S}) where {T,S}	todo		
-base/range.jl	1375	1375	StepRange{T}	StepRange{T}(r::OrdinalRange{<:Any,S}) where {T,S}	todo		
-base/range.jl	1376	1376	StepRange{T1,T2} where T1	(StepRange{T1,T2} where T1)(r::AbstractRange) where {T2}	todo		
-base/range.jl	1377	1377	StepRange	StepRange(r::StepRangeLen)	todo		
-base/range.jl	1378	1378	StepRange{T}	StepRange{T}(r::StepRangeLen{<:Any,<:Any,S}) where {T,S}	todo		
-base/range.jl	1380	1383	promote_rule	promote_rule(::Type{StepRangeLen{T1,R1,S1,L1}},::Type{StepRangeLen{T2,R2,S2,L2}}) where {T1,T2,R1,R2,S1,S2,L1,L2}	todo		
-base/range.jl	1384	1384	StepRangeLen{T,R,S,L}	StepRangeLen{T,R,S,L}(r::StepRangeLen{T,R,S,L}) where {T,R,S,L}	todo		
-base/range.jl	1385	1386	StepRangeLen{T,R,S,L}	StepRangeLen{T,R,S,L}(r::StepRangeLen) where {T,R,S,L}	todo		
-base/range.jl	1387	1388	StepRangeLen{T}	StepRangeLen{T}(r::StepRangeLen) where {T}	todo		
-base/range.jl	1390	1391	promote_rule	promote_rule(a::Type{StepRangeLen{T,R,S,L}}, ::Type{OR}) where {T,R,S,L,OR<:AbstractRange}	todo		
-base/range.jl	1392	1393	StepRangeLen{T,R,S,L}	StepRangeLen{T,R,S,L}(r::AbstractRange) where {T,R,S,L}	todo		
-base/range.jl	1394	1395	StepRangeLen{T}	StepRangeLen{T}(r::AbstractRange) where {T}	todo		
-base/range.jl	1396	1396	StepRangeLen	StepRangeLen(r::AbstractRange)	todo		
-base/range.jl	1398	1401	promote_rule	promote_rule(a::Type{LinRange{T1,L1}}, b::Type{LinRange{T2,L2}}) where {T1,T2,L1,L2}	todo		
-base/range.jl	1402	1402	LinRange{T,L}	LinRange{T,L}(r::LinRange{T,L}) where {T,L}	todo		
-base/range.jl	1403	1403	LinRange{T,L}	LinRange{T,L}(r::AbstractRange) where {T,L}	todo		
-base/range.jl	1404	1404	LinRange{T}	LinRange{T}(r::AbstractRange) where {T}	todo		
-base/range.jl	1405	1405	LinRange	LinRange(r::AbstractRange{T}) where {T}	todo		
-base/range.jl	1407	1408	promote_rule	promote_rule(a::Type{LinRange{T,L}}, ::Type{OR}) where {T,L,OR<:OrdinalRange}	todo		
-base/range.jl	1410	1411	promote_rule	promote_rule(::Type{LinRange{A,L}}, b::Type{StepRangeLen{T2,R2,S2,L2}}) where {A,L,T2,R2,S2,L2}	todo		
-base/range.jl	1415	1427	vcat	vcat(rs::AbstractRange{T}...) where T	todo		
-base/range.jl	1434	1442	Array{T,1}	Array{T,1}(r::AbstractRange{T}) where {T}	todo		
-base/range.jl	1443	1443	collect	collect(r::AbstractRange)	todo		
-base/range.jl	1445	1445	_reverse	_reverse(r::OrdinalRange, ::Colon)	todo		
-base/range.jl	1446	1452	_reverse	_reverse(r::StepRangeLen, ::Colon)	todo		
-base/range.jl	1453	1453	_reverse	_reverse(r::LinRange{T}, ::Colon) where {T}	todo		
-base/range.jl	1457	1457	issorted	issorted(r::AbstractUnitRange)	todo		
-base/range.jl	1458	1458	issorted	issorted(r::AbstractRange)	todo		
-base/range.jl	1460	1460	sort	sort(r::AbstractUnitRange)	todo		
-base/range.jl	1461	1461	sort!	sort!(r::AbstractUnitRange)	todo		
-base/range.jl	1463	1463	sort	sort(r::AbstractRange)	todo		
-base/range.jl	1465	1465	sortperm	sortperm(r::AbstractUnitRange)	todo		
-base/range.jl	1466	1466	sortperm	sortperm(r::AbstractRange)	todo		
-base/range.jl	1468	1473	sum	sum(r::AbstractRange{<:Real})	todo		
-base/range.jl	1475	1483	_in_range	_in_range(x, r::AbstractRange)	todo		
-base/range.jl	1484	1484	in	in(x::Real, r::AbstractRange{<:Real})	todo		
-base/range.jl	1487	1487	in	in(x::T, r::AbstractRange{T}) where {T}	todo		
-base/range.jl	1489	1489	in	in(x::Integer, r::AbstractUnitRange{<:Integer})	todo		
-base/range.jl	1491	1494	in	in(x::Real, r::AbstractRange{T}) where {T<:Integer}	todo		
-base/range.jl	1495	1498	in	in(x::AbstractChar, r::AbstractRange{<:AbstractChar})	todo		
-base/range.jl	1502	1523	_define_range_op	_define_range_op(@nospecialize f)	todo		
-base/range.jl	1504	1509	$f	$f(r1::OrdinalRange, r2::OrdinalRange)	todo		
-base/range.jl	1511	1517	$f	$f(r1::LinRange{T}, r2::LinRange{T}) where T	todo		
-base/range.jl	1519	1521	$f	$f(r1::Union{StepRangeLen, OrdinalRange, LinRange}, r2::Union{StepRangeLen, OrdinalRange, LinRange})	todo		
-base/range.jl	1527	1532	+	+(r1::StepRangeLen{T,S}, r2::StepRangeLen{T,S}) where {T,S}	todo		
-base/range.jl	1534	1534	-	-(r1::StepRangeLen, r2::StepRangeLen)	todo		
-base/range.jl	1558	1558	mod	mod(i::Integer, r::OneTo)	todo		
-base/range.jl	1559	1559	mod	mod(i::Integer, r::AbstractUnitRange{<:Integer})	todo		
-base/range.jl	1602	1602	logrange	logrange(start::Real, stop::Real, length::Integer)	todo		
-base/range.jl	1603	1603	logrange	logrange(start::Real, stop::Real; length::Integer)	todo		
-base/range.jl	1660	1684	LogRange{T}	LogRange{T}(start::T, stop::T, len::Int) where {T<:Real}	todo		
-base/range.jl	1687	1689	LogRange{T}	LogRange{T}(start::Real, stop::Real, len::Integer) where {T}	todo		
-base/range.jl	1690	1693	LogRange	LogRange(start::Real, stop::Real, len::Integer)	todo		
-base/range.jl	1695	1695	size	size(r::LogRange)	todo		
-base/range.jl	1696	1696	length	length(r::LogRange)	todo		
-base/range.jl	1698	1698	first	first(r::LogRange)	todo		
-base/range.jl	1699	1699	last	last(r::LogRange)	todo		
-base/range.jl	1701	1705	_logrange_extra	_logrange_extra(a::Real, b::Real, len::Int)	todo		
-base/range.jl	1706	1712	_logrange_extra	_logrange_extra(a::Float64, b::Float64, len::Int)	todo		
-base/range.jl	1714	1724	getindex	getindex(r::LogRange{T}, i::Int) where {T}	todo		
-base/range.jl	1726	1735	show	show(io::IO, r::LogRange{T}) where {T}	todo		
-base/range.jl	1739	1746	_resolve_in_world	_resolve_in_world(worlds::UnitRange, gr::GlobalRef)	todo		
+base/range.jl	3	3	:	(:)(a::Real, b::Real)	modelled	rangescov-unitrange-of-range	
+base/range.jl	5	5	:	(:)(start::T, stop::T) where {T<:Real}	modelled	range-show-int	
+base/range.jl	7	7	:	(:)(start::T, stop::T) where {T}	modelled	rangescov-char-colon	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	10	11	:	(:)(start::A, step, stop::C) where {A<:Real, C<:Real}	modelled	range-colon-endpoint-conversion-error	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	14	14	:	(:)(a::T, b::T) where {T<:AbstractFloat}	modelled	rangescov-bigfloat-colon-empty	
+base/range.jl	16	16	:	(:)(a::T, b::AbstractFloat, c::T) where {T<:Real}	modelled	range-colon-float-promotion-errors	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	17	17	:	(:)(a::T, b::AbstractFloat, c::T) where {T<:AbstractFloat}	modelled	range-colon-float-promotion-errors	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	18	18	:	(:)(a::T, b::Real, c::T) where {T<:AbstractFloat}	modelled	range-colon-float-promotion-errors	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	20	21	:	(:)(start::T, step::T, stop::T) where {T<:AbstractFloat}	modelled	rangescov-bigfloat-colon-empty	
+base/range.jl	22	23	:	(:)(start::T, step::T, stop::T) where {T<:Real}	modelled	range-show-int	
+base/range.jl	24	24	_colon	_colon(::Ordered, ::Any, start::T, step, stop::T) where {T}	modelled	rangescov-steprange-zero-single	
+base/range.jl	26	27	_colon	_colon(::Ordered, ::ArithmeticRounds, start::T, step, stop::T) where {T}	modelled	rangescov-bigfloat-colon-empty	
+base/range.jl	28	29	_colon	_colon(::Any, ::Any, start::T, step, stop::T) where {T}	modelled	range-colon-fallback-quotient-error	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	34	34	_range_wrapping_add	_range_wrapping_add(x::_RangeWrappingInteger, y::_RangeWrappingInteger)	modelled	rangescov-steprange-zero-single	
+base/range.jl	35	35	_range_wrapping_add	_range_wrapping_add(x, y)	modelled	range-wrapping-fallback-identities	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	36	36	_range_wrapping_sub	_range_wrapping_sub(x::_RangeWrappingInteger, y::_RangeWrappingInteger)	modelled	rangescov-steprange-zero-single	
+base/range.jl	37	37	_range_wrapping_sub	_range_wrapping_sub(x, y)	modelled	range-wrapping-fallback-identities	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	38	38	_range_wrapping_mul	_range_wrapping_mul(x::_RangeWrappingInteger, y::_RangeWrappingInteger)	modelled	ranges-keyword-length	
+base/range.jl	39	39	_range_wrapping_mul	_range_wrapping_mul(x, y)	modelled	range-wrapping-fallback-identities	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	64	64	:	(:)(start::T, step, stop::T) where {T}	modelled	rangescov-char-colon	
+base/range.jl	65	65	:	(:)(start::T, step, stop::T) where {T<:Real}	modelled	rangescov-colon-widen-zero	
+base/range.jl	68	71	_colon	_colon(start::T, step, stop::T) where T	modelled	rangescov-colon-widen-zero	
+base/range.jl	165	165	range	range	excluded		no-behaviour: generic function declaration at base/range.jl:165 has no method body
+base/range.jl	167	168	range	range(start; stop=nothing, length::Union{Integer,Nothing}=nothing, step=nothing)	modelled	rangescov-range-length	
+base/range.jl	169	169	range	range(start, stop; length::Union{Integer,Nothing}=nothing, step=nothing)	modelled	rangescov-range-length	
+base/range.jl	170	170	range	range(start, stop, length::Integer)	modelled	rangescov-range3-length	
+base/range.jl	172	173	range	range(;start=nothing, stop=nothing, length::Union{Integer, Nothing}=nothing, step=nothing)	modelled	rangescov-range-length	
+base/range.jl	175	175	_range	_range(start::Nothing, step::Nothing, stop::Nothing, len::Nothing)	modelled	rangescov-range-length	
+base/range.jl	176	176	_range	_range(start::Nothing, step::Nothing, stop::Nothing, len::Any )	modelled	rangescov-range-length	
+base/range.jl	177	177	_range	_range(start::Nothing, step::Nothing, stop::Any , len::Nothing)	modelled	rangescov-range-length	
+base/range.jl	178	178	_range	_range(start::Nothing, step::Nothing, stop::Any , len::Any )	modelled	ranges-keyword-stop-length-unitrange	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	179	179	_range	_range(start::Nothing, step::Any , stop::Nothing, len::Nothing)	modelled	rangescov-range-keyword-errors	
+base/range.jl	180	180	_range	_range(start::Nothing, step::Any , stop::Nothing, len::Any )	modelled	rangescov-range-length	
+base/range.jl	181	181	_range	_range(start::Nothing, step::Any , stop::Any , len::Nothing)	modelled	rangescov-range-keyword-errors	
+base/range.jl	182	182	_range	_range(start::Nothing, step::Any , stop::Any , len::Any )	modelled	range-step-stop-length-count	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	183	183	_range	_range(start::Any , step::Nothing, stop::Nothing, len::Nothing)	modelled	rangescov-range-keyword-errors	
+base/range.jl	184	184	_range	_range(start::Any , step::Nothing, stop::Nothing, len::Any )	modelled	ranges-keyword-length	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	185	185	_range	_range(start::Any , step::Nothing, stop::Any , len::Nothing)	modelled	rangescov-range-length	
+base/range.jl	186	186	_range	_range(start::Any , step::Nothing, stop::Any , len::Any )	modelled	rangescov-range3-length	
+base/range.jl	187	187	_range	_range(start::Any , step::Any , stop::Nothing, len::Nothing)	modelled	rangescov-range-keyword-errors	
+base/range.jl	188	188	_range	_range(start::Any , step::Any , stop::Nothing, len::Any )	modelled	ranges-keyword-length	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	189	189	_range	_range(start::Any , step::Any , stop::Any , len::Nothing)	modelled	rangescov-range-length	
+base/range.jl	190	190	_range	_range(start::Any , step::Any , stop::Any , len::Any )	modelled	rangescov-range-keyword-errors	
+base/range.jl	193	193	range_length	range_length(len::Integer)	modelled	rangescov-range-length	
+base/range.jl	196	196	range_stop	range_stop(stop)	modelled	range-stop-unit-conversion-error	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	197	197	range_stop	range_stop(stop::Integer)	modelled	rangescov-range-length	
+base/range.jl	199	206	range_step_stop_length	range_step_stop_length(step, a, len::Integer)	modelled	range-step-stop-length-count	
+base/range.jl	209	217	range_stop_length	range_stop_length(a, len::Integer)	modelled	ranges-keyword-stop-length-unitrange	
+base/range.jl	220	228	range_start_length	range_start_length(a, len::Integer)	modelled	ranges-keyword-length	
+base/range.jl	230	230	range_start_stop	range_start_stop(start, stop)	modelled	rangescov-range-length	
+base/range.jl	232	239	range_start_step_length	range_start_step_length(a, step, len::Integer)	modelled	ranges-keyword-length	
+base/range.jl	241	241	range_start_step_stop	range_start_step_stop(start, step, stop)	modelled	rangescov-range-length	
+base/range.jl	243	270	range_error	range_error(start, step, stop, length)	modelled	ranges-range-error-hint	
+base/range.jl	285	285	RangeStepStyle	RangeStepStyle(::Type{<:AbstractRange})	modelled	range-step-style-tags	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	286	286	RangeStepStyle	RangeStepStyle(::Type{<:AbstractRange{<:Integer}})	modelled	range-step-style-tags	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	288	288	convert	convert(::Type{T}, r::AbstractRange) where {T<:AbstractRange}	modelled	range-convert-same-type-identity	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	344	349	StepRange{T,S}	StepRange{T,S}(start, step, stop) where {T,S}	modelled	rangescov-steprange-zero-single	
+base/range.jl	353	387	steprange_last	steprange_last(start, step, stop)::typeof(stop)	modelled	rangescov-steprange-zero-single	
+base/range.jl	377	377	overflow_case	overflow_case(absdiff, absstep)	modelled	rangescov-steprange-zero-single	
+base/range.jl	389	398	steprange_last_empty	steprange_last_empty(start::Integer, step, stop)::typeof(stop)	modelled	range-empty-integer-endpoint	All Int64 starts, steps and stops, including zero step and wrapping endpoints. Generic helper body retained at existing dispatch boundary; no other closed domain claimed.
+base/range.jl	399	399	steprange_last_empty	steprange_last_empty(start::Bool, step, stop)	modelled	range-empty-bool-endpoint	Both Bool starts, all Int64 steps and every ignored stop type/value.
+base/range.jl	401	401	steprange_last_empty	steprange_last_empty(start, step, stop)	modelled	rangescov-char-colon	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	403	403	StepRange{T}	StepRange{T}(start, step::S, stop) where {T,S}	modelled	range-step-partial-constructor-error	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	404	404	StepRange	StepRange(start::T, step::S, stop::T) where {T,S}	modelled	rangescov-isempty-methods	
+base/range.jl	428	428	UnitRange{T}	UnitRange{T}(start::T, stop::T) where {T<:Real}	modelled	rangescov-step-unit	
+base/range.jl	430	430	UnitRange{T}	UnitRange{T}(start, stop) where {T<:Real}	modelled	rangescov-unitrange-convert-empty	
+base/range.jl	431	431	UnitRange	UnitRange(start::T, stop::T) where {T<:Real}	modelled	rangescov-step-unit	
+base/range.jl	432	436	UnitRange	UnitRange(start, stop)	modelled	rangescov-unitrange-of-range	
+base/range.jl	439	441	unitrange_last	unitrange_last(start::Integer, stop::Integer)	modelled	rangescov-unitrange-convert-empty	
+base/range.jl	443	445	unitrange_last	unitrange_last(start, stop)	modelled	rangescov-unitrange-float-last	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	447	447	unitrange	unitrange(x::AbstractUnitRange)	modelled	range-convenience-constructor-errors	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	451	465	getindex	getindex(@nospecialize(t::Tuple), r::AbstractUnitRange)	modelled	tuples-unitrange-index	Existing source-mirrored model reviewed against pinned f755f49 source. Tuple iteration properties use fuel greater than the input index-range element count.
+base/range.jl	487	491	OneTo{T}	OneTo{T}(stop) where {T<:Integer}	modelled	range-oneto-bitinteger-scalar;range-oneto-bool-target-scalar	Full generic outer body at the existing range J* interface, including maximum-result field conversion and Bool rejection. Concrete properties cover every BitInteger source/target and Bool target; BigInt, other scalar dispatch and effectful printing closures are not supplied.
+base/range.jl	488	488	throwbool	throwbool(r)	modelled	range-oneto-bool-target-scalar	Existing error helper is actually called by the prepared closed OneTo constructor property. No standalone public contract invented.
+base/range.jl	493	501	OneTo{T}	OneTo{T}(r::AbstractRange) where {T<:Integer}	modelled	range-oneto-int64-range;range-oneto-bool-target-range	Full generic outer body at the existing range J* interface, preserving first/step/Bool checks, repeated error observations and final field conversion. Concrete properties cover constructible Int64 StepRange inputs and BitInteger/Bool targets; other range-family and mutable printing closures are not supplied.
+base/range.jl	494	494	throwstart	throwstart(r)	modelled	range-oneto-int64-range;range-oneto-bool-target-range	Existing error helper is actually called by the prepared closed OneTo constructor property. No standalone public contract invented.
+base/range.jl	495	495	throwstep	throwstep(r)	modelled	range-oneto-int64-range;range-oneto-bool-target-range	Existing error helper is actually called by the prepared closed OneTo constructor property. No standalone public contract invented.
+base/range.jl	496	496	throwbool	throwbool(r)	modelled	range-oneto-bool-target-range	Existing error helper is actually called by the prepared closed OneTo constructor property. No standalone public contract invented.
+base/range.jl	503	503	unchecked_oneto	unchecked_oneto(stop::Integer)	modelled	rangescov-logrange-domain	
+base/range.jl	505	505	OneTo	OneTo(stop::T) where {T<:Integer}	modelled	range-show-int	
+base/range.jl	506	506	OneTo	OneTo(r::AbstractRange{T}) where {T<:Integer}	modelled	range-convenience-constructor-errors	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	507	507	oneto	oneto(r)	modelled	range-convenience-constructor-errors	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	533	543	StepRangeLen{T,R,S,L}	StepRangeLen{T,R,S,L}(ref::R, step::S, len::Integer, offset::Integer = 1) where {T,R,S,L}	modelled	range-steprangelen-bitinteger;range-steprangelen-default-offset	Full generic outer body and generated default-offset method at the existing range J* interface, preserving integer test, length/offset conversion and short-circuited offset bounds. Concrete properties cover all BitInteger type/value combinations; other numeric/effectful concrete closures are not supplied.
+base/range.jl	546	547	StepRangeLen{T,R,S}	StepRangeLen{T,R,S}(ref::R, step::S, len::Integer, offset::Integer = 1) where {T,R,S}	modelled	rangescov-srl-t	
+base/range.jl	548	549	StepRangeLen	StepRangeLen(ref::R, step::S, len::Integer, offset::Integer = 1) where {R,S}	modelled	rangescov-srl-t	
+base/range.jl	550	551	StepRangeLen{T}	StepRangeLen{T}(ref::R, step::S, len::Integer, offset::Integer = 1) where {T,R,S}	modelled	rangescov-srl-t	
+base/range.jl	597	609	LinRange{T,L}	LinRange{T,L}(start::T, stop::T, len::L) where {T,L<:Integer}	modelled	range-linrange-bool-length	Full generic outer body at the existing range J* interface, including independent length intermediate types, guarded remainder and final denominator conversion. Concrete property covers all Int64 endpoint pairs and both Bool lengths; other endpoint/length concrete closures are not supplied.
+base/range.jl	612	614	LinRange{T,L}	LinRange{T,L}(start, stop, len::Integer) where {T,L}	modelled	rangescov-linrange-from-range	
+base/range.jl	616	618	LinRange{T}	LinRange{T}(start, stop, len::Integer) where T	modelled	range-linrange-int-step-overflow	
+base/range.jl	620	623	LinRange	LinRange(start, stop, len::Integer)	modelled	rangescov-lin-op	
+base/range.jl	625	626	range_start_stop_length	range_start_stop_length(start, stop, len::Integer)	modelled	rangescov-range3-length	
+base/range.jl	627	627	range_start_stop_length	range_start_stop_length(start::T, stop::T, len::Integer) where {T}	modelled	range-convenience-constructor-errors	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	628	629	range_start_stop_length	range_start_stop_length(start::T, stop::T, len::Integer) where {T<:Integer}	modelled	rangescov-range3-length	
+base/range.jl	632	632	_linspace	_linspace(::Type{T}, start::Integer, stop::Integer, len::Integer) where T	modelled	range-linrange-int-step-overflow	
+base/range.jl	634	645	show	show(io::IO, r::LinRange{T}) where {T}	modelled	range-linrange-show-routing;range-linrange-show-failure-state	Source-mirrored model JuliaLean.base.range.Models2Group20.showLinRange; reviewed against Julia f755f49.
+base/range.jl	660	701	print_range	"print_range(io::IO, r::AbstractArray, pre::AbstractString = "" "", sep::AbstractString = "", "", post::AbstractString = """", hdots::AbstractString = "", \u2026, "")"	modelled	range-print-range-framing;range-print-range-failure-state	Source-mirrored model JuliaLean.base.range.Models2Group20.printRange; reviewed against Julia f755f49.
+base/range.jl	705	705	length	length(r::AbstractRange)	modelled	range-abstract-length-error	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	706	706	size	size(r::AbstractRange)	modelled	rangescov-srl-t	
+base/range.jl	708	710	isempty	isempty(r::StepRange)	modelled	range-steprange-isempty-eager-effects	Source-mirrored model JuliaLean.base.range.Models2Group20.isemptyStepRange; reviewed against Julia f755f49.
+base/range.jl	711	711	isempty	isempty(r::AbstractUnitRange)	modelled	range-subset-integer-set-inclusion	
+base/range.jl	712	712	isempty	isempty(r::StepRangeLen)	modelled	rangescov-eq-twiceprecision	
+base/range.jl	713	713	isempty	isempty(r::LinRange)	modelled	rangescov-linrange-constructor	
+base/range.jl	735	735	step	step(r::StepRange)	modelled	range-oneto-int64-range	
+base/range.jl	736	736	step	step(r::AbstractUnitRange{T}) where {T}	modelled	range-sum-length-errors	
+base/range.jl	737	737	step	step(r::AbstractUnitRange{Bool})	modelled	ranges-ordinal-bool-unit	
+base/range.jl	738	738	step	step(r::StepRangeLen)	modelled	range-sum-int64-finite-progression	
+base/range.jl	739	739	step	step(r::StepRangeLen{T}) where {T<:AbstractFloat}	modelled	rangescov-float-srl-step	
+base/range.jl	740	740	step	step(r::LinRange)	modelled	range-linrange-step-arithmetic-effects;range-linrange-step-count-independent	Source-mirrored model JuliaLean.base.range.Models2Group20.stepLinRange; reviewed against Julia f755f49.
+base/range.jl	743	743	step_hp	step_hp(r::StepRangeLen)	modelled	range-srl-range-index-offset	
+base/range.jl	744	744	step_hp	step_hp(r::AbstractRange)	modelled	ranges-ordinal-unsigned-step-last	
+base/range.jl	747	747	has_offset_axes	has_offset_axes(::StepRange)	modelled	range-step-no-offset-axes	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	751	766	checked_length	checked_length(r::OrdinalRange{T}) where T	modelled	rangescov-char-colon	
+base/range.jl	768	775	checked_length	checked_length(r::AbstractUnitRange{T}) where T	modelled	rangescov-integer-unitrange	
+base/range.jl	777	792	length	length(r::OrdinalRange{T}) where T	modelled	rangescov-char-colon	
+base/range.jl	794	804	length	length(r::AbstractUnitRange{T}) where T	modelled	range-unitrange-length-signed-branch;range-unitrange-length-failure-state	Source-mirrored model JuliaLean.base.range.Models2Group20.lengthAbstractUnitRange; reviewed against Julia f755f49.
+base/range.jl	806	806	length	length(r::OneTo)	modelled	range-oneto-length-generic	
+base/range.jl	807	807	length	length(r::StepRangeLen)	modelled	rangescov-eq-twiceprecision	
+base/range.jl	808	808	length	length(r::LinRange)	modelled	rangescov-linrange-constructor	
+base/range.jl	817	817	length	length(r::OneTo{T}) where {T<:bigints}	modelled	range-sum-length-errors	
+base/range.jl	820	830	length	length(r::OrdinalRange{T}) where T<:bigints	modelled	ranges-keyword-length	
+base/range.jl	831	849	checked_length	checked_length(r::OrdinalRange{T}) where T<:bigints	modelled	ranges-ordinal-typemin-checked-length	
+base/range.jl	850	850	firstindex	firstindex(r::StepRange{<:bigints,<:bitints})	modelled	range-steprange-length	
+base/range.jl	853	858	length	length(r::OrdinalRange{<:smallints})	modelled	ranges-keyword-length	
+base/range.jl	859	859	length	length(r::AbstractUnitRange{<:smallints})	modelled	rangescov-integer-unitrange	
+base/range.jl	860	860	length	length(r::OneTo{<:smallints})	modelled	rangescov-length-oneto	
+base/range.jl	861	861	checked_length	checked_length(r::OrdinalRange{<:smallints})	modelled	ranges-ordinal-typemin-checked-length	
+base/range.jl	862	862	checked_length	checked_length(r::AbstractUnitRange{<:smallints})	modelled	rangescov-integer-unitrange	
+base/range.jl	863	863	checked_length	checked_length(r::OneTo{<:smallints})	modelled	rangescov-length-oneto	
+base/range.jl	864	864	firstindex	firstindex(::StepRange{<:smallints,<:bitints})	modelled	range-steprange-length	
+base/range.jl	867	867	first	first(r::OrdinalRange{T}) where {T}	modelled	range-oneto-int64-range	
+base/range.jl	868	868	first	first(r::OneTo{T}) where {T}	modelled	ranges-range-error-hint	
+base/range.jl	869	869	first	first(r::StepRangeLen)	modelled	rangescov-eq-twiceprecision	
+base/range.jl	870	870	first	first(r::LinRange)	modelled	floatranges-linrange-infinite-endpoint	
+base/range.jl	872	875	first	first(r::OneTo, n::Integer)	modelled	rangescov-eq-oneto	
+base/range.jl	877	877	last	last(r::OrdinalRange{T}) where {T}	modelled	rangescov-unitrange-float-last	
+base/range.jl	878	878	last	last(r::StepRangeLen)	modelled	rangescov-eq-twiceprecision	
+base/range.jl	879	879	last	last(r::LinRange)	modelled	floatranges-linrange-infinite-endpoint	
+base/range.jl	881	881	minimum	minimum(r::AbstractUnitRange)	modelled	rangescov-eq-unit	
+base/range.jl	882	882	maximum	maximum(r::AbstractUnitRange)	modelled	rangescov-eq-unit	
+base/range.jl	883	883	minimum	minimum(r::AbstractRange)	modelled	range-steprange-extrema	
+base/range.jl	884	884	maximum	maximum(r::AbstractRange)	modelled	range-steprange-extrema	
+base/range.jl	893	901	argmin	argmin(r::AbstractRange)	modelled	rangescov-isassigned	
+base/range.jl	910	918	argmax	argmax(r::AbstractRange)	modelled	rangescov-isassigned	
+base/range.jl	920	920	extrema	extrema(r::AbstractRange)	modelled	range-extrema-minimum-error	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	923	923	copy	copy(r::AbstractRange)	modelled	range-copy-preserves-observations	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	928	933	iterate	iterate(r::Union{StepRangeLen,LinRange}, i::Integer=zero(length(r)))	modelled	range-iterate-length-errors;range-iterate-default-length-errors;range-iterate-bool-progression	Source-mirrored caller at the existing typed dispatch boundary; independent contracts remain unproved.
+base/range.jl	935	935	iterate	iterate(r::OrdinalRange)	modelled	range-sum-length-errors	
+base/range.jl	937	942	iterate	iterate(r::OrdinalRange{T}, i) where {T}	modelled	range-sum-length-errors	
+base/range.jl	946	949	isassigned	isassigned(r::AbstractRange, i::Integer)	modelled	rangescov-isassigned	
+base/range.jl	952	955	_getindex	_getindex(v::AbstractRange, i::Integer)	modelled	show-range-repr-elements	
+base/range.jl	957	957	_in_unit_range	_in_unit_range(v::UnitRange, val, i::Integer)	modelled	ranges-ordinal-unsigned-index	
+base/range.jl	959	963	_getindex	_getindex(v::UnitRange{T}, i::Integer) where T	modelled	rangescov-getindex-unit-float	
+base/range.jl	968	972	_getindex	_getindex(v::UnitRange{T}, i::Integer) where {T<:OverflowSafe}	modelled	ranges-ordinal-unsigned-index	
+base/range.jl	975	978	checkbounds	checkbounds(::Type{Bool}, v::StepRange{<:BitInteger64, <:BitInteger64}, i::BitInteger64)	modelled	rangescov-steprange-zero-single	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	984	984	unsafe_getindex	unsafe_getindex(v::OneTo{T}, i::Integer) where T	modelled	rangescov-length-oneto	
+base/range.jl	985	985	unsafe_getindex	unsafe_getindex(v::AbstractRange{T}, i::Integer) where T	modelled	rangescov-steprange-zero-single	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	986	989	unsafe_getindex	unsafe_getindex(r::StepRangeLen{T}, i::Integer) where T	modelled	range-unsafe-index-conversion-error	Source-mirrored caller at the existing typed dispatch boundary; independent contracts remain unproved.
+base/range.jl	990	990	unsafe_getindex	unsafe_getindex(r::LinRange, i::Integer)	modelled	floatranges-linrange-outside-endpoints	
+base/range.jl	992	996	lerpi	lerpi(j::Integer, d::Integer, a::T, b::T) where T	modelled	floatranges-linrange-outside-endpoints	
+base/range.jl	1000	1000	getindex	getindex(r::AbstractRange, ::Colon)	modelled	range-colon-index-copy-error	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	1002	1011	_empty_stop	_empty_stop(start, step)	modelled	range-unit-step-getindex-empty	
+base/range.jl	1013	1026	getindex	getindex(r::AbstractUnitRange, s::AbstractUnitRange{T}) where {T<:Integer}	modelled	ranges-operations-slice-overflow	
+base/range.jl	1028	1032	getindex	getindex(r::OneTo{T}, s::OneTo) where T	modelled	range-oneto-getindex-oneto	
+base/range.jl	1034	1049	getindex	getindex(r::AbstractUnitRange, s::StepRange{T}) where {T<:Integer}	modelled	range-unit-step-getindex-empty	
+base/range.jl	1051	1073	getindex	getindex(r::StepRange, s::AbstractRange{T}) where {T<:Integer}	modelled	ranges-operations-slice-unsigned-step	
+base/range.jl	1075	1103	getindex	getindex(r::StepRangeLen{T}, s::OrdinalRange{S}) where {T, S<:Integer}	modelled	range-srl-range-index-offset	
+base/range.jl	1105	1108	_getindex_hiprec	_getindex_hiprec(r::StepRangeLen, i::Integer)	modelled	range-hiprec-index-conversion-error	Source-mirrored caller at the existing typed dispatch boundary; independent contracts remain unproved.
+base/range.jl	1110	1133	getindex	getindex(r::LinRange{T}, s::OrdinalRange{S}) where {T, S<:Integer}	modelled	range-linrange-range-index-nan	
+base/range.jl	1135	1135	show	show(io::IO, r::AbstractRange)	modelled	range-abstract-range-show-effects	Source-mirrored model JuliaLean.base.range.Models2Group20.showAbstractRange; reviewed against Julia f755f49.
+base/range.jl	1136	1140	show	show(io::IO, r::UnitRange)	modelled	range-unit-range-show-effects	Source-mirrored model JuliaLean.base.range.Models2Group20.showUnitRange; reviewed against Julia f755f49.
+base/range.jl	1141	1141	show	show(io::IO, r::OneTo)	modelled	range-oneto-show-effects	Source-mirrored model JuliaLean.base.range.Models2Group20.showOneTo; reviewed against Julia f755f49.
+base/range.jl	1142	1149	show	show(io::IO, r::StepRangeLen)	modelled	range-steprangelen-show-accessor-routing;range-steprangelen-show-failure-state	Source-mirrored model JuliaLean.base.range.Models2Group20.showStepRangeLen; reviewed against Julia f755f49.
+base/range.jl	1151	1155	==	==(r::T, s::T) where {T<:AbstractRange}	modelled	rangescov-generic-eq	
+base/range.jl	1157	1161	==	==(r::OrdinalRange, s::OrdinalRange)	modelled	rangescov-generic-eq	
+base/range.jl	1163	1164	==	==(r::AbstractUnitRange, s::AbstractUnitRange)	modelled	rangescov-eq-unit	
+base/range.jl	1166	1166	==	==(r::OneTo, s::OneTo)	modelled	rangescov-eq-oneto	
+base/range.jl	1168	1169	==	==(r::T, s::T) where {T<:Union{StepRangeLen,LinRange}}	modelled	rangescov-eq-twiceprecision	
+base/range.jl	1171	1175	==	==(r::Union{StepRange{T},StepRangeLen{T,T}}, s::Union{StepRange{T},StepRangeLen{T,T}}) where {T}	modelled	range-srl-eq-length	
+base/range.jl	1177	1177	_has_length_one	_has_length_one(r::OrdinalRange)	modelled	rangescov-eq-ordinal	
+base/range.jl	1178	1178	_has_length_one	_has_length_one(r::AbstractRange)	modelled	range-srl-eq-length	
+base/range.jl	1180	1193	==	==(r::AbstractRange, s::AbstractRange)	modelled	range-equality-decision-evidence;range-equality-failure-state;range-equality-iteration-dataflow	Source-mirrored model JuliaLean.base.range.Models2Group20.eqAbstractRange; reviewed against Julia f755f49.
+base/range.jl	1195	1204	cmp	cmp(r1::T, r2::T) where {T <: AbstractRange}	modelled	rangescov-cmp-float-ranges	
+base/range.jl	1206	1206	intersect	intersect(r::OneTo, s::OneTo)	modelled	rangescov-eq-oneto	
+base/range.jl	1207	1207	union	union(r::OneTo, s::OneTo)	modelled	rangescov-eq-oneto	
+base/range.jl	1209	1209	intersect	intersect(r::AbstractUnitRange{<:Integer}, s::AbstractUnitRange{<:Integer})	modelled	rangescov-eq-unit	
+base/range.jl	1211	1211	intersect	intersect(i::Integer, r::AbstractUnitRange{<:Integer})	modelled	rangescov-intersect-integer	
+base/range.jl	1213	1213	intersect	intersect(r::AbstractUnitRange{<:Integer}, i::Integer)	modelled	range-intersect-integer-forwarding-error	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	1215	1227	intersect	intersect(r::AbstractUnitRange{<:Integer}, s::StepRange{<:Integer})	modelled	ranges-operations-unit-intersect-overflow	
+base/range.jl	1229	1235	first_step_last_ascending	first_step_last_ascending(r::StepRange)	modelled	range-ascending-initial-step-error	Source-mirrored caller at the existing typed dispatch boundary; independent contracts remain unproved.
+base/range.jl	1237	1243	intersect	intersect(r::StepRange{<:Integer}, s::AbstractUnitRange{<:Integer})	modelled	ranges-operations-intersect-empty	
+base/range.jl	1245	1275	intersect	intersect(r::StepRange, s::StepRange)	modelled	ranges-operations-step-intersect-overflow	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	1277	1285	intersect	intersect(r1::AbstractRange, r2::AbstractRange)	modelled	range-intersect-ranges-generic	Existing source-mirrored model reviewed against pinned f755f49 source. Registered finite-loop property requires fuel above both input lengths, so the loop cannot exhaust its allowance.
+base/range.jl	1287	1293	intersect	intersect(r1::AbstractRange, r2::AbstractRange, r3::AbstractRange, r::AbstractRange...)	modelled	range-intersect-many-argument-continuity	Source-mirrored model JuliaLean.base.range.Models2Group20.intersectRangesMany; reviewed against Julia f755f49.
+base/range.jl	1296	1313	_findin	_findin(r::AbstractRange{<:Integer}, span::AbstractUnitRange{<:Integer})	modelled	range-findin-span-first-error	Source-mirrored caller at the existing typed dispatch boundary; independent contracts remain unproved.
+base/range.jl	1315	1315	issubset	issubset(r::OneTo, s::OneTo)	modelled	rangescov-eq-oneto	
+base/range.jl	1317	1318	issubset	issubset(r::AbstractUnitRange{<:Integer}, s::AbstractUnitRange{<:Integer})	modelled	range-subset-empty-error-order;range-subset-integer-set-inclusion	Source-mirrored caller at the existing typed dispatch boundary; independent contracts remain unproved.
+base/range.jl	1322	1322	-	-(r::OrdinalRange)	modelled	ranges-operations-negate-typemin	
+base/range.jl	1323	1324	-	-(r::StepRangeLen{T,R,S,L}) where {T,R,S,L}	modelled	range-negate-srl-constructor-error	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	1325	1328	-	-(r::LinRange)	modelled	rangescov-linrange-negation	
+base/range.jl	1331	1331	el_same	el_same(::Type{T}, a::Type{<:AbstractArray{T,n}}, b::Type{<:AbstractArray{T,n}}) where {T,n}	modelled	range-element-type-container-preservation	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	1332	1332	el_same	el_same(::Type{T}, a::Type{<:AbstractArray{T,n}}, b::Type{<:AbstractArray{S,n}}) where {T,S,n}	modelled	range-element-type-container-preservation	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	1333	1333	el_same	el_same(::Type{T}, a::Type{<:AbstractArray{S,n}}, b::Type{<:AbstractArray{T,n}}) where {T,S,n}	modelled	range-element-type-container-preservation	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	1334	1334	el_same	el_same(::Type, a, b)	modelled	range-element-type-container-preservation	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	1336	1337	promote_rule	promote_rule(a::Type{UnitRange{T1}}, b::Type{UnitRange{T2}}) where {T1,T2}	modelled	range-promote-identical-types	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	1338	1338	UnitRange{T}	UnitRange{T}(r::UnitRange{T}) where {T<:Real}	modelled	range-same-type-constructor-identities	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	1339	1339	UnitRange{T}	UnitRange{T}(r::UnitRange) where {T<:Real}	modelled	range-unit-conversion-errors	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	1341	1342	promote_rule	promote_rule(a::Type{OneTo{T1}}, b::Type{OneTo{T2}}) where {T1,T2}	modelled	range-promote-identical-types	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	1343	1343	OneTo{T}	OneTo{T}(r::OneTo{T}) where {T<:Integer}	modelled	range-same-type-constructor-identities	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	1344	1344	OneTo{T}	OneTo{T}(r::OneTo) where {T<:Integer}	modelled	range-unit-conversion-errors	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	1346	1347	promote_rule	promote_rule(a::Type{OneTo{T1}}, ::Type{UR}) where {T1,UR<:AbstractUnitRange}	modelled	range-mixed-promotion-upper-bounds	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	1349	1350	promote_rule	promote_rule(a::Type{UnitRange{T1}}, ::Type{UR}) where {T1,UR<:AbstractUnitRange}	modelled	range-mixed-promotion-upper-bounds	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	1351	1351	UnitRange{T}	UnitRange{T}(r::AbstractUnitRange) where {T<:Real}	modelled	rangescov-unitrange-convert-empty	
+base/range.jl	1352	1352	UnitRange	UnitRange(r::AbstractUnitRange)	modelled	rangescov-unitrange-of-range	
+base/range.jl	1354	1354	AbstractUnitRange{T}	AbstractUnitRange{T}(r::AbstractUnitRange{T}) where {T}	modelled	range-same-type-constructor-identities	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	1355	1355	AbstractUnitRange{T}	AbstractUnitRange{T}(r::UnitRange) where {T}	modelled	range-unit-conversion-errors	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	1356	1356	AbstractUnitRange{T}	AbstractUnitRange{T}(r::OneTo) where {T}	modelled	range-unit-conversion-errors	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	1358	1358	OrdinalRange{T, S}	OrdinalRange{T, S}(r::OrdinalRange) where {T, S}	modelled	range-ordinal-conversion-errors	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	1359	1359	OrdinalRange{T, T}	OrdinalRange{T, T}(r::AbstractUnitRange) where {T}	modelled	range-ordinal-conversion-errors	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	1361	1365	promote_rule	promote_rule(::Type{StepRange{T1a,T1b}}, ::Type{StepRange{T2a,T2b}}) where {T1a,T1b,T2a,T2b}	modelled	range-promote-identical-types	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	1366	1366	StepRange{T1,T2}	StepRange{T1,T2}(r::StepRange{T1,T2}) where {T1,T2}	modelled	range-same-type-constructor-identities	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	1367	1367	StepRange{T}	StepRange{T}(r::StepRange{T}) where {T}	modelled	range-same-type-constructor-identities	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	1368	1368	StepRange	StepRange(r::StepRange)	modelled	range-same-type-constructor-identities	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	1370	1371	promote_rule	promote_rule(a::Type{StepRange{T1a,T1b}}, ::Type{UR}) where {T1a,T1b,UR<:AbstractUnitRange}	modelled	range-mixed-promotion-upper-bounds	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	1372	1373	StepRange{T1,T2}	StepRange{T1,T2}(r::AbstractRange) where {T1,T2}	modelled	rangescov-steprange-convert	
+base/range.jl	1374	1374	StepRange	StepRange(r::OrdinalRange{T,S}) where {T,S}	modelled	rangescov-steprange-convert	
+base/range.jl	1375	1375	StepRange{T}	StepRange{T}(r::OrdinalRange{<:Any,S}) where {T,S}	modelled	rangescov-steprange-convert	
+base/range.jl	1376	1376	StepRange{T1,T2} where T1	(StepRange{T1,T2} where T1)(r::AbstractRange) where {T2}	modelled	range-ordinal-conversion-errors	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	1377	1377	StepRange	StepRange(r::StepRangeLen)	modelled	range-ordinal-conversion-errors	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	1378	1378	StepRange{T}	StepRange{T}(r::StepRangeLen{<:Any,<:Any,S}) where {T,S}	modelled	range-ordinal-conversion-errors	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	1380	1383	promote_rule	promote_rule(::Type{StepRangeLen{T1,R1,S1,L1}},::Type{StepRangeLen{T2,R2,S2,L2}}) where {T1,T2,R1,R2,S1,S2,L1,L2}	modelled	range-promote-identical-types	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	1384	1384	StepRangeLen{T,R,S,L}	StepRangeLen{T,R,S,L}(r::StepRangeLen{T,R,S,L}) where {T,R,S,L}	modelled	range-same-type-constructor-identities	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	1385	1386	StepRangeLen{T,R,S,L}	StepRangeLen{T,R,S,L}(r::StepRangeLen) where {T,R,S,L}	modelled	rangescov-srl-convert	
+base/range.jl	1387	1388	StepRangeLen{T}	StepRangeLen{T}(r::StepRangeLen) where {T}	modelled	rangescov-srl-convert	
+base/range.jl	1390	1391	promote_rule	promote_rule(a::Type{StepRangeLen{T,R,S,L}}, ::Type{OR}) where {T,R,S,L,OR<:AbstractRange}	modelled	range-mixed-promotion-upper-bounds	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	1392	1393	StepRangeLen{T,R,S,L}	StepRangeLen{T,R,S,L}(r::AbstractRange) where {T,R,S,L}	modelled	rangescov-srl-from-range	
+base/range.jl	1394	1395	StepRangeLen{T}	StepRangeLen{T}(r::AbstractRange) where {T}	modelled	rangescov-srl-from-range	
+base/range.jl	1396	1396	StepRangeLen	StepRangeLen(r::AbstractRange)	modelled	range-srl-inferred-conversion-error	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	1398	1401	promote_rule	promote_rule(a::Type{LinRange{T1,L1}}, b::Type{LinRange{T2,L2}}) where {T1,T2,L1,L2}	modelled	range-promote-identical-types	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	1402	1402	LinRange{T,L}	LinRange{T,L}(r::LinRange{T,L}) where {T,L}	modelled	range-same-type-constructor-identities	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	1403	1403	LinRange{T,L}	LinRange{T,L}(r::AbstractRange) where {T,L}	modelled	rangescov-linrange-from-range	
+base/range.jl	1404	1404	LinRange{T}	LinRange{T}(r::AbstractRange) where {T}	modelled	rangescov-linrange-integer-elements	
+base/range.jl	1405	1405	LinRange	LinRange(r::AbstractRange{T}) where {T}	modelled	rangescov-linrange-integer-elements	
+base/range.jl	1407	1408	promote_rule	promote_rule(a::Type{LinRange{T,L}}, ::Type{OR}) where {T,L,OR<:OrdinalRange}	modelled	range-mixed-promotion-upper-bounds	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	1410	1411	promote_rule	promote_rule(::Type{LinRange{A,L}}, b::Type{StepRangeLen{T2,R2,S2,L2}}) where {A,L,T2,R2,S2,L2}	modelled	range-mixed-promotion-upper-bounds	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	1415	1427	vcat	vcat(rs::AbstractRange{T}...) where T	modelled	arrayops-vcat-ranges	Existing source-mirrored model reviewed against pinned f755f49 source. Registered finite-loop property requires fuel greater than every input range element count.
+base/range.jl	1434	1442	Array{T,1}	Array{T,1}(r::AbstractRange{T}) where {T}	modelled	ranges-collect-full-width-crash	Existing source-mirrored model reviewed against pinned f755f49 source. Finite iteration uses an input-sized allowance; the registered safety counterexample occurs before allowance exhaustion.
+base/range.jl	1443	1443	collect	collect(r::AbstractRange)	modelled	ranges-collect-full-width-crash	Existing source-mirrored model reviewed against pinned f755f49 source. Finite iteration uses an input-sized allowance; the registered safety counterexample occurs before allowance exhaustion.
+base/range.jl	1445	1445	_reverse	_reverse(r::OrdinalRange, ::Colon)	modelled	ranges-operations-reverse-typemin	
+base/range.jl	1446	1452	_reverse	_reverse(r::StepRangeLen, ::Colon)	modelled	range-reverse-emptiness-error	Source-mirrored caller at the existing typed dispatch boundary; independent contracts remain unproved.
+base/range.jl	1453	1453	_reverse	_reverse(r::LinRange{T}, ::Colon) where {T}	modelled	floatranges-linrange-reverse	
+base/range.jl	1457	1457	issorted	issorted(r::AbstractUnitRange)	modelled	rangescov-eq-unit	
+base/range.jl	1458	1458	issorted	issorted(r::AbstractRange)	modelled	rangescov-issorted-full-width	
+base/range.jl	1460	1460	sort	sort(r::AbstractUnitRange)	modelled	rangescov-eq-unit	
+base/range.jl	1461	1461	sort!	sort!(r::AbstractUnitRange)	modelled	rangescov-sorting-methods	
+base/range.jl	1463	1463	sort	sort(r::AbstractRange)	modelled	range-sort-typemin-step	
+base/range.jl	1465	1465	sortperm	sortperm(r::AbstractUnitRange)	modelled	rangescov-isassigned	
+base/range.jl	1466	1466	sortperm	sortperm(r::AbstractRange)	modelled	rangescov-sorting-methods	
+base/range.jl	1468	1473	sum	sum(r::AbstractRange{<:Real})	modelled	range-sum-length-errors;range-sum-int64-finite-progression	Source-mirrored caller at the existing typed dispatch boundary; independent contracts remain unproved.
+base/range.jl	1475	1483	_in_range	_in_range(x, r::AbstractRange)	modelled	floatranges-in-overflow-throws	
+base/range.jl	1484	1484	in	in(x::Real, r::AbstractRange{<:Real})	modelled	range-membership-adapter-errors	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	1487	1487	in	in(x::T, r::AbstractRange{T}) where {T}	modelled	range-membership-adapter-errors	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	1489	1489	in	in(x::Integer, r::AbstractUnitRange{<:Integer})	modelled	rangescov-eq-unit	
+base/range.jl	1491	1494	in	in(x::Real, r::AbstractRange{T}) where {T<:Integer}	modelled	ranges-operations-edge-membership	
+base/range.jl	1495	1498	in	in(x::AbstractChar, r::AbstractRange{<:AbstractChar})	modelled	rangescov-in-char	
+base/range.jl	1502	1523	_define_range_op	_define_range_op(@nospecialize f)	modelled	range-method-installation-error	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	1504	1509	$f	$f(r1::OrdinalRange, r2::OrdinalRange)	modelled	rangescov-ordinal-op-mismatch	
+base/range.jl	1511	1517	$f	$f(r1::LinRange{T}, r2::LinRange{T}) where T	modelled	range-linrange-dimension-mismatch	Source-mirrored caller at the existing typed dispatch boundary; independent contracts remain unproved.
+base/range.jl	1519	1521	$f	$f(r1::Union{StepRangeLen, OrdinalRange, LinRange}, r2::Union{StepRangeLen, OrdinalRange, LinRange})	modelled	range-arithmetic-adapter-errors	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	1527	1532	+	+(r1::StepRangeLen{T,S}, r2::StepRangeLen{T,S}) where {T,S}	modelled	range-steprangelen-add-dimensions-errors	Source-mirrored caller at the existing typed dispatch boundary; independent contracts remain unproved.
+base/range.jl	1534	1534	-	-(r1::StepRangeLen, r2::StepRangeLen)	modelled	range-arithmetic-adapter-errors	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	1558	1558	mod	mod(i::Integer, r::OneTo)	modelled	rangescov-mod-methods	
+base/range.jl	1559	1559	mod	mod(i::Integer, r::AbstractUnitRange{<:Integer})	modelled	ranges-mod-congruence	
+base/range.jl	1602	1602	logrange	logrange(start::Real, stop::Real, length::Integer)	modelled	range-log-adapter-errors	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	1603	1603	logrange	logrange(start::Real, stop::Real; length::Integer)	modelled	range-log-adapter-errors	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	1660	1684	LogRange{T}	LogRange{T}(start::T, stop::T, len::Int) where {T<:Real}	modelled	rangescov-logrange-domain	
+base/range.jl	1687	1689	LogRange{T}	LogRange{T}(start::Real, stop::Real, len::Integer) where {T}	modelled	range-log-adapter-errors	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	1690	1693	LogRange	LogRange(start::Real, stop::Real, len::Integer)	modelled	range-log-adapter-errors	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	1695	1695	size	size(r::LogRange)	modelled	range-log-size-length	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	1696	1696	length	length(r::LogRange)	modelled	rangescov-logrange-endpoints	
+base/range.jl	1698	1698	first	first(r::LogRange)	modelled	rangescov-logrange-endpoints	
+base/range.jl	1699	1699	last	last(r::LogRange)	modelled	rangescov-logrange-endpoints	
+base/range.jl	1701	1705	_logrange_extra	_logrange_extra(a::Real, b::Real, len::Int)	modelled	range-log-extra-log-error	Existing source-mirrored model reviewed against pinned f755f49 source.
+base/range.jl	1706	1712	_logrange_extra	_logrange_extra(a::Float64, b::Float64, len::Int)	modelled	rangescov-logrange-domain	
+base/range.jl	1714	1724	getindex	getindex(r::LogRange{T}, i::Int) where {T}	modelled	rangescov-logrange-domain	
+base/range.jl	1726	1735	show	show(io::IO, r::LogRange{T}) where {T}	modelled	range-logrange-show-stored-fields-effects	Source-mirrored model JuliaLean.base.range.Models2Group20.showLogRange; reviewed against Julia f755f49.
+base/range.jl	1739	1746	_resolve_in_world	_resolve_in_world(worlds::UnitRange, gr::GlobalRef)	modelled	range-world-range-lookup-error	Generic endpoint-dispatched body resolveInWorldRange preserves repeated last queries and conversion/check order; the installed Int64 API remains a thin wrapper.
