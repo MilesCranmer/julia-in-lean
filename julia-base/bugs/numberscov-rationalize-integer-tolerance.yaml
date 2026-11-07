@@ -99,7 +99,7 @@ duplicates:
     - {number: 61138, state: open, relation: related}
     - {number: 61161, state: open, relation: related}
   queries: ["rationalize", "rationalize tol", "rationalize tolerance not satisfied", "rationalize Int8 overflow", "rationalize semiconvergent", "rationalize Integer tolerance", "rationalize out of range integer"]
-covers: [rational-input-approximation-tolerance]
+covers: [rational-input-approximation-tolerance, numberscov-rationalize-integer-tolerance, rational-floating-approximation-tolerance]
 lean:
   property: JuliaLean.Proofs.base.rational.Round4.rationalize_tolerance
   theorem: JuliaLean.Proofs.base.rational.Round4.rationalize_tolerance_refuted

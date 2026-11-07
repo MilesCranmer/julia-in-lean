@@ -21999,6 +21999,13 @@ def entries : List JuliaLean.Registry.Entry := [
     issue := "none found (queries: trunc Rational infinity InexactError; round Rational DivideError)"
     notes := "The rational rounding path delegates to integer division by zero and throws DivideError." },
   { id := "numberscov-rationalize-integer-tolerance", juliaFile := "base/rational.jl"
+    juliaFns := ["rationalize(::Type{T}, ::Integer; tol)"]
+    statement := "The integer rationalize overload returns the exact default Rational constructor result when tol is omitted, and for every nonnegative integer tolerance returns a finite Rational{T} within tolerance whenever a representable finite approximation exists."
+    source := "base/rational.jl:325-341; doc/src/manual/complex-and-rational-numbers.md:184-210"
+    status := .refuted, prop := ``IntegerToleranceExtension, thm := some ``integerToleranceExtension_refuted
+    issue := "duplicate issue #52335, related #64269; see bugs/numberscov-rationalize-integer-tolerance.yaml"
+    notes := "The Integer overload ignores tol; rationalize(Int8,128;tol=1) returns 1//0 despite representable 127//1 being within tolerance." },
+  { id := "rational-floating-approximation-tolerance", juliaFile := "base/rational.jl"
     juliaFns := ["rationalize(::Type{T}, x::AbstractFloat, tol::Real)"]
     statement := "For finite floating inputs and nonnegative finite tolerance, a successful rationalize result is finite and differs from x by no more than tol."
     source := "base/rational.jl:238-243: result differs from x by no more than tol"

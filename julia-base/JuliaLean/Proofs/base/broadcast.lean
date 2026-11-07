@@ -5599,10 +5599,10 @@ def proposedEntries : List Entry := [
     juliaFns := ["result_join(::S, ::T, ::U, ::V) where {S,T,U,V}"],
     statement := "The conflicting-rule diagnostic renders the literal message with types S,T,U,T,S,V before invoking error. Canonical error constructs and throws ErrorException with the exact message, re-rendering a non-AbstractString result when required. Selected custom methods preserve their actual results, errors, divergence and worlds; no later diagnostic action occurs after a failure.",
     source := "base/broadcast.jl:479-485; base/error.jl:47-57; base/boot.jl:470-473; doc/src/manual/strings.md:534-573",
-    status := .todo,
+    status := .proven,
     prop := ``JuliaLean.Proofs.base.broadcast.Models2Group5.ResultJoin.RuntimeContract,
-    thm := none,
-    notes := "Complete open-dispatch diagnostic including custom interpolation results and world-aware error/constructor selection. Covers necessary local canonicalException, constructException, errorOne, callError and interpolationArguments dependencies. errorOne models only the full N=1 callee domain actually required here. The typed ErrorException argument already has the declared AbstractString field type, so no convert call is introduced. No baseline model is modified; no proofs or compilation claims." },
+    thm := some `JuliaLean.Proofs.base.broadcast.Models2Group5.ResultJoin.RuntimeContract_proven,
+    notes := "Every selected diagnostic route, exact message and reachable failure/divergence prefix is proved without callee correctness assumptions." },
   { id := "broadcast-conflicting-style-type-only-diagnostic",
     juliaFile := "base/broadcast.jl",
     juliaFns := ["result_join(::S, ::T, ::U, ::V) where {S,T,U,V}"],
@@ -9249,18 +9249,18 @@ def proposedEntries : List Entry := [
     juliaFns := ["copy(bc::Broadcasted)"],
     statement := "Anonymous return-type lowering preserves the generated TypeVar name, empty-union lower bound and actual upper bound, then preserves UnionAll variable/body identity. Canonical constructor validation and genuine custom constructor outcomes retain exact errors/worlds and do not add unrelated effects.",
     source := "base/broadcast.jl:973; base/boot.jl:371,373 (necessary constructor dependency invariants)",
-    status := .todo,
+    status := .proven,
     prop := ``JuliaLean.Proofs.base.broadcast.Models2Group5.CopyNarrowing.AnonymousTypeConstructorContract,
-    thm := none,
-    notes := "Todo: needs TypeVariableObservations and UniversalTypeObservations proofs by builtin/custom constructor selection, including builtin UnionAll type validation and primitive exceptions in the contextual observer." },
+    thm := some `JuliaLean.Proofs.base.broadcast.Models2Group5.CopyNarrowing.AnonymousTypeConstructorContract_proven,
+    notes := "Complete unchanged contract proved across constructor selection, source branches, captured callable invocation and every reachable error or divergence prefix." },
   { id := "broadcast-copy-narrowing-runtime", juliaFile := "base/broadcast.jl",
     juliaFns := ["copy(bc::Broadcasted)"],
     statement := "Default copy validates its concrete-type test, distinguishes actual empty iteration, and preserves exact arbitrary iterator destructuring, inbounds first-read/first-write provenance and every initialization failure. A later subtype failure retains the already-written world and actual error, with no rollback.",
     source := "base/broadcast.jl:948-975; base/boot.jl:369-374; doc/src/manual/functions.md:394-409",
-    status := .todo,
+    status := .proven,
     prop := ``JuliaLean.Proofs.base.broadcast.Models2Group5.CopyNarrowing.CopyRuntimeContract,
-    thm := none,
-    notes := "Todo: needs CopyInitializationObservations across concrete, empty-iterator and destructuring branches, plus FirstWriteSurvivesTypeFailure proving that the first mutation and its world survive a later constructor/type failure." }
+    thm := some `JuliaLean.Proofs.base.broadcast.Models2Group5.CopyNarrowing.CopyRuntimeContract_proven,
+    notes := "Complete initialization branches and all exceptional prefixes preserve input identities, inbounds contexts and prior mutation worlds." }
 ]
 
 end JuliaLean.Proofs.base.broadcast.Models2Group5.CopyNarrowing
@@ -11873,17 +11873,17 @@ def proposedEntries : List Entry := [
   { id := "broadcast-tuple-copy-runtime", juliaFile := "base/broadcast.jl",
     juliaFns := ["copy(bc::Broadcasted{Style{Tuple}})"],
     statement := "Tuple-style copy checks the actual axes rank before indexing, preserves every unrestricted length/Val/ntuple effect and returned identity, constructs the fixed DimensionMismatch before throwing on a false comparison, rejects non-Bool comparison results at the source condition, and passes an executable closure with the original broadcast capture and explicit inbounds read. All call/allocation failures and divergence retain prior worlds.",
-    source := "base/broadcast.jl:1167-1172; base/array.jl:11-13", status := .todo,
+    source := "base/broadcast.jl:1167-1172; base/array.jl:11-13", status := .proven,
     prop := ``JuliaLean.Proofs.base.broadcast.Models2Group5.TupleCopy.RuntimeContract,
-    thm := none,
-    notes := "Open: SourceRuntime needs all Bool/non-Bool dimension branches and their exceptional prefixes; the full contract also requires ClosureRuntime, including actual ntuple invocation of the captured inbounds getter." },
+    thm := some `JuliaLean.Proofs.base.broadcast.Models2Group5.TupleCopy.RuntimeContract_proven,
+    notes := "Complete unchanged contract proved across constructor selection, source branches, captured callable invocation and every reachable error or divergence prefix." },
   { id := "broadcast-tuple-copy-generated-callable", juliaFile := "base/broadcast.jl",
     juliaFns := ["k -> @inbounds(_broadcast_getindex(bc, k))"],
     statement := "The generated tuple-copy callable preserves its original bc capture and runtime identity, forwards every unary actual argument to the inbounds getter, and reports all other native-bounded arities with the complete original argument tuple and current-world MethodError. A selected ntuple can invoke this actual body, retaining arbitrary effects, thrown values, worlds and divergence.",
-    source := "base/broadcast.jl:1171", status := .todo,
+    source := "base/broadcast.jl:1171", status := .proven,
     prop := ``JuliaLean.Proofs.base.broadcast.Models2Group5.TupleCopy.ClosureRuntime,
-    thm := none,
-    notes := "Open: ClosureRuntime needs unary/wrong-arity argument splitting plus PassedCallableRuntime through the true dimension branch; proving nominal closure identity alone is insufficient." }
+    thm := some `JuliaLean.Proofs.base.broadcast.Models2Group5.TupleCopy.ClosureRuntime_proven,
+    notes := "Complete unchanged contract proved across constructor selection, source branches, captured callable invocation and every reachable error or divergence prefix." }
 ]
 
 end JuliaLean.Proofs.base.broadcast.Models2Group5.TupleCopy
@@ -21296,3 +21296,327 @@ theorem StyleDivergenceIsPreserved_proven : StyleDivergenceIsPreserved := by
       styleReplies, hargs, hp, coreBindRun, corePureRun]
 
 end JuliaLean.Proofs.base.broadcast.Models2Group5.Constructors
+
+
+namespace JuliaLean.Proofs.base.broadcast.Models2Group5.CopyNarrowing
+
+open JuliaLean
+open JuliaLean.base.broadcast.Models2Group5.CopyNarrowing
+open JuliaLean.Proofs.base.broadcast.Models2Group5.IndexAccess.ContextObservations
+open JuliaLean.ChatGPT.Batch11.Group10.EvaluationProofs (bind_apply pure_apply)
+open JuliaLean.ChatGPT.Batch11.Group10.EvaluationProofs.BoundsProofs (throw_apply)
+
+theorem TypeVariableObservations_proven : TypeVariableObservations := by
+  intro W L core selectType selectUnion name bound values worlds initial history suffix
+  cases hs : selectType name bound initial <;>
+    simp +zetaDelta [TypeVariableObservations, typeVariable, observeConstructors,
+      ReturnsLast, FailurePrefixes, successes, observe, call, hs,
+      JuliaLean.base.boot.TypeVar2, JuliaLean.base.boot.assertSymbol,
+      JuliaLean.base.boot.coreV, bind_apply, pure_apply,
+      Fin.forall_fin_succ, List.range_succ, List.range_zero, List.append_assoc]
+
+theorem UniversalTypeObservations_proven : UniversalTypeObservations := by
+  intro W L core selectType selectUnion typeVariableValue body values worlds initial history suffix
+  cases hs : selectUnion typeVariableValue body initial <;>
+    cases hi : core.isa typeVariableValue (JuliaLean.base.boot.coreV core "TypeVar") <;>
+    simp only [JuliaLean.base.boot.coreV] at hi <;>
+    simp +zetaDelta [UniversalTypeObservations, universalType, observeConstructors,
+      ReturnsLast, FailurePrefixes, successes, observe, call, hs, hi,
+      JuliaLean.base.boot.UnionAll, JuliaLean.base.boot.typeassert,
+      JuliaLean.base.boot.throwTypeError, JuliaLean.base.boot.throwObj,
+      JuliaLean.base.boot.objV, JuliaLean.base.boot.strV, JuliaLean.base.boot.coreV,
+      bind_apply, pure_apply, throw_apply,
+      Fin.forall_fin_succ, List.range_succ, List.range_zero, List.append_assoc]
+
+theorem AnonymousTypeConstructorContract_proven : AnonymousTypeConstructorContract :=
+  ⟨TypeVariableObservations_proven, UniversalTypeObservations_proven⟩
+
+end JuliaLean.Proofs.base.broadcast.Models2Group5.CopyNarrowing
+
+
+namespace JuliaLean.Proofs.base.broadcast.Models2Group5.TupleCopy
+
+open JuliaLean
+open JuliaLean.base.expr (Value)
+open JuliaLean.base.boot (CoreOps CoreM)
+open JuliaLean.base.broadcast.Models2Group5.TupleCopy
+open JuliaLean.Proofs.base.broadcast.Models2Group5.IndexAccess.ContextObservations
+open JuliaLean.ChatGPT.Batch11.Group10.EvaluationProofs (bind_apply pure_apply)
+open JuliaLean.ChatGPT.Batch11.Group10.EvaluationProofs.BoundsProofs (predicateFlag throw_apply)
+
+private theorem booleanContext_cases {W L : Type} (core : CoreOps W L)
+    (value : Value L) :
+    JuliaLean.base.broadcast.Models2Group5.CheckedBounds.booleanContext core value =
+      match predicateFlag core value with
+      | some flag => pure flag
+      | none => JuliaLean.base.boot.throwTypeError core "if" ""
+          (JuliaLean.base.boot.coreV core "Bool") value := by
+  cases value <;> rfl
+
+theorem SourceRuntime_proven : SourceRuntime := by
+  intro W L core bindings bc values worlds initial history suffix
+  cases hflag : predicateFlag (core true) (values 2) with
+  | none =>
+    simp only [predicateFlag] at hflag
+    simp +zetaDelta [SourceRuntime, predicateFlag, hflag, copy, instrument,
+      dimensionPrefix, ReturnsLast, FailurePrefixes, successes,
+      booleanContext_cases, constructDimensionMismatch,
+      observe, call, bind_apply, pure_apply, throw_apply,
+      JuliaLean.base.boot.throwTypeError, JuliaLean.base.boot.throwObj,
+      JuliaLean.base.boot.objV, JuliaLean.base.boot.strV, JuliaLean.base.boot.coreV,
+      JuliaLean.base.boot.intV, List.length_map, List.length_range,
+      Fin.forall_fin_succ, List.range_succ, List.range_zero, List.append_assoc]
+    constructor <;> intro position
+    all_goals
+      have bound := position.isLt
+      simp only [List.length_map, List.length_range] at bound
+      have positions : position.val = 0 ∨ position.val = 1 ∨ position.val = 2 ∨
+          position.val = 3 ∨ position.val = 4 ∨ position.val = 5 ∨ position.val = 6 := by omega
+      rcases positions with hp | hp | hp | hp | hp | hp | hp <;>
+        simp_all +zetaDelta [observe, predicateFlag, booleanContext_cases,
+          bind_apply, pure_apply, throw_apply, JuliaLean.base.boot.throwTypeError,
+          JuliaLean.base.boot.throwObj, JuliaLean.base.boot.objV, JuliaLean.base.boot.strV,
+          JuliaLean.base.boot.coreV, List.append_assoc]
+  | some flag =>
+    simp only [predicateFlag] at hflag
+    cases flag <;>
+      simp +zetaDelta [SourceRuntime, predicateFlag, hflag, copy, instrument,
+        dimensionPrefix, ReturnsLast, FailurePrefixes, successes,
+        booleanContext_cases, constructDimensionMismatch, closure,
+        observe, call, bind_apply, pure_apply, throw_apply,
+        JuliaLean.base.boot.throwTypeError, JuliaLean.base.boot.throwObj,
+        JuliaLean.base.boot.objV, JuliaLean.base.boot.strV, JuliaLean.base.boot.coreV,
+        JuliaLean.base.boot.intV, List.length_map, List.length_range,
+        Fin.forall_fin_succ, List.range_succ, List.range_zero, List.append_assoc]
+    all_goals
+      constructor <;> intro position
+      all_goals
+        have bound := position.isLt
+        simp only [List.length_map, List.length_range] at bound
+        have positions : position.val = 0 ∨ position.val = 1 ∨ position.val = 2 ∨
+            position.val = 3 ∨ position.val = 4 ∨ position.val = 5 ∨ position.val = 6 := by omega
+        rcases positions with hp | hp | hp | hp | hp | hp | hp <;>
+          simp_all +zetaDelta [observe, predicateFlag, booleanContext_cases,
+            bind_apply, pure_apply, throw_apply, JuliaLean.base.boot.throwTypeError,
+            JuliaLean.base.boot.throwObj, JuliaLean.base.boot.objV, JuliaLean.base.boot.strV,
+            JuliaLean.base.boot.coreV, List.append_assoc]
+
+theorem ConstructorRuntime_proven : ConstructorRuntime := by
+  unfold ConstructorRuntime
+    JuliaLean.Proofs.base.broadcast.Models2Group5.ForwardObservations.ReturnsLastAfter
+  intros
+  simp +zetaDelta [constructDimensionMismatch,
+    JuliaLean.Proofs.base.broadcast.Models2Group5.ForwardObservations.observingOps,
+    JuliaLean.Proofs.base.broadcast.Models2Group5.ForwardObservations.observe,
+    JuliaLean.Proofs.base.broadcast.Models2Group5.ForwardObservations.successfulReplies,
+    JuliaLean.base.boot.strV, List.ofFn_succ, List.ofFn_zero,
+    Fin.forall_fin_succ, List.append_assoc]
+
+theorem ClosureUnaryRuntime_proven : ClosureUnaryRuntime := by
+  intro W L core bindings bc arguments values worlds initial history suffix
+  cases hargs : arguments.values with
+  | nil => simp [ClosureUnaryRuntime, hargs]
+  | cons index tail =>
+    cases tail with
+    | nil =>
+      simp +zetaDelta [ClosureUnaryRuntime, hargs, closure, observingContexts,
+        ReturnsLast, FailurePrefixes, successes, observe, call,
+        Fin.forall_fin_succ, List.range_succ, List.range_zero, List.append_assoc]
+    | cons second tail => simp [ClosureUnaryRuntime, hargs]
+
+theorem ClosureArityAndIdentity_proven : ClosureArityAndIdentity := by
+  intro W L contexts bindings bc arguments world
+  cases hargs : arguments.values with
+  | nil =>
+    cases hage : (contexts.inContext true).worldAge world with
+    | none => simp [ClosureArityAndIdentity, closure, hargs, hage, bind_apply]
+    | some result =>
+      cases result <;>
+        simp [ClosureArityAndIdentity, closure, hargs, hage, bind_apply,
+          JuliaLean.base.boot.throwObj, throw_apply]
+  | cons index tail =>
+    cases tail with
+    | nil => simp [ClosureArityAndIdentity, closure, hargs]
+    | cons second tail =>
+      cases hage : (contexts.inContext true).worldAge world with
+      | none => simp [ClosureArityAndIdentity, closure, hargs, hage, bind_apply]
+      | some result =>
+        cases result <;>
+          simp [ClosureArityAndIdentity, closure, hargs, hage, bind_apply,
+            JuliaLean.base.boot.throwObj, throw_apply]
+
+theorem PassedCallableRuntime_proven : PassedCallableRuntime := by
+  intro W L core bindings bc arguments values worlds initial history suffix
+  cases hargs : arguments.values with
+  | nil => simp [PassedCallableRuntime, hargs]
+  | cons index tail =>
+    cases tail with
+    | cons second tail => simp [PassedCallableRuntime, hargs]
+    | nil =>
+      cases hflag : predicateFlag (core true) (values 2) with
+      | none =>
+        simp only [predicateFlag] at hflag
+        simp [PassedCallableRuntime, hargs, predicateFlag, hflag]
+      | some flag =>
+        simp only [predicateFlag] at hflag
+        cases flag <;>
+          simp +zetaDelta [PassedCallableRuntime, hargs, predicateFlag, hflag,
+            copy, instrument, closure, dimensionPrefix, ReturnsLast,
+            FailurePrefixes, successes, booleanContext_cases,
+            observe, call, bind_apply, pure_apply, throw_apply,
+            JuliaLean.base.boot.throwTypeError, JuliaLean.base.boot.throwObj,
+            JuliaLean.base.boot.objV, JuliaLean.base.boot.strV, JuliaLean.base.boot.coreV,
+            JuliaLean.base.boot.intV, List.length_map, List.length_range,
+            Fin.forall_fin_succ, List.range_succ, List.range_zero, List.append_assoc]
+        all_goals
+          constructor <;> intro position
+          all_goals
+            have bound := position.isLt
+            simp only [List.length_map, List.length_range] at bound
+            have positions : position.val = 0 ∨ position.val = 1 ∨ position.val = 2 ∨
+                position.val = 3 ∨ position.val = 4 ∨ position.val = 5 ∨ position.val = 6 := by omega
+            rcases positions with hp | hp | hp | hp | hp | hp | hp <;>
+              simp_all +zetaDelta [observe, predicateFlag, booleanContext_cases,
+                bind_apply, pure_apply, throw_apply, JuliaLean.base.boot.throwTypeError,
+                JuliaLean.base.boot.throwObj, JuliaLean.base.boot.objV, JuliaLean.base.boot.strV,
+                JuliaLean.base.boot.coreV, List.append_assoc]
+
+theorem ClosureRuntime_proven : ClosureRuntime :=
+  ⟨ClosureUnaryRuntime_proven, ClosureArityAndIdentity_proven, PassedCallableRuntime_proven⟩
+
+theorem RuntimeContract_proven : RuntimeContract :=
+  ⟨SourceRuntime_proven, ConstructorRuntime_proven, ClosureRuntime_proven⟩
+
+end JuliaLean.Proofs.base.broadcast.Models2Group5.TupleCopy
+
+
+namespace JuliaLean.Proofs.base.broadcast.Models2Group5.ResultJoin
+
+open JuliaLean
+open JuliaLean.base.broadcast.Models2Group5.ResultJoin
+open JuliaLean.Proofs.base.broadcast.Models2Group5.ForwardObservations
+open JuliaLean.ChatGPT.Batch11.Group10.EvaluationProofs (bind_apply pure_apply)
+open JuliaLean.ChatGPT.Batch11.Group10.EvaluationProofs.BoundsProofs (throw_apply)
+
+theorem RuntimeContract_proven : RuntimeContract := by
+  intro W L ops selectError selectException bindings types left right forward reverse
+    values worlds initial history suffix
+  cases he : selectError (values 0) (worlds 0) <;>
+    cases hi : ops.isa (values 0) (JuliaLean.base.boot.coreV ops "AbstractString") <;>
+    cases hs0 : selectException (values 0) (worlds 0) <;>
+    cases hs1 : selectException (values 1) (worlds 1) <;>
+    simp only [JuliaLean.base.boot.coreV] at hi <;>
+    simp +zetaDelta [expectedPath, terminalObservation, successfulReplies,
+      conflicting, callError, errorOne, constructException, canonicalException,
+      interpolationArguments, interpolationEvent, observingRuntime, observingOps,
+      observe, he, hi, hs0, hs1, bind_apply, pure_apply, throw_apply,
+      JuliaLean.base.boot.strV, JuliaLean.base.boot.coreV, JuliaLean.base.boot.objV,
+      List.ofFn_succ, List.ofFn_zero, Fin.forall_fin_succ, List.append_assoc]
+
+end JuliaLean.Proofs.base.broadcast.Models2Group5.ResultJoin
+
+
+
+namespace JuliaLean.Proofs.base.broadcast.Models2Group5.CopyNarrowing
+
+open JuliaLean
+open JuliaLean.base.expr (Value)
+open JuliaLean.base.boot (CoreOps)
+open JuliaLean.base.broadcast.Models2Group5.CopyNarrowing
+open JuliaLean.Proofs.base.broadcast.Models2Group5.IndexAccess.ContextObservations
+open JuliaLean.ChatGPT.Batch11.Group10.EvaluationProofs (bind_apply pure_apply)
+open JuliaLean.ChatGPT.Batch11.Group10.EvaluationProofs.BoundsProofs (predicateFlag throw_apply)
+
+private theorem booleanContext_cases {W L : Type} (core : CoreOps W L)
+    (value : Value L) :
+    JuliaLean.base.broadcast.Models2Group5.CheckedBounds.booleanContext core value =
+      match predicateFlag core value with
+      | some flag => pure flag
+      | none => JuliaLean.base.boot.throwTypeError core "if" ""
+          (JuliaLean.base.boot.coreV core "Bool") value := by
+  cases value <;> rfl
+
+theorem CopyInitializationObservations_proven : CopyInitializationObservations := by
+  intro W L core selectType selectUnion bindings bc boundscheck values worlds initial history suffix
+  cases hflag : predicateFlag (core boundscheck) (values 1) with
+  | none =>
+    simp only [predicateFlag] at hflag
+    simp +zetaDelta [CopyInitializationObservations, predicateFlag, hflag, copy,
+      JuliaLean.base.broadcast.Material.m948, observingCopy, observeContexts,
+      firstIteration, ReturnsLast, FailurePrefixes, successes, initializationEvents,
+      booleanContext_cases, observe, call, bind_apply, pure_apply, throw_apply,
+      JuliaLean.base.boot.throwTypeError, JuliaLean.base.boot.throwObj,
+      JuliaLean.base.boot.objV, JuliaLean.base.boot.strV, JuliaLean.base.boot.coreV,
+      JuliaLean.base.boot.intV, JuliaLean.base.boot.nothingV,
+      List.length_map, List.length_range, Fin.forall_fin_succ,
+      List.range_succ, List.range_zero, List.append_assoc]
+    constructor <;> intro position
+    all_goals
+      have bound := position.isLt
+      simp only [List.length_map, List.length_range] at bound
+      have positions : position.val = 0 ∨ position.val = 1 := by omega
+      rcases positions with hp | hp <;>
+        simp_all +zetaDelta [observe, predicateFlag, booleanContext_cases,
+          bind_apply, pure_apply, throw_apply, JuliaLean.base.boot.throwTypeError,
+          JuliaLean.base.boot.throwObj, JuliaLean.base.boot.objV, JuliaLean.base.boot.strV,
+          JuliaLean.base.boot.coreV, List.append_assoc]
+  | some flag =>
+    simp only [predicateFlag] at hflag
+    cases flag <;>
+      cases hnothing : (core boundscheck).same (values 4)
+        (JuliaLean.base.boot.nothingV (core boundscheck)) <;>
+      simp only [JuliaLean.base.boot.nothingV] at hnothing <;>
+      simp +zetaDelta [CopyInitializationObservations, predicateFlag, hflag, hnothing,
+        copy, JuliaLean.base.broadcast.Material.m948, observingCopy, observeContexts,
+        firstIteration, ReturnsLast, FailurePrefixes, successes, initializationEvents,
+        booleanContext_cases, observe, call, bind_apply, pure_apply, throw_apply,
+        JuliaLean.base.boot.throwTypeError, JuliaLean.base.boot.throwObj,
+        JuliaLean.base.boot.objV, JuliaLean.base.boot.strV, JuliaLean.base.boot.coreV,
+        JuliaLean.base.boot.intV, JuliaLean.base.boot.nothingV,
+        List.length_map, List.length_range, Fin.forall_fin_succ,
+        List.range_succ, List.range_zero, List.append_assoc]
+    all_goals
+      constructor <;> intro position
+      all_goals
+        have bound := position.isLt
+        simp only [List.length_map, List.length_range] at bound
+        have positions : position.val = 0 ∨ position.val = 1 ∨ position.val = 2 ∨
+            position.val = 3 ∨ position.val = 4 ∨ position.val = 5 ∨ position.val = 6 ∨
+            position.val = 7 ∨ position.val = 8 ∨ position.val = 9 ∨ position.val = 10 ∨
+            position.val = 11 ∨ position.val = 12 := by omega
+        rcases positions with hp | hp | hp | hp | hp | hp | hp | hp | hp | hp | hp | hp | hp
+        all_goals
+          first
+          | omega
+          | simp +zetaDelta [hp, hflag, hnothing, observe, predicateFlag, booleanContext_cases,
+              bind_apply, pure_apply, throw_apply, JuliaLean.base.boot.throwTypeError,
+              JuliaLean.base.boot.throwObj, JuliaLean.base.boot.objV, JuliaLean.base.boot.strV,
+              JuliaLean.base.boot.coreV, JuliaLean.base.boot.nothingV, List.append_assoc]
+
+theorem FirstWriteSurvivesTypeFailure_proven : FirstWriteSurvivesTypeFailure := by
+  intro W L core selectType selectUnion bindings bc boundscheck values worlds initial failureWorld history suffix error
+  cases hv : values 1
+  case leaf value =>
+    cases hbool : (core boundscheck).asBool value with
+    | none => simp [hv, hbool]
+    | some flag =>
+      cases flag with
+      | true => simp [hv, hbool]
+      | false =>
+        cases hnothing : (core boundscheck).same (values 4)
+          (JuliaLean.base.boot.nothingV (core boundscheck)) <;>
+          cases hbottom : (core boundscheck).same (values 0)
+            (JuliaLean.base.boot.coreV (core boundscheck) "Union{}") <;>
+          simp only [JuliaLean.base.boot.nothingV, JuliaLean.base.boot.coreV] at hnothing hbottom <;>
+          simp +zetaDelta [hv, hbool, copy, JuliaLean.base.broadcast.Material.m948,
+            observingCopy, observeContexts, firstIteration, successes, initializationEvents,
+            booleanContext_cases, predicateFlag, hnothing, hbottom, observe, call,
+            bind_apply, pure_apply, throw_apply, JuliaLean.base.boot.intV,
+            JuliaLean.base.boot.nothingV, JuliaLean.base.boot.coreV,
+            List.range_succ, List.range_zero, List.append_assoc]
+  all_goals simp [hv]
+
+theorem CopyRuntimeContract_proven : CopyRuntimeContract :=
+  ⟨CopyInitializationObservations_proven, FirstWriteSurvivesTypeFailure_proven⟩
+
+end JuliaLean.Proofs.base.broadcast.Models2Group5.CopyNarrowing

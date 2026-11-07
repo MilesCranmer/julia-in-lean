@@ -7033,6 +7033,847 @@ theorem rangeFoldObservation_proven : RangeFoldObservation := by
 
 end JuliaLean.Proofs.base.reduce.Models2Group7
 
+namespace JuliaLean.Proofs.base.reduce.Models2Group7.GenericFoldCompletion
+
+open JuliaLean JuliaLean.base.reduce.Models2Group7
+open JuliaLean.Proofs.base.reduce.Models2Group7
+
+def TailLayer {W E I V O : Type} (ops : FoldProtocolOps W E I V O)
+    (op : O) (iterator : FoldIterator I V) (value : V) (state : Option V)
+    (next : V → Option V → FoldTrace W E I V O V) : FoldTrace W E I V O V :=
+  foldThenTrace (RestIterationTrace ops iterator state) fun result =>
+    match result with
+    | none => foldPureTrace value
+    | some object =>
+      foldThenTrace (adapterFieldTrace (E := E) (Event := FoldCall W E I V O) ops.fields object 0) fun item =>
+      foldThenTrace (adapterFieldTrace (E := E) (Event := FoldCall W E I V O) ops.fields object 1) fun nextState =>
+      foldThenTrace (foldLeafTrace (FoldCall.apply op value item)) fun nextValue =>
+        next nextValue (some nextState)
+
+inductive TailTrace {W E I V O : Type} (ops : FoldProtocolOps W E I V O)
+    (op : O) (iterator : FoldIterator I V) :
+    V → Option V → FoldTrace W E I V O V where
+  | iterationError {value state before events error after}
+      (iteration : RestIterationTrace ops iterator state before events (.error error) after) :
+      TailTrace ops op iterator value state before events (.error error) after
+  | done {value state before events after}
+      (iteration : RestIterationTrace ops iterator state before events (.ok none) after) :
+      TailTrace ops op iterator value state before events (.ok value) after
+  | firstError {value state before events object middle error}
+      (iteration : RestIterationTrace ops iterator state before events (.ok (some object)) middle)
+      (field : adapterFieldTrace (E := E) (Event := FoldCall W E I V O) ops.fields object 0 middle [] (.error error) middle) :
+      TailTrace ops op iterator value state before events (.error error) middle
+  | secondError {value state before events object middle item error}
+      (iteration : RestIterationTrace ops iterator state before events (.ok (some object)) middle)
+      (first : adapterFieldTrace (E := E) (Event := FoldCall W E I V O) ops.fields object 0 middle [] (.ok item) middle)
+      (second : adapterFieldTrace (E := E) (Event := FoldCall W E I V O) ops.fields object 1 middle [] (.error error) middle) :
+      TailTrace ops op iterator value state before events (.error error) middle
+  | applyError {value state before events object middle item nextState error after}
+      (iteration : RestIterationTrace ops iterator state before events (.ok (some object)) middle)
+      (first : adapterFieldTrace (E := E) (Event := FoldCall W E I V O) ops.fields object 0 middle [] (.ok item) middle)
+      (second : adapterFieldTrace (E := E) (Event := FoldCall W E I V O) ops.fields object 1 middle [] (.ok nextState) middle) :
+      TailTrace ops op iterator value state before
+        (events ++ [.apply op value item middle (.error error) after]) (.error error) after
+  | step {value state before events object middle item nextState nextValue nextWorld tail answer after}
+      (iteration : RestIterationTrace ops iterator state before events (.ok (some object)) middle)
+      (first : adapterFieldTrace (E := E) (Event := FoldCall W E I V O) ops.fields object 0 middle [] (.ok item) middle)
+      (second : adapterFieldTrace (E := E) (Event := FoldCall W E I V O) ops.fields object 1 middle [] (.ok nextState) middle)
+      (rest : TailTrace ops op iterator nextValue (some nextState) nextWorld tail answer after) :
+      TailTrace ops op iterator value state before
+        (events ++ .apply op value item middle (.ok nextValue) nextWorld :: tail) answer after
+
+theorem tailTrace_of_layer {W E I V O : Type} {ops : FoldProtocolOps W E I V O}
+    {op iterator value state before events answer after}
+    (h : TailLayer ops op iterator value state (TailTrace ops op iterator)
+      before events answer after) :
+    TailTrace ops op iterator value state before events answer after := by
+  obtain ⟨initial, later, firstAnswer, middle, he, hi, hn⟩ := h
+  subst events
+  cases firstAnswer with
+  | error error =>
+      obtain ⟨rfl, rfl, rfl⟩ := hn
+      simpa using TailTrace.iterationError hi
+  | ok result =>
+      cases result with
+      | none =>
+          obtain ⟨rfl, rfl, rfl⟩ := hn
+          simpa using TailTrace.done hi
+      | some object =>
+          obtain ⟨read, remaining, readAnswer, readAfter, hr, hread, hnext⟩ := hn
+          have first := hread
+          obtain ⟨rfl, rfl, _⟩ := hread
+          simp only [List.nil_append] at hr
+          subst later
+          cases readAnswer with
+          | error error =>
+              obtain ⟨rfl, rfl, rfl⟩ := hnext
+              simpa using TailTrace.firstError hi first
+          | ok item =>
+              obtain ⟨read, remaining2, readAnswer, readAfter, hr, hread, hnext⟩ := hnext
+              have second := hread
+              obtain ⟨rfl, rfl, _⟩ := hread
+              simp only [List.nil_append] at hr
+              subst remaining
+              cases readAnswer with
+              | error error =>
+                  obtain ⟨rfl, rfl, rfl⟩ := hnext
+                  simpa using TailTrace.secondError hi first second
+              | ok nextState =>
+                  obtain ⟨call, remaining3, callAnswer, callAfter, hc, hcall, hnext⟩ := hnext
+                  subst call
+                  subst remaining2
+                  cases callAnswer with
+                  | error error =>
+                      obtain ⟨rfl, rfl, rfl⟩ := hnext
+                      simpa using TailTrace.applyError hi first second
+                  | ok nextValue =>
+                      exact TailTrace.step hi first second hnext
+
+theorem field_satisfies {W E I V O : Type} (ops : FoldProtocolOps W E I V O)
+    (object : V) (index : JInt .i64) (position : Nat)
+    (hi : index.val = (position : Int) + 1) :
+    AdapterSatisfies (adapterFieldTrace ops.fields object position)
+      (foldGetfield (observeFoldOps ops) object index) := by
+  intro world priorEvents answer after events h
+  dsimp [foldGetfield, observeFoldOps, get, getThe, MonadStateOf.get, liftM,
+    monadLift, MonadLift.monadLift, ExceptT.lift, StateT.map, Functor.map,
+    StateT.get, bind, ExceptT.bind, ExceptT.mk, StateT.bind, ExceptT.bindCont, ExceptT.run] at h
+  have hn : ¬ index.val < 1 := by omega
+  have hp : (index.val - 1).toNat = position := by omega
+  cases hf : ops.fields world object with
+  | module =>
+    simp only [foldFieldRead, hf] at h
+    change some (.error .typeError, world, priorEvents) = some (answer, after, events) at h
+    cases h
+    exact ⟨[], by simp, rfl, rfl, by simp [adapterFieldTrace, hf]⟩
+  | fields slots valid =>
+    cases hs : slots[position]? with
+    | none =>
+      simp only [foldFieldRead, hf, hn, ite_false, hp, hs] at h
+      change some (.error .boundsError, world, priorEvents) = some (answer, after, events) at h
+      cases h
+      exact ⟨[], by simp, rfl, rfl, by simp [adapterFieldTrace, hf, hs]⟩
+    | some slot =>
+      cases slot with
+      | none =>
+        simp only [foldFieldRead, hf, hn, ite_false, hp, hs] at h
+        change some (.error .undefRefError, world, priorEvents) = some (answer, after, events) at h
+        cases h
+        exact ⟨[], by simp, rfl, rfl, by simp [adapterFieldTrace, hf, hs]⟩
+      | some value =>
+        simp only [foldFieldRead, hf, hn, ite_false, hp, hs] at h
+        change some (.ok value, world, priorEvents) = some (answer, after, events) at h
+        cases h
+        exact ⟨[], by simp, rfl, rfl, by simp [adapterFieldTrace, hf, hs]⟩
+
+theorem tail_satisfies {W E I V O : Type} (ops : FoldProtocolOps W E I V O) :
+    ∀ op iterator value state,
+      AdapterSatisfies (TailTrace ops op iterator value state)
+        (foldTail (observeFoldOps ops) op iterator value state) := by
+  intro op iterator
+  apply foldTail.fixpoint_induct (observeFoldOps ops) op iterator
+    (fun loop => ∀ value state,
+      AdapterSatisfies (TailTrace ops op iterator value state) (loop value state))
+  · refine Lean.Order.admissible_pi_apply (fun (value : V)
+      (output : Option V → FoldEval (W × List (FoldCall W E I V O)) (FoldError E) V) =>
+      ∀ state, AdapterSatisfies (TailTrace ops op iterator value state) (output state)) ?_
+    intro value
+    refine Lean.Order.admissible_pi_apply (fun (state : Option V)
+      (output : FoldEval (W × List (FoldCall W E I V O)) (FoldError E) V) =>
+      AdapterSatisfies (TailTrace ops op iterator value state) output) ?_
+    intro state
+    exact adapterSatisfies_admissible _
+  · intro loop ih value state
+    apply AdapterSatisfies.mono (first := TailLayer ops op iterator value state (TailTrace ops op iterator))
+    · unfold TailLayer
+      apply foldSatisfies_bind
+      · exact restIteration_satisfies ops iterator state
+      · intro result
+        cases result with
+        | none => exact foldPure_satisfies value
+        | some object =>
+          apply foldSatisfies_bind
+          · exact field_satisfies ops object (JuliaLean.base.int.lit .i64 1) 0 rfl
+          · intro item
+            apply foldSatisfies_bind
+            · exact field_satisfies ops object (JuliaLean.base.int.lit .i64 2) 1 rfl
+            · intro nextState
+              apply foldSatisfies_bind
+              · exact foldCall_satisfies (ops.apply op value item) (FoldCall.apply op value item)
+              · intro nextValue
+                exact ih nextValue (some nextState)
+    · intro before events answer after h
+      exact tailTrace_of_layer h
+
+def NotReducer {W E I V O : Type} : FoldCall W E I V O → Prop
+  | .apply .. => False
+  | _ => True
+
+theorem rest_notReducer {W E I V O : Type} {ops : FoldProtocolOps W E I V O}
+    {iterator state before events answer after}
+    (h : RestIterationTrace ops iterator state before events answer after) :
+    ∀ event ∈ events, NotReducer event := by
+  induction h <;> simp_all [NotReducer]
+
+theorem rest_worldChain {W E I V O : Type} {ops : FoldProtocolOps W E I V O}
+    {iterator state before events answer after}
+    (h : RestIterationTrace ops iterator state before events answer after) :
+    FoldWorldChain before events after := by
+  induction h <;> simp_all [FoldWorldChain, foldCallBefore, foldCallAfter]
+
+theorem errorsStop_cons {W E I V O : Type} (head : FoldCall W E I V O)
+    (tail : List (FoldCall W E I V O)) (answer : Except (FoldError E) V)
+    (hhead : foldCallError head = none) (htail : FoldErrorsStop tail answer) :
+    FoldErrorsStop (head :: tail) answer := by
+  intro before event after error he herr
+  cases before with
+  | nil =>
+      have heq : head = event := (List.cons.inj he).1
+      subst event
+      simp [hhead] at herr
+  | cons first rest =>
+      exact htail rest event after error (List.cons.inj he).2 herr
+
+theorem worldChain_append {W E I V O : Type}
+    {prior suffix : List (FoldCall W E I V O)} {before middle after : W}
+    (hp : FoldWorldChain before prior middle) (hs : FoldWorldChain middle suffix after) :
+    FoldWorldChain before (prior ++ suffix) after := by
+  induction prior generalizing before with
+  | nil =>
+      have h : middle = before := hp
+      subst middle
+      exact hs
+  | cons event rest ih =>
+      exact ⟨hp.1, ih hp.2⟩
+
+theorem accumulatorChain_prefix {W E I V O : Type} (op : O) (value : V)
+    (prior suffix : List (FoldCall W E I V O)) (answer : Except (FoldError E) V)
+    (hp : ∀ event ∈ prior, NotReducer event) :
+    FoldAccumulatorChain op value (prior ++ suffix) answer ↔
+      FoldAccumulatorChain op value suffix answer := by
+  induction prior with
+  | nil => rfl
+  | cons event rest ih =>
+      have he := hp event (by simp)
+      have ht : ∀ e ∈ rest, NotReducer e := fun e h => hp e (by simp [h])
+      have hrec := ih ht
+      cases event <;> simp_all [NotReducer, FoldAccumulatorChain]
+
+theorem inputProvenance_prefix {W E I V O : Type} (fields : W → V → FoldObjectView V)
+    (prior : List (FoldCall W E I V O)) (leaf : FoldCall W E I V O)
+    (suffix : List (FoldCall W E I V O)) (previous : Option (FoldCall W E I V O))
+    (hp : ∀ event ∈ prior, NotReducer event) (hl : NotReducer leaf) :
+    FoldInputProvenance fields previous (prior ++ leaf :: suffix) ↔
+      FoldInputProvenance fields (some leaf) suffix := by
+  induction prior generalizing previous with
+  | nil =>
+      cases leaf <;> simp_all [NotReducer, FoldInputProvenance]
+  | cons event rest ih =>
+      have he := hp event (by simp)
+      have ht : ∀ e ∈ rest, NotReducer e := fun e h => hp e (by simp [h])
+      have hrec := ih (some event) ht
+      cases event <;> simp_all [NotReducer, FoldInputProvenance]
+
+def GenericTrace {W E I V O : Type} (ops : FoldProtocolOps W E I V O)
+    (op : O) (init : V) (iterator : FoldIterator I V) : FoldTrace W E I V O V :=
+  foldThenTrace (RestIterationTrace ops iterator none) fun result =>
+    match result with
+    | none => foldPureTrace init
+    | some object =>
+      foldThenTrace (foldLeafTrace (FoldCall.getindex object (JuliaLean.base.int.lit .i64 1))) fun item =>
+      foldThenTrace (foldLeafTrace (FoldCall.apply op init item)) fun value =>
+      foldThenTrace (foldLeafTrace (FoldCall.getindex object (JuliaLean.base.int.lit .i64 2))) fun state =>
+      foldThenTrace (RestConstructionTrace ops iterator state) fun rest =>
+        TailTrace ops op rest value none
+
+theorem generic_satisfies {W E I V O : Type} (ops : FoldProtocolOps W E I V O)
+    (op : O) (init : V) (iterator : FoldIterator I V) :
+    AdapterSatisfies (GenericTrace ops op init iterator)
+      (foldlGeneric (observeFoldOps ops) op init iterator) := by
+  unfold GenericTrace foldlGeneric
+  apply foldSatisfies_bind
+  · exact restIteration_satisfies ops iterator none
+  · intro result
+    cases result with
+    | none => exact foldPure_satisfies init
+    | some object =>
+      apply foldSatisfies_bind
+      · exact foldCall_satisfies (ops.getindex object (JuliaLean.base.int.lit .i64 1)) _
+      · intro item
+        apply foldSatisfies_bind
+        · exact foldCall_satisfies (ops.apply op init item) _
+        · intro value
+          apply foldSatisfies_bind
+          · exact foldCall_satisfies (ops.getindex object (JuliaLean.base.int.lit .i64 2)) _
+          · intro state
+            apply foldSatisfies_bind
+            · exact restConstruction_satisfies ops iterator state
+            · intro rest
+              exact tail_satisfies ops op rest value none
+
+theorem genericTrace_start {W E I V O : Type} {ops : FoldProtocolOps W E I V O}
+    {op init iterator before events answer after}
+    (h : GenericTrace ops op init iterator before events answer after) :
+    FoldStartObservation ops iterator init before events answer := by
+  obtain ⟨initial, later, firstAnswer, middle, he, hi, hn⟩ := h
+  refine ⟨initial, later, firstAnswer, middle, he, hi, ?_⟩
+  cases firstAnswer with
+  | error error => exact ⟨hn.1, hn.2.1⟩
+  | ok result =>
+      cases result with
+      | none => exact ⟨hn.1, hn.2.1⟩
+      | some object =>
+          obtain ⟨read, rest, readAnswer, readAfter, hr, hread, _⟩ := hn
+          exact ⟨readAnswer, readAfter, rest, by rw [hr, hread]; rfl⟩
+
+theorem passive_provenance {W E I V O : Type} (fields : W → V → FoldObjectView V)
+    (events : List (FoldCall W E I V O)) (previous : Option (FoldCall W E I V O))
+    (h : ∀ event ∈ events, NotReducer event) :
+    FoldInputProvenance fields previous events := by
+  induction events generalizing previous with
+  | nil => trivial
+  | cons event rest ih =>
+      have he := h event (by simp)
+      have ht : ∀ e ∈ rest, NotReducer e := fun e hm => h e (by simp [hm])
+      have hp := ih (some event) ht
+      cases event <;> simp_all [NotReducer, FoldInputProvenance]
+
+theorem errorsStop_single {W E I V O : Type} (event : FoldCall W E I V O)
+    (answer : Except (FoldError E) V)
+    (h : ∀ error, foldCallError event = some error → answer = .error error) :
+    FoldErrorsStop [event] answer := by
+  intro before observed after error he herr
+  cases before with
+  | nil =>
+      have hhead : event = observed := (List.cons.inj he).1
+      have htail : [] = after := (List.cons.inj he).2
+      subst observed
+      exact ⟨htail.symm, h error herr⟩
+  | cons head rest =>
+      have htail : [] = rest ++ observed :: after := (List.cons.inj he).2
+      have hlength := congrArg List.length htail
+      simp at hlength
+
+theorem rest_stops {W E I V O : Type} {ops : FoldProtocolOps W E I V O}
+    {iterator state before events answer after}
+    (h : RestIterationTrace ops iterator state before events answer after) (value : V) :
+    FoldErrorsStop events (answer.map (fun _ => value)) := by
+  induction h with
+  | ordinary handle state before answer after =>
+      apply errorsStop_single
+      intro error he
+      cases answer <;> simp_all [foldCallError, Except.map]
+  | opaqueIterator handle state before answer after =>
+      apply errorsStop_single
+      intro error he
+      cases answer <;> simp_all [foldCallError, Except.map]
+  | selected inner stored state before answer after selected =>
+      apply errorsStop_single
+      intro error he
+      cases answer <;> simp_all [foldCallError, Except.map]
+  | stateError inner stored before after error base selected =>
+      apply errorsStop_single
+      intro failure he
+      simp only [foldCallError, Option.some.injEq] at he
+      subst failure
+      rfl
+  | stateStep inner stored observed before middle after events answer base selected rest ih =>
+      exact errorsStop_cons _ _ _ rfl ih
+  | storedState inner stored before after events answer base storedGetter rest ih => exact ih
+  | iteratorError inner stored explicit before after error base selected =>
+      apply errorsStop_single
+      intro failure he
+      simp only [foldCallError, Option.some.injEq] at he
+      subst failure
+      rfl
+  | iteratorStep inner observed stored explicit before middle after events answer base selected rest ih =>
+      exact errorsStop_cons _ _ _ rfl ih
+  | storedIterator inner stored explicit before after events answer base storedGetter rest ih => exact ih
+
+def IterationLeaf {W E I V O : Type} (result : Option V) (world : W) :
+    FoldCall W E I V O → Prop
+  | .iterate _ _ _ answer after | .restIterate _ _ _ answer after =>
+      answer = .ok result ∧ after = world
+  | _ => False
+
+theorem rest_last {W E I V O : Type} {ops : FoldProtocolOps W E I V O}
+    {iterator state before events answer after}
+    (h : RestIterationTrace ops iterator state before events answer after) :
+    ∀ result, answer = .ok result → ∃ prior leaf,
+      events = prior ++ [leaf] ∧ IterationLeaf result after leaf := by
+  induction h with
+  | ordinary handle state before answer after =>
+      intro result he
+      subst answer
+      exact ⟨[], _, rfl, rfl, rfl⟩
+  | opaqueIterator handle state before answer after =>
+      intro result he
+      subst answer
+      exact ⟨[], _, rfl, rfl, rfl⟩
+  | selected inner stored state before answer after selected =>
+      intro result he
+      subst answer
+      exact ⟨[], _, rfl, rfl, rfl⟩
+  | stateError inner stored before after error base selected =>
+      intro result he
+      cases he
+  | stateStep inner stored observed before middle after events answer base selected rest ih =>
+      intro result he
+      obtain ⟨prior, leaf, hp, hl⟩ := ih result he
+      exact ⟨.stRead (.knownRest inner stored) before (.ok observed) middle :: prior,
+        leaf, by simp [hp], hl⟩
+  | storedState inner stored before after events answer base storedGetter rest ih => exact ih
+  | iteratorError inner stored explicit before after error base selected =>
+      intro result he
+      cases he
+  | iteratorStep inner observed stored explicit before middle after events answer base selected rest ih =>
+      intro result he
+      obtain ⟨prior, leaf, hp, hl⟩ := ih result he
+      exact ⟨.itrRead (.knownRest inner stored) before (.ok observed) middle :: prior,
+        leaf, by simp [hp], hl⟩
+  | storedIterator inner stored explicit before after events answer base storedGetter rest ih => exact ih
+
+theorem noErrors_of_success {W E I V O : Type} (events : List (FoldCall W E I V O))
+    (value : V) (h : FoldErrorsStop events (.ok value)) :
+    ∀ event ∈ events, foldCallError event = none := by
+  induction events with
+  | nil => intro event hm; cases hm
+  | cons head tail ih =>
+      have htail : FoldErrorsStop tail (.ok value) := by
+        intro before event after error he herr
+        exact h (head :: before) event after error (by simpa using congrArg (List.cons head) he) herr
+      intro event hm
+      rcases List.mem_cons.mp hm with heq | hmem
+      · subst event
+        cases he : foldCallError head with
+        | none => rfl
+        | some error =>
+            have contradiction := (h [] head tail error rfl he).2
+            cases contradiction
+      · exact ih htail event hmem
+
+theorem errorsStop_append {W E I V O : Type} (prior suffix : List (FoldCall W E I V O))
+    (answer : Except (FoldError E) V)
+    (hp : ∀ event ∈ prior, foldCallError event = none)
+    (hs : FoldErrorsStop suffix answer) : FoldErrorsStop (prior ++ suffix) answer := by
+  induction prior with
+  | nil => exact hs
+  | cons event rest ih =>
+      apply errorsStop_cons
+      · exact hp event (by simp)
+      · exact ih (fun e he => hp e (by simp [he]))
+
+theorem field_ok {W E I V O : Type} (ops : FoldProtocolOps W E I V O)
+    (object : V) (position : Nat) (world : W) (value : V)
+    (h : adapterFieldTrace (E := E) (Event := FoldCall W E I V O)
+      ops.fields object position world [] (.ok value) world) :
+    match ops.fields world object with
+    | .module => False
+    | .fields slots _ => slots[position]? = some (some value) := by
+  cases hf : ops.fields world object with
+  | module => simp [adapterFieldTrace, hf] at h
+  | fields slots valid =>
+      cases hs : slots[position]? with
+      | none => simp [adapterFieldTrace, hf, hs] at h
+      | some slot =>
+          cases slot with
+          | none => simp [adapterFieldTrace, hf, hs] at h
+          | some stored =>
+              have hv : value = stored := by
+                simpa [adapterFieldTrace, hf, hs] using h.2.2
+              simpa [hv] using hs
+
+theorem iteration_apply_provenance {W E I V O : Type}
+    (ops : FoldProtocolOps W E I V O) (leaf : FoldCall W E I V O)
+    (object item nextState : V) (world : W) (op : O) (value : V)
+    (answer : Except (FoldError E) V) (after : W) (tail : List (FoldCall W E I V O))
+    (hl : IterationLeaf (some object) world leaf)
+    (h1 : adapterFieldTrace (E := E) (Event := FoldCall W E I V O)
+      ops.fields object 0 world [] (.ok item) world)
+    (h2 : adapterFieldTrace (E := E) (Event := FoldCall W E I V O)
+      ops.fields object 1 world [] (.ok nextState) world)
+    (ht : FoldInputProvenance ops.fields (some (.apply op value item world answer after)) tail) :
+    FoldInputProvenance ops.fields (some leaf)
+      (.apply op value item world answer after :: tail) := by
+  have hfields : match ops.fields world object with
+      | .module => False
+      | .fields slots _ => slots[0]? = some (some item) ∧ ∃ state, slots[1]? = some (some state) := by
+    have first := field_ok ops object 0 world item h1
+    have second := field_ok ops object 1 world nextState h2
+    cases hf : ops.fields world object with
+    | module => simpa only [hf] using first
+    | fields slots valid =>
+        simp only [hf] at first second ⊢
+        exact ⟨first, nextState, second⟩
+  cases leaf <;> simp_all [IterationLeaf, FoldInputProvenance]
+
+theorem rest_apply_provenance {W E I V O : Type}
+    (ops : FoldProtocolOps W E I V O) (iterator : FoldIterator I V) (state : Option V)
+    (before world : W) (events : List (FoldCall W E I V O)) (object item nextState : V)
+    (op : O) (value : V) (answer : Except (FoldError E) V) (after : W)
+    (tail : List (FoldCall W E I V O)) (previous : Option (FoldCall W E I V O))
+    (hi : RestIterationTrace ops iterator state before events (.ok (some object)) world)
+    (h1 : adapterFieldTrace (E := E) (Event := FoldCall W E I V O)
+      ops.fields object 0 world [] (.ok item) world)
+    (h2 : adapterFieldTrace (E := E) (Event := FoldCall W E I V O)
+      ops.fields object 1 world [] (.ok nextState) world)
+    (ht : FoldInputProvenance ops.fields (some (.apply op value item world answer after)) tail) :
+    FoldInputProvenance ops.fields previous
+      (events ++ .apply op value item world answer after :: tail) := by
+  obtain ⟨prior, leaf, he, hl⟩ := rest_last hi (some object) rfl
+  have hp := rest_notReducer hi
+  have hprior : ∀ event ∈ prior, NotReducer event := by
+    intro event hm
+    exact hp event (by simp [he, hm])
+  have hleaf : NotReducer leaf := hp leaf (by simp [he])
+  rw [he, List.append_assoc]
+  apply (inputProvenance_prefix ops.fields prior leaf _ previous hprior hleaf).mpr
+  exact iteration_apply_provenance ops leaf object item nextState world op value answer after tail hl h1 h2 ht
+
+def FoldFacts {W E I V O : Type} (ops : FoldProtocolOps W E I V O) (op : O)
+    (value : V) (before : W) (events : List (FoldCall W E I V O))
+    (answer : Except (FoldError E) V) (after : W) : Prop :=
+  FoldAccumulatorChain op value events answer ∧
+  (∀ previous, FoldInputProvenance ops.fields previous events) ∧
+  FoldWorldChain before events after ∧ FoldErrorsStop events answer
+
+theorem errorsStop_clean {W E I V O : Type} (events : List (FoldCall W E I V O))
+    (answer : Except (FoldError E) V)
+    (h : ∀ event ∈ events, foldCallError event = none) : FoldErrorsStop events answer := by
+  intro before event after error he herr
+  have hm : event ∈ events := by rw [he]; simp
+  rw [h event hm] at herr
+  cases herr
+
+theorem rest_clean {W E I V O : Type} {ops : FoldProtocolOps W E I V O}
+    {iterator state before events result after}
+    (h : RestIterationTrace ops iterator state before events (.ok result) after) (value : V) :
+    ∀ event ∈ events, foldCallError event = none := by
+  apply noErrors_of_success events value
+  simpa [Except.map] using rest_stops h value
+
+theorem passive_facts {W E I V O : Type} {ops : FoldProtocolOps W E I V O}
+    {iterator state before events first after op value answer}
+    (h : RestIterationTrace ops iterator state before events first after)
+    (hr : match answer with | .ok result => result = value | .error _ => True)
+    (he : ∀ error, first = .error error → answer = .error error) :
+    FoldFacts ops op value before events answer after := by
+  have hn := rest_notReducer h
+  refine ⟨?_, fun previous => passive_provenance ops.fields events previous hn,
+    rest_worldChain h, ?_⟩
+  · have hc : FoldAccumulatorChain op value (events ++ []) answer :=
+      (accumulatorChain_prefix op value events [] answer hn).mpr (by cases answer <;> exact hr)
+    simpa using hc
+  · cases first with
+    | error error =>
+        have ha := he error rfl
+        subst answer
+        simpa [Except.map] using rest_stops h value
+    | ok result => exact errorsStop_clean events answer (rest_clean h value)
+
+theorem applyError_facts {W E I V O : Type} {ops : FoldProtocolOps W E I V O}
+    {iterator state before events object middle item nextState op value error after}
+    (hi : RestIterationTrace ops iterator state before events (.ok (some object)) middle)
+    (h1 : adapterFieldTrace (E := E) (Event := FoldCall W E I V O)
+      ops.fields object 0 middle [] (.ok item) middle)
+    (h2 : adapterFieldTrace (E := E) (Event := FoldCall W E I V O)
+      ops.fields object 1 middle [] (.ok nextState) middle) :
+    FoldFacts ops op value before
+      (events ++ [.apply op value item middle (.error error) after]) (.error error) after := by
+  refine ⟨?_, ?_, ?_, ?_⟩
+  · apply (accumulatorChain_prefix op value events _ _ (rest_notReducer hi)).mpr
+    simp [FoldAccumulatorChain]
+  · intro previous
+    exact rest_apply_provenance ops iterator state before middle events object item nextState
+      op value (.error error) after [] previous hi h1 h2 (by trivial)
+  · exact worldChain_append (rest_worldChain hi) ⟨rfl, rfl⟩
+  · apply errorsStop_append events _ _ (rest_clean hi value)
+    apply errorsStop_single
+    intro failure he
+    simp only [foldCallError, Option.some.injEq] at he
+    subst failure
+    rfl
+
+theorem applyStep_facts {W E I V O : Type} {ops : FoldProtocolOps W E I V O}
+    {iterator state before events object middle item nextState op value nextValue nextWorld tail answer after}
+    (hi : RestIterationTrace ops iterator state before events (.ok (some object)) middle)
+    (h1 : adapterFieldTrace (E := E) (Event := FoldCall W E I V O)
+      ops.fields object 0 middle [] (.ok item) middle)
+    (h2 : adapterFieldTrace (E := E) (Event := FoldCall W E I V O)
+      ops.fields object 1 middle [] (.ok nextState) middle)
+    (ht : FoldFacts ops op nextValue nextWorld tail answer after) :
+    FoldFacts ops op value before
+      (events ++ .apply op value item middle (.ok nextValue) nextWorld :: tail) answer after := by
+  refine ⟨?_, ?_, ?_, ?_⟩
+  · apply (accumulatorChain_prefix op value events _ _ (rest_notReducer hi)).mpr
+    exact ⟨rfl, rfl, ht.1⟩
+  · intro previous
+    exact rest_apply_provenance ops iterator state before middle events object item nextState
+      op value (.ok nextValue) nextWorld tail previous hi h1 h2 (ht.2.1 _)
+  · exact worldChain_append (rest_worldChain hi) ⟨rfl, ht.2.2.1⟩
+  · exact errorsStop_append events _ _ (rest_clean hi value) (errorsStop_cons _ _ _ rfl ht.2.2.2)
+
+theorem tail_facts {W E I V O : Type} {ops : FoldProtocolOps W E I V O}
+    {op iterator value state before events answer after}
+    (h : TailTrace ops op iterator value state before events answer after) :
+    FoldFacts ops op value before events answer after := by
+  induction h with
+  | iterationError hi =>
+      apply passive_facts hi
+      · trivial
+      · intro error he
+        cases he
+        rfl
+  | done hi =>
+      apply passive_facts hi
+      · rfl
+      · intro error he
+        cases he
+  | firstError hi first =>
+      apply passive_facts hi
+      · trivial
+      · intro error he
+        cases he
+  | secondError hi first second =>
+      apply passive_facts hi
+      · trivial
+      · intro error he
+        cases he
+  | applyError hi first second => exact applyError_facts hi first second
+  | step hi first second rest ih => exact applyStep_facts hi first second ih
+
+def resultError {E A : Type} : Except (FoldError E) A → Option (FoldError E)
+  | .ok _ => none
+  | .error error => some error
+
+structure PassiveSummary {W E I V O A : Type} (before : W)
+    (events : List (FoldCall W E I V O)) (answer : Except (FoldError E) A) (after : W) : Prop where
+  nonReducer : ∀ event ∈ events, NotReducer event
+  world : FoldWorldChain before events after
+  stops : ∀ value : V, FoldErrorsStop events (answer.map (fun _ => value))
+
+def PassiveTrace {W E I V O A : Type} (trace : FoldTrace W E I V O A) : Prop :=
+  ∀ before events answer after, trace before events answer after → PassiveSummary before events answer after
+
+theorem passive_pure {W E I V O A : Type} (value : A) :
+    PassiveTrace (foldPureTrace (W := W) (E := E) (I := I) (V := V) (O := O) value) := by
+  intro before events answer after h
+  obtain ⟨rfl, rfl, rfl⟩ := h
+  exact ⟨by simp, rfl, fun _ => errorsStop_clean [] _ (by simp)⟩
+
+theorem passive_leaf {W E I V O A : Type}
+    (tag : W → Except (FoldError E) A → W → FoldCall W E I V O)
+    (hn : ∀ b a e, NotReducer (tag b a e))
+    (hb : ∀ b a e, foldCallBefore (tag b a e) = b)
+    (ha : ∀ b a e, foldCallAfter (tag b a e) = e)
+    (he : ∀ b a e, foldCallError (tag b a e) = resultError a) :
+    PassiveTrace (foldLeafTrace tag) := by
+  intro before events answer after h
+  subst events
+  refine ⟨by simpa using hn before answer after, ?_, ?_⟩
+  · exact ⟨hb _ _ _, by simpa [FoldWorldChain] using (ha before answer after).symm⟩
+  · intro value
+    apply errorsStop_single
+    intro error herr
+    rw [he] at herr
+    cases answer <;> simp_all [resultError, Except.map]
+
+theorem passive_then {W E I V O A B : Type}
+    (first : FoldTrace W E I V O A) (next : A → FoldTrace W E I V O B)
+    (hf : PassiveTrace first) (hn : ∀ x, PassiveTrace (next x)) :
+    PassiveTrace (foldThenTrace first next) := by
+  intro before events answer after h
+  obtain ⟨initial, later, firstAnswer, middle, he, hfirst, hnext⟩ := h
+  have hs := hf _ _ _ _ hfirst
+  subst events
+  cases firstAnswer with
+  | error error =>
+      obtain ⟨rfl, rfl, rfl⟩ := hnext
+      simp only [List.append_nil]
+      exact ⟨hs.nonReducer, hs.world, fun value => by simpa [Except.map] using hs.stops value⟩
+  | ok value =>
+      have ht := hn value _ _ _ _ hnext
+      refine ⟨?_, worldChain_append hs.world ht.world, ?_⟩
+      · intro event hm
+        rcases List.mem_append.mp hm with hm | hm
+        · exact hs.nonReducer event hm
+        · exact ht.nonReducer event hm
+      · intro initialValue
+        apply errorsStop_append initial later _ (noErrors_of_success initial initialValue (by
+          simpa [Except.map] using hs.stops initialValue))
+        exact ht.stops initialValue
+
+theorem passive_restConstructor {W E I V O : Type} (ops : FoldProtocolOps W E I V O)
+    (iterator : FoldIterator I V) (state : V) : PassiveTrace (RestConstructorTrace ops iterator state) := by
+  cases hs : ops.selectedRestConstructor iterator state with
+  | none => simpa [RestConstructorTrace, hs] using
+      passive_pure (W := W) (E := E) (I := I) (V := V) (O := O) (FoldIterator.knownRest iterator state)
+  | some call =>
+      simpa [RestConstructorTrace, hs] using
+        passive_leaf (W := W) (E := E) (I := I) (V := V) (O := O)
+          (FoldCall.construct iterator state) (by intros; trivial)
+          (by intros; rfl) (by intros; rfl) (by intro b a e; cases a <;> rfl)
+
+theorem passive_restConstruction {W E I V O : Type} (ops : FoldProtocolOps W E I V O)
+    (iterator : FoldIterator I V) (state : V) : PassiveTrace (RestConstructionTrace ops iterator state) := by
+  cases hs : ops.selectedRest iterator state with
+  | some call =>
+      simpa [RestConstructionTrace, hs] using
+        passive_leaf (W := W) (E := E) (I := I) (V := V) (O := O)
+          (FoldCall.selectedRest iterator state) (by intros; trivial)
+          (by intros; rfl) (by intros; rfl) (by intro b a e; cases a <;> rfl)
+  | none =>
+      cases iterator with
+      | ordinary handle => simpa [RestConstructionTrace, hs] using passive_restConstructor ops (.ordinary handle) state
+      | customRest handle =>
+          simpa [RestConstructionTrace, hs] using
+            passive_leaf (W := W) (E := E) (I := I) (V := V) (O := O)
+              (FoldCall.rest handle state) (by intros; trivial)
+              (by intros; rfl) (by intros; rfl) (by intro b a e; cases a <;> rfl)
+      | knownRest inner stored =>
+          simp only [RestConstructionTrace, hs]
+          apply passive_then
+          · cases hp : ops.selectedRestIteratorProperty (.knownRest inner stored) with
+            | none => simpa [hp] using passive_pure inner
+            | some call =>
+                exact passive_leaf (FoldCall.itrRead (.knownRest inner stored)) (by intros; trivial)
+                  (by intros; rfl) (by intros; rfl) (by intro b a e; cases a <;> rfl)
+          · intro observed
+            exact passive_restConstructor ops observed state
+
+theorem passive_prepend_provenance {W E I V O : Type}
+    (fields : W → V → FoldObjectView V) (prior suffix : List (FoldCall W E I V O))
+    (hp : ∀ event ∈ prior, NotReducer event)
+    (hs : ∀ previous, FoldInputProvenance fields previous suffix) :
+    ∀ previous, FoldInputProvenance fields previous (prior ++ suffix) := by
+  induction prior with
+  | nil => exact hs
+  | cons event rest ih =>
+      have he := hp event (by simp)
+      have ht : ∀ e ∈ rest, NotReducer e := fun e h => hp e (by simp [h])
+      have hc := ih ht
+      intro previous
+      cases event <;> simp_all [NotReducer, FoldInputProvenance]
+
+theorem passive_then_facts {W E I V O A : Type} {ops : FoldProtocolOps W E I V O}
+    {op value first next before events answer after}
+    (hf : PassiveTrace (A := A) (W := W) (E := E) (I := I) (V := V) (O := O) first)
+    (hn : ∀ x b es a e, next x b es a e → FoldFacts ops op value b es a e)
+    (h : foldThenTrace first next before events answer after) :
+    FoldFacts ops op value before events answer after := by
+  obtain ⟨initial, later, firstAnswer, middle, he, hfirst, hnext⟩ := h
+  have hs := hf _ _ _ _ hfirst
+  subst events
+  cases firstAnswer with
+  | error error =>
+      obtain ⟨rfl, rfl, rfl⟩ := hnext
+      simp only [List.append_nil]
+      exact ⟨by simpa using (accumulatorChain_prefix op value initial [] (.error error) hs.nonReducer).mpr (by trivial),
+        fun previous => passive_provenance ops.fields initial previous hs.nonReducer,
+        hs.world, by simpa [Except.map] using hs.stops value⟩
+  | ok result =>
+      have ht := hn result _ _ _ _ hnext
+      exact ⟨(accumulatorChain_prefix op value initial later _ hs.nonReducer).mpr ht.1,
+        passive_prepend_provenance ops.fields initial later hs.nonReducer ht.2.1,
+        worldChain_append hs.world ht.2.2.1,
+        errorsStop_append initial later _
+          (noErrors_of_success initial value (by simpa [Except.map] using hs.stops value)) ht.2.2.2⟩
+
+theorem initial_error_facts {W E I V O : Type} (ops : FoldProtocolOps W E I V O)
+    (op : O) (init object : V) (before after : W) (error : FoldError E) :
+    FoldFacts ops op init before
+      [.getindex object (JuliaLean.base.int.lit .i64 1) before (.error error) after]
+      (.error error) after := by
+  refine ⟨by trivial, ?_, ⟨rfl, rfl⟩, ?_⟩
+  · intro previous
+    trivial
+  · apply errorsStop_single
+    intro failure he
+    simp only [foldCallError, Option.some.injEq] at he
+    subst failure
+    rfl
+
+theorem initial_apply_error_facts {W E I V O : Type} (ops : FoldProtocolOps W E I V O)
+    (op : O) (init object item : V) (before middle after : W) (error : FoldError E) :
+    FoldFacts ops op init before
+      [.getindex object (JuliaLean.base.int.lit .i64 1) before (.ok item) middle,
+       .apply op init item middle (.error error) after] (.error error) after := by
+  refine ⟨by simp [FoldAccumulatorChain], ?_, ⟨rfl, rfl, rfl⟩, ?_⟩
+  · intro previous
+    exact ⟨trivial, ⟨⟨rfl, rfl⟩, trivial⟩⟩
+  · apply errorsStop_cons _ _ _ rfl
+    apply errorsStop_single
+    intro failure he
+    simp only [foldCallError, Option.some.injEq] at he
+    subst failure
+    rfl
+
+theorem initial_apply_step_facts {W E I V O : Type} {ops : FoldProtocolOps W E I V O}
+    {op init object item nextValue before middle nextWorld events answer after}
+    (h : FoldFacts ops op nextValue nextWorld events answer after) :
+    FoldFacts ops op init before
+      (.getindex object (JuliaLean.base.int.lit .i64 1) before (.ok item) middle ::
+       .apply op init item middle (.ok nextValue) nextWorld :: events) answer after := by
+  refine ⟨⟨rfl, rfl, h.1⟩, ?_, ⟨rfl, rfl, h.2.2.1⟩, ?_⟩
+  · intro previous
+    exact ⟨trivial, ⟨⟨rfl, rfl⟩, h.2.1 _⟩⟩
+  · exact errorsStop_cons _ _ _ rfl (errorsStop_cons _ _ _ rfl h.2.2.2)
+
+theorem genericTrace_facts {W E I V O : Type} {ops : FoldProtocolOps W E I V O}
+    {op init iterator before events answer after}
+    (h : GenericTrace ops op init iterator before events answer after) :
+    FoldFacts ops op init before events answer after := by
+  apply passive_then_facts (h := h)
+  · intro b es a e hi
+    exact ⟨rest_notReducer hi, rest_worldChain hi, rest_stops hi⟩
+  · intro result before events answer after h
+    cases result with
+    | none =>
+        obtain ⟨rfl, rfl, rfl⟩ := h
+        exact ⟨rfl, by intros; trivial, rfl, errorsStop_clean [] _ (by simp)⟩
+    | some object =>
+        obtain ⟨first, rest, readAnswer, readWorld, he, hread, hn⟩ := h
+        change first = [.getindex object (JuliaLean.base.int.lit .i64 1) before readAnswer readWorld] at hread
+        subst first
+        subst events
+        cases readAnswer with
+        | error error =>
+            obtain ⟨rfl, rfl, rfl⟩ := hn
+            simpa using initial_error_facts ops op init object before after error
+        | ok item =>
+            obtain ⟨second, rest2, opAnswer, opWorld, he, hcall, hn⟩ := hn
+            change second = [.apply op init item readWorld opAnswer opWorld] at hcall
+            subst second
+            subst rest
+            cases opAnswer with
+            | error error =>
+                obtain ⟨rfl, rfl, rfl⟩ := hn
+                simpa using initial_apply_error_facts ops op init object item before readWorld after error
+            | ok nextValue =>
+                apply initial_apply_step_facts
+                apply passive_then_facts (h := hn)
+                · exact passive_leaf (FoldCall.getindex object (JuliaLean.base.int.lit .i64 2))
+                    (by intros; trivial) (by intros; rfl) (by intros; rfl) (by intro b a e; cases a <;> rfl)
+                · intro state b es a e hrest
+                  apply passive_then_facts (h := hrest)
+                  · exact passive_restConstruction ops iterator state
+                  · intro rest b es a e htail
+                    exact tail_facts htail
+
+theorem genericFoldObservation_proven : GenericFoldObservation := by
+  intro W E I V O ops op init iterator world
+  cases hc : foldlGeneric (observeFoldOps ops) op init iterator (world, []) with
+  | none => trivial
+  | some result =>
+      obtain ⟨answer, after, events⟩ := result
+      obtain ⟨suffix, he, hs⟩ := generic_satisfies ops op init iterator world [] answer after events hc
+      simp only [List.nil_append] at he
+      subst events
+      have hf := genericTrace_facts hs
+      exact ⟨genericTrace_start hs, hf.1, hf.2.1 none, hf.2.2.1, hf.2.2.2⟩
+
+end JuliaLean.Proofs.base.reduce.Models2Group7.GenericFoldCompletion
+
 namespace JuliaLean.Proofs.base.reduce
 
 open JuliaLean.Registry
@@ -7139,9 +7980,9 @@ def entriesModels2Group7 : List Entry := [
     juliaFns := ["_foldl_impl(op::OP, init, itr) where {OP}"],
     statement := "For arbitrary stateful, throwing or divergent iterator/getindex/reducer dispatch and genuine Rest rest/constructor/iterate/getproperty selections, every terminating generic fold retains original receiver/state dataflow through the complete initial iteration, chains reducer accumulators from init, consumes observed first-index/first-field values after both tail fields exist, threads all worlds, and propagates callback errors. Empty initial iteration returns init immediately.",
     source := "base/reduce.jl:51-63; base/iterators.jl:669-673,696-697,732; doc/src/manual/interfaces.md:8-54; src/julia-syntax.scm:1888-1909,2070-2110",
-    status := .todo,
+    status := .proven,
     prop := ``JuliaLean.Proofs.base.reduce.Models2Group7.GenericFoldObservation,
-    thm := none,
+    thm := ``JuliaLean.Proofs.base.reduce.Models2Group7.GenericFoldCompletion.genericFoldObservation_proven,
     notes := "Narrow independent invariant over all selected leaves without correctness or success premises. Covers foldlGeneric, actual foldTail, and concrete field reads. Initial Rest iteration uses the separately registered full finite-observation relation, including cycles/divergence; constructor/property/iterate helpers also have registered invariants. All machine indices are JInt64; no iterator list materialization." },
   { id := "reduce-rest-construction-observation",
     juliaFile := "base/iterators.jl",
