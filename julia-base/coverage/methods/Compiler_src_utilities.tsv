@@ -1,0 +1,42 @@
+file	line	endline	name	signature	status	entry	note
+Compiler/src/utilities.jl	6	6	datatype_super	datatype_super(x::DataType)	todo		
+Compiler/src/utilities.jl	15	17	timeit	timeit(args...)	todo		
+Compiler/src/utilities.jl	20	27	contains_is	contains_is(itr, @nospecialize(x))	todo		
+Compiler/src/utilities.jl	29	29	anymap	anymap(f::Function, a::Vector{Any})	todo		
+Compiler/src/utilities.jl	37	75	count_const_size	count_const_size(@nospecialize(x), count_self::Bool = true)	modelled	compiler-cacheresult-count-const-size-bound,compiler-cacheresult-count-const-size-exact,compiler-cacheresult-count-const-size-self-mono	model: JuliaLean/Compiler/src/utilities.lean countConstSize (layout facts and mutable fields as tables); difftest op cr.countConstSize
+Compiler/src/utilities.jl	77	79	is_inlineable_constant	is_inlineable_constant(@nospecialize(x))	modelled	compiler-cacheresult-count-const-size-bound	model: JuliaLean/Compiler/src/utilities.lean isInlineableConstant; difftest op cr.isInlineableConstant
+Compiler/src/utilities.jl	85	85	invoke_api	invoke_api(li::CodeInstance)	todo		
+Compiler/src/utilities.jl	86	86	use_const_api	use_const_api(li::CodeInstance)	todo		
+Compiler/src/utilities.jl	88	97	get_staged	get_staged(mi::MethodInstance, world::UInt)	todo		
+Compiler/src/utilities.jl	100	106	call_get_staged	call_get_staged(mi::MethodInstance, world::UInt, cache_ci::RefValue{CodeInstance})	todo		
+Compiler/src/utilities.jl	107	109	call_get_staged	call_get_staged(mi::MethodInstance, world::UInt, ::Nothing)	todo		
+Compiler/src/utilities.jl	111	113	get_cached_uninferred	get_cached_uninferred(mi::MethodInstance, world::UInt)	todo		
+Compiler/src/utilities.jl	115	162	retrieve_code_info	retrieve_code_info(mi::MethodInstance, world::UInt)	todo		
+Compiler/src/utilities.jl	164	168	get_compileable_sig	get_compileable_sig(method::Method, @nospecialize(atype), sparams::SimpleVector)	todo		
+Compiler/src/utilities.jl	171	172	isa_compileable_sig	isa_compileable_sig(@nospecialize(atype), sparams::SimpleVector, method::Method)	todo		
+Compiler/src/utilities.jl	174	174	isa_compileable_sig	isa_compileable_sig(m::MethodInstance)	todo		
+Compiler/src/utilities.jl	175	175	isa_compileable_sig	isa_compileable_sig(::ABIOverride)	todo		
+Compiler/src/utilities.jl	183	183	is_declared_inline	is_declared_inline(method::Method)	todo		
+Compiler/src/utilities.jl	190	190	is_declared_noinline	is_declared_noinline(method::Method)	todo		
+Compiler/src/utilities.jl	192	197	_is_declared_inline	_is_declared_inline(method::Method, inline::Bool)	todo		
+Compiler/src/utilities.jl	204	204	is_aggressive_constprop	is_aggressive_constprop(method::Union{Method,CodeInfo})	todo		
+Compiler/src/utilities.jl	211	211	is_no_constprop	is_no_constprop(method::Union{Method,CodeInfo})	todo		
+Compiler/src/utilities.jl	217	227	singleton_type	singleton_type(@nospecialize(ft))	todo		
+Compiler/src/utilities.jl	229	236	maybe_singleton_const	maybe_singleton_const(@nospecialize(t))	todo		
+Compiler/src/utilities.jl	242	251	ssamap	ssamap(f, @nospecialize(stmt))	todo		
+Compiler/src/utilities.jl	253	261	foreachssa	foreachssa(@specialize(f), @nospecialize(stmt))	todo		
+Compiler/src/utilities.jl	263	271	foreach_anyssa	foreach_anyssa(@specialize(f), @nospecialize(stmt))	todo		
+Compiler/src/utilities.jl	289	292	getindex	getindex(uses::SSAUses, i::Int)	todo		
+Compiler/src/utilities.jl	294	294	isempty	isempty(l::SSAUseList)	todo		
+Compiler/src/utilities.jl	295	295	length	length(l::SSAUseList)	todo		
+Compiler/src/utilities.jl	296	299	iterate	iterate(l::SSAUseList, i::Int = l.start)	todo		
+Compiler/src/utilities.jl	301	323	find_ssavalue_uses	find_ssavalue_uses(body::Vector{Any}, nvals::Int)	todo		
+Compiler/src/utilities.jl	326	344	foreach_ssavalue_use	foreach_ssavalue_use(@specialize(f), body::Vector{Any})	todo		
+Compiler/src/utilities.jl	346	360	foreach_ssavalue_use	foreach_ssavalue_use(@specialize(f), e::Expr, line::Int)	todo		
+Compiler/src/utilities.jl	362	372	foreach_ssavalue_use	foreach_ssavalue_use(@specialize(f), e::PhiNode, line::Int)	todo		
+Compiler/src/utilities.jl	375	378	slot_id	slot_id(s)	todo		
+Compiler/src/utilities.jl	384	384	inlining_enabled	inlining_enabled()	todo		
+Compiler/src/utilities.jl	386	414	instrumentation_enabled	instrumentation_enabled(m::Module, only_if_affects_optimizer::Bool)	todo		
+Compiler/src/utilities.jl	416	421	inbounds_option	inbounds_option()	todo		
+Compiler/src/utilities.jl	423	423	is_asserts	is_asserts()	todo		
+Compiler/src/utilities.jl	425	425	_time_ns	_time_ns()	todo		
