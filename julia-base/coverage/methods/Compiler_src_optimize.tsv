@@ -1,0 +1,110 @@
+file	line	endline	name	signature	status	entry	note
+Compiler/src/optimize.jl	73	73	has_flag	has_flag(curr::UInt32, flag::UInt32)	modelled	compiler-inlining-has-flag	model: JuliaLean.Compiler.Optimize.hasFlag; difftested
+Compiler/src/optimize.jl	75	79	iscallstmt	iscallstmt(@nospecialize stmt)	modelled	compiler-inlining-iscallstmt	model: JuliaLean.Compiler.Optimize.iscallstmt; difftested
+Compiler/src/optimize.jl	81	121	flags_for_effects	flags_for_effects(effects::Effects)	modelled	compiler-inlining-flags-for-effects	model: JuliaLean.Compiler.Optimize.flagsForEffects; difftested
+Compiler/src/optimize.jl	125	126	inlining_cost	inlining_cost(@nospecialize src)	modelled	compiler-inlining-inlining-cost-exact,compiler-inlining-src-policy	model: JuliaLean.Compiler.Optimize.inliningCost (with jlIrInliningCost of src/ircode.c); difftested
+Compiler/src/optimize.jl	127	127	is_inlineable	is_inlineable(@nospecialize src)	modelled	compiler-inlining-is-inlineable-exact,compiler-inlining-src-policy	model: JuliaLean.Compiler.Optimize.isInlineable; difftested
+Compiler/src/optimize.jl	128	129	set_inlineable!	set_inlineable!(src::CodeInfo, val::Bool)	modelled	compiler-inlining-src-policy	model: JuliaLean.Compiler.Optimize.setInlineable; difftested
+Compiler/src/optimize.jl	131	137	inline_cost_clamp	inline_cost_clamp(x::Int)	modelled	compiler-inlining-cost-clamp,compiler-inlining-clamp-finite-to-max	model: JuliaLean.Compiler.Optimize.inlineCostClamp (with jlEncodeInliningCost/jlDecodeInliningCost); difftested
+Compiler/src/optimize.jl	142	143	is_declared_inline	is_declared_inline(@nospecialize src::MaybeCompressed)	modelled	compiler-inlining-declared-inline-exact,compiler-inlining-src-policy	model: JuliaLean.Compiler.Optimize.isDeclaredInline; difftested
+Compiler/src/optimize.jl	145	146	is_declared_noinline	is_declared_noinline(@nospecialize src::MaybeCompressed)	modelled	compiler-inlining-declared-inline-exact,compiler-inlining-src-policy	model: JuliaLean.Compiler.Optimize.isDeclaredNoinline; difftested
+Compiler/src/optimize.jl	154	162	src_inlining_policy	src_inlining_policy(interp::AbstractInterpreter, mi::MethodInstance, @nospecialize(src), @nospecialize(info::CallInfo), stmt_flag::UInt32)	modelled	compiler-inlining-src-policy,compiler-inlining-callsite-annotations	model: JuliaLean.Compiler.Optimize.srcInliningPolicyMI; difftested
+Compiler/src/optimize.jl	164	175	src_inlining_policy	src_inlining_policy(::AbstractInterpreter, @nospecialize(src), @nospecialize(info::CallInfo), stmt_flag::UInt32)	modelled	compiler-inlining-src-policy	model: JuliaLean.Compiler.Optimize.srcInliningPolicy; difftested
+Compiler/src/optimize.jl	182	185	InliningState	InliningState(sv::InferenceState, interp::AbstractInterpreter, opt_cache::IdDict{MethodInstance,CodeInstance}=IdDict{MethodInstance,CodeInstance}())	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	186	189	InliningState	InliningState(interp::AbstractInterpreter, opt_cache::IdDict{MethodInstance,CodeInstance}=IdDict{MethodInstance,CodeInstance}())	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	194	198	OptimizerCache	OptimizerCache( cache::CodeCache, opt_cache::IdDict{MethodInstance,CodeInstance}) where CodeCache	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	200	205	get	get((; cache, opt_cache)::OptimizerCache, mi::MethodInstance, default)	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	208	211	code_cache	code_cache(state::InliningState)	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	219	222	simplify_ir!	simplify_ir!(result::OptimizationResult)	todo		ir-transform: not modelled
+Compiler/src/optimize.jl	238	244	OptimizationState	OptimizationState(sv::InferenceState, interp::AbstractInterpreter, opt_cache::IdDict{MethodInstance,CodeInstance}=IdDict{MethodInstance,CodeInstance}())	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	245	277	OptimizationState	OptimizationState(mi::MethodInstance, src::CodeInfo, interp::AbstractInterpreter, opt_cache::IdDict{MethodInstance,CodeInstance}=IdDict{MethodInstance,CodeInstance}())	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	278	283	OptimizationState	OptimizationState(mi::MethodInstance, interp::AbstractInterpreter)	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	285	285	argextype	argextype	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	286	286	argextype_widened	argextype_widened	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	287	287	try_compute_field	try_compute_field	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	298	300	ir_to_codeinf!	ir_to_codeinf!(opt::OptimizationState{I}, frame::InferenceState{I}, edges::SimpleVector) where {I<:AbstractInterpreter}	todo		ir-transform: not modelled
+Compiler/src/optimize.jl	302	306	ir_to_codeinf!	ir_to_codeinf!(opt::OptimizationState, edges::SimpleVector, inlining_cost::InlineCostType)	todo		ir-transform: not modelled
+Compiler/src/optimize.jl	308	312	ir_to_codeinf!	ir_to_codeinf!(opt::OptimizationState, edges::SimpleVector)	todo		ir-transform: not modelled
+Compiler/src/optimize.jl	314	324	ir_to_codeinf!	ir_to_codeinf!(opt::OptimizationState)	todo		ir-transform: not modelled
+Compiler/src/optimize.jl	326	330	ir_to_codeinf!	ir_to_codeinf!(src::CodeInfo, ir::IRCode)	todo		ir-transform: not modelled
+Compiler/src/optimize.jl	333	347	widen_all_consts!	widen_all_consts!(src::CodeInfo)	todo		ir-transform: not modelled
+Compiler/src/optimize.jl	353	353	_topmod	_topmod(sv::OptimizationState)	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	355	355	is_stmt_inline	is_stmt_inline(stmt_flag::UInt32)	modelled	compiler-inlining-stmt-inline-exact,compiler-inlining-has-flag	model: JuliaLean.Compiler.Optimize.isStmtInline; difftested
+Compiler/src/optimize.jl	356	356	is_stmt_noinline	is_stmt_noinline(stmt_flag::UInt32)	modelled	compiler-inlining-stmt-inline-exact,compiler-inlining-has-flag	model: JuliaLean.Compiler.Optimize.isStmtNoinline; difftested
+Compiler/src/optimize.jl	364	372	is_new_type_datatype	is_new_type_datatype(@nospecialize(atyp), @nospecialize(Targ), src::Union{IRCode,IncrementalCompact})	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	376	391	apply_type_unionall_def	apply_type_unionall_def(@nospecialize(Targ), src::Union{IRCode,IncrementalCompact})	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	393	427	new_expr_effect_flags	new_expr_effect_flags(𝕃ₒ::AbstractLattice, args::Vector{Any}, src::Union{IRCode,IncrementalCompact}, pattern_match=nothing)	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	430	512	stmt_effect_flags	stmt_effect_flags(𝕃ₒ::AbstractLattice, @nospecialize(stmt), @nospecialize(rt), src::Union{IRCode,IncrementalCompact})	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	514	535	recompute_effects_flags	recompute_effects_flags(𝕃ₒ::AbstractLattice, @nospecialize(stmt), @nospecialize(rt), src::Union{IRCode,IncrementalCompact})	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	545	546	argextype	argextype(@nospecialize(x), ir::IRCode, sptypes::Vector{VarState} = ir.sptypes)	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	547	550	argextype	argextype(@nospecialize(x), compact::IncrementalCompact, sptypes::Vector{VarState} = compact.ir.sptypes)	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	551	553	argextype	argextype(@nospecialize(x), src::CodeInfo, sptypes::Vector{VarState})	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	554	594	argextype	argextype( @nospecialize(x), src::Union{IRCode,IncrementalCompact,CodeInfo}, sptypes::Vector{VarState}, slottypes::Union{Vector{Any},Nothing})	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	597	602	argextype_widened	argextype_widened(@nospecialize(x), src::Union{IRCode,IncrementalCompact,CodeInfo}, sptypes::Vector{VarState})	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	603	603	argextype_widened	argextype_widened(@nospecialize(x), ir::IRCode)	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	604	605	argextype_widened	argextype_widened(@nospecialize(x), compact::IncrementalCompact)	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	606	614	abstract_eval_ssavalue	abstract_eval_ssavalue(s::SSAValue, src::CodeInfo)	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	615	615	abstract_eval_ssavalue	abstract_eval_ssavalue(s::SSAValue, src::Union{IRCode,IncrementalCompact})	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	622	625	finishopt!	finishopt!(::AbstractInterpreter, opt::OptimizationState, ir::IRCode)	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	627	639	visit_bb_phis!	visit_bb_phis!(callback, ir::IRCode, bb::Int)	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	641	648	any_stmt_may_throw	any_stmt_may_throw(ir::IRCode, bb::Int)	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	650	651	visit_conditional_successors	visit_conditional_successors(callback, ir::IRCode, bb::Int)	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	652	671	visit_conditional_successors	visit_conditional_successors(callback, lazypostdomtree::LazyPostDomtree, ir::IRCode, bb::Int)	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	681	681	LazyAugmentedDomtree	LazyAugmentedDomtree(ir::IRCode)	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	684	698	get!	get!(lazyagdomtree::LazyAugmentedDomtree)	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	715	722	PostOptAnalysisState	PostOptAnalysisState(result::InferenceResult, ir::IRCode)	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	725	727	give_up_refinements!	give_up_refinements!(sv::PostOptAnalysisState)	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	729	736	any_refinable	any_refinable(sv::PostOptAnalysisState)	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	740	740	GetNativeEscapeCache	GetNativeEscapeCache(code_cache::CodeCache) where CodeCache	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	742	742	GetNativeEscapeCache	GetNativeEscapeCache(interp::AbstractInterpreter)	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	743	763	((; code_cache)::GetNativeEscapeCache)	((; code_cache)::GetNativeEscapeCache)(codeinst::Union{CodeInstance,MethodInstance})	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	765	785	refine_effects!	refine_effects!(interp::AbstractInterpreter, opt::OptimizationState, sv::PostOptAnalysisState)	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	787	790	is_ipo_dataflow_analysis_profitable	is_ipo_dataflow_analysis_profitable(effects::Effects)	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	792	815	iscall_with_boundscheck	iscall_with_boundscheck(@nospecialize(stmt), sv::PostOptAnalysisState)	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	817	855	check_all_args_noescape!	check_all_args_noescape!(sv::PostOptAnalysisState, ir::IRCode, @nospecialize(stmt), estate::EscapeAnalysis.EscapeState)	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	827	828	has_no_escape	has_no_escape(x::EscapeAnalysis.EscapeInfo)	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	857	869	validate_mutable_arg_escapes!	validate_mutable_arg_escapes!(estate::EscapeAnalysis.EscapeState, sv::PostOptAnalysisState)	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	871	880	is_conditional_noub	is_conditional_noub(inst::Instruction, sv::PostOptAnalysisState)	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	882	922	scan_non_dataflow_flags!	scan_non_dataflow_flags!(inst::Instruction, sv::PostOptAnalysisState)	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	924	953	scan_inconsistency!	scan_inconsistency!(inst::Instruction, sv::PostOptAnalysisState)	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	959	1018	((; sv)::ScanStmt)	((; sv)::ScanStmt)(inst::Instruction, lstmt::Int, bb::Int)	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	1020	1066	check_inconsistentcy!	check_inconsistentcy!(sv::PostOptAnalysisState, scanner::BBScanner)	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	1068	1098	ipo_dataflow_analysis!	ipo_dataflow_analysis!(interp::AbstractInterpreter, opt::OptimizationState, ir::IRCode, result::InferenceResult)	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	1101	1106	optimize	optimize(interp::AbstractInterpreter, opt::OptimizationState{I}, caller::InferenceResult) where {I<:AbstractInterpreter}	todo		ir-transform: not modelled
+Compiler/src/optimize.jl	1109	1119	pass	pass(name::String, expr)	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	1121	1121	matchpass	matchpass(optimize_until::Int, stage, _)	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	1122	1122	matchpass	matchpass(optimize_until::String, _, name)	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	1123	1123	matchpass	matchpass(::Nothing, _, _)	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	1125	1158	run_passes_ipo_safe	run_passes_ipo_safe( ci::CodeInfo, sv::OptimizationState, optimize_until::Union{Nothing, Int, String} = nothing)	todo		ir-transform: not modelled
+Compiler/src/optimize.jl	1161	1166	_global_call_singleton	_global_call_singleton(@nospecialize(callee), ir::Union{IRCode,IncrementalCompact})	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	1169	1173	order_arg	order_arg(stmt::Expr, i::Int, ir::IRCode)	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	1176	1180	optional_order_arg	optional_order_arg(stmt::Expr, i::Int, ir::IRCode)	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	1183	1208	recognize_global_read	recognize_global_read(@nospecialize(stmt), ir::IRCode)	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	1212	1216	_global_write_target	_global_write_target(stmt::Expr, base::Int, ir::IRCode)	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	1234	1245	build_global_write_partition_call	build_global_write_partition_call(part::Core.BindingPartition, w::GlobalWriteInfo)	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	1251	1295	recognize_global_write	recognize_global_write(@nospecialize(stmt), ir::IRCode)	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	1301	1322	recognize_global_isdefined	recognize_global_isdefined(@nospecialize(stmt), ir::IRCode)	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	1328	1337	narrow_valid_worlds!	narrow_valid_worlds!(sv::OptimizationState, world::UInt, valid_worlds::WorldRange)	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	1345	1357	reformulate_read	reformulate_read(g::GlobalRef, sv::OptimizationState, world::UInt, edges::Vector{Any}, cache::IdDict{Core.Binding,Union{ResolvedRead,Nothing}})	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	1359	1380	resolve_read	resolve_read(g::GlobalRef, binding::Core.Binding, world::UInt)	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	1384	1397	reformulate_write	reformulate_write(g::GlobalRef, sv::OptimizationState, world::UInt, edges::Vector{Any}, cache::IdDict{Core.Binding,Union{Core.BindingPartition,Nothing}})	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	1400	1404	emit_depwarn_binding!	emit_depwarn_binding!(ir::IRCode, idx::Int, b::Core.Binding)	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	1406	1503	_reformulate_globals!	_reformulate_globals!(ir::IRCode, opt::OptimizationState)	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	1508	1513	has_latestworld	has_latestworld(ir::IRCode)	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	1515	1521	reformulate_globals_pass!	reformulate_globals_pass!(ir::IRCode, opt::OptimizationState)	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	1523	1554	strip_trailing_junk!	strip_trailing_junk!(code::Vector{Any}, ssavaluetypes::Vector{Any}, ssaflags::Vector, debuginfo::DebugInfoStream, cfg::CFG, info::Vector{CallInfo})	todo		ir-transform: not modelled
+Compiler/src/optimize.jl	1556	1582	changed_lineinfo	changed_lineinfo(di::DebugInfo, codeloc::Int, prevloc::Int)	todo		outside the inlining area: not modelled
+Compiler/src/optimize.jl	1584	1763	convert_to_ircode!	convert_to_ircode!(ci::CodeInfo, sv::OptimizationState)	todo		ir-transform: not modelled
+Compiler/src/optimize.jl	1765	1771	process_meta!	process_meta!(meta::Vector{Expr}, @nospecialize stmt)	todo		ir-transform: not modelled
+Compiler/src/optimize.jl	1773	1783	slot2reg	slot2reg(ir::IRCode, ci::CodeInfo, sv::OptimizationState)	todo		ir-transform: not modelled
+Compiler/src/optimize.jl	1788	1788	plus_saturate	plus_saturate(x::Int, y::Int)	modelled	compiler-inlining-cost-model-closed-form,compiler-inlining-cost-model-append-monotone	model: JuliaLean.Compiler.Optimize.plusSaturate; difftested
+Compiler/src/optimize.jl	1791	1791	isknowntype	isknowntype(@nospecialize T)	todo		not modelled: a type query; statement_cost takes its answer as an input (ArgFacts.known)
+Compiler/src/optimize.jl	1793	1907	statement_cost	statement_cost(ex::Expr, line::Int, src::Union{CodeInfo, IRCode}, sptypes::Vector{VarState}, params::OptimizationParams)	modelled	compiler-inlining-statement-cost-exact,compiler-inlining-statement-cost-nonneg,compiler-inlining-statement-cost-bounds,compiler-inlining-statement-cost-nothrow,compiler-inlining-statement-cost-nothrow-binary,compiler-inlining-llvmcall-cost	model: JuliaLean.Compiler.Optimize.statementCost (type answers are inputs); difftested
+Compiler/src/optimize.jl	1909	1930	statement_or_branch_cost	statement_or_branch_cost(@nospecialize(stmt), line::Int, src::Union{CodeInfo, IRCode}, sptypes::Vector{VarState}, params::OptimizationParams)	modelled	compiler-inlining-statement-or-branch-cost-exact,compiler-inlining-statement-cost-bounds,compiler-inlining-try-not-inlineable,compiler-inlining-cost-model-closed-form	model: JuliaLean.Compiler.Optimize.statementOrBranchCost; difftested
+Compiler/src/optimize.jl	1912	1912	dst	dst(tgt)	todo		model: JuliaLean.Compiler.Optimize.branchDst (inside statementOrBranchCost); no property pins the block-start lookup, only the costs it leads to
+Compiler/src/optimize.jl	1932	1943	inline_cost_model	inline_cost_model(ir::IRCode, params::OptimizationParams, cost_threshold::Int)	modelled	compiler-inlining-cost-model-closed-form,compiler-inlining-cost-model-append-monotone,compiler-inlining-cost-model-order,compiler-inlining-try-not-inlineable	model: JuliaLean.Compiler.Optimize.inlineCostModel; difftested
+Compiler/src/optimize.jl	1945	1957	statement_costs!	statement_costs!(cost::Vector{Int}, body::Vector{Any}, src::Union{CodeInfo, IRCode}, sptypes::Vector{VarState}, params::OptimizationParams)	modelled	compiler-inlining-statement-costs-exact,compiler-inlining-cost-model-closed-form	model: JuliaLean.Compiler.Optimize.statementCosts; difftested
+Compiler/src/optimize.jl	1959	1961	renumber_ir_elements!	renumber_ir_elements!(body::Vector{Any}, cfg::Union{CFG,Nothing}, ssachangemap::Vector{Int})	todo		ir-transform: not modelled
+Compiler/src/optimize.jl	1963	1978	cumsum_ssamap!	cumsum_ssamap!(ssachangemap::Vector{Int})	todo		ir-transform: not modelled
+Compiler/src/optimize.jl	1980	2053	renumber_ir_elements!	renumber_ir_elements!(body::Vector{Any}, ssachangemap::Vector{Int}, labelchangemap::Vector{Int})	todo		ir-transform: not modelled
+Compiler/src/optimize.jl	2055	2066	renumber_cfg_stmts!	renumber_cfg_stmts!(cfg::CFG, blockchangemap::Vector{Int})	todo		ir-transform: not modelled

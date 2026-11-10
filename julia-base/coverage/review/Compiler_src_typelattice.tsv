@@ -1,0 +1,47 @@
+line	name	verdict	mirror	property	settled	reason
+14	narrow_limited_typ	HOLLOW	no	no	yes	The proposition only asks the result's causes to include those of y and x, so a version that adds unrelated causes also satisfies it, and IdSets are modelled as values, so a missing copy (union! mutating x.causes) cannot show up.
+49	Conditional	HOLLOW	yes	no	yes	In the limited case the causes only need to include those of both branch types, so a constructor that adds unrelated causes also satisfies the proposition.
+62	InterConditional	FAITHFUL	yes	yes	yes	The proposition fixes the AssertionError when ssadef ≠ 0 and the exact InterConditional(slot, thentype, elsetype) otherwise.
+96	MustAlias	HOLLOW	yes	no	yes	In the limited case the causes only need to include those of both types, so a constructor that adds unrelated causes also satisfies the proposition.
+110	InterMustAlias	HOLLOW	yes	no	yes	The limited case (returning narrow_limited_typ(fldtyp, vartyp)) is not stated, so a version that returns the plain InterMustAlias even when a type is limited also satisfies the proposition.
+119	update_mustalias	HOLLOW	yes	no	yes	Only new types that are neither slot wrappers nor limited are covered, so a version that skips the MustAlias constructor's AssertionError and LimitedAccuracy results also satisfies the proposition.
+122	update_mustalias	FAITHFUL	yes	yes	yes	The proposition fixes the exact raw InterMustAlias with the replaced types for all arguments.
+132	PartialTypeVar	FAITHFUL	-	-	-	The inner constructor is `new(tv, lb_certain, ub_certain)`, which only stores its fields, so there is no behaviour to state.
+151	StateRefinement	FAITHFUL	-	-	-	The inner constructor is `new(slot, newtyp, undef)`, which only stores its fields, so there is no behaviour to state.
+195	LimitedAccuracy	FAITHFUL	yes	yes	yes	The proposition fixes the AssertionError for a limited typ and the exact wrapped element with the given causes otherwise.
+200	LimitedAccuracy	FAITHFUL	yes	yes	yes	The proposition fixes LimitedAccuracy(T, nothing) = T for every T.
+222	assert_nested_slotwrapper	FAITHFUL	yes	yes	yes	The proposition fixes the AssertionError for each of the four slot wrappers and returns t unchanged otherwise.
+230	widenslotwrapper	HOLLOW	yes	no	yes	Both entries are also satisfied by a widenslotwrapper that maps every conditional to Bool and every alias to widenconst(fldtyp), so the Const(true)/Const(false) results and the kept field element are not pinned.
+242	widenconditional	HOLLOW	yes	no	yes	The conditional cases are pinned against maybe_extract_const_bool (the refuted entry has a repro; its counterexample Conditional(slot, Union{}, Union{}) needs both branches unreachable and is producible only through form_mustalias_conditional when both refinements fail, or on a slot typed Union{}), but no entry states that other elements are returned unchanged or that LimitedAccuracy is an error.
+256	widenwrappedconditional	HOLLOW	yes	no	yes	The limited clause assumes the wrapped element is not a slot wrapper, which is the case the method exists for, so a version that leaves LimitedAccuracy(Conditional) unwidened also satisfies the proposition.
+282	is_same_conditionals	HOLLOW	yes	no	yes	Reflexivity, symmetry and transitivity are also satisfied by a version that returns true for every pair of Conditionals, so the slot and ssadef comparison is not pinned.
+283	is_same_conditionals	HOLLOW	yes	no	yes	The equivalence laws are also satisfied by a version that returns true for every pair of InterConditionals, so the slot comparison is not pinned.
+288	maybe_extract_const_bool	FAITHFUL	yes	yes	yes	The proven entry fixes the result against widenconditional on every conditional whose branches are not both Union{}, and the refuted entry (repro exists) shows it returns nothing in the both-Union{} case; that counterexample is producible only through form_mustalias_conditional when both refinements fail, or on dead code.
+298	widenmustalias	HOLLOW	yes	no	yes	Both entries are about widenslotwrapper and are also satisfied by a widenmustalias that returns widenconst(fldtyp) instead of fldtyp, and nothing states the identity on non-aliases or the LimitedAccuracy error.
+306	widenwrappedmustalias	HOLLOW	yes	no	yes	The limited clause covers only widenwrappedconditional, so nothing says what widenwrappedmustalias returns for a LimitedAccuracy.
+313	isalreadyconst	HOLLOW	yes	no	yes	A version that returns true only for Const also satisfies the proposition, so the issingletontype and isconstType branches are not pinned.
+372	is_same_alias	HOLLOW	yes	no	yes	The equivalence laws are also satisfied by a version that returns true for every pair of MustAliases, so the slot, ssadef and fldidx comparison is not pinned.
+374	is_same_alias	HOLLOW	yes	no	yes	The equivalence laws are also satisfied by a version that returns true for every pair of InterMustAliases, so the slot and fldidx comparison is not pinned.
+375	is_same_alias	FAITHFUL	yes	yes	yes	The last clause fixes false for every pair that is not two aliases of the same kind, which is what the fallback method returns.
+395	ignorelimited	FAITHFUL	yes	yes	yes	The proposition fixes ignorelimited x = x for every non-limited x.
+396	ignorelimited	HOLLOW	yes	no	yes	For a LimitedAccuracy the proposition only asks for a non-limited, idempotent result, so a version that returns Any instead of typ.typ also satisfies it.
+401	⊑	HOLLOW	yes	no	yes	"Any is top" and "Union{} is least" are both also satisfied by a ⊑ that always returns true, and the ε-below and causes ⊆ branches are not stated.
+420	⊑	FAITHFUL	yes	yes	yes	The refuted transitivity law has repro/compiler-tl-sqsub-transitive.jl, and its elements are ones default inference produces: Conditional(x, Any, Int) is `!(x isa Int)` on x::Any, and Conditional(x, Any, Union{}) is the form line 438 calls an alternative representation of Const(true).
+447	⊑	HOLLOW	yes	no	yes	The two entries are also satisfied by a ⊑ that always returns true, so the issubalias path and the `a === Union{}` result against an alias are not pinned.
+460	⊑	HOLLOW	yes	no	no	compiler-tl-sqsub-any-top-optimizer has no repro/<id>.jl (only a line in another entry's repro), and neither counterexample runs this method's own PartialStruct, PartialOpaque or PartialTask branches; both elements (a PartialTypeVar from typevar_tfunc kept in IR statement types; Union{} and Const(1)) are producible on the optimizer lattice.
+547	⊑	HOLLOW	yes	yes	no	compiler-tl-sqsub-any-top-optimizer has no repro/<id>.jl; the other two refutations have repros and producible counterexamples (a PartialTypeVar from typevar_tfunc against Union{Nothing, TypeVar}; Union{} against Const(1)).
+685	tmeet	HOLLOW	yes	no	yes	For a Const the proposition only asks for v or Union{}, so a version that always returns Union{} (ignoring isa(v.val, t)) also satisfies it; the non-Const clause only restates the body.
+695	tmeet	HOLLOW	yes	no	yes	The proposition only asks for v or Union{}, so a version that always returns Union{} (ignoring Bool <: t) also satisfies it, and the delegation for non-Conditionals is not stated.
+717	tmeet	FAITHFUL	yes	yes	yes	The proposition fixes the AssertionError for a LimitedAccuracy and exact delegation to the parent for everything else.
+723	tmeet	FAITHFUL	yes	yes	yes	The proposition fixes the AssertionError for any conditional and exact delegation to the parent for everything else.
+735	widenconst	FAITHFUL	yes	yes	yes	The proposition fixes Bool for every Conditional and InterConditional.
+736	widenconst	FAITHFUL	yes	yes	yes	The proposition makes widenconst of an alias equal to widenconst of its field type, as the method's body does.
+742	widenconst	FAITHFUL	yes	yes	yes	The proposition fixes TypeVar for every PartialTypeVar.
+743	widenconst	FAITHFUL	yes	yes	yes	The proposition fixes t.typ for every PartialStruct.
+744	widenconst	FAITHFUL	yes	yes	yes	The proposition fixes t.typ for every PartialOpaque.
+745	widenconst	FAITHFUL	yes	yes	yes	The proposition fixes Task for every PartialTask.
+746	widenconst	FAITHFUL	yes	yes	yes	The proposition fixes t for every type t.
+747	widenconst	FAITHFUL	yes	yes	yes	The proposition fixes an ErrorException for every TypeVar.
+748	widenconst	FAITHFUL	yes	yes	yes	The proposition fixes an ErrorException for every Vararg.
+749	widenconst	FAITHFUL	yes	yes	yes	The proposition fixes an ErrorException for every LimitedAccuracy.
+758	widenconst_split	FAITHFUL	yes	yes	yes	The proposition makes it equal to widenconst on every element (given one step of fuel), which pins every branch.

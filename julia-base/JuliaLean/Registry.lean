@@ -283,6 +283,8 @@ import JuliaLean.Proofs.base.iterators
 import JuliaLean.Proofs.base.linked_list
 import JuliaLean.Proofs.base.logging.logging
 import JuliaLean.Proofs.base.loading
+import JuliaLean.Proofs.base.loading.cachefile
+import JuliaLean.Proofs.base.loading.accept
 import JuliaLean.Proofs.base.math
 import JuliaLean.Proofs.base.missing
 import JuliaLean.Proofs.base.mpfr
@@ -348,6 +350,23 @@ import JuliaLean.Proofs.base.intfuncs.lcm_zero_absorption
 import JuliaLean.Proofs.base.parse.complex_imaginary_minimum
 import JuliaLean.Proofs.base.permuteddimsarray.copy_linear_length
 import JuliaLean.Proofs.base.set.replacement_key_swap
+import JuliaLean.Proofs.Compiler.src.abstractlattice
+import JuliaLean.Proofs.Compiler.src.typelattice
+import JuliaLean.Proofs.Compiler.src.typelimits
+import JuliaLean.Proofs.Compiler.src.effects
+import JuliaLean.Proofs.Compiler.src.tfuncs
+import JuliaLean.Proofs.Compiler.src.cicache
+import JuliaLean.Proofs.Compiler.src.bindinginvalidations
+import JuliaLean.Proofs.Compiler.src.reinfer
+import JuliaLean.Proofs.Compiler.src.ssair.domtree
+import JuliaLean.Proofs.Compiler.src.ssair.slot2ssa
+import JuliaLean.Proofs.Compiler.src.typeutils
+import JuliaLean.Proofs.Compiler.src.ssair.EscapeAnalysis
+import JuliaLean.Proofs.Compiler.src.inferenceresult
+import JuliaLean.Proofs.Compiler.src.inferenceresult.Exact
+import JuliaLean.Proofs.Compiler.src.optimize
+import JuliaLean.Proofs.Compiler.src.optimize.Exact
+import JuliaLean.Proofs.Compiler.src.ssair.inlining
 
 namespace JuliaLean.MemSafety.G1
 
@@ -1212,6 +1231,8 @@ def all : List Entry :=
     ++ JuliaLean.Proofs.base.logging.logging.entries
     ++ JuliaLean.Proofs.base.loading.ValueContracts.entries
     ++ JuliaLean.Proofs.base.loading.entries
+    ++ JuliaLean.Proofs.base.loading.Cachefile.entries
+    ++ JuliaLean.Proofs.base.loading.Cachefile.acceptEntries
   ++ JuliaLean.Proofs.base.loading.entriesModels2Group4
     ++ JuliaLean.Proofs.base.loading.entriesModels1Group10
     ++ JuliaLean.Proofs.base.loading.entriesModels1Group10Coverage
@@ -1310,4 +1331,23 @@ def all : List Entry :=
     ++ JuliaLean.Proofs.base.toml.printer.entries
 
     ++ JuliaLean.Proofs.base.iostream.entriesModels2Group18
+    ++ JuliaLean.Proofs.Compiler.src.abstractlattice.entries
+    ++ JuliaLean.Proofs.Compiler.src.typelattice.entries
+    ++ JuliaLean.Proofs.Compiler.src.typelimits.entries
+    ++ JuliaLean.Proofs.Compiler.src.effects.entries
+    ++ JuliaLean.Proofs.Compiler.src.tfuncs.entries
+    ++ JuliaLean.Proofs.Compiler.src.cicache.entries
+    ++ JuliaLean.Proofs.Compiler.src.bindinginvalidations.entries
+    ++ JuliaLean.Proofs.Compiler.src.reinfer.entries
+    ++ JuliaLean.Proofs.Compiler.src.ssair.domtree.entries
+    ++ JuliaLean.Proofs.Compiler.src.ssair.slot2ssa.entries
+    ++ JuliaLean.Proofs.Compiler.src.typeutils.entries
+    ++ JuliaLean.Proofs.Compiler.src.ssair.EscapeAnalysis.entries
+    ++ JuliaLean.Proofs.Compiler.src.inferenceresult.entries
+    ++ JuliaLean.Proofs.Compiler.src.inferenceresult.exactEntries
+    ++ JuliaLean.Proofs.Compiler.src.inferenceresult.exactUtilityEntries
+    ++ JuliaLean.Proofs.Compiler.src.inferenceresult.exactTypeinferEntries
+    ++ JuliaLean.Proofs.Compiler.src.optimize.entries
+    ++ JuliaLean.Proofs.Compiler.src.optimize.exactEntries
+    ++ JuliaLean.Proofs.Compiler.src.ssair.inlining.entries
 end JuliaLean.Registry

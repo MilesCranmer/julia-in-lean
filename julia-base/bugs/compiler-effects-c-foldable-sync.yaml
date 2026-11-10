@@ -1,0 +1,79 @@
+id: compiler-effects-c-foldable-sync
+title: "effects_foldable in staticdata.c is out of sync with is_foldable(effects, true)"
+priority: P3
+kind: documentation
+area: Compiler
+files: [src/staticdata.c, Compiler/src/effects.jl]
+functions: ["effects_foldable(uint32_t effects)", "is_foldable(effects::Effects, check_rtcall::Bool=false)"]
+summary: |
+  effects_foldable (src/staticdata.c:645-652) decides whether serialization keeps a
+  CodeInstance's non-inlineable inferred code "for irinterp", and says it must be kept in
+  sync with Core.Compiler.is_foldable(effects, true). It requires noub == ALWAYS_TRUE, while
+  is_foldable also accepts NOUB_IF_NOINBOUNDS, and it does not read nortcall. So a foldable
+  CodeInstance whose noub is NOUB_IF_NOINBOUNDS loses its inferred code in a package image,
+  and one that calls return_type keeps code the compiler will never fold.
+likelihood: |
+  Triage 2026-11-10 (wave 2): verdict survives only as a comment that is out of
+  sync, priority P3 (was P2), kind documentation.
+
+  Reproduces on the pinned build and nightly 290d5bb5f5; effects_foldable is
+  unchanged on master eb844b8ebd (src/staticdata.c:657-664 there). 1.13.3 does
+  not reproduce, because it drops the inferred code of both methods (both
+  `inferred::Nothing`). The mismatch has no effect on inference, because nothing
+  reads the code this clause keeps. Since #62359 (311f373e01, 1.14), semi-concrete
+  evaluation runs only on a LocalInferenceResult (abstractinterpretation.jl:1404).
+  A cached CodeInstance becomes one only when lookup_cached_edge loads its source,
+  and it does that only for inlineable code (typeinfer.jl:1252-1259). The clause
+  only applies to non-inlineable code (`jl_ir_inlining_cost(inferred) ==
+  UINT16_MAX`), so the source it keeps "for irinterp" is never used for irinterp
+  after a load. Then the noub and nortcall mismatch only changes how much dead
+  code an image carries, which is a caching lead in compiler/PERF_LEADS.md, not
+  a wrong result. The fix is either to sync the test, or to delete the clause and
+  its comment.
+
+  NOUB_IF_NOINBOUNDS comes from @assume_effects :noub_if_noinbounds and from methods
+  whose @boundscheck blocks follow the caller's @inbounds state; with @propagate_inbounds
+  these are usually inlineable and keep their code anyway. The repro needs a @noinline method.
+  No difference in an inferred type was shown: for non-inlineable cached code,
+  lookup_cached_edge (Compiler/src/typeinfer.jl:1237-1265) does not hand the source to
+  semi-concrete evaluation in either case. The visible effect is what the package image keeps.
+maybe_intended: |
+  A stricter test only discards less or keeps more, so it is not unsound. But the comment
+  promises the two match, and the nortcall half keeps code the other way round.
+reproducer: |
+  A package with
+    Base.@assume_effects :noub_if_noinbounds @noinline getnib(t::NTuple{4,Int}, i::Int) = @inbounds t[i]
+    @noinline getub(t::NTuple{4,Int}, i::Int) = t[i]
+  precompiled through a caller; after `using`, getnib's CodeInstance (?u, is_foldable(e, true)
+  == true) has inferred::UInt8 (only the inlining cost) while getub's (+u) has a String.
+output:
+  release: |                          # 1.13.3 67ac47b9cd855e02134d41d5428ac9f2a73f2694 (installed release)
+    getnib (+c,+e,!n,+t,+s,+m,?u,+o,+r) is_foldable(e, true) = true, inferred::Nothing
+    getub  (+c,+e,!n,+t,+s,+m,+u,+o,+r) is_foldable(e, true) = true, inferred::Nothing
+    NOT REPRODUCED compiler-effects-c-foldable-sync
+  nightly: |                          # 1.15.0-DEV.304 290d5bb5f52e815284ce14493f6964147d2f2dc7
+    getnib (+c,+e,+re,!n,+t,+s,+m,?u,+o,+r) is_foldable(e, true) = true, inferred::UInt8
+    getub  (+c,+e,+re,!n,+t,+s,+m,+u,+o,+r) is_foldable(e, true) = true, inferred::String
+    REPRODUCED compiler-effects-c-foldable-sync
+reproduced: {release: false, nightly: true}
+expected: |
+  Both foldable CodeInstances keep (or both drop) their inferred code.
+promised_by: |
+  src/staticdata.c:647, "This needs to be kept in sync with Core.Compiler.is_foldable(effects, true)", and the encode_effects comment at Compiler/src/effects.jl:371.
+cause: |
+  src/staticdata.c:649 tests ((effects >> 10) & 0x03) == 0 (noub == ALWAYS_TRUE only), and no line reads bit 14 (nortcall).
+possible_fix: |
+  Accept noub values 0 and 2 (((effects >> 10) & 0x03) != 1, given the valid range) and require ((effects >> 14) & 0x01).
+duplicates:
+  issues: []
+  queries: ["effects_foldable", "effects_foldable staticdata noub", "effects_foldable is_foldable sync", "staticdata discard inferred foldable", "noub irinterp discard", "noub_if_noinbounds pkgimage inferred", "noub_if_noinbounds precompile", "prs: effects_foldable", "prs: noub_if_noinbounds precompile", "wave 2, issues and prs, unquoted words: effects_foldable", "staticdata discard inferred irinterp", "pkgimage inferred code foldable noub", "irinterp pkgimage", "precompile inferred code discard"]
+lean:
+  property: JuliaLean.Proofs.Compiler.src.effects.CFoldableSync
+  theorem: JuliaLean.Proofs.Compiler.src.effects.cFoldableSync_refuted
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: true
+  output: |
+    getnib (+c,+e,+re,!n,+t,+s,+m,?u,+o,+r) is_foldable(e, true) = true, inferred::UInt8
+    getub  (+c,+e,+re,!n,+t,+s,+m,+u,+o,+r) is_foldable(e, true) = true, inferred::String
+    REPRODUCED compiler-effects-c-foldable-sync

@@ -1,0 +1,106 @@
+id: compiler-slot2ssa-arg-entry-loop
+title: "An argument assigned in a loop whose header is block 1 keeps its entry value (wrong result)"
+priority: P3
+kind: wrong-result
+area: Compiler
+files: [Compiler/src/ssair/slot2ssa.jl]
+functions: ["compute_live_ins(cfg::CFG, defs::Vector{Int}, uses::Vector{Int})", "construct_ssa!(ci::CodeInfo, ir::IRCode, sv::OptimizationState, domtree::DomTree, defuses::Vector{SlotInfo}, 𝕃ₒ::AbstractLattice)"]
+summary: |
+  When block 1 is a loop header (a goto back to statement 1) and the loop
+  assigns an argument, construct_ssa! puts no phi node for the argument in
+  block 1. Every iteration then reads the argument's entry value. The cause is
+  in compute_live_ins: it treats the argument's def (statement 0) as a def at
+  the top of block 1, so a use in block 1 counts as covered by that def, even
+  though the back edge reaches the use first. Block 1 is then not live-in, and
+  the pruned iterated dominance frontier drops it.
+likelihood: |
+  Low for source code. Lowering copies an argument that the body assigns into
+  a new slot at statement 1 (`x@_3 = x@_2`), so a loop back to statement 1
+  never meets an assigned argument slot. A generator that returns a CodeInfo
+  (the `Expr(:meta, :generated, gen)` mechanism that packages such as Cassette
+  and IRTools use) can make this shape. Nothing documents that block 1 must
+  have no predecessors: compute_basic_blocks gives it the virtual predecessor
+  0 and adds real predecessors for jumps to statement 1
+  (Compiler/src/ssair/ir.jl:106-146).
+  Triage 2026-11-10 (was P2). Rerun 2026-11-10: REPRODUCED on pinned f755f49a9e, nightly 290d5bb5f5, 1.13.3 and upstream master 4c0e39dde6 (a 2026-11-09 build, output.master).
+  The input breaks a lowering invariant. Commit bc7e002d13 (2016, "create an extra slot for
+  arguments that get assigned") says "It simplifies later analysis to assume that arguments are
+  not overwritten". Both lowerings keep it: with JuliaLowering on master 4c0e39dde6, a loop that
+  assigns an argument starts with `x@_3 = x@_2`, and the function returns 4. So only a CodeInfo
+  built by hand (a generator or a tool that edits CodeInfo) can reach this. But the invariant is
+  not documented (devdocs/ast.md, the @generated docs) and nothing checks it (verify_ir does
+  not), and the compiler half supports assigned arguments (def 0 in scan_slot_def_use). So it is a
+  silent miscompile of IR that is accepted. P3: worth a verifier check or the compute_live_ins fix,
+  not a user-facing bug.
+maybe_intended: |
+  The code may rely on lowering's argument copy without saying so. If that is
+  the intended invariant, construct_ssa! (or the generated-function path)
+  should check it, because breaking it gives wrong results without an error.
+reproducer: |
+  # A CodeInfo for: 1: x = x + 1; 2: %2 = cont(); 3: goto 5 if not %2;
+  #                 4: goto 1; 5: return x
+  # returned by a generator (see repro/compiler-slot2ssa-arg-entry-loop.jl)
+  const CNT = Ref(0)
+  cont() = (CNT[] += 1; CNT[] < 4)
+  argloop(0)   # 1; 4 with --compile=min
+output:
+  release: |                          # Julia 1.13.3 67ac47b9cd855e02134d41d5428ac9f2a73f2694
+    1.13.3 67ac47b9cd855e02134d41d5428ac9f2a73f2694
+    argloop(0) = 1 (expected 4)
+    argloop(0) with --compile=min = 4
+    block 1 of code_ircode: Any[:(Base.add_int(_2, 1)), :(Base.getfield(Main.CNT, :x)), :(Base.add_int(%2, 1)), :(Base.setfield!(Main.CNT, :x, %3)), :(Base.getfield(Main.CNT, :x)), :(Base.slt_int(%5, 4)), :(goto %3 if not %6)]
+    REPRODUCED compiler-slot2ssa-arg-entry-loop
+  nightly: |                          # 1.15.0-DEV.304 290d5bb5f52e815284ce14493f6964147d2f2dc7
+    1.15.0-DEV.304 290d5bb5f52e815284ce14493f6964147d2f2dc7
+    argloop(0) = 1 (expected 4)
+    argloop(0) with --compile=min = 4
+    block 1 of code_ircode: Any[:(Base.add_int(_2, 1)), :(Base.getfield(Main.CNT, :x)), :(Base.add_int(%2, 1)), :(Base.setfield!(Main.CNT, :x, %3)), :(Base.getfield(Main.CNT, :x)), :(Base.slt_int(%5, 4)), :(goto %3 if not %6)]
+    REPRODUCED compiler-slot2ssa-arg-entry-loop
+  master: |                          # 1.15.0-DEV.627 4c0e39dde69c0922daffc45fa63fe4ffd7438124 (upstream master 2026-11-09, desktop build; 6 commits behind eb844b8ebd, none in these files)
+    1.15.0-DEV.627 4c0e39dde69c0922daffc45fa63fe4ffd7438124
+    argloop(0) = 1 (expected 4)
+    argloop(0) with --compile=min = 4
+    block 1 of code_ircode: Any[:(Base.add_int(_2, 1)), :(Base.getfield(Main.CNT, :x)), :(Base.add_int(%2, 1)), :(Base.setfield!(Main.CNT, :x, %3)), :(Base.getfield(Main.CNT, :x)), :(Base.slt_int(%5, 4)), :(goto %3 if not %6
+    REPRODUCED compiler-slot2ssa-arg-entry-loop
+reproduced: {release: true, nightly: true, master: true}
+expected: |
+  argloop(0) == 4: the loop body runs four times and each run adds 1 to x, as
+  with --compile=min.
+promised_by: |
+  The semantics of the CodeInfo: the assignment x = x + 1 must be seen by the
+  next iteration. The comment of compute_live_ins (Compiler/src/ssair/
+  slot2ssa.jl:495-497) says it removes only blocks "where all uses are
+  dominated by a def"; here the use is not dominated by any def on the path
+  from the back edge.
+cause: |
+  Compiler/src/ssair/slot2ssa.jl:503-515: the merge loop maps def 0 (the
+  argument def that scan_slot_def_use adds, line 39) to block_for_inst(cfg, 0),
+  which is 1, and since 0 < every use it sets block_has_def for block 1 before
+  the first use. A use in block 1 is then not pushed to bb_uses, so block 1 is
+  not live-in. iterated_dominance_frontier with that liveness (lines 258-262)
+  does not place the phi that the back edge needs. The initial renaming gives
+  the slot Argument(n) (lines 660-666), and nothing updates it on the back
+  edge. Master eb844b8ebd999935a31829e19823db70c711d05f has the same lines.
+  Lean: JuliaLean.Proofs.Compiler.src.ssair.slot2ssa.constructSemAll_refuted,
+  on a three-block input of the same shape.
+possible_fix: |
+  Treat def 0 as a def on the entry edge rather than in block 1: skip it in
+  the merge loop (keep block 1 in def_bbs for the IDF), so that a use in
+  block 1 before any real def makes block 1 live-in. Or make
+  convert_to_ircode! (or the generated-function path) insert an empty first
+  block when statement 1 is a jump target.
+duplicates:
+  issues: []
+  queries: ["slot2ssa argument loop", "construct_ssa argument", "compute_live_ins", "phi entry block", "entry block loop header", "back edge first block", "generated function CodeInfo loop", "generated CodeInfo wrong result", "goto first statement", "missing phi argument", "slot2ssa", "loop argument wrong result generated", "label first statement goto", "CodeInfo generator loop argument", "phi node missing loop", "block 1 predecessor", "prs: compute_live_ins", "prs: entry block phi", "prs: slot2ssa argument", "issues: generated CodeInfo argument assigned loop"]
+lean:
+  property: JuliaLean.Proofs.Compiler.src.ssair.slot2ssa.ConstructSemAll
+  theorem: JuliaLean.Proofs.Compiler.src.ssair.slot2ssa.constructSemAll_refuted
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: true
+  output: |
+    1.15.0-DEV.184 f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    argloop(0) = 1 (expected 4)
+    argloop(0) with --compile=min = 4
+    block 1 of code_ircode: Any[:(Base.add_int(_2, 1)), :(Base.getfield(Main.CNT, :x)), :(Base.add_int(%2, 1)), :(Base.setfield!(Main.CNT, :x, %3)), :(Base.getfield(Main.CNT, :x)), :(Base.slt_int(%5, 4)), :(goto %3 if not %6)]
+    REPRODUCED compiler-slot2ssa-arg-entry-loop

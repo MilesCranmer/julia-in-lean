@@ -1,0 +1,91 @@
+id: compiler-inlining-threshold-overflow
+title: "inline_cost_model wraps the cost threshold when inline_cost_threshold is typemax(Int)"
+priority: P3
+kind: wrong-result
+area: Compiler
+files: [Compiler/src/typeinfer.jl]
+functions: ["inline_cost_model(interp::AbstractInterpreter, result::InferenceResult, inline_flag::UInt8, ir::IRCode)"]
+summary: |
+  inline_cost_model raises cost_threshold with plain Int additions: += inline_tupleret_bonus
+  for a non-concrete Tuple return, += 19*default for an @inline method, += 4*default for
+  Base.iterate/cconvert/unsafe_convert. With inline_cost_threshold = typemax(Int), which
+  GPUCompiler sets to force inlining, the first two wrap to a negative threshold, so every such
+  method gets MAX_INLINE_COST and is never inlined, the opposite of what the setting asks for.
+  Small methods that are inlined with the default parameters stay calls.
+likelihood: |
+  Reached by any AbstractInterpreter that sets inline_cost_threshold near typemax(Int);
+  GPUCompiler did (JuliaLang/julia#60121, JuliaGPU/AMDGPU.jl#846). Methods returning a Union of
+  tuples or an abstract Tuple are common. Default parameters (100) are far from the limit.
+  Triage 2026-11-10 (was P2). Rerun 2026-11-10: REPRODUCED on pinned f755f49a9e, nightly 290d5bb5f5, 1.13.3 and upstream master 4c0e39dde6 (a 2026-11-09 build, output.master).
+  Known: JuliaLang/julia#60121 is this bug, a PR closed unmerged on 2026-06-26. JeffBezanson and
+  adienes agreed there that the additions should saturate, and oscardssmith suggested not using
+  typemax(Int). GPUCompiler stopped passing typemax(Int) in JuliaGPU/GPUCompiler.jl#741, so its
+  users no longer hit it; they hit compiler-inlining-clamp-finite-to-max instead. Master
+  typeinfer.jl:552-562 is unchanged. P3: no known caller still passes typemax(Int), and the fix
+  should go with the clamp fix.
+maybe_intended: |
+  A reviewer on #60121 argued that a threshold so large that its arithmetic wraps is not
+  sensible and a few billion should be used instead. Then compiler-inlining-clamp-finite-to-max
+  applies: every body costing more than 3968 is still reported non-inlineable.
+reproducer: |
+  params = OptimizationParams(; inline_cost_threshold = typemax(Int))   # in a custom interpreter
+  tuplefn(x::Int) = x > 0 ? (x,) : (x, x)
+  calltuple(x) = tuplefn(x)
+  code_typed(calltuple, (Int,); interp)   # still calls tuplefn; inlined with default params
+output:
+  release: |                          # 1.13.3 67ac47b9cd855e02134d41d5428ac9f2a73f2694
+    1.13.3 67ac47b9cd855e02134d41d5428ac9f2a73f2694
+    threshold with tuple bonus: -9223372036854775559
+    threshold with @inline: -20
+    default threshold: tuplefn calls left = 0, plainfn calls left = 0
+    typemax threshold: tuplefn calls left = 1, plainfn calls left = 0
+    REPRODUCED compiler-inlining-threshold-overflow
+  nightly: |                          # 1.15.0-DEV.304 290d5bb5f52e815284ce14493f6964147d2f2dc7
+    1.15.0-DEV.304 290d5bb5f52e815284ce14493f6964147d2f2dc7
+    threshold with tuple bonus: -9223372036854775559
+    threshold with @inline: -20
+    default threshold: tuplefn calls left = 0, plainfn calls left = 0
+    typemax threshold: tuplefn calls left = 1, plainfn calls left = 0
+    REPRODUCED compiler-inlining-threshold-overflow
+  master: |                          # 1.15.0-DEV.627 4c0e39dde69c0922daffc45fa63fe4ffd7438124 (upstream master 2026-11-09, desktop build; 6 commits behind eb844b8ebd, none in these files)
+    1.15.0-DEV.627 4c0e39dde69c0922daffc45fa63fe4ffd7438124
+    threshold with tuple bonus: -9223372036854775559
+    threshold with @inline: -20
+    default threshold: tuplefn calls left = 0, plainfn calls left = 0
+    typemax threshold: tuplefn calls left = 1, plainfn calls left = 0
+    REPRODUCED compiler-inlining-threshold-overflow
+reproduced: {release: true, nightly: true, master: true}
+expected: |
+  A larger inline_cost_threshold never makes a method less inlineable; the threshold
+  saturates at typemax(Int) instead of wrapping.
+promised_by: |
+  The comments at Compiler/src/typeinfer.jl:533 and 537 describe each adjustment as an increase
+  ("increase the cost threshold 20x", "a few functions get special treatment"); the threshold is a
+  cost limit, so adding non-negative amounts should not lower it.
+cause: |
+  Compiler/src/typeinfer.jl:531, 535 and 541 (`cost_threshold += params.inline_tupleret_bonus`,
+  `cost_threshold += 19*default`, `cost_threshold += 4*default`) use wrapping Int arithmetic.
+  typemax(Int) + 250 is negative, typemax(Int) + 19*typemax(Int) is -20 (typemax(Int) + 4*typemax(Int)
+  is typemax(Int) - 4, which happens to stay large). A negative threshold makes inline_cost_model(ir,
+  ...) return MAX_INLINE_COST after the first statement. The lines are unchanged on master
+  eb844b8ebd (2026-11-10).
+possible_fix: |
+  Use saturating additions (as JeffBezanson and adienes suggested on #60121), for example
+  `cost_threshold = plus_saturate(cost_threshold, ...)`, and saturate 19*default and 4*default too.
+duplicates:
+  issues:
+    - {number: 60121, state: closed, relation: duplicate}
+  queries: ["inline_cost_threshold", "inline_cost_threshold typemax", "inline_cost_threshold overflow", "cost_threshold 19*default", "inline_tupleret_bonus overflow", "prs: inline_cost_threshold typemax", "issues: inline_cost_threshold typemax GPUCompiler"]
+lean:
+  property: JuliaLean.Proofs.Compiler.src.optimize.ThresholdAtLeastDefault
+  theorem: JuliaLean.Proofs.Compiler.src.optimize.thresholdAtLeastDefault_refuted
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: true
+  output: |
+    1.15.0-DEV.184 f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    threshold with tuple bonus: -9223372036854775559
+    threshold with @inline: -20
+    default threshold: tuplefn calls left = 0, plainfn calls left = 0
+    typemax threshold: tuplefn calls left = 1, plainfn calls left = 0
+    REPRODUCED compiler-inlining-threshold-overflow

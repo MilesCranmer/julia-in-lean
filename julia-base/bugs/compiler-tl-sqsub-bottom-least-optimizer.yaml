@@ -1,0 +1,75 @@
+id: compiler-tl-sqsub-bottom-least-optimizer
+title: "Union{} is not ⊑ Const or PartialStruct on the optimizer lattice"
+priority: P3
+kind: wrong-result
+area: Compiler
+files: [Compiler/src/typelattice.jl]
+functions: ["⊑(::PartialsLattice, a, b)", "⊑(::ConstsLattice, a, b)"]
+summary: |
+  On optimizer_lattice(NativeInterpreter()) = PartialsLattice(ConstsLattice()),
+  ⊑(Union{}, Const(1)) and ⊑(Union{}, PartialStruct(...)) are false. The Union{}
+  fast path lives only in ⊑(::AnyConditionalsLattice, ...), which the optimizer
+  lattice does not have; ConstsLattice then asks issingletontype(Union{}), and
+  PartialsLattice returns false for a non-Const a against a PartialStruct b.
+likelihood: |
+  The optimizer compares IR types with ⊑(𝕃ₒ, ...), for example
+  Compiler/src/ssair/passes.jl:1552 `!⊑(𝕃ₒ, compact[SSAValue(idx)][:type],
+  result_t)` with a Const result_t. An unreachable statement (type Union{})
+  compared against a constant is then treated as not refined. No miscompile
+  was shown; the likely effect is a missed simplification.
+
+  Triage 2026-11-09: verdict survives, priority P3.
+
+  Real law break, but no caller found that can hit it. Every `⊑(𝕃ₒ, ...)` call in
+  optimize.jl, ssair/passes.jl and ssair/inlining.jl compares against a plain type
+  (Bool, Tuple, Type, Method, Task, Builtin, a field type), where Union{} ⊑ T already
+  holds through JLTypeLattice. The one call with a lattice element on the right is
+  ssair/passes.jl:1552 (`result_t`, a tmerge of lifted leaves, possibly a Const). There, a
+  getfield whose own type is Union{} would be replaced by the lifted value and retyped as
+  Const. That is a sound widening of code already known to throw, not a miscompile.
+  No demonstration found. Upstream master is unchanged here (code read). It is not covered
+  by Compiler/test/lattice.jl, which tests only typeinf_lattice and ipo_lattice. Fix: add the
+  two fast paths to ⊑(::PartialsLattice), or to the outermost layer of every lattice.
+maybe_intended: |
+  Callers may never pass Union{} on the left, but nothing documents that.
+reproducer: |
+  const CC = Base.Compiler
+  OL = CC.optimizer_lattice(CC.NativeInterpreter())
+  CC.:⊑(OL, Union{}, Core.Const(1))  # false
+output:
+  release: |                          # Julia 1.13.3 67ac47b9cd8 (installed release; ARCHITECTURE.md pins 1.13.2)
+    optimizer: Union{} ⊑ Const(1) = false, Union{} ⊑ PartialStruct = false
+    typeinf:   Union{} ⊑ Const(1) = true
+    REPRODUCED compiler-tl-sqsub-bottom-least-optimizer
+  nightly: |                          # 1.15.0-DEV.304 290d5bb5f52e815284ce14493f6964147d2f2dc7
+    optimizer: Union{} ⊑ Const(1) = false, Union{} ⊑ PartialStruct = false
+    typeinf:   Union{} ⊑ Const(1) = true
+    REPRODUCED compiler-tl-sqsub-bottom-least-optimizer
+reproduced: {release: true, nightly: true}
+expected: |
+  Union{} ⊑ x for every lattice element x, as on typeinf_lattice.
+promised_by: |
+  ⊑ is the lattice order (Compiler/src/abstractlattice.jl:144-150), whose least
+  element is Union{}; tmeet returns Bottom for an empty meet and callers compare
+  it with ⊑.
+cause: |
+  The `a === Union{} && return true` fast path is only at
+  Compiler/src/typelattice.jl:424, inside the AnyConditionalsLattice method;
+  the PartialsLattice and ConstsLattice methods (lines 460-567) have none.
+possible_fix: |
+  Add `a === Union{} && return true` to ⊑(::PartialsLattice, ...) and
+  ⊑(::ConstsLattice, ...), or move the fast paths to the outermost layer of every
+  lattice.
+duplicates:
+  issues: []
+  queries: ["optimizer_lattice Union{} Const", "Bottom PartialStruct optimizer lattice", "prs: optimizer_lattice Union{} Const", "prs: Bottom PartialStruct optimizer lattice", "issues: optimizer_lattice Bottom", "issues: ⊑ Union{} PartialStruct"]
+lean:
+  property: JuliaLean.Proofs.Compiler.src.typelattice.SqsubBottomLeastOptimizer
+  theorem: JuliaLean.Proofs.Compiler.src.typelattice.sqsubBottomLeastOptimizer_refuted
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: true
+  output: |
+    optimizer: Union{} ⊑ Const(1) = false, Union{} ⊑ PartialStruct = false
+    typeinf:   Union{} ⊑ Const(1) = true
+    REPRODUCED compiler-tl-sqsub-bottom-least-optimizer

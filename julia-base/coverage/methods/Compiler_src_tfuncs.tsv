@@ -1,0 +1,180 @@
+file	line	endline	name	signature	status	entry	note
+Compiler/src/tfuncs.jl	23	50	nospecs	nospecs(ex)	todo		not modelled
+Compiler/src/tfuncs.jl	60	66	find_tfunc	find_tfunc(@nospecialize f)	todo		not modelled
+Compiler/src/tfuncs.jl	82	86	add_tfunc	add_tfunc(f::IntrinsicFunction, minarg::Int, maxarg::Int, @nospecialize(tfunc), cost::Int)	todo		not modelled
+Compiler/src/tfuncs.jl	87	91	add_tfunc	add_tfunc(@nospecialize(f::Builtin), minarg::Int, maxarg::Int, @nospecialize(tfunc), cost::Int)	todo		not modelled
+Compiler/src/tfuncs.jl	101	165	instanceof_tfunc	instanceof_tfunc(@nospecialize(t), astag::Bool=false, @nospecialize(troot = t))	todo		modelled and difftested; no property proven (its Union rule is one cause of bugs/compiler-tfuncs-subtype-bottom-lhs)
+Compiler/src/tfuncs.jl	173	173	bitcast_tfunc	bitcast_tfunc(𝕃::AbstractLattice, t, x)	todo		not modelled
+Compiler/src/tfuncs.jl	174	174	bitcast_tfunc	bitcast_tfunc(::JLTypeLattice, t, x)	todo		not modelled
+Compiler/src/tfuncs.jl	175	175	conversion_tfunc	conversion_tfunc(𝕃::AbstractLattice, t, x)	todo		not modelled
+Compiler/src/tfuncs.jl	176	176	conversion_tfunc	conversion_tfunc(::JLTypeLattice, t, x)	todo		not modelled
+Compiler/src/tfuncs.jl	192	192	math_tfunc	math_tfunc(𝕃::AbstractLattice, args...)	todo		not modelled
+Compiler/src/tfuncs.jl	193	193	math_tfunc	math_tfunc(::JLTypeLattice, x, xs...)	todo		not modelled
+Compiler/src/tfuncs.jl	225	225	and_int_tfunc	and_int_tfunc(𝕃::AbstractLattice, x, y)	todo		not modelled
+Compiler/src/tfuncs.jl	226	233	and_int_tfunc	and_int_tfunc(𝕃::ConstsLattice, x, y)	todo		not modelled
+Compiler/src/tfuncs.jl	234	234	and_int_tfunc	and_int_tfunc(::JLTypeLattice, x, y)	todo		not modelled
+Compiler/src/tfuncs.jl	236	236	or_int_tfunc	or_int_tfunc(𝕃::AbstractLattice, x, y)	todo		not modelled
+Compiler/src/tfuncs.jl	237	244	or_int_tfunc	or_int_tfunc(𝕃::ConstsLattice, x, y)	todo		not modelled
+Compiler/src/tfuncs.jl	245	245	or_int_tfunc	or_int_tfunc(::JLTypeLattice, x, y)	todo		not modelled
+Compiler/src/tfuncs.jl	247	247	shift_tfunc	shift_tfunc(𝕃::AbstractLattice, x, y)	todo		not modelled
+Compiler/src/tfuncs.jl	248	248	shift_tfunc	shift_tfunc(::JLTypeLattice, x, y)	todo		not modelled
+Compiler/src/tfuncs.jl	250	257	not_tfunc	not_tfunc(𝕃::AbstractLattice, @nospecialize(b))	todo		not modelled
+Compiler/src/tfuncs.jl	291	291	cmp_tfunc	cmp_tfunc(𝕃::AbstractLattice, a, b)	todo		not modelled
+Compiler/src/tfuncs.jl	292	292	cmp_tfunc	cmp_tfunc(::JLTypeLattice, a, b)	todo		not modelled
+Compiler/src/tfuncs.jl	313	313	chk_tfunc	chk_tfunc(𝕃::AbstractLattice, x, y)	todo		not modelled
+Compiler/src/tfuncs.jl	314	314	chk_tfunc	chk_tfunc(::JLTypeLattice, x, y)	todo		not modelled
+Compiler/src/tfuncs.jl	326	328	llvmcall_tfunc	llvmcall_tfunc(𝕃::AbstractLattice, fptr, rt, at, a...)	todo		not modelled
+Compiler/src/tfuncs.jl	331	331	cglobal_tfunc	cglobal_tfunc(𝕃::AbstractLattice, fptr)	todo		not modelled
+Compiler/src/tfuncs.jl	332	335	cglobal_tfunc	cglobal_tfunc(𝕃::AbstractLattice, fptr, t)	todo		not modelled
+Compiler/src/tfuncs.jl	344	358	ifelse_tfunc	ifelse_tfunc(𝕃::AbstractLattice, cnd, x, y)	modelled	compiler-tfuncs-ifelse-tfunc	
+Compiler/src/tfuncs.jl	361	364	ifelse_nothrow	ifelse_nothrow(𝕃::AbstractLattice, cond, x, y)	modelled	compiler-tfuncs-builtin-nothrow-dispatch,compiler-tfuncs-ifelse-nothrow-sound	
+Compiler/src/tfuncs.jl	366	366	egal_tfunc	egal_tfunc(𝕃::AbstractLattice, x, y)	modelled	compiler-tfuncs-egal-tfunc	
+Compiler/src/tfuncs.jl	367	369	egal_tfunc	egal_tfunc(𝕃::MustAliasesLattice, x, y)	modelled	compiler-tfuncs-egal-tfunc	
+Compiler/src/tfuncs.jl	370	387	egal_tfunc	egal_tfunc(𝕃::ConditionalsLattice, x, y)	modelled	compiler-tfuncs-egal-tfunc	
+Compiler/src/tfuncs.jl	388	396	egal_tfunc	egal_tfunc(𝕃::ConstsLattice, x, y)	modelled	compiler-tfuncs-egal-tfunc	
+Compiler/src/tfuncs.jl	397	400	egal_tfunc	egal_tfunc(::JLTypeLattice, x, y)	modelled	compiler-tfuncs-egal-tfunc	
+Compiler/src/tfuncs.jl	403	409	isdefined_nothrow	isdefined_nothrow(𝕃::AbstractLattice, argtypes::Vector{Any})	modelled	compiler-tfuncs-isdefined-nothrow	
+Compiler/src/tfuncs.jl	410	419	isdefined_nothrow	isdefined_nothrow(𝕃::AbstractLattice, x, name)	modelled	compiler-tfuncs-isdefined-nothrow	
+Compiler/src/tfuncs.jl	421	423	isdefined_tfunc	isdefined_tfunc(𝕃::AbstractLattice, arg1, sym, order)	todo		modelled and difftested (difftest/compiler/tfuncs.jl); no property proven yet
+Compiler/src/tfuncs.jl	424	485	isdefined_tfunc	isdefined_tfunc(𝕃::AbstractLattice, arg1, sym)	todo		modelled and difftested (difftest/compiler/tfuncs.jl); no property proven yet
+Compiler/src/tfuncs.jl	489	529	sizeof_nothrow	sizeof_nothrow(@nospecialize(x))	todo		not modelled
+Compiler/src/tfuncs.jl	533	550	bitsizeof_nothrow	bitsizeof_nothrow(@nospecialize(x))	todo		not modelled
+Compiler/src/tfuncs.jl	552	565	_const_sizeof	_const_sizeof(@nospecialize(x))	todo		not modelled
+Compiler/src/tfuncs.jl	566	595	sizeof_tfunc	sizeof_tfunc(𝕃::AbstractLattice, x)	todo		not modelled
+Compiler/src/tfuncs.jl	596	612	bitsizeof_tfunc	bitsizeof_tfunc(𝕃::AbstractLattice, x)	todo		not modelled
+Compiler/src/tfuncs.jl	617	617	primitive_bitsizeof	primitive_bitsizeof(@nospecialize(T))	todo		not modelled
+Compiler/src/tfuncs.jl	620	645	nfields_tfunc	nfields_tfunc(𝕃::AbstractLattice, x)	modelled	compiler-tfuncs-nfields-tfunc	
+Compiler/src/tfuncs.jl	650	655	_svec_len_tfunc	_svec_len_tfunc(::AbstractLattice, s)	todo		not modelled
+Compiler/src/tfuncs.jl	657	660	_svec_len_nothrow	_svec_len_nothrow(𝕃::AbstractLattice, s)	todo		not modelled
+Compiler/src/tfuncs.jl	662	670	_svec_ref_tfunc	_svec_ref_tfunc(::AbstractLattice, s, i)	todo		not modelled
+Compiler/src/tfuncs.jl	672	717	typevar_tfunc	typevar_tfunc(::AbstractLattice, n, lb_arg, ub_arg)	todo		not modelled
+Compiler/src/tfuncs.jl	718	726	typebound_nothrow	typebound_nothrow(𝕃::AbstractLattice, b)	todo		not modelled
+Compiler/src/tfuncs.jl	727	733	typevar_nothrow	typevar_nothrow(𝕃::AbstractLattice, n, lb, ub)	todo		not modelled
+Compiler/src/tfuncs.jl	748	765	get_atomic_order	get_atomic_order(order::Symbol, loading::Bool, storing::Bool)	todo		not modelled
+Compiler/src/tfuncs.jl	767	778	pointer_eltype	pointer_eltype(@nospecialize(ptr))	todo		not modelled
+Compiler/src/tfuncs.jl	780	782	pointerarith_tfunc	pointerarith_tfunc(𝕃::AbstractLattice, ptr, offset)	todo		not modelled
+Compiler/src/tfuncs.jl	783	785	pointerref_tfunc	pointerref_tfunc(𝕃::AbstractLattice, a, i, align)	todo		not modelled
+Compiler/src/tfuncs.jl	786	788	pointerset_tfunc	pointerset_tfunc(𝕃::AbstractLattice, a, v, i, align)	todo		not modelled
+Compiler/src/tfuncs.jl	789	791	atomic_fence_tfunc	atomic_fence_tfunc(𝕃::AbstractLattice, order, syncscope)	todo		not modelled
+Compiler/src/tfuncs.jl	792	794	atomic_pointerref_tfunc	atomic_pointerref_tfunc(𝕃::AbstractLattice, a, order)	todo		not modelled
+Compiler/src/tfuncs.jl	795	797	atomic_pointerset_tfunc	atomic_pointerset_tfunc(𝕃::AbstractLattice, a, v, order)	todo		not modelled
+Compiler/src/tfuncs.jl	798	800	atomic_pointerswap_tfunc	atomic_pointerswap_tfunc(𝕃::AbstractLattice, a, v, order)	todo		not modelled
+Compiler/src/tfuncs.jl	801	813	atomic_pointermodify_tfunc	atomic_pointermodify_tfunc(𝕃::AbstractLattice, ptr, op, v, order)	todo		not modelled
+Compiler/src/tfuncs.jl	814	825	atomic_pointerreplace_tfunc	atomic_pointerreplace_tfunc(𝕃::AbstractLattice, ptr, x, v, success_order, failure_order)	todo		not modelled
+Compiler/src/tfuncs.jl	837	854	compilerbarrier_tfunc	compilerbarrier_tfunc(𝕃::AbstractLattice, setting, val)	todo		not modelled
+Compiler/src/tfuncs.jl	858	860	compilerbarrier_nothrow	compilerbarrier_nothrow(setting, val)	todo		not modelled
+Compiler/src/tfuncs.jl	863	880	typeof_concrete_vararg	typeof_concrete_vararg(t::DataType)	todo		modelled and difftested (difftest/compiler/tfuncs.jl); no property proven yet
+Compiler/src/tfuncs.jl	882	920	typeof_tfunc	typeof_tfunc(𝕃::AbstractLattice, t)	modelled	compiler-tfuncs-typeof-tfunc	
+Compiler/src/tfuncs.jl	922	927	_typeof_tfunc	_typeof_tfunc(𝕃::AbstractLattice, t)	modelled	compiler-tfuncs-typeof-tfunc	
+Compiler/src/tfuncs.jl	930	944	has_free_typevars_tfunc	has_free_typevars_tfunc(𝕃::AbstractLattice, t)	modelled	compiler-tfuncs-has-free-typevars-tfunc	
+Compiler/src/tfuncs.jl	947	951	typeassert_tfunc	typeassert_tfunc(𝕃::AbstractLattice, v, t)	todo		modelled and difftested (difftest/compiler/tfuncs.jl); no property proven yet
+Compiler/src/tfuncs.jl	954	963	typeassert_nothrow	typeassert_nothrow(𝕃::AbstractLattice, v, t)	modelled	compiler-tfuncs-typeassert-nothrow	
+Compiler/src/tfuncs.jl	965	997	isa_tfunc	isa_tfunc(𝕃::AbstractLattice, v, tt)	todo		modelled and difftested (difftest/compiler/tfuncs.jl); no property proven yet
+Compiler/src/tfuncs.jl	1000	1003	isa_nothrow	isa_nothrow(𝕃::AbstractLattice, obj, typ)	modelled	compiler-tfuncs-builtin-nothrow-dispatch,compiler-tfuncs-isa-nothrow-sound	
+Compiler/src/tfuncs.jl	1005	1020	subtype_tfunc	subtype_tfunc(𝕃::AbstractLattice, a, b)	todo		modelled and difftested; soundness refuted on Julia (bugs/compiler-tfuncs-subtype-bottom-lhs), Lean refutation blocked by partial while loops in the subtype model (entry compiler-tfuncs-subtype-bottom-lhs, todo)
+Compiler/src/tfuncs.jl	1023	1026	subtype_nothrow	subtype_nothrow(𝕃::AbstractLattice, lty, rty)	modelled	compiler-tfuncs-builtin-nothrow-dispatch,compiler-tfuncs-subtype-nothrow-sound	
+Compiler/src/tfuncs.jl	1028	1043	try_compute_fieldidx	try_compute_fieldidx(@nospecialize(typ), @nospecialize(field))	todo		modelled and difftested (difftest/compiler/tfuncs.jl); no property proven yet
+Compiler/src/tfuncs.jl	1045	1069	getfield_boundscheck	getfield_boundscheck(argtypes::Vector{Any})	modelled	compiler-tfuncs-getfield-boundscheck	
+Compiler/src/tfuncs.jl	1071	1091	getfield_nothrow	getfield_nothrow(𝕃::AbstractLattice, argtypes::Vector{Any}, boundscheck::Symbol=getfield_boundscheck(argtypes))	todo		modelled and difftested (difftest/compiler/tfuncs.jl); no property proven yet
+Compiler/src/tfuncs.jl	1092	1167	getfield_nothrow	getfield_nothrow(𝕃::AbstractLattice, s00, name, boundscheck::Bool)	todo		modelled and difftested (difftest/compiler/tfuncs.jl); no property proven yet
+Compiler/src/tfuncs.jl	1169	1175	getfield_tfunc	getfield_tfunc(𝕃::AbstractLattice, s00, name, boundscheck_or_order)	modelled	compiler-tfuncs-getfield-tfunc-args	
+Compiler/src/tfuncs.jl	1176	1182	getfield_tfunc	getfield_tfunc(𝕃::AbstractLattice, s00, name, order, boundscheck)	modelled	compiler-tfuncs-getfield-tfunc-args,compiler-tfuncs-vararg-optional-arg-bottom	
+Compiler/src/tfuncs.jl	1183	1185	getfield_tfunc	getfield_tfunc(𝕃::AbstractLattice, s00, name)	modelled	compiler-tfuncs-getfield-tfunc-args	
+Compiler/src/tfuncs.jl	1187	1196	_getfield_fieldindex	_getfield_fieldindex(s::DataType, name::Const)	modelled	compiler-tfuncs-getfield-fieldindex	
+Compiler/src/tfuncs.jl	1198	1215	_getfield_tfunc_const	_getfield_tfunc_const(@nospecialize(sv), name::Const)	todo		modelled and difftested (difftest/compiler/tfuncs.jl); no property proven yet
+Compiler/src/tfuncs.jl	1217	1223	_getfield_tfunc	_getfield_tfunc(𝕃::InferenceLattice, s00, name, setfield::Bool)	todo		modelled and difftested (difftest/compiler/tfuncs.jl); no property proven yet
+Compiler/src/tfuncs.jl	1225	1230	_getfield_tfunc	_getfield_tfunc(𝕃::AnyConditionalsLattice, s00, name, setfield::Bool)	todo		modelled and difftested (difftest/compiler/tfuncs.jl); no property proven yet
+Compiler/src/tfuncs.jl	1232	1234	_getfield_tfunc	_getfield_tfunc(𝕃::AnyMustAliasesLattice, s00, name, setfield::Bool)	todo		modelled and difftested (difftest/compiler/tfuncs.jl); no property proven yet
+Compiler/src/tfuncs.jl	1236	1262	_getfield_tfunc	_getfield_tfunc(𝕃::PartialsLattice, s00, name, setfield::Bool)	todo		modelled and difftested (difftest/compiler/tfuncs.jl); no property proven yet
+Compiler/src/tfuncs.jl	1264	1284	_getfield_tfunc	_getfield_tfunc(𝕃::ConstsLattice, s00, name, setfield::Bool)	todo		modelled and difftested (difftest/compiler/tfuncs.jl); no property proven yet
+Compiler/src/tfuncs.jl	1286	1405	_getfield_tfunc	_getfield_tfunc(𝕃::JLTypeLattice, s00, name, setfield::Bool)	todo		modelled and difftested (difftest/compiler/tfuncs.jl); no property proven yet
+Compiler/src/tfuncs.jl	1407	1412	setfield!_tfunc	setfield!_tfunc(𝕃::AbstractLattice, o, f, v, order)	todo		not modelled
+Compiler/src/tfuncs.jl	1413	1419	setfield!_tfunc	setfield!_tfunc(𝕃::AbstractLattice, o, f, v)	todo		not modelled
+Compiler/src/tfuncs.jl	1420	1420	mutability_errorcheck	mutability_errorcheck(@nospecialize obj)	todo		not modelled
+Compiler/src/tfuncs.jl	1421	1432	_mutability_errorcheck	_mutability_errorcheck(@nospecialize objt0)	todo		not modelled
+Compiler/src/tfuncs.jl	1434	1437	setfield!_nothrow	setfield!_nothrow(𝕃::AbstractLattice, s00, name, v, order)	todo		not modelled
+Compiler/src/tfuncs.jl	1438	1459	setfield!_nothrow	setfield!_nothrow(𝕃::AbstractLattice, s00, name, v)	todo		not modelled
+Compiler/src/tfuncs.jl	1461	1464	swapfield!_tfunc	swapfield!_tfunc(𝕃::AbstractLattice, o, f, v, order=Symbol)	todo		not modelled
+Compiler/src/tfuncs.jl	1465	1475	modifyfield!_tfunc	modifyfield!_tfunc(𝕃::AbstractLattice, o, f, op, v, order=Symbol)	todo		not modelled
+Compiler/src/tfuncs.jl	1476	1488	replacefield!_tfunc	replacefield!_tfunc(𝕃::AbstractLattice, o, f, x, v, success_order=Symbol, failure_order=Symbol)	todo		not modelled
+Compiler/src/tfuncs.jl	1489	1493	setfieldonce!_tfunc	setfieldonce!_tfunc(𝕃::AbstractLattice, o, f, v, success_order=Symbol, failure_order=Symbol)	todo		not modelled
+Compiler/src/tfuncs.jl	1495	1593	abstract_modifyop!	abstract_modifyop!(interp::AbstractInterpreter, ff, argtypes::Vector{Any}, si::StmtInfo, vtypes::Union{VarTable,Nothing}, sv::AbsIntState)	todo		not modelled
+Compiler/src/tfuncs.jl	1604	1610	fieldtype_egal_lattice	fieldtype_egal_lattice(@nospecialize(s0))	todo		not modelled
+Compiler/src/tfuncs.jl	1612	1636	fieldtype_nothrow	fieldtype_nothrow(𝕃::AbstractLattice, s0, name)	todo		not modelled
+Compiler/src/tfuncs.jl	1638	1670	_fieldtype_nothrow	_fieldtype_nothrow(@nospecialize(s), exact::Bool, egal::Bool, name::Const)	todo		not modelled
+Compiler/src/tfuncs.jl	1672	1674	fieldtype_tfunc	fieldtype_tfunc(𝕃::AbstractLattice, s0, name, boundscheck)	todo		not modelled
+Compiler/src/tfuncs.jl	1675	1707	fieldtype_tfunc	fieldtype_tfunc(𝕃::AbstractLattice, s0, name)	todo		not modelled
+Compiler/src/tfuncs.jl	1713	1835	_fieldtype_tfunc	_fieldtype_tfunc(𝕃::AbstractLattice, s, name, exact::Bool, egal::Bool)	todo		not modelled
+Compiler/src/tfuncs.jl	1839	1839	valid_tparam_type	valid_tparam_type(T::DataType)	todo		not modelled
+Compiler/src/tfuncs.jl	1840	1840	valid_tparam_type	valid_tparam_type(T::TypeEq)	todo		not modelled
+Compiler/src/tfuncs.jl	1841	1841	valid_tparam_type	valid_tparam_type(T::Core.TypeEgal)	todo		not modelled
+Compiler/src/tfuncs.jl	1842	1842	valid_tparam_type	valid_tparam_type(U::Union)	todo		not modelled
+Compiler/src/tfuncs.jl	1843	1843	valid_tparam_type	valid_tparam_type(U::UnionAll)	todo		not modelled
+Compiler/src/tfuncs.jl	1845	1859	typeeq_apply_type_nothrow	typeeq_apply_type_nothrow(𝕃::AbstractLattice, argtypes::Vector{Any})	todo		not modelled
+Compiler/src/tfuncs.jl	1861	1887	typeeq_apply_type_tfunc	typeeq_apply_type_tfunc(𝕃::AbstractLattice, argtypes::Vector{Any})	todo		not modelled
+Compiler/src/tfuncs.jl	1890	1899	typeegal_apply_type_nothrow	typeegal_apply_type_nothrow(𝕃::AbstractLattice, argtypes::Vector{Any})	todo		not modelled
+Compiler/src/tfuncs.jl	1901	1910	typeegal_apply_type_tfunc	typeegal_apply_type_tfunc(𝕃::AbstractLattice, argtypes::Vector{Any})	todo		not modelled
+Compiler/src/tfuncs.jl	1912	1977	apply_type_nothrow	apply_type_nothrow(𝕃::AbstractLattice, argtypes::Vector{Any}, @nospecialize(rt))	todo		not modelled
+Compiler/src/tfuncs.jl	1982	2065	apply_type_tfunc	apply_type_tfunc(𝕃::AbstractLattice, argtypes::Vector{Any}; max_union_splitting::Int=InferenceParams().max_union_splitting)	todo		not modelled
+Compiler/src/tfuncs.jl	2067	2077	apply_type_arg_value	apply_type_arg_value(@nospecialize(t))	todo		not modelled
+Compiler/src/tfuncs.jl	2079	2102	partial_typeofvararg_value	partial_typeofvararg_value(@nospecialize(t))	todo		not modelled
+Compiler/src/tfuncs.jl	2104	2298	_apply_type_tfunc	_apply_type_tfunc(𝕃::AbstractLattice, headtype, argtypes::Vector{Any})	todo		not modelled
+Compiler/src/tfuncs.jl	2299	2300	apply_type_tfunc	apply_type_tfunc(𝕃::AbstractLattice, headtypetype, args...)	todo		not modelled
+Compiler/src/tfuncs.jl	2305	2366	tuple_tfunc	tuple_tfunc(𝕃::AbstractLattice, argtypes::Vector{Any})	modelled	compiler-tfuncs-tuple-tfunc,compiler-tfuncs-tuple-vararg-type	
+Compiler/src/tfuncs.jl	2368	2374	memorynew_tfunc	memorynew_tfunc(𝕃::AbstractLattice, memtype, memlen)	todo		not modelled
+Compiler/src/tfuncs.jl	2377	2380	memoryrefget_tfunc	memoryrefget_tfunc(𝕃::AbstractLattice, mem, order, boundscheck)	todo		not modelled
+Compiler/src/tfuncs.jl	2381	2384	memoryrefset!_tfunc	memoryrefset!_tfunc(𝕃::AbstractLattice, mem, item, order, boundscheck)	todo		not modelled
+Compiler/src/tfuncs.jl	2385	2388	memoryrefunset!_tfunc	memoryrefunset!_tfunc(𝕃::AbstractLattice, mem, order, boundscheck)	todo		not modelled
+Compiler/src/tfuncs.jl	2389	2392	memoryrefswap!_tfunc	memoryrefswap!_tfunc(𝕃::AbstractLattice, mem, v, order, boundscheck)	todo		not modelled
+Compiler/src/tfuncs.jl	2393	2399	memoryrefmodify!_tfunc	memoryrefmodify!_tfunc(𝕃::AbstractLattice, mem, op, v, order, boundscheck)	todo		not modelled
+Compiler/src/tfuncs.jl	2400	2407	memoryrefreplace!_tfunc	memoryrefreplace!_tfunc(𝕃::AbstractLattice, mem, x, v, success_order, failure_order, boundscheck)	todo		not modelled
+Compiler/src/tfuncs.jl	2408	2412	memoryrefsetonce!_tfunc	memoryrefsetonce!_tfunc(𝕃::AbstractLattice, mem, v, success_order, failure_order, boundscheck)	todo		not modelled
+Compiler/src/tfuncs.jl	2423	2425	memoryref_isassigned_tfunc	memoryref_isassigned_tfunc(𝕃::AbstractLattice, mem, order, boundscheck)	todo		not modelled
+Compiler/src/tfuncs.jl	2426	2429	_memoryref_isassigned_tfunc	_memoryref_isassigned_tfunc(𝕃::AbstractLattice, mem, order, boundscheck)	todo		not modelled
+Compiler/src/tfuncs.jl	2432	2445	memoryref_tfunc	memoryref_tfunc(𝕃::AbstractLattice, mem)	todo		not modelled
+Compiler/src/tfuncs.jl	2446	2451	memoryref_tfunc	memoryref_tfunc(𝕃::AbstractLattice, ref, idx)	todo		not modelled
+Compiler/src/tfuncs.jl	2452	2457	memoryref_tfunc	memoryref_tfunc(𝕃::AbstractLattice, ref, idx, boundscheck)	todo		not modelled
+Compiler/src/tfuncs.jl	2460	2463	memoryrefoffset_tfunc	memoryrefoffset_tfunc(𝕃::AbstractLattice, mem)	todo		not modelled
+Compiler/src/tfuncs.jl	2466	2471	memoryref_builtin_common_errorcheck	memoryref_builtin_common_errorcheck(mem, order, boundscheck)	todo		not modelled
+Compiler/src/tfuncs.jl	2473	2487	memoryref_elemtype	memoryref_elemtype(mem)	todo		not modelled
+Compiler/src/tfuncs.jl	2489	2504	_memoryref_elemtype	_memoryref_elemtype(mem)	todo		not modelled
+Compiler/src/tfuncs.jl	2506	2521	opaque_closure_tfunc	opaque_closure_tfunc(𝕃::AbstractLattice, arg, lb, ub, source, env::Vector{Any}, mi::MethodInstance)	todo		not modelled
+Compiler/src/tfuncs.jl	2524	2534	array_type_undefable	array_type_undefable(arytype)	todo		not modelled
+Compiler/src/tfuncs.jl	2536	2545	memoryset_typecheck	memoryset_typecheck(𝕃::AbstractLattice, memtype, elemtype)	todo		not modelled
+Compiler/src/tfuncs.jl	2547	2573	memoryref_builtin_common_nothrow	memoryref_builtin_common_nothrow(argtypes::Vector{Any})	todo		not modelled
+Compiler/src/tfuncs.jl	2575	2600	memoryrefop_builtin_common_nothrow	memoryrefop_builtin_common_nothrow(𝕃::AbstractLattice, argtypes::Vector{Any}, @nospecialize f)	todo		not modelled
+Compiler/src/tfuncs.jl	2602	2605	memoryref_builtin_common_typecheck	memoryref_builtin_common_typecheck(𝕃::AbstractLattice, boundscheck, memtype, order)	todo		not modelled
+Compiler/src/tfuncs.jl	2607	2622	memorynew_nothrow	memorynew_nothrow(argtypes::Vector{Any})	todo		not modelled
+Compiler/src/tfuncs.jl	2626	2711	_builtin_nothrow	_builtin_nothrow(𝕃::AbstractLattice, @nospecialize(f::Builtin), argtypes::Vector{Any}, @nospecialize(rt))	todo		partly modelled: getfield, isa, <:, isdefined, ifelse and typeassert branches (compiler-tfuncs-builtin-nothrow-dispatch); fieldtype, apply_type, sizeof, bitsizeof, setfield!, the memory ops, _expr, _typevar, invoke, get_binding_type, donotdelete, finalizer, compilerbarrier, _svec_len, _svec_ref and task_result_type are not
+Compiler/src/tfuncs.jl	2879	2903	isdefined_effects	isdefined_effects(𝕃::AbstractLattice, argtypes::Vector{Any})	todo		not modelled
+Compiler/src/tfuncs.jl	2905	2924	is_relocatable_ptr_field	is_relocatable_ptr_field(@nospecialize(ty), @nospecialize(fld))	todo		not modelled
+Compiler/src/tfuncs.jl	2927	2933	is_const_field_argtype	is_const_field_argtype(@nospecialize(obj), @nospecialize(name))	todo		not modelled
+Compiler/src/tfuncs.jl	2935	2987	getfield_effects	getfield_effects(𝕃::AbstractLattice, argtypes::Vector{Any}, @nospecialize(rt))	todo		not modelled
+Compiler/src/tfuncs.jl	3073	3179	builtin_effects	builtin_effects(𝕃::AbstractLattice, @nospecialize(f::Builtin), argtypes::Vector{Any}, @nospecialize(rt))	todo		not modelled
+Compiler/src/tfuncs.jl	3181	3209	memoryop_noub	memoryop_noub(@nospecialize(f), argtypes::Vector{Any})	todo		not modelled
+Compiler/src/tfuncs.jl	3211	3233	current_scope_tfunc	current_scope_tfunc(::AbstractInterpreter, sv::InferenceState)	todo		not modelled
+Compiler/src/tfuncs.jl	3234	3234	current_scope_tfunc	current_scope_tfunc(::AbstractInterpreter, ::IRInterpretationState)	todo		not modelled
+Compiler/src/tfuncs.jl	3236	3236	hasvarargtype	hasvarargtype(argtypes::Vector{Any})	modelled	compiler-tfuncs-builtin-nothrow-dispatch	
+Compiler/src/tfuncs.jl	3243	3253	builtin_nothrow	builtin_nothrow(𝕃::AbstractLattice, @nospecialize(f), argtypes::Vector{Any}, @nospecialize(rt))	modelled	compiler-tfuncs-builtin-nothrow-dispatch,compiler-tfuncs-pure-nothrow-sound	
+Compiler/src/tfuncs.jl	3255	3334	builtin_tfunction	builtin_tfunction(interp::AbstractInterpreter, @nospecialize(f), argtypes::Vector{Any}, sv::Union{AbsIntState, Nothing})	modelled	compiler-tfuncs-builtin-fold,compiler-tfuncs-builtin-args,compiler-tfuncs-builtin-tfunction,compiler-tfuncs-arity-bottom,compiler-tfuncs-vararg-optional-arg-bottom,compiler-tfuncs-builtin-dispatch	intrinsic branch (T_IFUNC) not modelled; tfuncs of current_scope, apply_type and builtins outside the modelled set not modelled
+Compiler/src/tfuncs.jl	3338	3338	_iszero	_iszero(@nospecialize x)	todo		not modelled
+Compiler/src/tfuncs.jl	3339	3339	_isneg1	_isneg1(@nospecialize x)	todo		not modelled
+Compiler/src/tfuncs.jl	3340	3340	_istypemin	_istypemin(@nospecialize x)	todo		not modelled
+Compiler/src/tfuncs.jl	3342	3349	builtin_exct	builtin_exct(𝕃::AbstractLattice, @nospecialize(f::Builtin), argtypes::Vector{Any}, @nospecialize(rt))	todo		not modelled
+Compiler/src/tfuncs.jl	3351	3358	div_nothrow	div_nothrow(f::IntrinsicFunction, @nospecialize(arg1), @nospecialize(arg2))	todo		not modelled
+Compiler/src/tfuncs.jl	3360	3364	known_is_valid_intrinsic_elptr	known_is_valid_intrinsic_elptr(𝕃::AbstractLattice, @nospecialize(ptr))	todo		not modelled
+Compiler/src/tfuncs.jl	3366	3530	intrinsic_exct	intrinsic_exct(𝕃::AbstractLattice, f::IntrinsicFunction, argtypes::Vector{Any})	todo		not modelled
+Compiler/src/tfuncs.jl	3532	3534	intrinsic_nothrow	intrinsic_nothrow(f::IntrinsicFunction, argtypes::Vector{Any})	todo		not modelled
+Compiler/src/tfuncs.jl	3536	3544	_is_effect_free_infer	_is_effect_free_infer(f::IntrinsicFunction)	todo		not modelled
+Compiler/src/tfuncs.jl	3547	3559	is_pure_intrinsic_infer	is_pure_intrinsic_infer(f::IntrinsicFunction, is_effect_free::Union{Nothing,Bool}=nothing)	todo		not modelled
+Compiler/src/tfuncs.jl	3561	3580	intrinsic_effects	intrinsic_effects(f::IntrinsicFunction, argtypes::Vector{Any})	todo		not modelled
+Compiler/src/tfuncs.jl	3585	3687	return_type_tfunc	return_type_tfunc(interp::AbstractInterpreter, argtypes::Vector{Any}, si::StmtInfo, sv::AbsIntState)	todo		not modelled
+Compiler/src/tfuncs.jl	3690	3721	abstract_applicable	abstract_applicable(interp::AbstractInterpreter, argtypes::Vector{Any}, sv::AbsIntState)	todo		not modelled
+Compiler/src/tfuncs.jl	3725	3759	_hasmethod_tfunc	_hasmethod_tfunc(interp::AbstractInterpreter, argtypes::Vector{Any}, sv::AbsIntState)	todo		not modelled
+Compiler/src/tfuncs.jl	3762	3767	typename_static	typename_static(@nospecialize(t))	todo		not modelled
+Compiler/src/tfuncs.jl	3769	3790	global_order_exct	global_order_exct(@nospecialize(o), loading::Bool, storing::Bool)	todo		not modelled
+Compiler/src/tfuncs.jl	3792	3795	get_binding_type_nothrow	get_binding_type_nothrow(𝕃::AbstractLattice, M, s)	todo		not modelled
+Compiler/src/tfuncs.jl	3803	3808	getglobal_partition_tfunc	getglobal_partition_tfunc(𝕃::AbstractLattice, gr, partition, order)	todo		not modelled
+Compiler/src/tfuncs.jl	3820	3829	task_result_type_tfunc	task_result_type_tfunc(𝕃::AbstractLattice, T)	todo		not modelled
+Compiler/src/tfuncs.jl	3840	3847	foreigncall_effects	foreigncall_effects(@nospecialize(abstract_eval), ::Expr)	todo		not modelled
+Compiler/src/tfuncs.jl	3849	3867	new_genericmemory_nothrow	new_genericmemory_nothrow(@nospecialize(abstract_eval), args::Vector{Any})	todo		not modelled

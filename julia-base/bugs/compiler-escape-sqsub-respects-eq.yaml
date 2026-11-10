@@ -1,0 +1,58 @@
+id: compiler-escape-sqsub-respects-eq
+title: "EscapeAnalysis ⊑ₑ returns false for x ⊑ₑ ⊥ when x == ⊥ but x !== ⊥"
+priority: P3
+kind: wrong-result
+area: Compiler
+files: [Compiler/src/ssair/EscapeAnalysis.jl]
+functions: ["x::EscapeInfo ⊑ₑ y::EscapeInfo", "ignore_argescape(x::EscapeInfo)"]
+summary: |
+  x ⊑ₑ y returns false as soon as y === ⊥, before comparing fields. ignore_argescape(⊥) copies
+  the Liveness set, so it is == ⊥ but not === ⊥, and ⊑ₑ says it is not below ⊥, although ⊥ ⊑ₑ
+  it holds. So ⊑ₑ does not respect the lattice equality ==.
+likelihood: |
+  None at this commit: ⊑ₑ is reached only through has_all_escape, and ignore_argescape results
+  are only queried (Compiler/src/optimize.jl:827-828), never compared with ⊑ₑ.
+  Triage 2026-11-10. Rerun 2026-11-10: REPRODUCED on pinned f755f49a9e, nightly 290d5bb5f5, 1.13.3 and upstream master 4c0e39dde6 (a 2026-11-09 build, output.master).
+  Master line 252 keeps the `y === ⊥` fast path. The only value that is == ⊥ but not === ⊥
+  comes from ignore_argescape(⊥), whose results are only queried, never compared. No effect in
+  the compiler. P3, and best fixed in the same change as compiler-escape-sqsub-transitive.
+maybe_intended: |
+  The comment "return x === ⊥" shows the fast path assumes the only EscapeInfo equal to ⊥ is ⊥
+  itself; that holds for values the analysis stores, but not for ignore_argescape(⊥).
+reproducer: |
+  const EA = Base.Compiler.EscapeAnalysis
+  x = EA.ignore_argescape(EA.NotAnalyzed())
+  x == EA.NotAnalyzed(), EA.:⊑ₑ(x, EA.NotAnalyzed())   # (true, false)
+output:
+  release: |                          # 1.13.3 67ac47b9cd855e02134d41d5428ac9f2a73f2694
+    x == ⊥: true; x === ⊥: false; x ⊑ₑ ⊥: false; ⊥ ⊑ₑ x: true
+    REPRODUCED compiler-escape-sqsub-respects-eq
+  nightly: |                          # 1.15.0-DEV.304 290d5bb5f52e815284ce14493f6964147d2f2dc7
+    x == ⊥: true; x === ⊥: false; x ⊑ₑ ⊥: false; ⊥ ⊑ₑ x: true
+    REPRODUCED compiler-escape-sqsub-respects-eq
+  master: |                          # 1.15.0-DEV.627 4c0e39dde69c0922daffc45fa63fe4ffd7438124 (upstream master 2026-11-09, desktop build; 6 commits behind eb844b8ebd, none in these files)
+    x == ⊥: true; x === ⊥: false; x ⊑ₑ ⊥: false; ⊥ ⊑ₑ x: true
+    REPRODUCED compiler-escape-sqsub-respects-eq
+reproduced: {release: true, nightly: true, master: true}
+expected: |
+  x ⊑ₑ ⊥ is true for every x == ⊥.
+promised_by: |
+  == is the lattice equality and ⊑ₑ the lattice order (Compiler/src/ssair/EscapeAnalysis.jl:186-187, 241-245).
+cause: |
+  Compiler/src/ssair/EscapeAnalysis.jl:254-255 `elseif y === ⊥; return false` decides by
+  identity. Unchanged on current master (eb844b8ebd99, lines 252-253).
+possible_fix: |
+  Drop the y === ⊥ fast path, or make ignore_argescape keep BOT_LIVENESS when Liveness is
+  already the constant without 0.
+duplicates:
+  issues: []
+  queries: ["issues: EscapeAnalysis ⊑ₑ", "issues: EscapeAnalysis ignore_argescape", "issues: EscapeInfo BoundsError", "prs: EscapeAnalysis ⊑ₑ (only #60153, docstring wording)", "prs: EscapeAnalysis ignore_argescape", "prs: EscapeInfo BoundsError", "issues: EscapeAnalysis lattice", "issues: EscapeInfo Unindexable"]
+lean:
+  property: JuliaLean.Proofs.Compiler.src.ssair.EscapeAnalysis.SqsubRespectsEq
+  theorem: JuliaLean.Proofs.Compiler.src.ssair.EscapeAnalysis.sqsubRespectsEq_refuted
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: true
+  output: |
+    x == ⊥: true; x === ⊥: false; x ⊑ₑ ⊥: false; ⊥ ⊑ₑ x: true
+    REPRODUCED compiler-escape-sqsub-respects-eq

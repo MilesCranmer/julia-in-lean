@@ -1,0 +1,35 @@
+file	line	endline	name	signature	status	entry	note
+Compiler/src/reinfer.jl	13	14	debug_method_invalidation	debug_method_invalidation(onoff::Bool)	todo		not modelled: the debug invalidation log is off in the model
+Compiler/src/reinfer.jl	18	18	external_blob_index	external_blob_index(@nospecialize(v))	todo		an input of the model (CIR.blob, MethodR.blob); the ccall itself is not modelled
+Compiler/src/reinfer.jl	72	77	VerifyMethodWorkspace	VerifyMethodWorkspace()	excluded		no-behaviour: constructor that only allocates empty work arrays and scratch refs
+Compiler/src/reinfer.jl	81	86	VerifyMethodInitialState	VerifyMethodInitialState(codeinst::CodeInstance)	modelled	compiler-reinfer-state-ctors	
+Compiler/src/reinfer.jl	88	90	VerifyMethodWorkState	VerifyMethodWorkState(dummy_cause::CodeInstance)	modelled	compiler-reinfer-state-ctors	
+Compiler/src/reinfer.jl	92	94	VerifyMethodResultState	VerifyMethodResultState()	modelled	compiler-reinfer-state-ctors	
+Compiler/src/reinfer.jl	97	100	binding_access_range_at	binding_access_range_at(b::Core.Binding, world::UInt)	modelled	compiler-reinfer-binding-queries	
+Compiler/src/reinfer.jl	103	115	binding_changed_since_require_world	binding_changed_since_require_world(b::Core.Binding, world::UInt)	modelled	compiler-reinfer-binding-queries	
+Compiler/src/reinfer.jl	119	126	insert_backedges	insert_backedges(internal_methods::Vector{Any})	modelled	compiler-reinfer-stale-min-world	unfolded by the insert_backedges run of compiler-reinfer-stale-min-world
+Compiler/src/reinfer.jl	128	147	scan_new_code!	scan_new_code!(internal_methods::Vector{Any}, workspace::VerifyMethodWorkspace)	modelled	compiler-reinfer-stale-min-world,compiler-reinfer-promote-ci-noop	unfolded by the insert_backedges run of compiler-reinfer-stale-min-world
+Compiler/src/reinfer.jl	149	163	verify_method_graph	verify_method_graph(codeinst::CodeInstance, validation_world::UInt, workspace::VerifyMethodWorkspace)	modelled	compiler-reinfer-stale-min-world	its assertions pass on the counterexample run of compiler-reinfer-stale-min-world; that verify_method never trips them in general is open (same invariant as compiler-reinfer-cycle-group)
+Compiler/src/reinfer.jl	165	178	gen_staged_sig	gen_staged_sig(def::Method, mi::MethodInstance)	todo		not modelled: reached only under code coverage or allocation logging
+Compiler/src/reinfer.jl	180	215	needs_instrumentation	needs_instrumentation(codeinst::CodeInstance, mi::MethodInstance, def::Method, validation_world::UInt)	todo		the branch under code coverage or allocation logging, where the function decides anything, is not modelled (should_instrument, debuginfo, jl_codeinst_coverage_compatible, gen_staged_sig); compiler-reinfer-needs-instrumentation-off (proven) covers only the two early returns
+Compiler/src/reinfer.jl	221	456	verify_method	verify_method(codeinst::CodeInstance, validation_world::UInt, workspace::VerifyMethodWorkspace)	todo		soundness refuted through it (compiler-reinfer-stale-min-world, whose run unfolds verify_method); cycle handling (compiler-reinfer-cycle-group) and the range bound (compiler-reinfer-range-bounded) are open: they need a Tarjan-stack invariant over the whole state machine. The difftest checks both on every r.verifyMethod case (cycle:*, range:* tallies)
+Compiler/src/reinfer.jl	468	479	get_method_from_edge	get_method_from_edge(@nospecialize t)	modelled	compiler-reinfer-edge-accessors	
+Compiler/src/reinfer.jl	482	486	get_mi_from_edge	get_mi_from_edge(@nospecialize t)	modelled	compiler-reinfer-edge-accessors	
+Compiler/src/reinfer.jl	490	497	expected_dominates_sig	expected_dominates_sig(meth::Method, mi::Union{Nothing,MethodInstance})	modelled	compiler-reinfer-dispatch-bits	
+Compiler/src/reinfer.jl	500	507	method_in_expecteds	method_in_expecteds(m::Method, expected::Vector{Method})	modelled	compiler-reinfer-dispatch-bits	
+Compiler/src/reinfer.jl	517	517	eachinterference	eachinterference(m::Method, cutoff::UInt=typemax(UInt))	modelled	compiler-reinfer-interference-sets	
+Compiler/src/reinfer.jl	518	525	Base.iterate	Base.iterate(ei::EachInterference, k::Int=1)	modelled	compiler-reinfer-interference-sets	
+Compiler/src/reinfer.jl	529	536	method_in_interferences	method_in_interferences(method2::Method, method1::Method)	modelled	compiler-reinfer-interference-sets	
+Compiler/src/reinfer.jl	540	543	method_morespecific_recorded	method_morespecific_recorded(method1::Method, method2::Method)	modelled	compiler-reinfer-interference-sets	
+Compiler/src/reinfer.jl	548	548	method_is_latest_which	method_is_latest_which(m::Method)	modelled	compiler-reinfer-dispatch-bits	
+Compiler/src/reinfer.jl	551	556	method_in_image_deps	method_in_image_deps(m::Method, image::UInt)	modelled	compiler-reinfer-image-queries	
+Compiler/src/reinfer.jl	560	564	sig_contributors_world	sig_contributors_world(@nospecialize(sig), mt::Core.MethodTable, image::UInt)	modelled	compiler-reinfer-image-queries	
+Compiler/src/reinfer.jl	566	571	promote_mi_to_current	promote_mi_to_current(mi::Union{Nothing,MethodInstance}, minworld::UInt, world::UInt)	modelled	compiler-reinfer-promote-mi	
+Compiler/src/reinfer.jl	597	610	newmethod_removed_silently	newmethod_removed_silently(meth::Method, interference_method::Method, @nospecialize(ti), @nospecialize(sig), expected::Vector{Method}, world::UInt)	modelled	compiler-reinfer-removed-silently	
+Compiler/src/reinfer.jl	638	649	expected_is_minmax	expected_is_minmax(meth::Method, interference_method::Method, @nospecialize(sig), expected::Vector{Method})	modelled	compiler-reinfer-expected-is-minmax	
+Compiler/src/reinfer.jl	664	676	has_empty_set_cover	has_empty_set_cover(interference_method::Method, @nospecialize(ti), expected::Vector{Method})	modelled	compiler-reinfer-empty-set-cover	
+Compiler/src/reinfer.jl	688	700	morespecific_cannot_cycle	morespecific_cannot_cycle(interference_method::Method, world::UInt)	modelled	compiler-reinfer-cannot-cycle	
+Compiler/src/reinfer.jl	705	725	verify_call_lookup	verify_call_lookup(@nospecialize(sig), lim::Int, world::UInt, workspace::VerifyMethodWorkspace, memoize::Bool)	modelled	compiler-reinfer-lookup-memo	
+Compiler/src/reinfer.jl	729	892	verify_call	verify_call(@nospecialize(sig), expecteds::Core.SimpleVector, i::Int, n::Int, world::UInt, fully_covers::Bool, possibly_ambiguous::Bool, workspace::VerifyMethodWorkspace, image::UInt)	modelled	compiler-reinfer-stale-min-world	
+Compiler/src/reinfer.jl	894	928	verify_invokesig	verify_invokesig(@nospecialize(invokesig), expected::Method, world::UInt, matches::Vector{Any}, image::UInt)	modelled	compiler-reinfer-invokesig-sound	
+Compiler/src/reinfer.jl	931	934	insert_backedges_typeinf	insert_backedges_typeinf(internal_methods::Vector{Any})	todo		not modelled: ccall wrapper that runs insert_backedges in the typeinf world

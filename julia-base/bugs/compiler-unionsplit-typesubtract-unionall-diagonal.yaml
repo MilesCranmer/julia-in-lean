@@ -1,0 +1,108 @@
+id: compiler-unionsplit-typesubtract-unionall-diagonal
+title: typesubtract drops values of a UnionAll over a Union, and isa folds wrongly
+priority: P0
+kind: wrong-result
+area: Compiler
+files:
+- Compiler/src/typeutils.jl
+- Compiler/src/abstractinterpretation.jl
+functions:
+- typesubtract(@nospecialize(a), @nospecialize(b), max_union_splitting::Int)
+- isa_condition (Compiler/src/abstractinterpretation.jl:2202-2218)
+summary: |
+  typesubtract(a, b, n) splits a = Union{A, B} where T into (A where T) and (B where T).
+  That changes the meaning of T when T occurs twice covariantly in one member and also
+  elsewhere: in Union{Tuple{T,T}, R{T}} where T the variable is not diagonal, so the type
+  contains (Int8(1), 2), but Tuple{T,T} where T alone is diagonal and does not.
+  typesubtract(A, AR, 4) returns Tuple{T,T} where T, which misses (Int8(1), 2) although
+  that value is not an AR. Inference uses the result as the else type of `y isa AR`, so a
+  later `y isa Tuple{T,T} where T` folds to true and the call returns the wrong branch.
+likelihood: |
+  Triage 2026-11-10 (wave 2): verdict survives, priority P0, with low likelihood.
+
+  Reproduces on the pinned build, nightly 290d5bb5f5 and 1.13.3, and typesubtract is
+  unchanged on master eb844b8ebd. `kr` returning 1 is a user-visible wrong
+  branch in compiled code. It is not a subtyping artifact: T in `Union{Tuple{T,T},
+  R{T}} where T` also occurs invariantly in R{T}, so it is not diagonal, and
+  `(Int8(1), 2) isa A` is true at run time, while `Tuple{T,T} where T` is diagonal on
+  its own. The comment at typeutils.jl:114-116 rules out intended behaviour. The
+  type is legal but unusual, so it ranks last among the P0s.
+
+  Low. Needs a declared (field or argument) type that is a UnionAll over a Union in which
+  one member uses the variable twice covariantly and another uses it elsewhere, then an isa
+  test on a value of that type. Such types are legal but unusual.
+maybe_intended: |
+  No. The comment at Compiler/src/typeutils.jl:114-116 promises Union{return, b} ==
+  Union{a, b} apart from contents that are not valid type tags, and (Int8(1), 2) is a valid
+  tag.
+reproducer: |
+  abstract type AR end; abstract type R{T} <: AR end
+  const A = Union{Tuple{T,T}, R{T}} where T
+  const D = Tuple{T,T} where T
+  Base.Compiler.typesubtract(A, AR, 4)   # Tuple{T, T} where T
+  k(y) = (y isa AR && return 0; y isa D && return 1; return 2)
+  kr(r) = k(r[])
+  kr(Ref{A}((Int8(1), 2)))               # 1, must be 2
+output:  # release: Julia 1.13.3 67ac47b9cd8; nightly: 1.15.0-DEV.304 290d5bb5f52
+  release: |
+    x isa A = true, x isa AR = false
+    typesubtract(A, AR, 4) = Tuple{T, T} where T, x isa it = false
+    A <: Union{typesubtract(A, AR, 4), AR} = false
+    k(x) through a Ref{A} = 1 (called directly: 2)
+    REPRODUCED compiler-unionsplit-typesubtract-unionall-diagonal
+  nightly: |
+    x isa A = true, x isa AR = false
+    typesubtract(A, AR, 4) = Tuple{T, T} where T, x isa it = false
+    A <: Union{typesubtract(A, AR, 4), AR} = false
+    k(x) through a Ref{A} = 1 (called directly: 2)
+    REPRODUCED compiler-unionsplit-typesubtract-unionall-diagonal
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  typesubtract(A, AR, 4) keeps every value of A outside AR: A itself, or a type that still
+  contains Tuple{Int8, Int}. kr returns 2.
+promised_by: |
+  Compiler/src/typeutils.jl:114-116: "return an upper-bound on type `a` with type `b`
+  removed ... such that `return <: a` && `Union{return, b} == Union{a, b}`".
+cause: |
+  Compiler/src/typeutils.jl:122-126 rewraps ua.a and ua.b separately with
+  rewrap_unionall, which is not equivalent to the original UnionAll when the variable is
+  diagonal in one member only. Lean: JuliaLean.Proofs.Compiler.src.typeutils.typesubtractCoversA_refuted
+  (kernel evaluation of the model on a universe with AR and R{T} <: AR).
+possible_fix: |
+  In the Union branch, return a unchanged (or skip splitting) when the UnionAll variable
+  occurs in more than one member, or check that Union{uua, uub} still contains a before using
+  it.
+duplicates:
+  issues:
+  - number: 63345
+    relation: related
+  queries:
+  - typesubtract
+  - typesubtract UnionAll
+  - diagonal isa unsound
+  - isa else branch wrong diagonal
+  - rewrap_unionall union diagonal
+  - 'prs: typesubtract'
+  - 'prs: diagonal Union where isa'
+  - 'prs: isa Union where T miscompile'
+  - 'wave 2, issues and prs, unquoted words: typesubtract UnionAll'
+  - typesubtract diagonal
+  - isa UnionAll Union diagonal wrong branch
+  - typesubtract
+  - diagonal isa
+  - typesubtract wrong
+  - diagonal UnionAll
+lean:
+  property: JuliaLean.Proofs.Compiler.src.typeutils.TypesubtractCoversA
+  theorem: JuliaLean.Proofs.Compiler.src.typeutils.typesubtractCoversA_refuted
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: true
+  output: |
+    x isa A = true, x isa AR = false
+    typesubtract(A, AR, 4) = Tuple{T, T} where T, x isa it = false
+    A <: Union{typesubtract(A, AR, 4), AR} = false
+    k(x) through a Ref{A} = 1 (called directly: 2)
+    REPRODUCED compiler-unionsplit-typesubtract-unionall-diagonal

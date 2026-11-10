@@ -1,0 +1,77 @@
+id: compiler-effects-effect-free-globally-collision
+title: "EFFECT_FREE_GLOBALLY collides with the bits of ALWAYS_FALSE and EFFECT_FREE_IF_INACCESSIBLEMEMONLY"
+priority: P3
+kind: wrong-result
+area: Compiler
+files: [Compiler/src/effects.jl, Compiler/src/optimize.jl]
+functions: ["is_effect_free_if_inaccessiblememonly(effects::Effects)", "merge_effectbits(old::UInt8, new::UInt8)", "flags_for_effects(effects::Effects)"]
+summary: |
+  EFFECT_FREE_GLOBALLY is 0x03 = ALWAYS_FALSE | EFFECT_FREE_IF_INACCESSIBLEMEMONLY. So
+  is_effect_free_if_inaccessiblememonly reads it as the conditional state, and inference
+  flags GC.@preserve begin/end statements (and :leave, :pop_exception, :aliasscope)
+  IR_FLAG_EFIIMO. Also merge_effectbits(EFFECT_FREE_GLOBALLY,
+  EFFECT_FREE_IF_INACCESSIBLEMEMONLY) is EFFECT_FREE_GLOBALLY, which drops the condition,
+  and merge_effects! (inferencestate.jl:1408-1414) then turns it into ALWAYS_TRUE.
+likelihood: |
+  Triage 2026-11-10 (wave 2): verdict survives as latent, priority P3.
+
+  Reproduces on the pinned build, nightly 290d5bb5f5 and 1.13.3; the constant
+  is still 0x03 on master eb844b8ebd. Today nothing goes wrong: the only reader
+  of IR_FLAG_EFIIMO needs IR_FLAG_INACCESSIBLEMEM_OR_ARGMEM too, and the only
+  code that tests for EFFECT_FREE_GLOBALLY (inferencestate.jl:1409) compares
+  with `===`, so the merge case is not reached. The value may have been picked
+  as "neither of the others" without meaning a bit union. It is still worth a
+  one-line fix (test `=== EFFECT_FREE_IF_INACCESSIBLEMEMONLY` in the query),
+  because the next reader of the flag would get a wrong answer.
+
+  The flag is set on every GC.@preserve region. It has no effect today: IR_FLAG_EFIIMO is
+  only read together with IR_FLAG_INACCESSIBLEMEM_OR_ARGMEM (IR_FLAGS_NEEDS_EA), which these
+  statements lack, and no code merges EFFECT_FREE_GLOBALLY with another state before
+  merge_effects!. It is a trap for the next user of either.
+maybe_intended: |
+  The value 0x03 may have been picked as "neither ALWAYS_TRUE nor the conditional bit alone" without meaning it as a bit union.
+reproducer: |
+  g(x) = GC.@preserve x 1
+  src = only(code_typed(g, (Vector{Int},); optimize = false))[1]
+  src.ssaflags[1] & CC.IR_FLAG_EFIIMO != 0    # true
+  CC.merge_effectbits(CC.EFFECT_FREE_GLOBALLY, CC.EFFECT_FREE_IF_INACCESSIBLEMEMONLY)  # 0x03
+output:
+  release: |                          # 1.13.3 67ac47b9cd855e02134d41d5428ac9f2a73f2694 (installed release)
+    EFFECT_FREE_GLOBALLY == ALWAYS_FALSE | EFFECT_FREE_IF_INACCESSIBLEMEMONLY: true
+    is_effect_free_if_inaccessiblememonly(effect_free = EFFECT_FREE_GLOBALLY) = true
+    merge_effectbits(EFFECT_FREE_GLOBALLY, EFFECT_FREE_IF_INACCESSIBLEMEMONLY) = 0x03
+    statement 1 gc_preserve_begin: IR_FLAG_EFIIMO set = true
+    statement 3 gc_preserve_end: IR_FLAG_EFIIMO set = true
+    REPRODUCED compiler-effects-effect-free-globally-collision
+  nightly: |                          # 1.15.0-DEV.304 290d5bb5f52e815284ce14493f6964147d2f2dc7
+    EFFECT_FREE_GLOBALLY == ALWAYS_FALSE | EFFECT_FREE_IF_INACCESSIBLEMEMONLY: true
+    is_effect_free_if_inaccessiblememonly(effect_free = EFFECT_FREE_GLOBALLY) = true
+    merge_effectbits(EFFECT_FREE_GLOBALLY, EFFECT_FREE_IF_INACCESSIBLEMEMONLY) = 0x03
+    statement 1 gc_preserve_begin: IR_FLAG_EFIIMO set = true
+    statement 3 gc_preserve_end: IR_FLAG_EFIIMO set = true
+    REPRODUCED compiler-effects-effect-free-globally-collision
+reproduced: {release: true, nightly: true}
+expected: |
+  is_effect_free_if_inaccessiblememonly is false at EFFECT_FREE_GLOBALLY, and merging it with EFFECT_FREE_IF_INACCESSIBLEMEMONLY keeps the condition.
+promised_by: |
+  The docstrings at Compiler/src/effects.jl:62-63 and 178-182: EFFECT_FREE_GLOBALLY is effect-free for callers but not removable, a state of its own, not a conditional one.
+cause: |
+  Compiler/src/effects.jl:183 gives EFFECT_FREE_GLOBALLY a value that is the bit union of two other states, and the conditional query tests a bit (effects.jl:363).
+possible_fix: |
+  Give EFFECT_FREE_GLOBALLY a bit of its own (0x04 fits the encoded width only if the effect_free slot grows to 3 bits, which shifts the encoding), or test effect_free === EFFECT_FREE_IF_INACCESSIBLEMEMONLY in the query.
+duplicates:
+  issues: []
+  queries: ["EFFECT_FREE_GLOBALLY", "EFFECT_FREE_GLOBALLY EFIIMO", "gc_preserve_begin effect_free", "EFFECT_FREE_GLOBALLY merge", "prs: EFFECT_FREE_GLOBALLY", "wave 2, issues and prs, unquoted words: EFFECT_FREE_GLOBALLY", "IR_FLAG_EFIIMO gc_preserve"]
+lean:
+  property: JuliaLean.Proofs.Compiler.src.effects.EffectFreeIfIamoNamedStates
+  theorem: JuliaLean.Proofs.Compiler.src.effects.effectFreeIfIamoNamedStates_refuted
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: true
+  output: |
+    EFFECT_FREE_GLOBALLY == ALWAYS_FALSE | EFFECT_FREE_IF_INACCESSIBLEMEMONLY: true
+    is_effect_free_if_inaccessiblememonly(effect_free = EFFECT_FREE_GLOBALLY) = true
+    merge_effectbits(EFFECT_FREE_GLOBALLY, EFFECT_FREE_IF_INACCESSIBLEMEMONLY) = 0x03
+    statement 1 gc_preserve_begin: IR_FLAG_EFIIMO set = true
+    statement 3 gc_preserve_end: IR_FLAG_EFIIMO set = true
+    REPRODUCED compiler-effects-effect-free-globally-collision

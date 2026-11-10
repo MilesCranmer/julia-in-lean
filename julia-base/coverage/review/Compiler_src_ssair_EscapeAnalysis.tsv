@@ -1,0 +1,25 @@
+line	name	verdict	mirror	property	settled	reason
+150	has_no_escape	HOLLOW	yes	no	yes	Both conjuncts are implications whose conclusion is has_no_escape = true, so the always-conservative constant `false` also satisfies the proposition; nothing fixes the query's value (e.g. on NoEscape(), or the exact field formula).
+151	has_arg_escape	HOLLOW	yes	no	yes	Monotonicity alone is satisfied by the constant `true`, so the proposition does not pin `0 ∈ x.Liveness`.
+152	has_return_escape	HOLLOW	yes	no	yes	Monotonicity alone is satisfied by the constant `true`, so the proposition does not pin `x.ReturnEscape`.
+153	has_return_escape	HOLLOW	yes	no	yes	Monotonicity alone is satisfied by the constant `true`, so neither the ReturnEscape test nor the `-1`/`pc` Liveness membership is pinned.
+154	has_thrown_escape	HOLLOW	yes	no	yes	Monotonicity alone is satisfied by the constant `true`, so the proposition does not pin `!isempty(x.ThrownEscape)`.
+155	has_thrown_escape	HOLLOW	yes	no	yes	Monotonicity alone is satisfied by the constant `true`, so the `-1`/`pc` ThrownEscape membership is not pinned.
+156	has_all_escape	FAITHFUL	yes	yes	yes	The first conjunct is an exact characterization (true iff x === ⊤) proven by unfolding `⊤ ⊑ₑ x`, so no other function satisfies it.
+159	ignore_argescape	HOLLOW	yes	no	yes	The statement only constrains the result, so an in-place `delete!(x.Liveness, 0)` without the `copy` (which would also clear the argument escape of every EscapeInfo sharing that set) satisfies it; it should also state that the heap entry behind x.Liveness is unchanged.
+160	ignore_thrownescapes	FAITHFUL	yes	yes	yes	ThrownEscape is pinned empty through has_thrown_escape and every other query is shown unchanged, for all EscapeInfos and heaps.
+161	ignore_aliasinfo	HOLLOW	yes	no	yes	The AliasInfo field, the whole point of the function, is never stated: a version that sets AliasInfo to Unindexable() or an empty IndexableFields satisfies every conjunct, but escape_new!/setfield! would then treat the field values differently.
+162	ignore_liveness	HOLLOW	yes	no	yes	Liveness is pinned only at 0, and at -1 and pc only when ReturnEscape is set, so for a non-returned x a version that just deletes 0 (ignore_argescape) satisfies it; it should state that Liveness is empty.
+177	merge_to_unindexable	HOLLOW	yes	no	yes	MergeAliasInfoCovers only requires the inputs' elements to appear in the result, so a merge that adds extra elements satisfies it, and the whole proposition is also met by a merge_alias_info that always returns `true`; the exact-membership lemma mem_mergeToUnindexable is not the registry statement.
+179	merge_to_unindexable	HOLLOW	yes	no	yes	Same entry: only containment (no element lost) is stated, so a version that adds unrelated LocalDef/LocalUse elements satisfies it; the exact iff lemma mem_mergeToUnindexable is proven but not registered.
+246	⊑ₑ	FAITHFUL	yes	yes	yes	Reflexivity is proven and transitivity, agreement with ⊔ₑ and respect for == are refuted on concrete inputs with reproducers; the inputs are buildable (zero-field and mixed IndexableFields/Unindexable AliasInfo, ignore_argescape(⊥)) but compilation only reaches ⊑ₑ through has_all_escape's `x === ⊤` fast path, so they cannot affect real compilation or loading (P3 is right).
+308	⊏ₑ	HOLLOW	yes	no	yes	Only one direction of the definition is stated, so the constant `false` satisfies both conjuncts; it needs `x ⊏ₑ y = true ↔ x ⊑ₑ y ∧ ¬(y ⊑ₑ x)` (irreflexivity then follows).
+316	⋤ₑ	FAITHFUL	yes	yes	yes	Under the documented precondition x ⊑ₑ y it fixes ⋤ₑ to equal ⊏ₑ, which is exactly what the docstring promises.
+323	⊔ₑ	HOLLOW	yes	no	yes	Every proven statement about the join is a "loses no escape" implication that the constant `⊤` also satisfies; the one refuted law (upper bound) fails only because ⊑ₑ throws BoundsError at line 279, not because of the join's body, and idempotence, commutativity, absorption and the ordinary-case upper bound are still todo.
+362	merge_alias_info	HOLLOW	yes	no	yes	AliasCovers _ (true) is True, so a merge_alias_info that always returns `true` satisfies the proposition; nothing rules out the conservative answer or extra elements.
+500	ArgEscapeInfo	FAITHFUL	yes	yes	yes	The all, return and thrown bits read by the cache queries are fixed exactly in terms of x === ⊤, has_return_escape and has_thrown_escape.
+512	has_no_escape	FAITHFUL	yes	yes	yes	Its value on every summary ArgEscapeInfo(x) is fixed exactly as !(x === ⊤) && !returned && !thrown.
+513	has_all_escape	FAITHFUL	yes	yes	yes	Its value on every summary ArgEscapeInfo(x) is fixed exactly as x === ⊤.
+514	has_return_escape	FAITHFUL	yes	yes	yes	Its value on every summary ArgEscapeInfo(x) is fixed exactly.
+515	has_thrown_escape	FAITHFUL	yes	yes	yes	Its value on every summary ArgEscapeInfo(x) is fixed exactly.
+1032	from_interprocedural	HOLLOW	yes	no	yes	A thrown escape at pc is required only when x has one, so a version that always sets ThrownEscape = BitSet(pc) (and one with Analyzed = false) satisfies it; the no-thrown case should be stated as ThrownEscape empty.

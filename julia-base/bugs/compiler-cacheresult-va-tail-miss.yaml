@@ -1,0 +1,91 @@
+id: compiler-cacheresult-va-tail-miss
+title: "Const-prop results whose argument types end in Vararg are never found in the local inference cache"
+priority: P3
+kind: wrong-result
+area: Compiler
+files: [Compiler/src/abstractinterpretation.jl, Compiler/src/inferenceresult.jl]
+functions: ["const_prop_call(interp, mi, result, arginfo, sv, concrete_eval_result)", "constprop_cache_lookup(𝕃, mi, given_argtypes, cache, world)", "is_argtype_match(𝕃, given_argtype, cache_argtype, overridden_by_const)"]
+summary: |
+  When a call's argument types end in a Vararg (a splat of unknown length), the const-prop key
+  ends in Vararg{T}. const_prop_call compares that last element with
+  argtype_by_index(cache_argtypes, n), which unwraps the cache's Vararg to T, so the tail is
+  always flagged in overridden_by_const. constprop_cache_lookup then checks the query's tail with
+  is_argtype_match(..., overridden_by_const = true); a Vararg is not forwardable, so the match is
+  false and the cached result is never returned. Each call site with the same constant arguments
+  runs constant propagation again, and the local cache fills with identical entries.
+likelihood: |
+  Any method that splats a collection of unknown length into a varargs callee with constant
+  leading arguments (g(1, v...), string or tuple helpers) hits it at every such call site. The
+  cost is one extra const-prop inference per call site within one inference session; inferred
+  types are not affected.
+  Triage 2026-11-10 (was P2). Rerun 2026-11-10: REPRODUCED on pinned f755f49a9e, nightly 290d5bb5f5, 1.13.3 and upstream master 4c0e39dde6 (a 2026-11-09 build, output.master).
+  Master abstractinterpretation.jl:1521-1522 and inferenceresult.jl are unchanged. Measured how
+  often it happens: typeinf_frame with a fresh NativeInterpreter on 40000 Base method instances
+  (dispatch-tuple specializations of Base functions, pinned Julia) made 39775 const-prop entries.
+  66 of them had a Vararg tail, and 16 were copies of an earlier Vararg-tail key: 0.04% extra
+  const-prop work. The mechanism is real and the fix is small, but on Base it costs almost
+  nothing, and inferred types are unchanged. P3 until a package workload shows more.
+maybe_intended: |
+  A miss is never unsound, so the code is correct. But the lookup's own loop is meant to reuse
+  a result whose key matches the query, and the flag at the tail does not say that a constant
+  overrode anything.
+reproducer: |
+  const CC = Base.Compiler
+  g(a, b...) = (a == 1 ? length(b) : "s")
+  callg(v::Vector{Int}) = (g(1, v...), g(1, v...), g(1, v...))
+  interp = CC.NativeInterpreter()
+  CC.typeinf_frame(interp, Base.method_instance(callg, (Vector{Int},)), false)
+  # interp.inf_cache now holds three const-prop results for g, all keyed
+  # [Const(g), Const(1), Vararg{Int64}] with overridden_by_const = [0, 1, 1].
+  # A fixed-arity h(a, b, c) called three times as h(1, v, v) leaves one.
+output:
+  release: |                          # 1.13.3 67ac47b9cd855e02134d41d5428ac9f2a73f2694
+    1.13.3 67ac47b9cd855e02134d41d5428ac9f2a73f2694
+    varargs callee: 3 const-prop entries: Vector{Any}[[Core.Const(Main.g), Core.Const(1), Vararg{Int64}], [Core.Const(Main.g), Core.Const(1), Vararg{Int64}], [Core.Const(Main.g), Core.Const(1), Vararg{Int64}]]
+    fixed-arity callee: 1 const-prop entries: Vector{Any}[[Core.Const(Main.h), Core.Const(1), Int64, Int64]]
+    REPRODUCED compiler-cacheresult-va-tail-miss
+  nightly: |                          # 1.15.0-DEV.304 290d5bb5f52e815284ce14493f6964147d2f2dc7
+    1.15.0-DEV.304 290d5bb5f52e815284ce14493f6964147d2f2dc7
+    varargs callee: 3 const-prop entries: Vector{Any}[[Core.Const(Main.g), Core.Const(1), Vararg{Int64}], [Core.Const(Main.g), Core.Const(1), Vararg{Int64}], [Core.Const(Main.g), Core.Const(1), Vararg{Int64}]]
+    fixed-arity callee: 1 const-prop entries: Vector{Any}[[Core.Const(Main.h), Core.Const(1), Int64, Int64]]
+    REPRODUCED compiler-cacheresult-va-tail-miss
+  master: |                          # 1.15.0-DEV.627 4c0e39dde69c0922daffc45fa63fe4ffd7438124 (upstream master 2026-11-09, desktop build; 6 commits behind eb844b8ebd, none in these files)
+    1.15.0-DEV.627 4c0e39dde69c0922daffc45fa63fe4ffd7438124
+    varargs callee: 3 const-prop entries: Vector{Any}[[Core.Const(Main.g), Core.Const(1), Vararg{Int64}], [Core.Const(Main.g), Core.Const(1), Vararg{Int64}], [Core.Const(Main.g), Core.Const(1), Vararg{Int64}]]
+    fixed-arity callee: 1 const-prop entries: Vector{Any}[[Core.Const(Main.h), Core.Const(1), Int64, Int64]]
+    REPRODUCED compiler-cacheresult-va-tail-miss
+reproduced: {release: true, nightly: true, master: true}
+expected: |
+  The second and third calls find the first result in the local cache, leaving one entry, as
+  for the fixed-arity callee.
+promised_by: |
+  Invariant: constprop_cache_lookup (Compiler/src/inferenceresult.jl:217-261) exists to return a
+  cached const-prop result for a query whose argument types match its key, and const_prop_call
+  (Compiler/src/abstractinterpretation.jl:1499-1511) consults it before inferring again.
+cause: |
+  Compiler/src/abstractinterpretation.jl:1517-1522 sets overridden_by_const[i] when
+  argtypes[i] !== argtype_by_index(cache_argtypes, i). For the last position of a key ending in
+  Vararg{T}, argtype_by_index (abstractinterpretation.jl:2166-2174) returns unwrapva of the
+  cache's Vararg, which is never === the Vararg itself. The lookup's loop
+  (Compiler/src/inferenceresult.jl:245-248) then calls is_argtype_match with
+  overridden_by_const = true on a non-forwardable Vararg, which returns false
+  (inferenceresult.jl:100-109). Upstream master eb844b8ebd99 (2026-11-10) has the same lines
+  (abstractinterpretation.jl:1519-1522; inferenceresult.jl is unchanged since f755f49a9e).
+possible_fix: |
+  Compute the flag for a Vararg tail against the cache's own last element (cache_argtypes[end])
+  instead of argtype_by_index, so an unchanged tail is not flagged; the lookup then compares the
+  tail as a non-forwardable, non-overridden position.
+duplicates:
+  issues: []
+  queries: ["constprop_cache_lookup Vararg", "overridden_by_const", "const prop cache vararg splat", "argtype_by_index overridden", "constprop cache vararg", "const-prop varargs cache", "matching_cache_argtypes vararg", "pick_const_args", "prs: constprop_cache_lookup Vararg", "prs: overridden_by_const", "prs: const prop cache vararg splat", "prs: argtype_by_index overridden", "issues: constprop splat vararg cache"]
+lean:
+  property: JuliaLean.Proofs.Compiler.src.inferenceresult.ConstpropKeyRehits
+  theorem: JuliaLean.Proofs.Compiler.src.inferenceresult.constpropKeyRehits_refuted
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: true
+  output: |
+    1.15.0-DEV.184 f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    varargs callee: 3 const-prop entries: Vector{Any}[[Core.Const(Main.g), Core.Const(1), Vararg{Int64}], [Core.Const(Main.g), Core.Const(1), Vararg{Int64}], [Core.Const(Main.g), Core.Const(1), Vararg{Int64}]]
+    fixed-arity callee: 1 const-prop entries: Vector{Any}[[Core.Const(Main.h), Core.Const(1), Int64, Int64]]
+    REPRODUCED compiler-cacheresult-va-tail-miss

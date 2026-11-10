@@ -1,0 +1,73 @@
+id: compiler-slot2ssa-fixup-uses-isdefined
+title: "fixup_uses! with UNDEF_TOKEN turns @isdefined(x) into true"
+priority: P3
+kind: wrong-result
+area: Compiler
+files: [Compiler/src/ssair/slot2ssa.jl]
+functions: ["fixup_uses!(ir::IRCode, ci::CodeInfo, code::Vector{Any}, uses::Vector{Int}, slot::Int, @nospecialize(ssa))"]
+summary: |
+  fixup_uses! renames every use of a slot with the pair `ssa => true`, that
+  is, it says the slot is defined whatever ssa is. With ssa === UNDEF_TOKEN,
+  every read of the slot gets a throw_undef_if_not(:x, false), but a use
+  @isdefined(x) becomes `true`.
+likelihood: |
+  None today. The only caller is the disabled `if false` branch of
+  construct_ssa! (Compiler/src/ssair/slot2ssa.jl:578-599). It matters only if
+  that branch is enabled again or the function gets a new caller.
+  Triage 2026-11-10. Rerun 2026-11-10: REPRODUCED on pinned f755f49a9e, nightly 290d5bb5f5, 1.13.3 and upstream master 4c0e39dde6 (a 2026-11-09 build, output.master).
+  Withdrawn as a bug report: the only caller is the `if false` branch at
+  Compiler/src/ssair/slot2ssa.jl:579 on master, so no compiled code can reach it. Kept as a
+  cleanup note: delete fixup_uses! together with the dead branch (as 5fdc91d4e3 and e3030f372d
+  did for other unused Compiler functions), or fix the pair if the branch is enabled again.
+maybe_intended: |
+  The disabled branch may never pass UNDEF_TOKEN; nothing says so.
+reproducer: |
+  # code = Any[nothing, Expr(:isdefined, SlotNumber(2))] in a one-block IRCode
+  Compiler.fixup_uses!(ir, ci, ir.stmts.stmt, [2], 2, Compiler.UNDEF_TOKEN)
+  ir.stmts.stmt[2]   # true
+output:
+  release: |                          # Julia 1.13.3 67ac47b9cd855e02134d41d5428ac9f2a73f2694
+    1.13.3 67ac47b9cd855e02134d41d5428ac9f2a73f2694
+    @isdefined(x) after fixup_uses! with UNDEF_TOKEN: true (expected false)
+    new nodes: Any[]
+    REPRODUCED compiler-slot2ssa-fixup-uses-isdefined
+  nightly: |                          # 1.15.0-DEV.304 290d5bb5f52e815284ce14493f6964147d2f2dc7
+    1.15.0-DEV.304 290d5bb5f52e815284ce14493f6964147d2f2dc7
+    @isdefined(x) after fixup_uses! with UNDEF_TOKEN: true (expected false)
+    new nodes: Any[]
+    REPRODUCED compiler-slot2ssa-fixup-uses-isdefined
+  master: |                          # 1.15.0-DEV.627 4c0e39dde69c0922daffc45fa63fe4ffd7438124 (upstream master 2026-11-09, desktop build; 6 commits behind eb844b8ebd, none in these files)
+    1.15.0-DEV.627 4c0e39dde69c0922daffc45fa63fe4ffd7438124
+    @isdefined(x) after fixup_uses! with UNDEF_TOKEN: true (expected false)
+    new nodes: Any[]
+    REPRODUCED compiler-slot2ssa-fixup-uses-isdefined
+reproduced: {release: true, nightly: true, master: true}
+expected: |
+  false, the undef half of the renaming for a slot with no value, as
+  rename_uses! gives for UNDEF_TOKEN => false.
+promised_by: |
+  The @isdefined case of fixemup! (Compiler/src/ssair/slot2ssa.jl:119-126)
+  answers with the second half of the renaming, which is meant to say whether
+  the slot is defined; construct_ssa! pairs UNDEF_TOKEN with false
+  (lines 660-666).
+cause: |
+  Compiler/src/ssair/slot2ssa.jl:153 passes `::SlotNumber->Pair{Any,Any}(ssa,
+  true)` whatever ssa is. Lean:
+  JuliaLean.Proofs.Compiler.src.ssair.slot2ssa.fixupIsdefinedUndef_refuted.
+possible_fix: |
+  Pass `ssa === UNDEF_TOKEN ? false : true` as the second half, or delete
+  fixup_uses! together with the disabled branch.
+duplicates:
+  issues: []
+  queries: ["fixup_uses", "isdefined UNDEF_TOKEN", "fixemup", "prs: fixup_uses", "prs: isdefined UNDEF_TOKEN", "prs: fixemup", "issues: fixup_uses"]
+lean:
+  property: JuliaLean.Proofs.Compiler.src.ssair.slot2ssa.FixupIsdefinedUndef
+  theorem: JuliaLean.Proofs.Compiler.src.ssair.slot2ssa.fixupIsdefinedUndef_refuted
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: true
+  output: |
+    1.15.0-DEV.184 f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    @isdefined(x) after fixup_uses! with UNDEF_TOKEN: true (expected false)
+    new nodes: Any[]
+    REPRODUCED compiler-slot2ssa-fixup-uses-isdefined

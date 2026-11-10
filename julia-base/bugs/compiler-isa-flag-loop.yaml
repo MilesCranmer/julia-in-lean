@@ -18,6 +18,15 @@ likelihood: |
   collections. It silently changes results; it already breaks `Markdown.rst`, which uses this exact
   pattern to insert `"\\ "` after inline code (stdlib/Markdown/src/render/rst.jl:110-117) and drops
   the separator on master.
+
+  Triage 2026-11-09: verdict duplicate, priority P0.
+
+  Real miscompile (wrong value, no flags needed), not a model artifact: there is no Lean
+  model behind it. Already reported as JuliaLang/julia#64183 (open, filed 2026-10-25 with
+  this exact reproducer; a commenter points at #55601 as the cause). No PR references
+  #64183, and no commit on upstream master after the nightly build (2026-10-31 to
+  2026-11-09) touches the Conditional staleness check. #64101 is merged, not open. Do not
+  file again; it can be cited as context.
 maybe_intended: ""
 reproducer: |
   struct C end
@@ -72,8 +81,9 @@ duplicates:
   issues:
     - {number: 55601, state: merged, relation: related}
     - {number: 63750, state: merged, relation: related}
-    - {number: 64101, state: open, relation: related}
-  queries: ["Conditional loop isa wrong", "miscompile isa loop", "wrong result loop isa", "reaching defs Conditional", "ssadef Conditional", "ssadef (PRs)", "stale Conditional", "conditional_valid (PRs)", "inference Conditional loop", "track reaching defs", "isa Const false loop", "Conditional slot reassigned loop (PRs)"]
+    - {number: 64101, state: merged, relation: related}
+    - {number: 64183, state: open, relation: duplicate}
+  queries: ["issues: isa loop wrong result", "issues: Conditional stale loop", "issues: ssadef", "prs: ssadef", "issues: miscompile isa loop", "issues: wrong result loop isa previous iteration", "prs: stale Conditional", "issues: Markdown rst", "issues: Conditional loop back edge", "prs: Conditional loop back edge", "prs: 64183", "Conditional loop isa wrong", "miscompile isa loop", "wrong result loop isa", "reaching defs Conditional", "ssadef Conditional", "ssadef (PRs)", "stale Conditional", "conditional_valid (PRs)", "inference Conditional loop", "track reaching defs", "isa Const false loop", "Conditional slot reassigned loop (PRs)"]
 lean:
   property: ""
   theorem: ""
@@ -83,3 +93,10 @@ lean:
     refinement. RuntimeCov.BaseCompiler models bootstrap wrappers only. A
     source-mirrored inference model must connect the two-iteration reproducer
     to its inferred false result before a model-backed property can be registered.
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: true
+  output: |
+    f(C(), "y") = false   (expected true)
+    Base.return_types(f, (C, String)) = Any[Bool]
+    REPRODUCED compiler-isa-flag-loop

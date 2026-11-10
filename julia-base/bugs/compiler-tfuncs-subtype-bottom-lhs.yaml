@@ -1,0 +1,99 @@
+id: compiler-tfuncs-subtype-bottom-lhs
+title: "subtype_tfunc folds a <: b to false when a's type can be Union{}, but Union{} <: b is always true"
+priority: P0
+kind: wrong-result
+area: Compiler
+files: [Compiler/src/tfuncs.jl]
+functions: ["subtype_tfunc(𝕃::AbstractLattice, a, b)", "instanceof_tfunc(t, astag::Bool=false, troot = t)"]
+summary: |
+  subtype_tfunc returns Const(false) when `instanceof_tfunc(a)` (the upper bound
+  of the types `a` can be) does not intersect `b`. `Type{<:Integer}` contains
+  `Union{}`, and `Union{} <: b` is true for every `b`, so for
+  `x::Type{<:Integer}` the call `x <: String` is folded to `false`, and returns
+  the wrong answer for `x = Union{}`. The same happens through the `isexact_a`
+  term: for `x::Union{Type{Int}, Core.TypeofBottom}`, instanceof_tfunc drops the
+  Union{} member and returns `Int` as exact (Compiler/src/tfuncs.jl:156-161), so
+  `x <: String` is folded to `false`.
+likelihood: |
+  Triage 2026-11-10 (wave 2): verdict survives, priority P0, with low likelihood.
+
+  Reproduces on the pinned build, nightly 290d5bb5f5 and 1.13.3; subtype_tfunc
+  is unchanged on master eb844b8ebd, and its false branch has had this shape
+  since 2018. The strongest argument that it is intended is the comment in
+  instanceof_tfunc's Union rule (tfuncs.jl:157-159): "we assume that `isexact`
+  only cares about the answers where there's actually a Type". That covers the
+  second variant (`Union{Type{Int}, Core.TypeofBottom}`) as a known
+  simplification. It does not cover the first: for `Type{<:Integer}` the
+  `!hasintersect(a, b)` term folds to false although `Union{} isa
+  Type{<:Integer}` holds, and the true branch's `a === Bottom` check shows the
+  code knows Union{} is below everything. `h(S(Union{}))` returning `false` is a
+  user-visible wrong result. Passing Union{} as a value is legal but rare, so
+  this ranks below the other P0s.
+
+  Needs a `<:` on a value typed `Type{<:T}` (or a UnionAll `Type{S} where S<:T`)
+  whose value is Union{} at run time, reached through a non-specialized slot
+  (a struct field, a container element, or a `@nospecialize` argument). Code
+  that tests types against each other this way is common in generic code;
+  passing Union{} is uncommon but legal.
+maybe_intended: |
+  No. The `a === Bottom` term in the true branch (Compiler/src/tfuncs.jl:1010-1011)
+  shows the code knows Union{} is a subtype of everything; the false branch does
+  not account for a being Union{} at run time.
+reproducer: |
+  struct S; t::Type{<:Integer}; end
+  h(s::S) = s.t <: String
+  only(code_typed(h, (S,)))[1].code   # Any[:(return false)]
+  h(S(Union{}))                       # false, but Union{} <: String is true
+  struct S2; t::Union{Type{Int}, Core.TypeofBottom}; end
+  h2(s::S2) = s.t <: String
+  h2(S2(Union{}))                     # false
+output:
+  release: |                          # Julia 1.13.3 67ac47b9cd855e02134d41d5428ac9f2a73f2694
+    Union{} isa Type{<:Integer} = true; Union{} <: String = true
+    code_typed(h, (S,)) = Any[:(return false)]
+    h(S(Union{})) = false
+    code_typed(h2, (S2,)) = Any[:(return false)]
+    h2(S2(Union{})) = false
+    REPRODUCED compiler-tfuncs-subtype-bottom-lhs
+  nightly: |                          # 1.15.0-DEV.304 290d5bb5f52e815284ce14493f6964147d2f2dc7
+    Union{} isa Type{<:Integer} = true; Union{} <: String = true
+    code_typed(h, (S,)) = Any[:(return false)]
+    h(S(Union{})) = false
+    code_typed(h2, (S2,)) = Any[:(return false)]
+    h2(S2(Union{})) = false
+    REPRODUCED compiler-tfuncs-subtype-bottom-lhs
+reproduced: {release: true, nightly: true}
+expected: |
+  `Bool` (or Const(false) only when `a` cannot be Union{}, i.e. its exact type is
+  known or its element-type bound excludes Union{}).
+promised_by: |
+  Soundness of inference: the inferred Const(false) must hold for every value of
+  the argument type.
+cause: |
+  Compiler/src/tfuncs.jl:1013-1017: `isexact_a || (b !== Bottom && !hasintersect(a, b))`
+  returns Const(false) without checking that the runtime `a` cannot be Union{}. The
+  `isexact_a` term is also wrong for a Union with a Union{} member, because
+  instanceof_tfunc's Union rule returns the other member with its own `isexact`
+  (Compiler/src/tfuncs.jl:156-161, "we assume that `isexact` only cares about the
+  answers where there's actually a Type").
+possible_fix: |
+  Only take the `!hasintersect(a, b)` shortcut when `a` is exact or cannot be
+  Union{} (for example when the argument element is a TypeEgal of a non-Bottom
+  type, or a DataType kind).
+duplicates:
+  issues: []
+  queries: ["subtype_tfunc Union{}", "<: Type{<:Integer} Union{} inferred false", "isa Type Union{} subtype constant fold wrong", "subtype_tfunc Bottom", "subtype_tfunc", "Union{} subtype inference false", "subtype tfunc Bottom", "issubtype inference Union{} wrong", "wave 2, issues and prs, unquoted words: subtype_tfunc Union{} false", "Type{<:T} Union{} subtype inferred wrong", "Union{} <: constant folded false", "instanceof_tfunc TypeofBottom", "issubtype Bottom inference unsound", "subtype_tfunc", "Union{} subtype inference", "TypeofBottom inference wrong", "Bottom subtype inference"]
+lean:
+  property: ""
+  theorem: ""
+  notes: "Found by the soundness smoke test of difftest/compiler/tfuncs.jl. The property is stated as SubtypeTfuncSound (JuliaLean/Proofs/Compiler/src/tfuncs/Refuted.lean, registry entry compiler-tfuncs-subtype-bottom-lhs, status todo) but not refuted in Lean: every counterexample needs jl_isa or jl_subtype on a Union or UnionAll (Union{} isa Type{<:Integer}, Int64 <: String), and those paths of the subtyping model run `while` loops, which are partial and opaque to the kernel. #eval of the model gives the pinned results."
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: true
+  output: |
+    Union{} isa Type{<:Integer} = true; Union{} <: String = true
+    code_typed(h, (S,)) = Any[:(return false)]
+    h(S(Union{})) = false
+    code_typed(h2, (S2,)) = Any[:(return false)]
+    h2(S2(Union{})) = false
+    REPRODUCED compiler-tfuncs-subtype-bottom-lhs

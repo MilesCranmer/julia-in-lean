@@ -1,0 +1,115 @@
+id: compiler-reinfer-stale-min-world
+title: "insert_backedges keeps stale image code when a method is defined between activation and edge verification"
+priority: P1
+kind: wrong-result
+area: Compiler
+files: [Compiler/src/reinfer.jl, src/staticdata.c, base/loading.jl]
+functions: ["verify_call(@nospecialize(sig), expecteds::Core.SimpleVector, i::Int, n::Int, world::UInt, fully_covers::Bool, possibly_ambiguous::Bool, workspace::VerifyMethodWorkspace, image::UInt)", "verify_method(codeinst::CodeInstance, validation_world::UInt, workspace::VerifyMethodWorkspace)", "scan_new_code!(internal_methods::Vector{Any}, workspace::VerifyMethodWorkspace)"]
+summary: |
+  verify_method checks a loaded code instance's call edges in the world
+  codeinst.min_world, the world the image's methods were activated in
+  (Compiler/src/reinfer.jl:235), not in validation_world. The interference fast
+  path of verify_call stops scanning a method's interference set at the first
+  entry whose primary_world is past that world (reinfer.jl:814), then returns
+  [primary_world, typemax(UInt)]. jl_restore_package_image releases
+  world_counter_lock after activation (src/staticdata.c:4974-4986), and
+  base/loading.jl:1516 runs insert_backedges only after it retakes the require
+  lock, so another thread can define a method in between. That method is
+  visible in validation_world, but the scan skips it: the edge is accepted, the
+  code instance gets max_world = validation_world, backedges are stored and
+  jl_promote_ci_to_current makes it valid forever. The cached code keeps
+  calling the old method. scan_new_code! itself expects the world counter to
+  move during the loop (reinfer.jl:133-138) but only drops its lookup memo.
+likelihood: |
+  Triage 2026-11-10 (wave 2): verdict survives, priority P1.
+
+  Reproduces on the pinned build and nightly 290d5bb5f5, with both parts: the
+  verifier accepts the changed edge, and after a real `using` the image's
+  `RISPkg.g(1)` returns 1 while `RISDep.h(1)` is 2. 1.13.3 does not reproduce:
+  there verify_method caps the range at the code instance's min_world (part 1
+  gives [39285, 39290], ending at that world), so the code instance is
+  re-inferred. The yaml already records that 1.14.0-alpha2 reproduces, so this is
+  a regression in the 1.14 line, likely from the complete interference sets of
+  #62396/#63469 (809d9319c5, first in v1.14.0-alpha1) letting the fast path
+  return typemax. This was not bisected. reinfer.jl is unchanged on master
+  eb844b8ebd.
+  Checked against "not a real bug": the repro thread takes `require_lock` only
+  to hit the window reliably. Defining a method needs only the world counter
+  lock, which the restore releases after activation, so any concurrent eval in
+  that window gives the same result. Another realistic source is a second task
+  running `using B` while `using A` is in its restore. A has dropped
+  `require_lock` (loading.jl:1495), so B's load can run in the window, and B's
+  image activation adds methods (extensions or piracy of a function A calls).
+  That variant was reasoned through but not run. It is a race, so not P0, but
+  the result is silently stale code that is never invalidated.
+
+  Needs a second thread that defines a method intersecting a precompiled call
+  signature while a package image loads, inside the window between the restore
+  and insert_backedges. The window is short, but nothing forbids it: a task
+  that evals a method, or loads another package, while the main task runs
+  `using`. The result is silently wrong code that never gets invalidated.
+maybe_intended: |
+  No. The world cutoff is right for validation_world (methods defined after
+  verification are handled by backedges), but min_world is older whenever the
+  counter moved after activation.
+reproducer: |
+  # needs julia -t 2; see repro/compiler-reinfer-stale-min-world.jl
+  # RISDep: h(x::Integer) = 1; RISPkg: g(x) = RISDep.h(x); precompile(g, (Int,))
+  # thread 2 takes Base.require_lock while `using RISPkg` restores the image,
+  # waits for activation, defines RISDep.h(x::Int) = 2, then releases the lock.
+  RISPkg.g(1)   # 1, although RISDep.h(1) == 2
+output:
+  release: |                          # Julia 1.13.3 67ac47b9cd8
+    validation world 39292, code instance min_world 39290
+    verify_method range: [39285, 39290]
+    part 1 (verifier accepts a changed edge): false
+    RISDep.h(1) = 2, RISPkg.g(1) = RISDep.h(1) gives 2
+    part 2 (stale image code runs): false
+    NOT REPRODUCED compiler-reinfer-stale-min-world
+  nightly: |                          # 1.15.0-DEV.304 290d5bb5f52e815284ce14493f6964147d2f2dc7
+    validation world 45689, code instance min_world 45687
+    verify_method range: [45682, 45689]
+    part 1 (verifier accepts a changed edge): true
+    RISDep.h(1) = 2, RISPkg.g(1) = RISDep.h(1) gives 1
+    part 2 (stale image code runs): true
+    REPRODUCED compiler-reinfer-stale-min-world
+reproduced: {release: false, nightly: true}
+expected: |
+  Either verification looks up in validation_world (the world it claims the
+  range up to), or the accepted range ends before the first world the lookups
+  did not see, so the code instance is not promoted.
+promised_by: |
+  insert_backedges must not keep code whose edges changed; the comment at
+  Compiler/src/reinfer.jl:727 ("Return true if a call to sig was the same
+  matches as expecteds when run in world as it was in image") and the cutoff
+  comment at reinfer.jl:509-512, which assume `world` is the world checked.
+cause: |
+  verify_method passes world = codeinst.min_world to verify_call and
+  verify_invokesig (Compiler/src/reinfer.jl:235, 298, 304, 334), while the
+  starting maxworld is validation_world (reinfer.jl:261). The fast paths
+  return typemax(UInt), so nothing caps the range at the last world they saw.
+  Lean: JuliaLean.Proofs.Compiler.src.reinfer.insertBackedgesSound_refuted
+  (the whole insert_backedges run) and verifyMethodSound_refuted (verify_method
+  alone), on a heap that keeps the runtime promises (RuntimeConsistent).
+possible_fix: |
+  Run the edge checks in validation_world (cutoff and lookups), or cap
+  maxworld at the world the lookups were made in when it is older than
+  validation_world. Also 1.14.0-alpha2 (22d5d63fa18) reproduces.
+duplicates:
+  issues:
+    - {number: 62396, relation: related}
+  queries: ["insert_backedges race", "verify_call min_world", "stale code package load thread method", "interference primary_world verify", "insert_backedges world counter thread", "insert_backedges", "verify_method", "revalidation race", "interferences fast path", "package load concurrent method definition", "min_world validation_world", "prs: the same queries", "wave 2, issues and prs, unquoted words: insert_backedges thread race", "package load concurrent method definition stale", "verify_call world min_world", "stale code after using thread eval method", "require_lock unlock restore image method", "insert_backedges", "staticdata thread method", "using thread stale method", "verify_method", "stale method package", "method defined during loading", "loading thread invalidation"]
+lean:
+  property: JuliaLean.Proofs.Compiler.src.reinfer.InsertBackedgesSound
+  theorem: JuliaLean.Proofs.Compiler.src.reinfer.insertBackedgesSound_refuted
+covers: [compiler-reinfer-stale-min-world]
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: true
+  output: |
+    validation world 45614, code instance min_world 45612
+    verify_method range: [45607, 45614]
+    part 1 (verifier accepts a changed edge): true
+    RISDep.h(1) = 2, RISPkg.g(1) = RISDep.h(1) gives 1
+    part 2 (stale image code runs): true
+    REPRODUCED compiler-reinfer-stale-min-world

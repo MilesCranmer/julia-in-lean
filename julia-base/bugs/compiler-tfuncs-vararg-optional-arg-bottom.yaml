@@ -1,0 +1,92 @@
+id: compiler-tfuncs-vararg-optional-arg-bottom
+title: "builtin_tfunction pads a trailing Vararg to the maximum arity, so getfield(x, i, false, b...) is inferred Union{} although it returns"
+priority: P0
+kind: crash
+area: Compiler
+files: [Compiler/src/tfuncs.jl]
+functions: ["builtin_tfunction(interp::AbstractInterpreter, f, argtypes::Vector{Any}, sv)", "getfield_tfunc(𝕃::AbstractLattice, s00, name, order, boundscheck)"]
+summary: |
+  When the last argument type is a Vararg and fewer fixed arguments than the
+  tfunc's maximum are given, builtin_tfunction keeps the fixed arguments and
+  appends `Vararg{T}`, so the tfunc is always called with its maximum argument
+  count. For getfield (2 to 4 arguments) a call `getfield(x, 1, false, b...)`
+  with `b::Vararg{Bool}` is checked as the 4-argument form, which reads `false`
+  as the memory order and returns Union{} because a Bool is not a Symbol. When
+  `b` is empty the call is the valid 3-argument `getfield(x, 1, false)`, which
+  returns. Inference marks the call (and the rest of the function) as
+  unreachable while it runs.
+likelihood: |
+  Triage 2026-11-10 (wave 2): verdict survives, priority P0, kind changed to crash.
+
+  The wrong Union{} is not only a reflection result. Splatting an empty
+  Vector{Bool} into the call, `f(x, v::Vector{Bool}) = (getfield(x, 1, false,
+  v...); :reached)`, compiles to `_apply_iterate(...)` followed by `unreachable`,
+  and `f((1,), Bool[])` dies with "Unreachable reached" (SIGILL) on the pinned
+  build, nightly 290d5bb5f5 and 1.13.3. The repro now runs this in a child
+  process. The padding code at tfuncs.jl:3306-3322 is unchanged on master
+  eb844b8ebd. Not a model artifact: the Lean counterexample is the same argtypes
+  the compiler builds for the splat. Duplicate searches found nothing; #57292
+  stays as related.
+
+  Needs a splat into a builtin with optional arguments whose meaning depends on
+  the argument count (getfield, and likely isdefined, setfield! and the other
+  field builtins with an optional order/boundscheck). Rare by hand, but generic
+  forwarding code (`getfield(x, i, args...)`) reaches it. #57292 shows the same
+  class with a different argument pattern.
+maybe_intended: |
+  No: the code at Compiler/src/tfuncs.jl:3306-3322 handles Vararg arguments
+  to keep the result an upper bound over every possible argument count, but the
+  shorter counts are dropped.
+reproducer: |
+  gb(x, b::Bool...) = (getfield(x, 1, false, b...); :reached)
+  Base.return_types(gb, (Tuple{Int}, Vararg{Bool}))   # Union{}
+  gb((1,))                                            # :reached
+  f(x, v::Vector{Bool}) = (getfield(x, 1, false, v...); :reached)
+  f((1,), Bool[])                                     # Unreachable reached, SIGILL
+output:
+  release: |                          # Julia 1.13.3 67ac47b9cd855e02134d41d5428ac9f2a73f2694
+    return_types(gb, (Tuple{Int}, Vararg{Bool})) = Union{}
+    gb((1,)) = :reached
+    builtin_tfunction(getfield, [Tuple{Int}, Const(1), Const(false), Vararg{Bool}]) = Union{}
+    child running f((1,), Bool[]) with f(x, v) = (getfield(x, 1, false, v...); :reached): died, termsignal 4
+    REPRODUCED compiler-tfuncs-vararg-optional-arg-bottom
+  nightly: |                          # 1.15.0-DEV.304 290d5bb5f52e815284ce14493f6964147d2f2dc7
+    return_types(gb, (Tuple{Int}, Vararg{Bool})) = Union{}
+    gb((1,)) = :reached
+    builtin_tfunction(getfield, [Tuple{Int}, Const(1), Const(false), Vararg{Bool}]) = Union{}
+    child running f((1,), Bool[]) with f(x, v) = (getfield(x, 1, false, v...); :reached): died, termsignal 4
+    REPRODUCED compiler-tfuncs-vararg-optional-arg-bottom
+reproduced: {release: true, nightly: true}
+expected: |
+  An upper bound over every argument count the Vararg allows: the tmerge of the
+  3-argument and 4-argument results (here Int64).
+promised_by: |
+  Soundness of inference: Union{} means the call always throws (Compiler/src/tfuncs.jl
+  returns Bottom for "wrong # of args" only when the count is definitely wrong).
+cause: |
+  Compiler/src/tfuncs.jl:3306-3322: with `length(argtypes) - 1 < tf[2]` the code
+  pads to `tf[1]` with `unwrapva(vatype)` and then appends
+  `unconstrain_vararg_length(vatype)`, so every tfunc call has `tf[2]` argument
+  slots, and getfield_tfunc dispatches on that count.
+possible_fix: |
+  For each count from `length(argtypes) - 1` (at least `tf[1]`) to `tf[2]` (or a
+  small bound for INT_INF), call the tfunc with that many arguments and tmerge
+  the results; or make the variable-arity tfuncs accept a trailing Vararg.
+duplicates:
+  issues:
+    - {number: 57292, relation: related}
+    - {number: 57293, relation: related}
+  queries: ["getfield Vararg Bool inference Union{}", "builtin_tfunction vararg", "getfield splat boundscheck inferred Union{}", "getfield vararg tfunc", "vararg builtin tfunction padding", "getfield vararg boundscheck", "builtin_tfunction Vararg", "wave 2, issues and prs, unquoted words: getfield splat Union{} inference", "builtin_tfunction Vararg arity", "builtin splat varargs inferred Bottom", "getfield boundscheck vararg", "Unreachable reached getfield", "splat getfield unreachable", "builtin_tfunction", "getfield vararg", "getfield splat", "Unreachable splat"]
+lean:
+  property: JuliaLean.Proofs.Compiler.Tfuncs.GetfieldTfuncSound
+  theorem: JuliaLean.Proofs.Compiler.Tfuncs.getfieldTfuncSound_refuted
+  notes: "Found by the soundness smoke test of difftest/compiler/tfuncs.jl. The Lean counterexample evaluates builtin_tfunction(getfield, [Tuple{Int64}, Const(1), Const(false), Vararg{Bool}]) = Union{} and getfield((1,), 1, false) = 1 in the model."
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: true
+  output: |
+    return_types(gb, (Tuple{Int}, Vararg{Bool})) = Union{}
+    gb((1,)) = :reached
+    builtin_tfunction(getfield, [Tuple{Int}, Const(1), Const(false), Vararg{Bool}]) = Union{}
+    child running f((1,), Bool[]) with f(x, v) = (getfield(x, 1, false, v...); :reached): died, termsignal 4
+    REPRODUCED compiler-tfuncs-vararg-optional-arg-bottom

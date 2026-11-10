@@ -1,0 +1,72 @@
+id: compiler-effects-adjust-consistent-overlay
+title: "adjust_effects weakens nonoverlayed from ALWAYS_TRUE to CONSISTENT_OVERLAY"
+priority: P3
+kind: wrong-result
+area: Compiler
+files: [Compiler/src/typeinfer.jl]
+functions: ["adjust_effects(ipo_effects::Effects, def::Method)"]
+summary: |
+  adjust_effects(ipo_effects, def::Method) sets nonoverlayed to CONSISTENT_OVERLAY whenever
+  def.purity has the consistent_overlay bit, even when inference found ALWAYS_TRUE. Every
+  other override only strengthens its field. A method that is not an overlay and carries
+  the bit infers as ?o instead of +o.
+likelihood: |
+  Triage 2026-11-10 (wave 2): verdict withdrawn, priority P3.
+
+  Withdrawn: no input that Julia's own front end produces reaches it. Reproduces on
+  the pinned build, nightly 290d5bb5f5 and 1.13.3, but only with a hand-built
+  `Expr(:meta, Expr(:purity, ...))`. `@assume_effects` has no consistent_overlay
+  setting (base/expr.jl), and Base.Experimental.@consistent_overlay
+  (base/experimental.jl:478-482) always defines an overlay method. Inference of an
+  overlay method starts at CONSISTENT_OVERLAY, so the assignment changes nothing for
+  any method that can carry the bit. Keep the Lean refutation as documentation, and
+  add the guard only if the bit becomes settable on ordinary methods.
+
+  Only a hand-written Expr(:purity, ...) reaches it. Base.Experimental.@consistent_overlay
+  always defines an overlay method, whose inference starts at CONSISTENT_OVERLAY
+  (Compiler/src/inferencestate.jl:420-423), and @assume_effects has no consistent_overlay
+  setting. The cost is precision only: concrete evaluation still accepts CONSISTENT_OVERLAY.
+maybe_intended: |
+  Overlay methods never reach ALWAYS_TRUE, so the unconditional assignment is correct for every method @consistent_overlay can produce.
+reproducer: |
+  @eval annotated(x::Int) = ($(Expr(:meta, Expr(:purity,
+      false, false, false, false, false, false, false, false, false, true, false))); x + 1)
+  Base.infer_effects(annotated, (Int,))   # (+c,+e,+re,+n,+t,+s,+m,+u,?o,+r)
+output:
+  release: |                          # 1.13.3 67ac47b9cd855e02134d41d5428ac9f2a73f2694 (installed release)
+    purity = 0x0200, consistent_overlay = true
+    infer_effects(plain) = (+c,+e,+n,+t,+s,+m,+u,+o,+r), nonoverlayed = 0x00
+    infer_effects(annotated) = (+c,+e,+n,+t,+s,+m,+u,?o,+r), nonoverlayed = 0x02
+    adjust_effects(EFFECTS_TOTAL, m).nonoverlayed = 0x02
+    REPRODUCED compiler-effects-adjust-consistent-overlay
+  nightly: |                          # 1.15.0-DEV.304 290d5bb5f52e815284ce14493f6964147d2f2dc7
+    purity = 0x0200, consistent_overlay = true
+    infer_effects(plain) = (+c,+e,+re,+n,+t,+s,+m,+u,+o,+r), nonoverlayed = 0x00
+    infer_effects(annotated) = (+c,+e,+re,+n,+t,+s,+m,+u,?o,+r), nonoverlayed = 0x02
+    adjust_effects(EFFECTS_TOTAL, m).nonoverlayed = 0x02
+    REPRODUCED compiler-effects-adjust-consistent-overlay
+reproduced: {release: true, nightly: true}
+expected: |
+  nonoverlayed stays ALWAYS_TRUE when inference proved it.
+promised_by: |
+  The comment at Compiler/src/typeinfer.jl:634 and the @assume_effects docstring: annotations assert properties, they do not take away proven ones.
+cause: |
+  Compiler/src/typeinfer.jl:659-661 assigns CONSISTENT_OVERLAY without checking ipo_effects.nonoverlayed !== ALWAYS_TRUE, unlike the noub_if_noinbounds case two lines above.
+possible_fix: |
+  Guard it like noub_if_noinbounds: `elseif ... && ipo_effects.nonoverlayed !== ALWAYS_TRUE`.
+duplicates:
+  issues:
+    - {number: 64715, relation: related}
+  queries: ["consistent_overlay", "consistent_overlay adjust_effects", "consistent_overlay nonoverlayed weaken", "prs: consistent_overlay", "wave 2, issues and prs, unquoted words: consistent_overlay nonoverlayed", "adjust_effects purity override"]
+lean:
+  property: JuliaLean.Proofs.Compiler.src.effects.AdjustEffectsStrengthens
+  theorem: JuliaLean.Proofs.Compiler.src.effects.adjustEffectsStrengthens_refuted
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: true
+  output: |
+    purity = 0x0200, consistent_overlay = true
+    infer_effects(plain) = (+c,+e,+re,+n,+t,+s,+m,+u,+o,+r), nonoverlayed = 0x00
+    infer_effects(annotated) = (+c,+e,+re,+n,+t,+s,+m,+u,?o,+r), nonoverlayed = 0x02
+    adjust_effects(EFFECTS_TOTAL, m).nonoverlayed = 0x02
+    REPRODUCED compiler-effects-adjust-consistent-overlay

@@ -1,0 +1,78 @@
+id: compiler-unionsplit-cost-subtype-monotone
+title: Narrower union argument types can turn off union splitting
+priority: P3
+kind: wrong-result
+area: Compiler
+files:
+- Compiler/src/typeutils.jl
+- Compiler/src/abstractinterpretation.jl
+functions:
+- unionsplitcost(𝕃::AbstractLattice, argtypes::Union{SimpleVector,Vector{Any}}; fargs::Union{Nothing,Vector{Any}}=nothing)
+- is_union_split_eligible (Compiler/src/abstractinterpretation.jl:395-397)
+summary: |
+  unionsplitcost counts union members, not how wide they are. [Union{Integer,Nothing},
+  Union{Integer,Nothing}] costs 4 and is split with the default max_union_splitting = 4;
+  the narrower [Union{Int8,Int16,Nothing}, Union{Int8,Int16,Nothing}] costs 6 and is not.
+  So a more precise argument type can give a call a less precise (unsplit) inference.
+likelihood: |
+  Triage 2026-11-10 (wave 2): verdict withdrawn as a bug, kept as a perf lead, priority P3.
+
+  Reproduces on the pinned build, nightly 290d5bb5f5 and 1.13.3, and
+  unionsplitcost is unchanged on master eb844b8ebd. No wrong result is possible:
+  both decisions are sound. The cost is meant to estimate the size of the split
+  representation (comment at typeutils.jl:285-290), which does grow with the
+  member count, so this is how the cost was designed, not a broken promise. Whether
+  it costs precision on real code is a question to measure; it stays in
+  compiler/PERF_LEADS.md.
+
+  Moderate for the cost difference; whether the unsplit inference is less precise depends
+  on the callee. No wrong result: only precision and the amount of work change.
+maybe_intended: |
+  Partly: the cost is meant as an estimate of the size of the split representation, which
+  does grow with the member count. The non-monotonicity in the type order is a side effect.
+reproducer: |
+  L = Base.Compiler.typeinf_lattice(Base.Compiler.NativeInterpreter())
+  Base.Compiler.is_union_split_eligible(L, Any[typeof(+), Union{Integer,Nothing}, Union{Integer,Nothing}], 4)    # true
+  Base.Compiler.is_union_split_eligible(L, Any[typeof(+), Union{Int8,Int16,Nothing}, Union{Int8,Int16,Nothing}], 4)  # false
+output:  # release: Julia 1.13.3 67ac47b9cd8; nightly: 1.15.0-DEV.304 290d5bb5f52
+  release: |
+    narrow[i] <: wide[i]: true
+    cost(wide) = 4, eligible = true; cost(narrow) = 6, eligible = false
+    REPRODUCED compiler-unionsplit-cost-subtype-monotone
+  nightly: |
+    narrow[i] <: wide[i]: true
+    cost(wide) = 4, eligible = true; cost(narrow) = 6, eligible = false
+    REPRODUCED compiler-unionsplit-cost-subtype-monotone
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  A split allowed for wider argument types is also allowed for narrower ones.
+promised_by: |
+  Invariant of the split decision (monotonicity in the argument types); not documented.
+cause: |
+  Compiler/src/typeutils.jl:291-316 multiplies member counts. Lean:
+  JuliaLean.Proofs.Compiler.src.typeutils.unionsplitEligibleSubtypeMonotone_refuted; the count-monotone version is proven
+  (JuliaLean.Proofs.Compiler.src.typeutils.unionsplitcostMonotone_proven).
+possible_fix: |
+  None needed for correctness; recorded as a precision lead in compiler/PERF_LEADS.md.
+duplicates:
+  issues: []
+  queries:
+  - unionsplitcost
+  - union splitting subtype more precise
+  - max_union_splitting union length
+  - 'prs: unionsplitcost'
+  - 'wave 2, issues and prs, unquoted words: unionsplitcost'
+  - max_union_splitting
+  - union splitting limit number of signatures
+lean:
+  property: JuliaLean.Proofs.Compiler.src.typeutils.UnionsplitEligibleSubtypeMonotone
+  theorem: JuliaLean.Proofs.Compiler.src.typeutils.unionsplitEligibleSubtypeMonotone_refuted
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: true
+  output: |
+    narrow[i] <: wide[i]: true
+    cost(wide) = 4, eligible = true; cost(narrow) = 6, eligible = false
+    REPRODUCED compiler-unionsplit-cost-subtype-monotone

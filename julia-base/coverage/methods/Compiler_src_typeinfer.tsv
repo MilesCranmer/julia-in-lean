@@ -1,0 +1,133 @@
+file	line	endline	name	signature	status	entry	note
+Compiler/src/typeinfer.jl	25	33	_typeinf_identifier	_typeinf_identifier(frame::Compiler.InferenceState)	todo		
+Compiler/src/typeinfer.jl	35	35	_typeinf_identifier	_typeinf_identifier(frame::InferenceFrameInfo)	todo		
+Compiler/src/typeinfer.jl	51	51	Timing	Timing(mi_info, start_time, cur_start_time, time, children)	todo		
+Compiler/src/typeinfer.jl	52	52	Timing	Timing(mi_info, start_time)	todo		
+Compiler/src/typeinfer.jl	64	64	ROOT	ROOT()	todo		
+Compiler/src/typeinfer.jl	73	73	reset_timings	reset_timings()	todo		
+Compiler/src/typeinfer.jl	78	78	close_current_timer	close_current_timer()	todo		
+Compiler/src/typeinfer.jl	79	79	enter_new_timer	enter_new_timer(frame)	todo		
+Compiler/src/typeinfer.jl	80	80	exit_current_timer	exit_current_timer(_expected_frame_)	todo		
+Compiler/src/typeinfer.jl	89	89	__set_measure_typeinf	__set_measure_typeinf(onoff::Bool)	todo		
+Compiler/src/typeinfer.jl	92	100	internal_result_edges	internal_result_edges(caller::InferenceState)	todo		
+Compiler/src/typeinfer.jl	102	103	result_edges	result_edges(::AbstractInterpreter, caller::InferenceState)	todo		
+Compiler/src/typeinfer.jl	105	206	finish!	finish!(interp::AbstractInterpreter, caller::InferenceState, validation_world::UInt, time_before::UInt64)	todo		
+Compiler/src/typeinfer.jl	208	277	promotecache!	promotecache!(interp::AbstractInterpreter, caller::InferenceState)	todo		
+Compiler/src/typeinfer.jl	279	310	finish!	finish!(interp::AbstractInterpreter, mi::MethodInstance, ci::CodeInstance, src::CodeInfo)	todo		
+Compiler/src/typeinfer.jl	312	340	finish_nocycle	finish_nocycle(interp::AbstractInterpreter, frame::InferenceState{I}, time_before::UInt64) where {I<:AbstractInterpreter}	todo		
+Compiler/src/typeinfer.jl	342	377	propagate_unpublished_cycle_proof!	propagate_unpublished_cycle_proof!( frames::Vector{AbsIntState{I}}, cycleid::Int, world::UInt, cycle_valid_worlds::WorldRange ) where {I<:AbstractInterpreter}	todo		
+Compiler/src/typeinfer.jl	379	460	finish_cycle	finish_cycle(interp::AbstractInterpreter, frames::Vector{AbsIntState{I}}, cycleid::Int, time_before::UInt64) where {I<:AbstractInterpreter}	todo		
+Compiler/src/typeinfer.jl	462	475	adjust_cycle_frame!	adjust_cycle_frame!(sv::InferenceState, world::UInt, cycle_valid_worlds::WorldRange, cycle_valid_effects::Effects)	todo		
+Compiler/src/typeinfer.jl	477	481	get_debuginfo	get_debuginfo(src)	todo		
+Compiler/src/typeinfer.jl	483	486	is_result_constabi_eligible	is_result_constabi_eligible(result::InferenceResult)	modelled	compiler-cacheresult-constabi-eligible	model: JuliaLean/Compiler/src/typeinfer.lean isResultConstabiEligible; difftest op cr.constabi
+Compiler/src/typeinfer.jl	488	492	compute_inlining_cost	compute_inlining_cost(interp::AbstractInterpreter, result::InferenceResult)	todo		
+Compiler/src/typeinfer.jl	494	496	compute_inlining_cost	compute_inlining_cost(interp::AbstractInterpreter, result::InferenceResult, optresult#=::OptimizationResult=#)	todo		
+Compiler/src/typeinfer.jl	498	546	inline_cost_model	inline_cost_model(interp::AbstractInterpreter, result::InferenceResult, inline_flag::UInt8, ir::IRCode)	todo		
+Compiler/src/typeinfer.jl	548	560	transform_result_for_local_cache	transform_result_for_local_cache(interp::AbstractInterpreter, result::InferenceResult)	todo		area cacheresult: not modelled (reads OptimizationState and compute_inlining_cost); see the local/global lead in compiler/PERF_LEADS.md
+Compiler/src/typeinfer.jl	562	580	transform_result_for_cache	transform_result_for_cache(interp::AbstractInterpreter, result::InferenceResult, edges::SimpleVector)	todo		area cacheresult: not modelled (ir_to_codeinf! and compute_inlining_cost); its drop decision discard_optimized_result is modelled
+Compiler/src/typeinfer.jl	582	588	discard_optimized_result	discard_optimized_result(interp::AbstractInterpreter, mi::MethodInstance, inlining_cost::InlineCostType)	modelled	compiler-cacheresult-discard-compress-agree	model: JuliaLean/Compiler/src/typeinfer.lean discardOptimizedResult (interpreter hooks as inputs); difftest op cr.discard
+Compiler/src/typeinfer.jl	592	593	keep_source_for_output	keep_source_for_output(mi::MethodInstance)	modelled	compiler-cacheresult-discard-compress-agree,compiler-cacheresult-keep-source-exact	model: JuliaLean/Compiler/src/typeinfer.lean keepSourceForOutput (inputs); difftest ops cr.discard, cr.compress, only with jl_generating_output() = 0
+Compiler/src/typeinfer.jl	595	610	maybe_compress_codeinfo	maybe_compress_codeinfo(interp::AbstractInterpreter, mi::MethodInstance, ci::CodeInfo)	modelled	compiler-cacheresult-discard-compress-agree,compiler-cacheresult-maybe-compress-exact	model: JuliaLean/Compiler/src/typeinfer.lean maybeCompressCodeinfo (result kind only; inputs as booleans); difftest op cr.compress, Method defs only
+Compiler/src/typeinfer.jl	612	631	cycle_fix_limited	cycle_fix_limited(@nospecialize(typ), sv::InferenceState, cycleid::Int)	todo		
+Compiler/src/typeinfer.jl	633	666	adjust_effects	adjust_effects(ipo_effects::Effects, def::Method)	todo		
+Compiler/src/typeinfer.jl	668	723	adjust_effects	adjust_effects(sv::InferenceState)	todo		
+Compiler/src/typeinfer.jl	725	728	refine_exception_type	refine_exception_type(@nospecialize(exc_bestguess), ipo_effects::Effects)	todo		
+Compiler/src/typeinfer.jl	734	827	finishinfer!	finishinfer!(me::InferenceState, interp::AbstractInterpreter, cycleid::Int, opt_cache::IdDict{MethodInstance, CodeInstance})	todo		
+Compiler/src/typeinfer.jl	829	836	find_cached_ci	find_cached_ci(interp::AbstractInterpreter, result::InferenceResult)	todo		
+Compiler/src/typeinfer.jl	845	883	Base.iterate	Base.iterate(it::ForwardToBackedgeIterator, i::Int = 1)	todo		
+Compiler/src/typeinfer.jl	887	891	maybe_add_binding_backedge!	maybe_add_binding_backedge!(b::Core.Binding, edge::Union{Method, CodeInstance})	todo		
+Compiler/src/typeinfer.jl	895	907	backedge_seen_before	backedge_seen_before(edges::SimpleVector, upto::Int, @nospecialize(invokesig), @nospecialize(item))	todo		
+Compiler/src/typeinfer.jl	916	926	add_backedge!	add_backedge!(caller::CodeInstance, @nospecialize(invokesig), @nospecialize(item))	todo		
+Compiler/src/typeinfer.jl	930	992	store_backedges	store_backedges(caller::CodeInstance, edges::SimpleVector, scratch::Union{Nothing,IdSet{Any}}=nothing)	todo		
+Compiler/src/typeinfer.jl	994	1004	compute_edges!	compute_edges!(sv::InferenceState)	todo		
+Compiler/src/typeinfer.jl	1006	1018	compute_recursive_worlds	compute_recursive_worlds(edges::Vector{Any})	todo		
+Compiler/src/typeinfer.jl	1020	1052	record_slot_assign!	record_slot_assign!(sv::InferenceState)	todo		
+Compiler/src/typeinfer.jl	1056	1068	find_dominating_assignment	find_dominating_assignment(id::Int, idx::Int, sv::InferenceState)	todo		
+Compiler/src/typeinfer.jl	1071	1121	type_annotate!	type_annotate!(::AbstractInterpreter, sv::InferenceState)	todo		
+Compiler/src/typeinfer.jl	1123	1135	merge_call_chain!	merge_call_chain!(::AbstractInterpreter, parent::InferenceState, child::InferenceState)	todo		
+Compiler/src/typeinfer.jl	1137	1141	add_cycle_backedge!	add_cycle_backedge!(caller::InferenceState, frame::InferenceState)	todo		
+Compiler/src/typeinfer.jl	1143	1145	is_same_frame	is_same_frame(interp::I, mi::MethodInstance, frame::InferenceState) where {I<:AbstractInterpreter}	todo		
+Compiler/src/typeinfer.jl	1147	1150	poison_callstack!	poison_callstack!(infstate::InferenceState, topmost::InferenceState)	todo		
+Compiler/src/typeinfer.jl	1153	1169	find_call_cycle	find_call_cycle(interp::AbstractInterpreter, mi::MethodInstance, parent::AbsIntState)	todo		
+Compiler/src/typeinfer.jl	1173	1186	resolve_call_cycle!	resolve_call_cycle!(interp::AbstractInterpreter, mi::MethodInstance, parent::AbsIntState)	todo		
+Compiler/src/typeinfer.jl	1188	1188	ipo_effects	ipo_effects(code::CodeInstance)	todo		
+Compiler/src/typeinfer.jl	1191	1215	return_cached_result	return_cached_result(interp::AbstractInterpreter, method::Method, codeinst::CodeInstance, @nospecialize(src), caller::AbsIntState, edgecycle::Bool, edgelimited::Bool, edgerecursed::Bool)	todo		
+Compiler/src/typeinfer.jl	1217	1235	return_cached_result	return_cached_result(interp::AbstractInterpreter, method::Method, local_result::LocalInferenceResult, codeinst::Union{Nothing,CodeInstance}, caller::AbsIntState, edgecycle::Bool, edgelimited::Bool, edgerecursed::Bool)	todo		
+Compiler/src/typeinfer.jl	1237	1265	lookup_cached_edge	lookup_cached_edge(interp::AbstractInterpreter, method::Method, mi::MethodInstance, caller::AbsIntState, force_inline::Bool, edgecycle::Bool, edgelimited::Bool, edgerecursed::Bool)	todo		
+Compiler/src/typeinfer.jl	1268	1297	MethodCallResult	MethodCallResult(::AbstractInterpreter, sv::AbsIntState, method::Method, @nospecialize(rt), @nospecialize(exct), effects::Effects, edge::Union{Nothing,CodeInstance}, edgecycle::Bool, edgelimited::Bool, edgerecursed::Bool, call_result::Union{Nothing,InferredCallResult} = nothing; force_edgecycle::Bool = true, needs_mi_edge::Bool = false)	todo		
+Compiler/src/typeinfer.jl	1299	1319	completed_inference_result	completed_inference_result(interp::AbstractInterpreter, frame::InferenceState)	todo		
+Compiler/src/typeinfer.jl	1321	1377	_schedule_edge_infer_task!	_schedule_edge_infer_task!(caller::AbsIntState, frame::InferenceState, result::InferenceResult, method::Method, edge_ci::Union{Nothing,CodeInstance}, edgecycle::Bool, edgelimited::Bool, edgerecursed::Bool)	todo		
+Compiler/src/typeinfer.jl	1325	1375	get_infer_result	get_infer_result(interp, caller)	todo		
+Compiler/src/typeinfer.jl	1380	1477	typeinf_edge	typeinf_edge(interp::AbstractInterpreter, method::Method, @nospecialize(atype), sparams::SimpleVector, caller::AbsIntState, edgecycle::Bool, edgelimited::Bool, edgerecursed::Bool)	todo		
+Compiler/src/typeinfer.jl	1482	1482	effects_for_cycle	effects_for_cycle(effects::Effects)	todo		
+Compiler/src/typeinfer.jl	1484	1504	cached_return_type	cached_return_type(code::CodeInstance)	todo		
+Compiler/src/typeinfer.jl	1516	1535	codeinfo_for_const	codeinfo_for_const(::AbstractInterpreter, mi::MethodInstance, worlds::WorldRange, edges::SimpleVector, @nospecialize(val))	todo		
+Compiler/src/typeinfer.jl	1537	1538	result_is_constabi	result_is_constabi(interp::AbstractInterpreter, result::InferenceResult)	modelled	compiler-cacheresult-constabi-eligible	model: JuliaLean/Compiler/src/typeinfer.lean resultIsConstabi; difftest op cr.constabi
+Compiler/src/typeinfer.jl	1541	1542	typeinf_code	typeinf_code(interp::AbstractInterpreter, match::MethodMatch, run_optimizer::Bool)	todo		
+Compiler/src/typeinfer.jl	1543	1545	typeinf_code	typeinf_code(interp::AbstractInterpreter, method::Method, @nospecialize(atype), sparams::SimpleVector, run_optimizer::Bool)	todo		
+Compiler/src/typeinfer.jl	1546	1550	typeinf_code	typeinf_code(interp::AbstractInterpreter, mi::MethodInstance, run_optimizer::Bool)	todo		
+Compiler/src/typeinfer.jl	1563	1565	typeinf_ircode	typeinf_ircode(interp::AbstractInterpreter, match::MethodMatch, optimize_until::Union{Int,String,Nothing})	todo		
+Compiler/src/typeinfer.jl	1566	1568	typeinf_ircode	typeinf_ircode(interp::AbstractInterpreter, method::Method, @nospecialize(atype), sparams::SimpleVector, optimize_until::Union{Int,String,Nothing})	todo		
+Compiler/src/typeinfer.jl	1569	1580	typeinf_ircode	typeinf_ircode(interp::AbstractInterpreter, mi::MethodInstance, optimize_until::Union{Int,String,Nothing})	todo		
+Compiler/src/typeinfer.jl	1583	1584	typeinf_frame	typeinf_frame(interp::AbstractInterpreter, match::MethodMatch, run_optimizer::Bool)	todo		
+Compiler/src/typeinfer.jl	1585	1587	typeinf_frame	typeinf_frame(interp::AbstractInterpreter, method::Method, @nospecialize(atype), sparams::SimpleVector, run_optimizer::Bool)	todo		
+Compiler/src/typeinfer.jl	1588	1607	typeinf_frame	typeinf_frame(interp::AbstractInterpreter, mi::MethodInstance, run_optimizer::Bool)	todo		
+Compiler/src/typeinfer.jl	1643	1646	ci_has_abi	ci_has_abi(interp::AbstractInterpreter, code::CodeInstance)	todo		
+Compiler/src/typeinfer.jl	1654	1669	ci_has_source	ci_has_source(interp::AbstractInterpreter, code::CodeInstance)	todo		
+Compiler/src/typeinfer.jl	1673	1694	ci_get_source	ci_get_source(interp::AbstractInterpreter, code::CodeInstance, @nospecialize src)	todo		
+Compiler/src/typeinfer.jl	1696	1698	ci_get_source	ci_get_source(interp::AbstractInterpreter, code::CodeInstance)	todo		
+Compiler/src/typeinfer.jl	1700	1702	ci_has_invoke	ci_has_invoke(code::CodeInstance)	todo		
+Compiler/src/typeinfer.jl	1705	1707	ci_from_image	ci_from_image(code::CodeInstance)	todo		
+Compiler/src/typeinfer.jl	1709	1714	ci_meets_requirement	ci_meets_requirement(interp::AbstractInterpreter, code::CodeInstance, source_mode::UInt8)	todo		area cacheresult: not modelled (ci_has_abi/ci_has_source read the codegen cache and CodeInstance atomics)
+Compiler/src/typeinfer.jl	1716	1720	ci_worlds_cover	ci_worlds_cover(code::CodeInstance, valid_worlds::WorldRange)	todo		
+Compiler/src/typeinfer.jl	1722	1725	ci_cache_head	ci_cache_head(mi::MethodInstance)	todo		
+Compiler/src/typeinfer.jl	1727	1730	ci_cache_next	ci_cache_next(code::CodeInstance)	todo		
+Compiler/src/typeinfer.jl	1732	1736	find_cached_ci	find_cached_ci(interp::AbstractInterpreter, mi::MethodInstance, valid_worlds::WorldRange, source_mode::UInt8)	todo		
+Compiler/src/typeinfer.jl	1738	1748	find_cached_ci	find_cached_ci(interp::AbstractInterpreter, cache, mi::MethodInstance, valid_worlds::WorldRange, source_mode::UInt8)	todo		
+Compiler/src/typeinfer.jl	1750	1753	find_cached_ci	find_cached_ci(interp::AbstractInterpreter, cache::OverlayCodeCache, mi::MethodInstance, valid_worlds::WorldRange, source_mode::UInt8)	todo		
+Compiler/src/typeinfer.jl	1755	1778	find_cached_ci	find_cached_ci(interp::AbstractInterpreter, cache::InternalCodeCache, mi::MethodInstance, valid_worlds::WorldRange, source_mode::UInt8)	todo		
+Compiler/src/typeinfer.jl	1780	1789	ci_is_equivalent_winner	ci_is_equivalent_winner(candidate::CodeInstance, ci::CodeInstance, valid_worlds::WorldRange)	todo		
+Compiler/src/typeinfer.jl	1791	1796	find_equivalent_cached_ci	find_equivalent_cached_ci(interp::AbstractInterpreter, cache, ci::CodeInstance, valid_worlds::WorldRange)	todo		
+Compiler/src/typeinfer.jl	1798	1803	find_equivalent_cached_ci	find_equivalent_cached_ci(interp::AbstractInterpreter, cache::OverlayCodeCache, ci::CodeInstance, valid_worlds::WorldRange)	todo		
+Compiler/src/typeinfer.jl	1805	1814	find_equivalent_cached_ci	find_equivalent_cached_ci(::AbstractInterpreter, ::InternalCodeCache, ci::CodeInstance, valid_worlds::WorldRange)	todo		
+Compiler/src/typeinfer.jl	1816	1820	find_equivalent_cached_ci	find_equivalent_cached_ci(interp::AbstractInterpreter, ci::CodeInstance, valid_worlds::WorldRange)	todo		
+Compiler/src/typeinfer.jl	1822	1843	find_local_cached_ci	find_local_cached_ci(interp::AbstractInterpreter, mi::MethodInstance, valid_worlds::WorldRange, source_mode::UInt8)	todo		
+Compiler/src/typeinfer.jl	1845	1850	find_typeinf_cached_ci	find_typeinf_cached_ci(interp::AbstractInterpreter, mi::MethodInstance, valid_worlds::WorldRange, source_mode::UInt8)	todo		
+Compiler/src/typeinfer.jl	1853	1913	typeinf_ext	typeinf_ext(interp::AbstractInterpreter, mi::MethodInstance, source_mode::UInt8)	todo		
+Compiler/src/typeinfer.jl	1916	1921	typeinf_type	typeinf_type(interp::AbstractInterpreter, method::Method, @nospecialize(atype), sparams::SimpleVector)	todo		
+Compiler/src/typeinfer.jl	1922	1923	typeinf_type	typeinf_type(interp::AbstractInterpreter, match::MethodMatch)	todo		
+Compiler/src/typeinfer.jl	1924	1928	typeinf_type	typeinf_type(interp::AbstractInterpreter, mi::MethodInstance)	todo		
+Compiler/src/typeinfer.jl	1933	1944	compileable_specialization_for_call	compileable_specialization_for_call(interp::AbstractInterpreter, @nospecialize(argtype))	todo		
+Compiler/src/typeinfer.jl	1948	1959	compileable_specialization_for_match	compileable_specialization_for_match(match::MethodMatch)	todo		
+Compiler/src/typeinfer.jl	1963	1972	_compileable_methods	_compileable_methods(table::MethodTableView, @nospecialize(ftyp))	todo		
+Compiler/src/typeinfer.jl	1981	1983	CompilationQueue	CompilationQueue(; interp::Union{AbstractInterpreter,Nothing} )	todo		
+Compiler/src/typeinfer.jl	1985	1987	CompilationQueue	CompilationQueue(queue::CompilationQueue; interp::Union{AbstractInterpreter,Nothing} )	todo		
+Compiler/src/typeinfer.jl	1990	1990	Base.push!	Base.push!(queue::CompilationQueue, item)	todo		
+Compiler/src/typeinfer.jl	1991	1991	Base.append!	Base.append!(queue::CompilationQueue, items)	todo		
+Compiler/src/typeinfer.jl	1992	1992	Base.pop!	Base.pop!(queue::CompilationQueue)	todo		
+Compiler/src/typeinfer.jl	1993	1993	Base.empty!	Base.empty!(queue::CompilationQueue)	todo		
+Compiler/src/typeinfer.jl	1994	1994	markinspected!	markinspected!(queue::CompilationQueue, item)	todo		
+Compiler/src/typeinfer.jl	1995	1995	isinspected	isinspected(queue::CompilationQueue, item)	todo		
+Compiler/src/typeinfer.jl	1996	1996	Base.isempty	Base.isempty(queue::CompilationQueue)	todo		
+Compiler/src/typeinfer.jl	1998	2010	has_valid_abi_sparams	has_valid_abi_sparams(mi::MethodInstance)	todo		
+Compiler/src/typeinfer.jl	2016	2024	threads_deferred_call_type	threads_deferred_call_type(stmt::Expr, ci::CodeInfo, sptypes::Vector{VarState})	todo		
+Compiler/src/typeinfer.jl	2028	2031	is_base_threads_method	is_base_threads_method(def::Method, name::Symbol)	todo		
+Compiler/src/typeinfer.jl	2033	2033	is_threads_call_def	is_threads_call_def(@nospecialize def)	todo		
+Compiler/src/typeinfer.jl	2035	2040	_libdl_dlopen	_libdl_dlopen()	todo		
+Compiler/src/typeinfer.jl	2044	2055	foreign_library_type	foreign_library_type(@nospecialize(spec), ci::CodeInfo, sptypes::Vector{VarState})	todo		
+Compiler/src/typeinfer.jl	2058	2157	collectinvokes!	collectinvokes!(workqueue::CompilationQueue, ci::CodeInfo, sptypes::Vector{VarState}; invokelatest_queue::Union{CompilationQueue,Nothing} = nothing, enqueue_unprepared_invokes::Bool = false, external_linkage::Bool = false)	todo		
+Compiler/src/typeinfer.jl	2178	2181	jit_cache_root!	jit_cache_root!(cache, ci::CodeInstance)	todo		
+Compiler/src/typeinfer.jl	2184	2184	jit_cache_root!	jit_cache_root!(::InternalCodeCache, ::CodeInstance)	todo		
+Compiler/src/typeinfer.jl	2185	2186	jit_cache_root!	jit_cache_root!(cache::OverlayCodeCache, ci::CodeInstance)	todo		
+Compiler/src/typeinfer.jl	2188	2249	add_codeinsts_to_jit!	add_codeinsts_to_jit!(interp::AbstractInterpreter, ci, source_mode::UInt8)	todo		
+Compiler/src/typeinfer.jl	2251	2256	typeinf_ext_toplevel	typeinf_ext_toplevel(interp::AbstractInterpreter, mi::MethodInstance, source_mode::UInt8)	todo		
+Compiler/src/typeinfer.jl	2259	2263	typeinf_ext_toplevel	typeinf_ext_toplevel(mi::MethodInstance, world::UInt, source_mode::UInt8, trim_mode::UInt8)	todo		
+Compiler/src/typeinfer.jl	2265	2346	compile!	compile!(codeinfos::Vector{Any}, workqueue::CompilationQueue; invokelatest_queue::Union{CompilationQueue,Nothing} = nothing, enqueue_unprepared_invokes::Bool = false, external_linkage::Bool, )	todo		
+Compiler/src/typeinfer.jl	2354	2452	typeinf_ext_toplevel	typeinf_ext_toplevel(methods::Vector{Any}, worlds::Vector{UInt}, trim_mode::UInt8, external_linkage::Bool)	todo		
+Compiler/src/typeinfer.jl	2455	2455	verify_typeinf_trim	verify_typeinf_trim(codeinfos::Vector{Any}, onlywarn::Bool)	todo		
+Compiler/src/typeinfer.jl	2457	2461	_return_type_opaque_closure	_return_type_opaque_closure(@nospecialize(oc::Core.OpaqueClosure), t::DataType)	todo		
+Compiler/src/typeinfer.jl	2463	2468	return_type	return_type(@nospecialize(f), t::DataType)	todo		
+Compiler/src/typeinfer.jl	2470	2473	return_type	return_type(@nospecialize(f), t::DataType, world::UInt)	todo		
+Compiler/src/typeinfer.jl	2475	2478	return_type	return_type(t::DataType)	todo		
+Compiler/src/typeinfer.jl	2480	2483	return_type	return_type(t::DataType, world::UInt)	todo		
+Compiler/src/typeinfer.jl	2485	2502	_return_type	_return_type(interp::AbstractInterpreter, t::DataType)	todo		

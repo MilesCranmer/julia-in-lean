@@ -8,3 +8,14 @@ name = "JuliaLean"
 # not change the output, so it is a weak argument: raising it does not rebuild
 # anything.
 weakLeanArgs = ["-M24000"]
+
+# Differential-testing driver for the Compiler/src models (difftest/compiler/).
+[[lean_exe]]
+name = "compilerdiff"
+root = "CompilerDiff"
+
+# Differential-testing driver for the cache-file part of the base/loading.jl model
+# (difftest/base/loading.jl).
+[[lean_exe]]
+name = "loadingdiff"
+root = "LoadingDiff"

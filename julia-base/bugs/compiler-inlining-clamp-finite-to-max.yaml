@@ -1,0 +1,95 @@
+id: compiler-inlining-clamp-finite-to-max
+title: "inline_cost_clamp turns every cost from 3969 to 65534 into MAX_INLINE_COST"
+priority: P2
+kind: wrong-result
+area: Compiler
+files: [Compiler/src/optimize.jl, src/ircode.c]
+functions: ["inline_cost_clamp(x::Int)", "inline_cost_model(ir::IRCode, params::OptimizationParams, cost_threshold::Int)"]
+summary: |
+  inline_cost_model compares the body cost with the threshold and then rounds it with
+  inline_cost_clamp through the 8-bit encoding of jl_encode_inlining_cost, whose largest finite value
+  is 3968. Every cost from 3969 to 65534 decodes to 0xffff = MAX_INLINE_COST, the marker
+  is_inlineable reads as "never inline". With inline_cost_threshold raised above 3968, a body whose
+  cost is below the threshold is reported non-inlineable, and its optimized source may be discarded.
+likelihood: |
+  Not reachable with default parameters (the largest threshold, an @inline Base.iterate
+  with a tuple return, is 2650). Reached by any interpreter that raises inline_cost_threshold, such
+  as GPUCompiler (typemax(Int), see compiler-inlining-threshold-overflow) or the "couple billion"
+  suggested on JuliaLang/julia#60121, for callees costing more than 3968 (about four dynamic calls).
+  Triage 2026-11-10. Rerun 2026-11-10: REPRODUCED on pinned f755f49a9e, nightly 290d5bb5f5, 1.13.3 and upstream master 4c0e39dde6 (a 2026-11-09 build, output.master).
+  A real trigger exists outside Julia. Since JuliaGPU/GPUCompiler.jl#741 (merged 2025-11-15, the
+  fix for JuliaGPU/AMDGPU.jl#846), GPUCompiler sets inline_cost_threshold = Int(MAX_INLINE_COST)
+  = 65535 when a job has always_inline = true. The reproducer now also runs with that threshold:
+  a callee of cost 5000 is still a call, and one of cost 3000 is inlined. GPUCompiler does not add
+  an LLVM alwaysinline attribute for this setting (only llvm_always_inline on the native target
+  does), so such a callee is inlined only if LLVM's own heuristics choose to. Not measured: how
+  many real kernels have callees above 3968. Master optimize.jl:126 is unchanged. Stays P2.
+maybe_intended: |
+  The 8-bit encoding comment (src/ircode.c:1234) states the range 0..3968, so the cap is
+  known; but the cap is applied after the threshold test, which makes thresholds above 3968 mean
+  3968 without any warning.
+reproducer: |
+  CC.inline_cost_clamp(3969) == CC.MAX_INLINE_COST    # true
+  # with inline_cost_threshold = 10^9 in a custom interpreter:
+  five(r) = (r[](1); r[](1); r[](1); r[](1); r[](1); nothing)   # body cost 5000
+  callfive(r) = five(r)    # code_typed keeps the call to five; a cost-3000 callee is inlined
+  # the same with inline_cost_threshold = Int(CC.MAX_INLINE_COST), GPUCompiler's always_inline setting
+output:
+  release: |                          # 1.13.3 67ac47b9cd855e02134d41d5428ac9f2a73f2694
+    1.13.3 67ac47b9cd855e02134d41d5428ac9f2a73f2694
+    inline_cost_clamp(3968) = 3968, inline_cost_clamp(3969) = 65535
+    three: body cost 3000, inline_cost_model(ir, params, 10^9) = 3008
+    five: body cost 5000, inline_cost_model(ir, params, 10^9) = 65535
+    threshold 10^9: three calls left = 0, five calls left = 1
+    threshold MAX_INLINE_COST (GPUCompiler always_inline): three calls left = 0, five calls left = 1
+    REPRODUCED compiler-inlining-clamp-finite-to-max
+  nightly: |                          # 1.15.0-DEV.304 290d5bb5f52e815284ce14493f6964147d2f2dc7
+    1.15.0-DEV.304 290d5bb5f52e815284ce14493f6964147d2f2dc7
+    inline_cost_clamp(3968) = 3968, inline_cost_clamp(3969) = 65535
+    three: body cost 3000, inline_cost_model(ir, params, 10^9) = 3008
+    five: body cost 5000, inline_cost_model(ir, params, 10^9) = 65535
+    threshold 10^9: three calls left = 0, five calls left = 1
+    threshold MAX_INLINE_COST (GPUCompiler always_inline): three calls left = 0, five calls left = 1
+    REPRODUCED compiler-inlining-clamp-finite-to-max
+  master: |                          # 1.15.0-DEV.627 4c0e39dde69c0922daffc45fa63fe4ffd7438124 (upstream master 2026-11-09, desktop build; 6 commits behind eb844b8ebd, none in these files)
+    inline_cost_clamp(3968) = 3968, inline_cost_clamp(3969) = 65535
+    three: body cost 3000, inline_cost_model(ir, params, 10^9) = 3008
+    five: body cost 5000, inline_cost_model(ir, params, 10^9) = 65535
+    threshold 10^9: three calls left = 0, five calls left = 1
+    threshold MAX_INLINE_COST (GPUCompiler always_inline): three calls left = 0, five calls left = 1
+    REPRODUCED compiler-inlining-clamp-finite-to-max
+reproduced: {release: true, nightly: true, master: true}
+expected: |
+  A body cost at or below the threshold yields an inlineable cost: the clamp saturates at
+  the largest finite encoded value (3968) instead of the never-inline marker, or the encoding
+  grows.
+promised_by: |
+  is_inlineable(src) = inlining_cost(src) != MAX_INLINE_COST (Compiler/src/optimize.jl:127)
+  and inline_cost_model returns MAX_INLINE_COST only when bodycost > cost_threshold
+  (optimize.jl:1938-1942); MAX_INLINE_COST is the "not inlineable" marker.
+cause: |
+  Compiler/src/optimize.jl:131-137: `x > MAX_INLINE_COST && return MAX_INLINE_COST` lets 3969:65535
+  through to `jl_encode_inlining_cost`, which saturates at 0xff (src/ircode.c:1250-1251), and
+  `jl_decode_inlining_cost(0xff)` is 0xffff (ircode.c:1258-1259). Unchanged on master eb844b8ebd
+  (2026-11-10).
+possible_fix: |
+  Clamp finite costs above 3968 to 3968 (the decoded value of byte 254) before encoding, so
+  only MAX_INLINE_COST itself means "never inline".
+duplicates:
+  issues:
+    - {number: 60121, state: closed, relation: related}
+  queries: ["inline_cost_clamp", "inline_cost_threshold 3968", "jl_encode_inlining_cost", "inlining cost compressed", "inline_cost_threshold not inlined large", "prs: inline_cost_clamp", "issues: always_inline not inlined GPUCompiler", "issues: inlining cost encoding 3968"]
+lean:
+  property: JuliaLean.Proofs.Compiler.src.optimize.ClampFiniteStaysFinite
+  theorem: JuliaLean.Proofs.Compiler.src.optimize.clampFiniteStaysFinite_refuted
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: true
+  output: |
+    1.15.0-DEV.184 f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    inline_cost_clamp(3968) = 3968, inline_cost_clamp(3969) = 65535
+    three: body cost 3000, inline_cost_model(ir, params, 10^9) = 3008
+    five: body cost 5000, inline_cost_model(ir, params, 10^9) = 65535
+    threshold 10^9: three calls left = 0, five calls left = 1
+    threshold MAX_INLINE_COST (GPUCompiler always_inline): three calls left = 0, five calls left = 1
+    REPRODUCED compiler-inlining-clamp-finite-to-max

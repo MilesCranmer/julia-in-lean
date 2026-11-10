@@ -1,0 +1,76 @@
+file	line	endline	name	signature	status	entry	note
+Compiler/src/typelattice.jl	14	18	narrow_limited_typ	narrow_limited_typ(@nospecialize(x), @nospecialize(y))	modelled	compiler-tl-narrow-limited-typ	
+Compiler/src/typelattice.jl	49	56	Conditional	Conditional(slot::Int, ssadef::Int, @nospecialize(thentype), @nospecialize(elsetype); isdefined::Bool=false)	modelled	compiler-tl-conditional-ctor	
+Compiler/src/typelattice.jl	58	59	Conditional	Conditional(var::SlotNumber, ssadef::Int, @nospecialize(thentype), @nospecialize(elsetype); isdefined::Bool=false)	todo		SlotNumber variant (slot_id(var)) not modelled
+Compiler/src/typelattice.jl	62	65	InterConditional	InterConditional(cnd::Conditional)	modelled	compiler-tl-interconditional	
+Compiler/src/typelattice.jl	96	104	MustAlias	MustAlias(slot::Int, ssadef::Int, @nospecialize(vartyp), fldidx::Int, @nospecialize(fldtyp))	modelled	compiler-tl-mustalias-ctor	
+Compiler/src/typelattice.jl	106	107	MustAlias	MustAlias(var::SlotNumber, ssadef::Int, @nospecialize(vartyp), fldidx::Int, @nospecialize(fldtyp))	todo		SlotNumber variant (slot_id(var)) not modelled
+Compiler/src/typelattice.jl	110	115	InterMustAlias	InterMustAlias(alias::MustAlias)	modelled	compiler-tl-intermustalias	
+Compiler/src/typelattice.jl	119	121	update_mustalias	update_mustalias(alias::MustAlias; @nospecialize(vartyp = alias.vartyp), @nospecialize(fldtyp = alias.fldtyp))	modelled	compiler-tl-update-mustalias	
+Compiler/src/typelattice.jl	122	124	update_mustalias	update_mustalias(alias::InterMustAlias; @nospecialize(vartyp = alias.vartyp), @nospecialize(fldtyp = alias.fldtyp))	modelled	compiler-tl-update-mustalias	
+Compiler/src/typelattice.jl	132	132	PartialTypeVar	PartialTypeVar(tv::TypeVar, lb_certain::Bool, ub_certain::Bool)	excluded		no-behaviour: inner constructor `new(tv, lb_certain, ub_certain)` that only stores its fields
+Compiler/src/typelattice.jl	151	151	StateRefinement	StateRefinement(slot::Int, @nospecialize(newtyp), undef::Bool)	excluded		no-behaviour: inner constructor `new(slot, newtyp, undef)` that only stores its fields
+Compiler/src/typelattice.jl	195	198	LimitedAccuracy	LimitedAccuracy(@nospecialize(typ), causes::IdSet{InferenceState})	modelled	compiler-tl-limited-accuracy-ctor	
+Compiler/src/typelattice.jl	200	200	LimitedAccuracy	LimitedAccuracy(@nospecialize(T), ::Nothing)	modelled	compiler-tl-limited-accuracy-ctor	
+Compiler/src/typelattice.jl	222	228	assert_nested_slotwrapper	assert_nested_slotwrapper(@nospecialize t)	modelled	compiler-tl-assert-nested-slotwrapper	
+Compiler/src/typelattice.jl	230	237	widenslotwrapper	widenslotwrapper(@nospecialize typ)	modelled	compiler-tl-widenslotwrapper-widenconst,compiler-tl-widenslotwrapper-unwraps,compiler-tl-widen-wrappers-spec
+Compiler/src/typelattice.jl	242	255	widenconditional	widenconditional(@nospecialize typ)	modelled	compiler-tl-widenslotwrapper-widenconst,compiler-tl-widenconditional-extract,compiler-tl-widenconditional-extract-reachable,compiler-tl-widen-wrappers-spec
+Compiler/src/typelattice.jl	256	261	widenwrappedconditional	widenwrappedconditional(@nospecialize typ)	modelled	compiler-tl-widenwrapped	
+Compiler/src/typelattice.jl	265	266	issubconditional	issubconditional(𝕃::AbstractLattice, a::Conditional, b::Conditional)	todo		modelled; reflexivity given the parent order is not proven
+Compiler/src/typelattice.jl	267	268	issubconditional	issubconditional(𝕃::AbstractLattice, a::InterConditional, b::InterConditional)	todo		modelled; reflexivity given the parent order is not proven
+Compiler/src/typelattice.jl	269	280	_issubconditional	_issubconditional(𝕃::AbstractLattice, a::C, b::C, check_isdefined::Bool) where C<:AnyConditional	todo		modelled; reflexivity given the parent order is not proven
+Compiler/src/typelattice.jl	282	282	is_same_conditionals	is_same_conditionals(a::Conditional, b::Conditional)	modelled	compiler-tl-is-same-conditionals	
+Compiler/src/typelattice.jl	283	283	is_same_conditionals	is_same_conditionals(a::C, b::C) where C<:AnyConditional	modelled	compiler-tl-is-same-conditionals	
+Compiler/src/typelattice.jl	285	285	is_lattice_bool	is_lattice_bool(lattice::AbstractLattice, @nospecialize(typ))	todo		modelled; smoke test of is_lattice_bool ⇒ widenconst <: Bool passed, not proven
+Compiler/src/typelattice.jl	287	287	maybe_extract_const_bool	maybe_extract_const_bool(c::Const)	todo		modelled; the Const method is not exercised by a settled property
+Compiler/src/typelattice.jl	288	292	maybe_extract_const_bool	maybe_extract_const_bool(c::AnyConditional)	modelled	compiler-tl-widenconditional-extract,compiler-tl-widenconditional-extract-reachable	
+Compiler/src/typelattice.jl	293	293	maybe_extract_const_bool	maybe_extract_const_bool(@nospecialize c)	todo		modelled; the fallback method is not exercised by a settled property
+Compiler/src/typelattice.jl	298	305	widenmustalias	widenmustalias(@nospecialize typ)	modelled	compiler-tl-widenslotwrapper-widenconst,compiler-tl-widenslotwrapper-unwraps,compiler-tl-widen-wrappers-spec
+Compiler/src/typelattice.jl	306	311	widenwrappedmustalias	widenwrappedmustalias(@nospecialize typ)	modelled	compiler-tl-widenwrapped	
+Compiler/src/typelattice.jl	313	317	isalreadyconst	isalreadyconst(@nospecialize t)	modelled	compiler-tl-isalreadyconst	
+Compiler/src/typelattice.jl	319	334	maybe_const_fldidx	maybe_const_fldidx(@nospecialize(objtyp), @nospecialize(fldval))	todo		not modelled
+Compiler/src/typelattice.jl	336	357	form_mustalias_refinement	form_mustalias_refinement(alias::MustAlias, @nospecialize(newtyp))	todo		not modelled
+Compiler/src/typelattice.jl	359	365	form_mustalias_conditional	form_mustalias_conditional(alias::MustAlias, @nospecialize(thentype), @nospecialize(elsetype))	todo		not modelled
+Compiler/src/typelattice.jl	367	370	issubalias	issubalias(a::AnyMustAlias, b::AnyMustAlias)	todo		modelled; reflexivity not proven
+Compiler/src/typelattice.jl	372	373	is_same_alias	is_same_alias(a::MustAlias, b::MustAlias)	modelled	compiler-tl-is-same-alias	
+Compiler/src/typelattice.jl	374	374	is_same_alias	is_same_alias(a::InterMustAlias, b::InterMustAlias)	modelled	compiler-tl-is-same-alias	
+Compiler/src/typelattice.jl	375	375	is_same_alias	is_same_alias(@nospecialize(a), @nospecialize(b))	modelled	compiler-tl-is-same-alias	
+Compiler/src/typelattice.jl	379	390	narrow_mustalias	narrow_mustalias(𝕃::AbstractLattice, @nospecialize(x), @nospecialize(y))	todo		modelled; smoke test of narrow_mustalias(x, y) ⊑ x passed on owned aliases, not proven
+Compiler/src/typelattice.jl	395	395	ignorelimited	ignorelimited(@nospecialize typ)	modelled	compiler-tl-ignorelimited	
+Compiler/src/typelattice.jl	396	396	ignorelimited	ignorelimited(typ::LimitedAccuracy)	modelled	compiler-tl-ignorelimited	
+Compiler/src/typelattice.jl	401	418	⊑	⊑(lattice::InferenceLattice, @nospecialize(a), @nospecialize(b))	modelled	compiler-tl-sqsub-any-top-typeinf,compiler-tl-sqsub-bottom-least-typeinf,compiler-tl-sqsub-limited-epsilon	every branch is stated in compiler-tl-sqsub-limited-epsilon (pass-through, ε below, strictly below, causes ⊆) given T ⊑ T in the parent; reflexivity itself is not proven
+Compiler/src/typelattice.jl	420	445	⊑	⊑(lattice::AnyConditionalsLattice, @nospecialize(a), @nospecialize(b))	modelled	compiler-tl-sqsub-transitive,compiler-tl-sqsub-any-top-typeinf,compiler-tl-sqsub-bottom-least-typeinf	issubconditional reflexivity not settled
+Compiler/src/typelattice.jl	447	458	⊑	⊑(𝕃::AnyMustAliasesLattice, @nospecialize(a), @nospecialize(b))	modelled	compiler-tl-sqsub-any-top-typeinf,compiler-tl-sqsub-bottom-least-typeinf,compiler-tl-sqsub-mustalias	issubalias path stated only for aliases of different fields (false); same-field aliases not stated
+Compiler/src/typelattice.jl	460	545	⊑	⊑(lattice::PartialsLattice, @nospecialize(a), @nospecialize(b))	modelled	compiler-tl-sqsub-any-top-optimizer,compiler-tl-sqsub-bottom-least-optimizer,compiler-tl-sqsub-partials	PartialStruct-vs-type, typ and field-count checks, PartialOpaque and PartialTask branches stated in compiler-tl-sqsub-partials; the PartialStruct/PartialStruct and Const/PartialStruct field loops are not stated
+Compiler/src/typelattice.jl	547	567	⊑	⊑(lattice::ConstsLattice, @nospecialize(a), @nospecialize(b))	modelled	compiler-tl-sqsub-widenconst-upper,compiler-tl-sqsub-any-top-optimizer,compiler-tl-sqsub-bottom-least-optimizer	
+Compiler/src/typelattice.jl	569	579	is_lattice_equal	is_lattice_equal(lattice::InferenceLattice, @nospecialize(a), @nospecialize(b))	todo		modelled; difftest agreement only, no settled property
+Compiler/src/typelattice.jl	581	588	is_lattice_equal	is_lattice_equal(lattice::AnyConditionalsLattice, @nospecialize(a), @nospecialize(b))	todo		modelled; difftest agreement only
+Compiler/src/typelattice.jl	590	617	is_lattice_equal	is_lattice_equal(lattice::PartialsLattice, @nospecialize(a), @nospecialize(b))	todo		modelled; difftest agreement only
+Compiler/src/typelattice.jl	619	639	is_lattice_equal	is_lattice_equal(lattice::ConstsLattice, @nospecialize(a), @nospecialize(b))	todo		modelled; difftest agreement only
+Compiler/src/typelattice.jl	644	683	tmeet	tmeet(lattice::PartialsLattice, @nospecialize(v), @nospecialize(t::AnyType))	todo		modelled; the Tuple PartialStruct branch calls getfield_tfunc/tuple_tfunc (tfuncs.jl), not modelled
+Compiler/src/typelattice.jl	685	693	tmeet	tmeet(lattice::ConstsLattice, @nospecialize(v), @nospecialize(t::AnyType))	modelled	compiler-tl-tmeet-consts	
+Compiler/src/typelattice.jl	695	703	tmeet	tmeet(lattice::ConditionalsLattice, @nospecialize(v), @nospecialize(t::AnyType))	modelled	compiler-tl-tmeet-conditional	
+Compiler/src/typelattice.jl	705	715	tmeet	tmeet(𝕃::AnyMustAliasesLattice, @nospecialize(v), @nospecialize(t::AnyType))	todo		modelled; a sound spec must allow the LimitedAccuracy and AssertionError results of update_mustalias, not settled
+Compiler/src/typelattice.jl	717	721	tmeet	tmeet(lattice::InferenceLattice, @nospecialize(v), @nospecialize(t::AnyType))	modelled	compiler-tl-tmeet-asserts	
+Compiler/src/typelattice.jl	723	727	tmeet	tmeet(lattice::InterConditionalsLattice, @nospecialize(v), @nospecialize(t::AnyType))	modelled	compiler-tl-tmeet-asserts	
+Compiler/src/typelattice.jl	735	735	widenconst	widenconst(::AnyConditional)	modelled	compiler-tl-widenslotwrapper-widenconst,compiler-tl-widenconst	
+Compiler/src/typelattice.jl	736	736	widenconst	widenconst(a::AnyMustAlias)	modelled	compiler-tl-widenslotwrapper-widenconst,compiler-tl-widenconst	
+Compiler/src/typelattice.jl	740	741	widenconst	widenconst(c::Const)	todo		modelled; compiler-tl-widenconst states only non-type values (the Type{v}/TypeEgal{v} branch is not stated)
+Compiler/src/typelattice.jl	742	742	widenconst	widenconst(::PartialTypeVar)	modelled	compiler-tl-widenconst	
+Compiler/src/typelattice.jl	743	743	widenconst	widenconst(t::Core.PartialStruct)	modelled	compiler-tl-widenconst	
+Compiler/src/typelattice.jl	744	744	widenconst	widenconst(t::PartialOpaque)	modelled	compiler-tl-widenconst	
+Compiler/src/typelattice.jl	745	745	widenconst	widenconst(t::PartialTask)	modelled	compiler-tl-widenconst	
+Compiler/src/typelattice.jl	746	746	widenconst	widenconst(@nospecialize t::AnyType)	modelled	compiler-tl-widenconst	
+Compiler/src/typelattice.jl	747	747	widenconst	widenconst(::TypeVar)	modelled	compiler-tl-widenconst	
+Compiler/src/typelattice.jl	748	748	widenconst	widenconst(::TypeofVararg)	modelled	compiler-tl-widenconst	
+Compiler/src/typelattice.jl	749	749	widenconst	widenconst(::LimitedAccuracy)	modelled	compiler-tl-widenconst	
+Compiler/src/typelattice.jl	758	764	widenconst_split	widenconst_split(@nospecialize x)	modelled	compiler-tl-widenconst-split	
+Compiler/src/typelattice.jl	770	775	smerge	smerge(lattice::AbstractLattice, sa::Union{NotFound,VarState}, sb::Union{NotFound,VarState}, join_pc::Int)	todo		modelled with tmerge as a parameter; not settled
+Compiler/src/typelattice.jl	777	778	schanged	schanged(lattice::AbstractLattice, @nospecialize(n), @nospecialize(o), join_pc::Int)	todo		modelled; not settled
+Compiler/src/typelattice.jl	780	796	stupdate!	stupdate!(lattice::AbstractLattice, state::VarTable, changes::VarTable, join_pc::Int)	todo		modelled with tmerge as a parameter; not settled
+Compiler/src/typelattice.jl	798	803	stoverwrite!	stoverwrite!(state::VarTable, newstate::VarTable)	todo		not modelled
+Compiler/src/typelattice.jl	805	812	stoverwrite1!	stoverwrite1!(state::VarTable, change::StateUpdate)	todo		not modelled
+Compiler/src/typelattice.jl	814	818	strefine1!	strefine1!(state::VarTable, refinement::StateRefinement)	todo		not modelled
+Compiler/src/typelattice.jl	825	829	Core.PartialStruct	Core.PartialStruct(𝕃::AbstractLattice, @nospecialize(typ::Type), fields::Vector{Any})	todo		not modelled
+Compiler/src/typelattice.jl	831	836	Core.PartialStruct	Core.PartialStruct(::AbstractLattice, @nospecialize(typ::Type), undefs::Vector{Union{Nothing,Bool}}, fields::Vector{Any})	todo		not modelled
+Compiler/src/typelattice.jl	840	840	_getundefs	_getundefs(p::PartialStruct)	todo		not modelled

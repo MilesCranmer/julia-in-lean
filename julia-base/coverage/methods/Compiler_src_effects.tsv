@@ -1,0 +1,31 @@
+file	line	endline	name	signature	status	entry	note
+Compiler/src/effects.jl	143	165	Effects	Effects( consistent::UInt8, effect_free::UInt8, reset_safe::UInt8, nothrow::Bool, terminates::Bool, notaskstate::Bool, inaccessiblememonly::UInt8, noub::UInt8, nonoverlayed::UInt8, nortcall::Bool)	excluded		no-behaviour: inner constructor `new(...)` that only stores its ten fields
+Compiler/src/effects.jl	202	224	Effects	Effects(effects::Effects=EFFECTS_MINIMAL; consistent::UInt8 = effects.consistent, effect_free::UInt8 = effects.effect_free, reset_safe::UInt8 = effects.reset_safe, nothrow::Bool = effects.nothrow, terminates::Bool = effects.terminates, notaskstate::Bool = effects.notaskstate, inaccessiblememonly::UInt8 = effects.inaccessiblememonly, noub::UInt8 = effects.noub, nonoverlayed::UInt8 = effects.nonoverlayed, nortcall::Bool = effects.nortcall)	modelled	compiler-effects-kw-ctor	
+Compiler/src/effects.jl	226	302	is_better_effects	is_better_effects(new::Effects, old::Effects)	modelled	compiler-effects-is-better-order	
+Compiler/src/effects.jl	304	316	merge_effects	merge_effects(old::Effects, new::Effects)	modelled	compiler-effects-merge-effects	
+Compiler/src/effects.jl	318	323	merge_effectbits	merge_effectbits(old::UInt8, new::UInt8)	modelled	compiler-effects-merge-effectbits	
+Compiler/src/effects.jl	324	324	merge_effectbits	merge_effectbits(old::Bool, new::Bool)	modelled	compiler-effects-merge-effectbits	
+Compiler/src/effects.jl	326	326	is_consistent	is_consistent(effects::Effects)	modelled	compiler-effects-queries-merge	
+Compiler/src/effects.jl	327	327	is_effect_free	is_effect_free(effects::Effects)	modelled	compiler-effects-queries-merge	
+Compiler/src/effects.jl	328	328	is_reset_safe	is_reset_safe(effects::Effects)	modelled	compiler-effects-queries-merge	
+Compiler/src/effects.jl	329	329	is_nothrow	is_nothrow(effects::Effects)	modelled	compiler-effects-queries-merge	
+Compiler/src/effects.jl	330	330	is_terminates	is_terminates(effects::Effects)	modelled	compiler-effects-queries-merge	
+Compiler/src/effects.jl	331	331	is_notaskstate	is_notaskstate(effects::Effects)	modelled	compiler-effects-queries-merge	
+Compiler/src/effects.jl	332	332	is_inaccessiblememonly	is_inaccessiblememonly(effects::Effects)	modelled	compiler-effects-queries-merge	
+Compiler/src/effects.jl	333	333	is_noub	is_noub(effects::Effects)	modelled	compiler-effects-queries-merge	
+Compiler/src/effects.jl	334	334	is_noub_if_noinbounds	is_noub_if_noinbounds(effects::Effects)	modelled	compiler-effects-queries-named-states	
+Compiler/src/effects.jl	335	335	is_nonoverlayed	is_nonoverlayed(effects::Effects)	modelled	compiler-effects-queries-merge	
+Compiler/src/effects.jl	336	336	is_nortcall	is_nortcall(effects::Effects)	modelled	compiler-effects-queries-merge	
+Compiler/src/effects.jl	339	344	is_foldable	is_foldable(effects::Effects, check_rtcall::Bool=false)	modelled	compiler-effects-queries-merge	
+Compiler/src/effects.jl	346	348	is_foldable_nothrow	is_foldable_nothrow(effects::Effects, check_rtcall::Bool=false)	modelled	compiler-effects-queries-merge	
+Compiler/src/effects.jl	351	354	is_removable_if_unused	is_removable_if_unused(effects::Effects)	modelled	compiler-effects-queries-merge	
+Compiler/src/effects.jl	356	358	is_finalizer_inlineable	is_finalizer_inlineable(effects::Effects)	modelled	compiler-effects-queries-merge	
+Compiler/src/effects.jl	360	360	is_consistent_if_notreturned	is_consistent_if_notreturned(effects::Effects)	modelled	compiler-effects-queries-named-states	
+Compiler/src/effects.jl	361	361	is_consistent_if_inaccessiblememonly	is_consistent_if_inaccessiblememonly(effects::Effects)	modelled	compiler-effects-queries-named-states	
+Compiler/src/effects.jl	363	363	is_effect_free_if_inaccessiblememonly	is_effect_free_if_inaccessiblememonly(effects::Effects)	modelled	compiler-effects-effect-free-globally-collision	
+Compiler/src/effects.jl	365	365	is_reset_safe_if_inaccessiblememonly	is_reset_safe_if_inaccessiblememonly(effects::Effects)	modelled	compiler-effects-queries-named-states	
+Compiler/src/effects.jl	367	367	is_inaccessiblemem_or_argmemonly	is_inaccessiblemem_or_argmemonly(effects::Effects)	modelled	compiler-effects-queries-named-states	
+Compiler/src/effects.jl	369	369	is_consistent_overlay	is_consistent_overlay(effects::Effects)	modelled	compiler-effects-queries-named-states	
+Compiler/src/effects.jl	372	383	encode_effects	encode_effects(e::Effects)	modelled	compiler-effects-encode-roundtrip	
+Compiler/src/effects.jl	385	397	decode_effects	decode_effects(e::UInt32)	modelled	compiler-effects-encode-roundtrip	
+Compiler/src/effects.jl	399	400	decode_statement_effects_override	decode_statement_effects_override(ssaflag::UInt32)	modelled	compiler-effects-override-storage	

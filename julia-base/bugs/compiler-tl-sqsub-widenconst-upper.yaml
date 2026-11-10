@@ -1,0 +1,108 @@
+id: compiler-tl-sqsub-widenconst-upper
+title: "PartialTypeVar is only ⊑ TypeVar itself, not ⊑ Union{Nothing,TypeVar} or (on the optimizer lattice) Any"
+priority: P0
+kind: hang
+area: Compiler
+files: [Compiler/src/typelattice.jl]
+functions: ["⊑(::ConstsLattice, a, b)"]
+summary: |
+  widenconst(PartialTypeVar(T)) is TypeVar, but ⊑(ConstsLattice, a, b) accepts a
+  PartialTypeVar only when b === TypeVar or b === a. On typeinf_lattice,
+  PartialTypeVar ⋢ Union{Nothing, TypeVar} although PartialTypeVar ⊑ TypeVar ⊑
+  Union{Nothing, TypeVar}. On optimizer_lattice, which has no conditional layer
+  and so no `b === Any` fast path, PartialTypeVar ⋢ Any.
+likelihood: |
+  PartialTypeVar comes from TypeVar(...) calls with constant arguments, which
+  appear in code that builds types at run time. A merge with nothing (e.g. an
+  optional TypeVar) gives Union{Nothing, TypeVar}; the next ⊑ check against that
+  state then fails. In the probe `x = nothing; for i in 1:n; x = Core._typevar(:T,
+  Union{}, Any); end; x` inference still converged quickly
+  (difftest/compiler/typelattice_probe.jl), so no hang was shown.
+
+  Triage 2026-11-09: verdict survives, priority P0.
+
+  Mechanism: both `@goto` targets are merge blocks whose entry state for `h` becomes
+  tmerge(Const(nothing), PartialTypeVar) = Union{Nothing, TypeVar}. Each visit assigns a
+  PartialTypeVar and passes it to the other block, and ⊑(PartialTypeVar, Union{Nothing,
+  TypeVar}) is false, so `schanged` is true, `stupdate!` stores the same union again and
+  re-queues the block forever. It has the same shape as the Const(::Bool)/Conditional hang
+  fixed by JuliaLang/julia#64441; that fix touches only the Conditional rule.
+  In ordinary `for`/`while` loops the back edge goes through a block with one predecessor,
+  whose state widens to TypeVar after two visits, so they converge (the earlier probe
+  `loopy` finished in 0.3 ms). That is why nobody hit this earlier. Needs `@goto` (or
+  lowering that makes a merge block assign the value) plus a TypeVar built from constant
+  arguments. Contrived, but a hang, so P0 by the playbook. #64441 shows upstream treats
+  such hangs as worth fixing.
+  Not a model artifact: there is no comment giving a reason for `b === TypeVar` (5316549c44,
+  Keno Fischer, 2022-08, the lattice-layer refactor #46526); the TODO two lines above it
+  talks about the Const case only. Upstream master f840009913 still has
+  `return b === TypeVar || a === b` at typelattice.jl:560-561 (code read, not run).
+  Not covered by Compiler/test/lattice.jl (no PartialTypeVar elements).
+  Fix: for a type `b`, return `⊑(widenlattice(lattice), TypeVar, b)`.
+
+  repro/compiler-tl-sqsub-widenconst-upper-hang.jl. `Base.infer_return_type(g, (Bool,))`
+  never returns for
+
+    function g(q)
+        h = nothing
+        q && @goto a
+        @label b; h = TypeVar(:T)
+        @label a; h = TypeVar(:T); @goto b
+    end
+
+  while the same shape with `h = 1` / `h = 2` finishes in about 10 ms. Output of the
+  reproducer on all three builds:
+    control (h = 1) finishes: true;  PartialTypeVar (h = TypeVar(:T)) finishes within 60 s: false
+    REPRODUCED compiler-tl-sqsub-widenconst-upper-hang
+  A 120 s run on each build was killed by `timeout` after about 2e9 allocations. The
+  SIGTERM backtrace is in `typeinf_local` (abstractinterpretation.jl:4928), so inference
+  is spinning, not waiting. `Core._typevar(:T, Union{}, Any)` in place of `TypeVar(:T)`
+  hangs too.
+maybe_intended: |
+  The optimizer lattice may never see a PartialTypeVar. The typeinf case has no
+  documented reason.
+reproducer: |
+  const CC = Base.Compiler
+  L = CC.typeinf_lattice(CC.NativeInterpreter()); OL = CC.optimizer_lattice(CC.NativeInterpreter())
+  p = CC.PartialTypeVar(TypeVar(:T), true, true)
+  CC.:⊑(L, p, Union{Nothing, TypeVar})  # false
+  CC.:⊑(OL, p, Any)                     # false
+output:
+  release: |                          # Julia 1.13.3 67ac47b9cd8 (installed release; ARCHITECTURE.md pins 1.13.2)
+    widenconst(PartialTypeVar(T)) = TypeVar
+    typeinf: PartialTypeVar ⊑ TypeVar = true, TypeVar ⊑ Union{Nothing, TypeVar} = true, PartialTypeVar ⊑ Union{Nothing, TypeVar} = false
+    optimizer: PartialTypeVar ⊑ Any = false
+    REPRODUCED compiler-tl-sqsub-widenconst-upper
+  nightly: |                          # 1.15.0-DEV.304 290d5bb5f52e815284ce14493f6964147d2f2dc7
+    widenconst(PartialTypeVar(T)) = TypeVar
+    typeinf: PartialTypeVar ⊑ TypeVar = true, TypeVar ⊑ Union{Nothing, TypeVar} = true, PartialTypeVar ⊑ Union{Nothing, TypeVar} = false
+    optimizer: PartialTypeVar ⊑ Any = false
+    REPRODUCED compiler-tl-sqsub-widenconst-upper
+reproduced: {release: true, nightly: true}
+expected: |
+  PartialTypeVar ⊑ T for every type T with TypeVar <: T.
+promised_by: |
+  widenconst "widens extended lattice element x to native Type representation"
+  (Compiler/src/typelattice.jl:730-734), so an element is below every supertype of
+  its widening; ⊑ is an order, so it is transitive.
+cause: |
+  Compiler/src/typelattice.jl:561-562 returns `b === TypeVar || a === b` instead
+  of deferring a type b to `TypeVar <: b`.
+possible_fix: |
+  For a type b, return `TypeVar <: b` (or `⊑(widenlattice(lattice), TypeVar,
+  b)`); keep `a === b` for a PartialTypeVar b.
+duplicates:
+  issues: []
+  queries: ["PartialTypeVar lattice", "PartialTypeVar ⊑", "prs: PartialTypeVar lattice", "prs: PartialTypeVar ⊑", "issues: PartialTypeVar", "prs: PartialTypeVar", "issues: TypeVar inference hang", "issues: inference hangs goto", "prs: PartialTypeVar hang", "issues: infer_return_type hangs TypeVar", "issues: inference infinite loop TypeVar"]
+lean:
+  property: JuliaLean.Proofs.Compiler.src.typelattice.SqsubWidenconstUpperTypeinf
+  theorem: JuliaLean.Proofs.Compiler.src.typelattice.sqsubWidenconstUpperTypeinf_refuted
+covers: [compiler-tl-sqsub-any-top-optimizer]
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: true
+  output: |
+    widenconst(PartialTypeVar(T)) = TypeVar
+    typeinf: PartialTypeVar ⊑ TypeVar = true, TypeVar ⊑ Union{Nothing, TypeVar} = true, PartialTypeVar ⊑ Union{Nothing, TypeVar} = false
+    optimizer: PartialTypeVar ⊑ Any = false
+    REPRODUCED compiler-tl-sqsub-widenconst-upper

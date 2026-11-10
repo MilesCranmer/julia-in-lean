@@ -1,0 +1,76 @@
+id: compiler-cicache-union-hull
+title: "union(::WorldRange, ::WorldRange) cuts off a nested range and throws for ranges starting at world 0"
+priority: P3
+kind: wrong-result
+area: Compiler
+files: [Compiler/src/cicache.jl]
+functions: ["union(a::WorldRange, b::WorldRange)"]
+summary: |
+  union orders its arguments by min_world and returns WorldRange(a.min_world,
+  b.max_world). When b lies inside a, the result ends at b.max_world, so
+  union(WorldRange(1,10), WorldRange(2,5)) == WorldRange(1,5). Its @assert
+  computes b.min_world - 1 in UInt, which wraps for b.min_world == 0, so
+  union(WorldRange(0,5), WorldRange(0,5)) throws an AssertionError.
+likelihood: |
+  Triage 2026-11-10 (wave 2): verdict withdrawn, priority P3.
+
+  Withdrawn: compilation never produces these inputs. Reproduces on the pinned
+  build, nightly 290d5bb5f5 and 1.13.3, and union is unchanged on master
+  eb844b8ebd, but only by calling union directly. Its one caller passes touching,
+  non-nested ranges with min_world >= 1 (UnionCallSite, proven), so neither the
+  cut-off nor the wrap can happen. A two-line fix (max of the max_worlds, assert
+  without the subtraction) would remove the trap for a future caller. Do not
+  report it as a bug.
+
+  None known today. The one caller, binding_access_range
+  (Compiler/src/abstractinterpretation.jl:4269), merges the range found so far
+  with the range of the partition at the world just before it, so the two
+  ranges always touch (this.max_world + 1 == total.min_world, total.min_world
+  >= 1) and neither the nested case nor the wrap can happen there
+  (UnionCallSite, proven). A new caller merging overlapping or nested validity
+  ranges would get a range that is too small, or an AssertionError for ranges
+  starting at world 0.
+maybe_intended: |
+  Possibly meant only for adjacent, non-nested ranges, but nothing says so.
+reproducer: |
+  const CC = Base.Compiler
+  CC.union(CC.WorldRange(UInt(1), UInt(10)), CC.WorldRange(UInt(2), UInt(5)))  # WorldRange(1, 5)
+  CC.union(CC.WorldRange(UInt(0), UInt(5)), CC.WorldRange(UInt(0), UInt(5)))   # AssertionError
+output:
+  release: |                          # Julia 1.13.3 67ac47b9cd8
+    union(WorldRange(1,10), WorldRange(2,5)) = WorldRange(1, 5)
+    union(WorldRange(0,5), WorldRange(0,5)) = AssertionError
+    REPRODUCED compiler-cicache-union-hull
+  nightly: |                          # 1.15.0-DEV.304 290d5bb5f52e815284ce14493f6964147d2f2dc7
+    union(WorldRange(1,10), WorldRange(2,5)) = WorldRange(1, 5)
+    union(WorldRange(0,5), WorldRange(0,5)) = AssertionError
+    REPRODUCED compiler-cicache-union-hull
+reproduced: {release: true, nightly: true}
+expected: |
+  WorldRange(min(a.min_world, b.min_world), max(a.max_world, b.max_world)) for
+  ranges that overlap or touch.
+promised_by: |
+  The name; the @assert only rules out a gap between the ranges.
+cause: |
+  Compiler/src/cicache.jl:27 uses b.max_world instead of max(a.max_world,
+  b.max_world), and :26 subtracts 1 from an unsigned min_world. Lean:
+  JuliaLean.Proofs.Compiler.src.cicache.unionHull_refuted and
+  union_self_zero_throws.
+possible_fix: |
+  Return WorldRange(a.min_world, max(a.max_world, b.max_world)) and assert
+  a.max_world + 1 >= b.min_world (or a.max_world >= b.min_world || ...), or
+  document that both arguments must touch and not nest, as at its one call.
+duplicates:
+  issues: []
+  queries: ["WorldRange union", "cicache union", "WorldRange", "prs: WorldRange union", "prs: WorldRange", "wave 2, issues and prs, unquoted words: WorldRange union"]
+lean:
+  property: JuliaLean.Proofs.Compiler.src.cicache.UnionHull
+  theorem: JuliaLean.Proofs.Compiler.src.cicache.unionHull_refuted
+covers: [compiler-cicache-union-hull]
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: true
+  output: |
+    union(WorldRange(1,10), WorldRange(2,5)) = WorldRange(1, 5)
+    union(WorldRange(0,5), WorldRange(0,5)) = AssertionError
+    REPRODUCED compiler-cicache-union-hull

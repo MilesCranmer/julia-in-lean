@@ -1,0 +1,73 @@
+id: compiler-inlining-typeassert-one-arg
+title: "statement_cost throws a BoundsError on a one-argument Core.typeassert call"
+priority: P3
+kind: crash
+area: Compiler
+files: [Compiler/src/optimize.jl]
+functions: ["statement_cost(ex::Expr, line::Int, src::Union{CodeInfo, IRCode}, sptypes::Vector{VarState}, params::OptimizationParams)"]
+summary: |
+  statement_cost reads ex.args[3] of every call to typeassert to test isconstType, without the
+  length(ex.args) >= 3 check the memoryref cases above it have. A call Core.typeassert(x) with
+  one argument is kept in the IR (inferred Union{}), so the inlining cost of any function that
+  contains it throws a BoundsError: code_typed fails, and calling the function prints
+  "Internal error: during type inference" and runs it without inferred code.
+likelihood: |
+  Low. One-argument typeassert is a user error that always throws at run time, so it only
+  appears in dead or error paths. `x::T` lowers to the two-argument form.
+  Triage 2026-11-10 (was P2). Rerun 2026-11-10: REPRODUCED on pinned f755f49a9e, nightly 290d5bb5f5, 1.13.3 and upstream master 4c0e39dde6 (a 2026-11-09 build, output.master).
+  Master optimize.jl:1881 has the same unguarded ex.args[3]. The #64765 change (c95c86857c) added
+  an `_apply_iterate` branch right after it with a length check, but left this line alone. Only
+  erroneous code has a one-argument Core.typeassert (it always throws), and the function still
+  runs; the visible effect is the "Internal error" message, a code_typed failure and code
+  without inference. P3.
+maybe_intended: ""
+reproducer: |
+  g(x, c) = c ? Core.typeassert(x) : 1
+  code_typed(g, (Int, Bool))   # BoundsError from statement_cost
+output:
+  release: |                          # 1.13.3 67ac47b9cd855e02134d41d5428ac9f2a73f2694
+    1.13.3 67ac47b9cd855e02134d41d5428ac9f2a73f2694
+    statement 2: (typeassert)(_2)
+    statement_or_branch_cost: BoundsError: attempt to access 2-element Vector{Any} at index [3]
+    code_typed(g, (Int, Bool)): BoundsError: attempt to access 2-element Vector{Any} at index [3]
+    REPRODUCED compiler-inlining-typeassert-one-arg
+  nightly: |                          # 1.15.0-DEV.304 290d5bb5f52e815284ce14493f6964147d2f2dc7
+    1.15.0-DEV.304 290d5bb5f52e815284ce14493f6964147d2f2dc7
+    statement 2: (typeassert)(_2)
+    statement_or_branch_cost: BoundsError: attempt to access 2-element Vector{Any} at index [3]
+    code_typed(g, (Int, Bool)): BoundsError: attempt to access 2-element Vector{Any} at index [3]
+    REPRODUCED compiler-inlining-typeassert-one-arg
+  master: |                          # 1.15.0-DEV.627 4c0e39dde69c0922daffc45fa63fe4ffd7438124 (upstream master 2026-11-09, desktop build; 6 commits behind eb844b8ebd, none in these files)
+    1.15.0-DEV.627 4c0e39dde69c0922daffc45fa63fe4ffd7438124
+    statement 2: (typeassert)(_2)
+    statement_or_branch_cost: BoundsError: attempt to access 2-element Vector{Any} at index [3]
+    code_typed(g, (Int, Bool)): BoundsError: attempt to access 2-element Vector{Any} at index [3]
+    REPRODUCED compiler-inlining-typeassert-one-arg
+reproduced: {release: true, nightly: true, master: true}
+expected: |
+  code_typed returns the optimized code. The call gets some cost (for example the
+  find_tfunc cost of typeassert) and inference finishes.
+promised_by: |
+  Invariant: the cost model runs on every IR inference produces, and an inference-time
+  exception is an internal error.
+cause: |
+  Compiler/src/optimize.jl:1861, `elseif f === typeassert && isconstType(argextype_widened(ex.args[3], src, sptypes))`,
+  reads ex.args[3] without checking the argument count.
+possible_fix: |
+  Add `length(ex.args) == 3 &&` to the condition, as the memoryref branches do.
+duplicates:
+  issues: []
+  queries: ["statement_cost BoundsError", "typeassert one argument inference internal error", "inline_cost_model BoundsError typeassert", "Core.typeassert BoundsError optimize", "typeassert isconstType argextype_widened", "statement_cost", "typeassert BoundsError", "Internal error during type inference BoundsError typeassert", "prs: statement_cost typeassert", "issues: typeassert one argument", "issues: Core.typeassert BoundsError"]
+lean:
+  property: JuliaLean.Proofs.Compiler.src.optimize.StatementCostNoThrow
+  theorem: JuliaLean.Proofs.Compiler.src.optimize.statementCostNoThrow_refuted
+covers: [compiler-inlining-statement-cost-nothrow]
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: true
+  output: |
+    1.15.0-DEV.184 f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    statement 2: (typeassert)(_2)
+    statement_or_branch_cost: BoundsError: attempt to access 2-element Vector{Any} at index [3]
+    code_typed(g, (Int, Bool)): BoundsError: attempt to access 2-element Vector{Any} at index [3]
+    REPRODUCED compiler-inlining-typeassert-one-arg

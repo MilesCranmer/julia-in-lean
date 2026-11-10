@@ -1,0 +1,129 @@
+id: compiler-slot2ssa-catch-loop-header
+title: "A while loop at the start of a catch block reads a stale local (wrong result, segfault)"
+priority: P0
+kind: wrong-result
+area: Compiler
+files: [Compiler/src/ssair/slot2ssa.jl]
+functions: ["construct_ssa!(ci::CodeInfo, ir::IRCode, sv::OptimizationState, domtree::DomTree, defuses::Vector{SlotInfo}, 𝕃ₒ::AbstractLattice)"]
+summary: |
+  When a catch block starts with a while loop, the catch block is also the loop
+  header. For a local that is assigned in the try and changed in the loop,
+  construct_ssa! puts both a PhiC node and a phi node in that block. On the
+  first visit of the block the renaming sets the local to the new phi and then
+  overwrites it with the PhiC node, so every read in the loop gets the value
+  the local had when the exception was thrown. The phi that carries the loop
+  value is dead. The function below returns 1 instead of 4; with a Ref
+  argument in the same shape, calling the function segfaults.
+likelihood: |
+  Likely to be hit by real code: a retry or polling loop written directly at
+  the top of a catch block, with a counter or accumulator that is also set in
+  the try, is ordinary Julia. No @goto or unusual syntax is needed. The shape
+  exists since 1.11, where lowering stopped putting a :leave at the start of
+  the catch block; Julia 1.10.12 returns 4 because its catch block starts with
+  that :leave and the loop header is a separate block. In the difftest's
+  generated functions, every verify_ir failure we inspected (4 of about 25 per
+  20000 cases) had a catch or finally body that starts with a while loop. The
+  messages were "φ node N is not at the beginning of the basic block N" (the
+  phi comes after the PhiC node) and "Basic Block N does not dominate block
+  N", and code_ircode's final IR fails verify_ir on them too.
+  Triage 2026-11-10. Rerun 2026-11-10: REPRODUCED on pinned f755f49a9e, nightly 290d5bb5f5, 1.13.3 and upstream master 4c0e39dde6 (a 2026-11-09 build, output.master).
+  Also on master 4c0e39dde6, the Ref variant h(Ref(0)) segfaults ("signal 11"), and Julia
+  1.10.12 returns 4 for it. Master Compiler/src/ssair/slot2ssa.jl is unchanged since the pinned
+  commit, and no lowering change since then touches how a catch block starts. Not a model
+  artifact: the reproducer is plain source code, with no @goto or generated code. Not intended:
+  the PhiC overwrite assumes a catch block has no ordinary predecessors, which lowering has not
+  guaranteed since 1.11. Duplicate search: #63994 (open) is a different stale-local bug in
+  `finally` (cfg_simplify! drops an upsilon after inlining); #57393 (open) is an LLVM-side
+  try/catch issue; #62519 (merged) changed codegen for PhiC slots of unreachable catch blocks.
+  None covers this one. P0: wrong result and a segfault from ordinary code, a regression since
+  1.11.
+maybe_intended: ""
+reproducer: |
+  const C = Ref(0)
+  function loopcatch()
+      x = 0
+      try
+          x = 1
+          error("e")
+      catch
+          while C[] < 3
+              C[] += 1
+              x += 1
+          end
+      end
+      return x
+  end
+  loopcatch()   # 1; 4 with --compile=min
+output:
+  release: |                          # Julia 1.13.3 67ac47b9cd855e02134d41d5428ac9f2a73f2694
+    1.13.3 67ac47b9cd855e02134d41d5428ac9f2a73f2694
+    loopcatch() = 1 (expected 4)
+    loopcatch() with --compile=min = 4
+    phi nodes construct_ssa! inserted but never used: Core.PhiNode[:(φ (%2 => %1, %5 => %20))]
+    REPRODUCED compiler-slot2ssa-catch-loop-header
+  nightly: |                          # 1.15.0-DEV.304 290d5bb5f52e815284ce14493f6964147d2f2dc7
+    1.15.0-DEV.304 290d5bb5f52e815284ce14493f6964147d2f2dc7
+    loopcatch() = 1 (expected 4)
+    loopcatch() with --compile=min = 4
+    phi nodes construct_ssa! inserted but never used: Core.PhiNode[:(φ (%2 => %1, %5 => %20))]
+    REPRODUCED compiler-slot2ssa-catch-loop-header
+  master: |                          # 1.15.0-DEV.627 4c0e39dde69c0922daffc45fa63fe4ffd7438124 (upstream master 2026-11-09, desktop build; 6 commits behind eb844b8ebd, none in these files)
+    1.15.0-DEV.627 4c0e39dde69c0922daffc45fa63fe4ffd7438124
+    loopcatch() = 1 (expected 4)
+    loopcatch() with --compile=min = 4
+    phi nodes construct_ssa! inserted but never used: Core.PhiNode[:(φ (%2 => %1, %5 => %20))]
+    REPRODUCED compiler-slot2ssa-catch-loop-header
+reproduced: {release: true, nightly: true, master: true}
+expected: |
+  loopcatch() == 4, as with --compile=min and on Julia 1.10.12. With
+  `function h(r)` in the same shape (`while r[] < 3; r[] += 1; x += 1; end`
+  in the catch block), h(Ref(0)) should return 4; it segfaults ("signal 11:
+  Segmentation fault" in getproperty) on the pinned Julia, nightly
+  290d5bb5f5 and 1.13.3. Julia 1.11.9 and 1.12.7 also return 1 for
+  loopcatch().
+promised_by: |
+  The semantics of local variables: x += 1 in the loop must be seen by the
+  next iteration. The comment of compute_live_ins (Compiler/src/ssair/
+  slot2ssa.jl:495-497) says the pruning "prevents insertion of dead phi
+  nodes"; here a phi that pruned SSA places is dead because the renaming
+  drops it.
+cause: |
+  Compiler/src/ssair/slot2ssa.jl:602-636 makes a PhiC node for each slot that
+  is live into a catch block, and adds the catch block to the def blocks, so
+  the iterated dominance frontier (lines 637-657) also gives the catch block a
+  phi when a loop back edge enters it. In the renaming walk, lines 691-706 set
+  incoming_vals[slot] to the new phi, and then lines 709-715 ("Record phi_C
+  nodes if necessary") overwrite it with the PhiC node on the first visit. The
+  PhiC node only collects upsilons from stores inside the try region, so the
+  value arriving on the back edge is lost. The code assumes a catch block has
+  no ordinary predecessors, which lowering no longer guarantees since 1.11.
+  Master eb844b8ebd999935a31829e19823db70c711d05f (2026-11-10) has the same
+  lines: Compiler/src/ssair/slot2ssa.jl is unchanged since the pinned
+  f755f49a9e. Lean:
+  JuliaLean.Proofs.Compiler.src.ssair.slot2ssa.phisUsed_refuted, on the input
+  of a function `h3` of this shape.
+possible_fix: |
+  Keep the catch block's exceptional entry separate from its loop entries, for
+  example by having lowering (or convert_to_ircode!) start the catch block
+  with a statement of its own so that the loop header is a separate block, as
+  in 1.10. Alternatively, in construct_ssa!, when a block has both, make the
+  phi take the PhiC value as its operand on the exceptional edge instead of
+  letting the PhiC replace it.
+duplicates:
+  issues:
+    - {number: 57393, state: open, relation: related}
+    - {number: 28224, state: closed, relation: related}
+    - {number: 63994, state: open, relation: related}
+  queries: ["catch loop", "PhiC", "phic", "upsilon", "catch segfault", "catch while", "try catch while", "catch miscompile", "slot2ssa catch", "while loop in catch segfault", "catch while loop", "PhiCNode loop", "catch block loop header", "phic back edge", "while catch wrong result", "segfault catch while", "upsilon loop catch", "prs: catch while loop", "prs: PhiC loop catch", "prs: catch block loop", "issues: while loop catch block wrong result", "issues: try catch loop variable stale value", "issues: catch while miscompile", "prs: PhiC phi catch block", "issues: loop inside catch returns wrong"]
+lean:
+  property: JuliaLean.Proofs.Compiler.src.ssair.slot2ssa.PhisUsed
+  theorem: JuliaLean.Proofs.Compiler.src.ssair.slot2ssa.phisUsed_refuted
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: true
+  output: |
+    1.15.0-DEV.184 f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    loopcatch() = 1 (expected 4)
+    loopcatch() with --compile=min = 4
+    phi nodes construct_ssa! inserted but never used: Core.PhiNode[:(φ (%2 => %1, %5 => %20))]
+    REPRODUCED compiler-slot2ssa-catch-loop-header

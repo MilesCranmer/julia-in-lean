@@ -1,0 +1,31 @@
+line	name	verdict	mirror	property	settled	reason
+72	VerifyMethodWorkspace	FAITHFUL	-	-	-	The exclusion applies: the constructor only allocates empty arrays and refs, and the scratch refs' starting values (1, typemax) are overwritten in verify_call_lookup before any read.
+81	VerifyMethodInitialState	FAITHFUL	yes	yes	yes	The proposition fixes every field (mi, def, edges, image) read from codeinst and says the state is unchanged.
+88	VerifyMethodWorkState	FAITHFUL	yes	yes	yes	The proposition fixes the exact (0, cause, 1, :init_and_process_callees).
+92	VerifyMethodResultState	FAITHFUL	yes	yes	yes	The proposition fixes the exact (0, 0, 0).
+97	binding_access_range_at	FAITHFUL	yes	yes	yes	The proposition gives the binding_access_range answer when world >= require_world and the WorldWithRange ErrorException otherwise (Compiler/src/inferencestate.jl:262-265).
+103	binding_changed_since_require_world	HOLLOW	yes	no	yes	The proposition restates the two branches with binding_access_range left as an unconstrained oracle, so it never states the comment's promise that the fast path gives the same answer as the walk; a fast path that disagrees with the walk satisfies it.
+119	insert_backedges	HOLLOW	no	yes	yes	VerifyMethodSound runs verifyMethod directly on a fresh workspace (runVerify), so insertBackedges, with its scan_new_methods! call and workspace setup, is never unfolded; the bug yaml shows the effect through it, but the Lean entry does not.
+128	scan_new_code!	HOLLOW	no	no	yes	stale-min-world never calls scanNewCode (so the lookup reset on a world change and the promote call are not in it), and promote-ci-noop is about the C jl_promote_ci_to_current and only states its no-op when the world moved.
+149	verify_method_graph	HOLLOW	no	yes	yes	runVerify calls verifyMethod directly, so verifyMethodGraph's workspace and child_cycle == 0 assertions are not in any proposition.
+180	needs_instrumentation	HOLLOW	yes	no	yes	Only the two early returns are stated, and the coverage and malloc-log branch, the method's purpose, is unmodelled, so `fun _ => false` satisfies the proposition.
+221	verify_method	HOLLOW	yes	yes	no	The stale-min-world refutation unfolds the state machine and holds on a heap that keeps RuntimeConsistent (reproduced with a real threaded package load), but the row's cycle-group and range-bounded entries are still todo; settle them or take them off the row.
+468	get_method_from_edge	FAITHFUL	yes	yes	yes	The proposition gives the exact method for Method, MethodInstance and CodeInstance edges and the TypeError for every other edge.
+482	get_mi_from_edge	FAITHFUL	yes	yes	yes	The proposition gives nothing for a Method, the exact instance for MethodInstance and CodeInstance edges, and the TypeError otherwise.
+490	expected_dominates_sig	FAITHFUL	yes	yes	yes	The iff says LATEST_ONLY on mi or isempty(meth.interferences), with isempty read as allocated length 0 as on Memory.
+500	method_in_expecteds	FAITHFUL	yes	yes	yes	The iff gives membership by uid, which is `===` on methods.
+517	eachinterference	FAITHFUL	yes	yes	yes	The proposition says the result is exactly the takeWhile of the mapped assigned entries with primary_world <= cutoff.
+518	Base.iterate	FAITHFUL	yes	yes	yes	The iterate steps (stop at the end, at an unassigned slot or past the cutoff) fold into eachinterference's loop over the assigned prefix, which the proposition pins exactly.
+529	method_in_interferences	FAITHFUL	yes	yes	yes	The proposition gives the exact membership answer, under a hypothesis that only says the set's methods exist and have UInt primary worlds.
+540	method_morespecific_recorded	HOLLOW	yes	no	yes	Only irreflexivity and asymmetry are stated, so a function that always returns false satisfies it; nothing ties it to membership in the two interference sets.
+548	method_is_latest_which	FAITHFUL	yes	yes	yes	The iff says bit 0x1 of dispatch_status is set.
+551	method_in_image_deps	FAITHFUL	yes	yes	yes	The proposition gives false for no image and for a method of no image, and the exact linkage_blob_dep_world test otherwise.
+560	sig_contributors_world	FAITHFUL	yes	yes	yes	The proposition gives 0 for no image and the exact C answer otherwise (debug log off, as everywhere in the model).
+566	promote_mi_to_current	HOLLOW	yes	no	yes	The proposition is "nothing changes, or under these conditions the status becomes LATEST_ONLY", so a no-op satisfies it; nothing says the promotion happens when its conditions hold.
+597	newmethod_removed_silently	HOLLOW	yes	no	yes	It only says a true result implies the body's own guards held, so always-false satisfies it, and the comment's promise (acceptance implies ml_matches returns exactly the expected methods with no ambiguity) is not stated.
+638	expected_is_minmax	HOLLOW	yes	no	yes	Only the true-implies-guards direction is stated, which restates the body; always-false satisfies it, and the minmax property its comment argues is not stated.
+664	has_empty_set_cover	HOLLOW	yes	no	yes	Only "true implies some expected method meets the loop's own test" is stated, so always-false satisfies it, and the converse (it finds such a cover when one exists) is not stated.
+688	morespecific_cannot_cycle	HOLLOW	yes	no	yes	Only the true direction of the loop's own test is stated, so always-false satisfies it.
+705	verify_call_lookup	FAITHFUL	yes	yes	yes	The result is pinned to a memo entry whose range contains world (same lim) or to the _methods_by_ftype answer, stored when memoizing; a version that never reuses the memo gives the same results, and exactness across the range rests on the stated C promise.
+729	verify_call	FAITHFUL	yes	yes	yes	verifyMethod calls verifyCall step by step, the refuted soundness statement sits on its interference cutoff at world = codeinst.min_world, and the repro shows stale code after a real `-t 2` package load in which another thread defines a method during the load.
+894	verify_invokesig	HOLLOW	yes	no	yes	Only "acceptance implies one of the body's three accepting branches" is stated, so a verifier that always rejects satisfies it, and nothing says it accepts an invoke whose target is unchanged.

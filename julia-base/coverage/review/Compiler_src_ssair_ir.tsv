@@ -1,0 +1,4 @@
+line	name	verdict	mirror	property	settled	reason
+14	cfg_insert_edge!	HOLLOW	yes	no	yes	CfgEditSmall is bounded to CFGs of at most 3 blocks although the method is two pushes whose general statement (CfgEditAll) is left todo, and the BoundsError for a block out of range is not stated.
+21	cfg_delete_edge!	HOLLOW	yes	no	yes	CfgEditSmall is bounded to CFGs of at most 3 blocks with the general CfgEditAll todo, and only existing edges are checked, so the TypeError when the edge is absent is not stated.
+1453	kill_edge!	HOLLOW	yes	no	yes	KillEdgeSmall is bounded to CFGs of at most 3 blocks, which caps the recursion at two levels, and the general KillEdgeAll is todo.
