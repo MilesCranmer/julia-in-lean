@@ -1,0 +1,17 @@
+line	name	verdict	mirror	property	settled	reason
+7	WorldRange	FAITHFUL	yes	yes	yes	WorldRange.all is (typemin, typemax) and the proposition says it contains every UInt world.
+8	WorldRange	FAITHFUL	yes	yes	yes	The proposition says WorldRange(w) contains exactly w, which only (w, w) satisfies.
+9	WorldRange	FAITHFUL	yes	yes	yes	The model follows UnitRange's unitrange_last for UInt endpoints, and the proposition says the result contains exactly start..stop for every start and stop.
+10	first	FAITHFUL	yes	yes	yes	The proposition fixes first(wr) to the min_world field.
+11	last	FAITHFUL	yes	yes	yes	The proposition fixes last(wr) to the max_world field.
+12	in	FAITHFUL	yes	yes	yes	The single and UnitRange conjuncts pin contains on every nonempty range, so a wrong membership test fails them.
+13	min_world	FAITHFUL	yes	yes	yes	min_world is first, and the proposition fixes first to the field.
+14	max_world	FAITHFUL	yes	yes	yes	max_world is last, and the proposition fixes last to the field.
+16	intersect	FAITHFUL	yes	yes	yes	The proposition gives the exact meet, symmetry and the AssertionError when the ranges are disjoint, for all ranges.
+22	union	HOLLOW	yes	no	yes	The union-hull refutation is sound and reproduced, but its counterexample cannot arise in real compilation at this commit because nothing calls union on a WorldRange; the companion entry union-ordered holds only under hypotheses picked to make it true (b.min_world >= 1, a.max_world <= b.max_world, strict ordering), which no caller or docstring states, so drop that entry from the row.
+40	InternalCodeCache	HOLLOW	yes	no	yes	view-sound quantifies over any wvc and never mentions the constructor, so a constructor that dropped wr would also satisfy it; this `new(owner, wr)` only stores fields and should be an excluded no-behaviour row.
+41	InternalCodeCache	HOLLOW	no	no	yes	No Lean function builds the cache from WorldRange(args...), and view-sound says nothing about InternalCodeCache(owner, args...).worlds being WorldRange(args...).
+44	setindex!	HOLLOW	yes	no	yes	The model and proposition cover only the owner @assert and whether jl_push_newly_inferred runs; the cache insertion through jl_mi_cache_insert, which is the method's purpose, is not modelled, so a setindex! that never inserts satisfies it.
+54	haskey	FAITHFUL	yes	yes	yes	The proposition says haskey agrees with get, and get is pinned exactly.
+58	get	FAITHFUL	yes	yes	yes	The model follows _jl_rettype_inferred's chain walk, and the proposition gives the exact first covering entry (owner, worlds and inferred all checked) or the default, for every chain.
+66	getindex	FAITHFUL	yes	yes	yes	The proposition says getindex returns what get finds and throws KeyError otherwise.

@@ -1,0 +1,17 @@
+file	line	endline	name	signature	status	entry	note
+Compiler/src/cicache.jl	7	7	WorldRange	WorldRange()	modelled	compiler-cicache-worldrange-ctors	
+Compiler/src/cicache.jl	8	8	WorldRange	WorldRange(w::UInt)	modelled	compiler-cicache-worldrange-ctors	
+Compiler/src/cicache.jl	9	9	WorldRange	WorldRange(r::UnitRange)	modelled	compiler-cicache-worldrange-ctors	
+Compiler/src/cicache.jl	10	10	first	first(wr::WorldRange)	modelled	compiler-cicache-worldrange-ctors	
+Compiler/src/cicache.jl	11	11	last	last(wr::WorldRange)	modelled	compiler-cicache-worldrange-ctors	
+Compiler/src/cicache.jl	12	12	in	in(world::UInt, wr::WorldRange)	modelled	compiler-cicache-worldrange-ctors	
+Compiler/src/cicache.jl	13	13	min_world	min_world(wr::WorldRange)	modelled	compiler-cicache-worldrange-ctors	
+Compiler/src/cicache.jl	14	14	max_world	max_world(wr::WorldRange)	modelled	compiler-cicache-worldrange-ctors	
+Compiler/src/cicache.jl	16	20	intersect	intersect(a::WorldRange, b::WorldRange)	modelled	compiler-cicache-intersect-meet	
+Compiler/src/cicache.jl	22	28	union	union(a::WorldRange, b::WorldRange)	modelled	compiler-cicache-union-hull,compiler-cicache-union-ordered	
+Compiler/src/cicache.jl	40	40	InternalCodeCache	InternalCodeCache(@nospecialize(owner), wr::WorldRange)	excluded		no-behaviour: inner constructor that only stores owner and wr (new(owner, wr)); the view it builds is the plain record the view-sound and args-ctor entries take
+Compiler/src/cicache.jl	41	41	InternalCodeCache	InternalCodeCache(@nospecialize(owner), args...)	modelled	compiler-cicache-args-ctor	
+Compiler/src/cicache.jl	44	52	setindex!	setindex!(cache::InternalCodeCache, ci::CodeInstance, mi::MethodInstance)	modelled	compiler-cicache-setindex-owner	jl_mi_cache_insert placement modelled (jlMiCacheInsert); jl_push_newly_inferred is a no-op outside precompilation and not observed
+Compiler/src/cicache.jl	54	56	haskey	haskey(wvc::InternalCodeCache, mi::MethodInstance)	modelled	compiler-cicache-view-sound	
+Compiler/src/cicache.jl	58	64	get	get(wvc::InternalCodeCache, mi::MethodInstance, default)	modelled	compiler-cicache-view-sound	
+Compiler/src/cicache.jl	66	70	getindex	getindex(wvc::InternalCodeCache, mi::MethodInstance)	modelled	compiler-cicache-view-sound	

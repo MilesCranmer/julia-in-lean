@@ -1,0 +1,12 @@
+line	name	verdict	mirror	property	settled	reason
+10	foreachgr	HOLLOW	no	no	yes	The source is replaced by a precomputed list of the GlobalRefs visited, so the loops over statements and userefs are not in Lean, and GlobalrefScan does not mention foreachgr at all.
+22	anygr	HOLLOW	no	no	yes	anygr is defined as List.any over the precomputed visit list and the proposition states that definition (rfl), so the statement walk and the `continue` after a GlobalRef statement are not modelled and nothing is pinned.
+38	should_invalidate_code_for_globalref	FAITHFUL	yes	yes	yes	Given the visit-list representation, the proposition says the result is true exactly when gr is among the GlobalRefs visited, which rules out constant or first-argument answers.
+39	isgr	FAITHFUL	yes	yes	yes	isgr on a GlobalRef is binding equality (one binding per (mod, name)), and the should_invalidate conjunct pins it.
+40	isgr	HOLLOW	no	no	yes	The fallback for a non-GlobalRef has no Lean counterpart and is never called, because anygr only passes GlobalRefs to visit; it should be an excluded row.
+44	scan_edge_list	FAITHFUL	yes	yes	yes	The proposition says the result is true exactly when ci has an edge list containing the binding, for every ci and binding.
+86	export_affecting_partition_flags	FAITHFUL	yes	yes	yes	The proposition gives the exact triple from the hand-written constants 0x9, 0x10, 0x20 and mask 0x0f, which match base/runtime_internals.jl:258-268.
+91	invalidate_code_for_globalref!	HOLLOW	yes	no	yes	The proposition covers only the path where the access key and the export flags are both unchanged, so a function that never invalidates and always returns false satisfies it; nothing says every dependent of a changed binding is invalidated.
+167	invalidate_code_for_globalref!	HOLLOW	no	no	yes	The convert is not modelled, and the only proposition is the no-change no-op of the Binding method, which a function that never invalidates also satisfies.
+175	scan_new_method!	HOLLOW	yes	no	yes	ScanSkips covers only the early returns, so a no-op satisfies it; the did_scan_source bits, the backedges added and the @assert under image_backedges_only are not stated.
+196	scan_new_methods!	HOLLOW	yes	no	yes	ScanSkips covers only the incremental-precompile early return, so a no-op satisfies it; nothing says each Method item is scanned.
