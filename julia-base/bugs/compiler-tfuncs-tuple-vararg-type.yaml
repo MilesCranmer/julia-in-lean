@@ -1,0 +1,87 @@
+id: compiler-tfuncs-tuple-vararg-type
+title: "tuple_tfunc keeps a Vararg{Type{T}} tail, so a splatted tuple of types is inferred as Tuple{Vararg{Type{T}}}, which no tuple value has"
+priority: P0
+kind: wrong-result
+area: Compiler
+files: [Compiler/src/tfuncs.jl]
+functions: ["tuple_tfunc(𝕃::AbstractLattice, argtypes::Vector{Any})"]
+summary: |
+  No tuple value is an instance of Tuple{Type{Int}}: `(Int,)` is a
+  Tuple{DataType}. tuple_tfunc therefore rewrites each `Type{T}` (and
+  `TypeEgal{T}`, and Unions containing them) argument into a valid tuple
+  parameter (DataType, Type, Union{x, Type}). A trailing `Vararg{Type{T}}`
+  argument skips all of these rewrites (`params[i] = x` for a Vararg), so
+  `tuple(v...)` with `v::Vector{Type{Int}}` is inferred as
+  Tuple{Vararg{Type{Int}}}. The value it returns, `(Int, Int)`, is not in that
+  type, and `tuple(v...) isa Tuple{Vararg{Type{Int}}}` is folded to `true`
+  although it is `false` at run time.
+likelihood: |
+  Triage 2026-11-10 (wave 2): verdict survives, priority P0.
+
+  Reproduces on the pinned build, nightly 290d5bb5f5 and 1.13.3, and the Vararg
+  branch of tuple_tfunc is unchanged on master eb844b8ebd. It is not a model
+  artifact: `k(v)` returns a folded `true` for a value whose run-time `isa` is
+  `false`, which is the user-visible wrong result. It is not intended: the
+  comment at tfuncs.jl:2334-2337 states the invariant, and #44725 fixed the
+  Union case of the same rule. The input is ordinary: splatting a
+  `Vector{Type{T}}` (or any `Vararg{Type{T}}` argument list) into `tuple`.
+
+  Needs a splat (or other unknown-length argument list) whose element type is a
+  `Type{T}` or `TypeEgal{T}`: splatting a `Vector{Type{T}}` or a
+  `Tuple{Vararg{Type{T}}}` field into `tuple`, or any call that goes through
+  `tuple_tfunc` with such a Vararg. Rare in ordinary code, but the result is a
+  wrong constant, not just a lost bound.
+maybe_intended: |
+  No. The comment at Compiler/src/tfuncs.jl:2334-2337 states the intent: "there
+  don't exist any values whose runtime type are `Tuple{Type{...}}`, here we
+  should turn such `Type{...}`-parameters to valid parameters". The Vararg case
+  was missed (#44725 fixed the Union case).
+reproducer: |
+  h(v::Vector{Type{Int}}) = tuple(v...)
+  k(v::Vector{Type{Int}}) = tuple(v...) isa Tuple{Vararg{Type{Int}}}
+  v = Type{Int}[Int, Int]
+  Base.return_types(h, (Vector{Type{Int}},))   # Tuple{Vararg{Type{Int64}}}
+  h(v) isa Tuple{Vararg{Type{Int}}}             # false
+  k(v)                                          # true (folded)
+output:
+  release: |                          # Julia 1.13.3 67ac47b9cd855e02134d41d5428ac9f2a73f2694
+    return_types(h, (Vector{Type{Int}},)) = Tuple{Vararg{Type{Int64}}}
+    h(v) = (Int64, Int64) :: Tuple{DataType, DataType}; h(v) isa Tuple{Vararg{Type{Int64}}} = false
+    k(v) = true; tuple(v...) isa Tuple{Vararg{Type{Int}}} at run time = false
+    REPRODUCED compiler-tfuncs-tuple-vararg-type
+  nightly: |                          # 1.15.0-DEV.304 290d5bb5f52e815284ce14493f6964147d2f2dc7
+    return_types(h, (Vector{Type{Int}},)) = Tuple{Vararg{Type{Int64}}}
+    h(v) = (Int64, Int64) :: Tuple{DataType, DataType}; h(v) isa Tuple{Vararg{Type{Int64}}} = false
+    k(v) = true; tuple(v...) isa Tuple{Vararg{Type{Int}}} at run time = false
+    REPRODUCED compiler-tfuncs-tuple-vararg-type
+reproduced: {release: true, nightly: true}
+expected: |
+  `tuple(v...)` inferred as a type that contains `(Int, Int)`, for example
+  Tuple{Vararg{DataType}} (or Tuple{Vararg{Type}}), and `k(v)` not folded to true.
+promised_by: |
+  Soundness of inference: the inferred return type must contain every value the
+  call returns. The comment at Compiler/src/tfuncs.jl:2334-2337 states the
+  specific invariant for tuple_tfunc.
+cause: |
+  Compiler/src/tfuncs.jl:2320-2359: for a Vararg argument `x` the loop leaves
+  `params[i] = x`, without the `isTypeEgal`/`isTypeEq`/`hasintersect(x, Type)`
+  rewrites that every other argument gets.
+possible_fix: |
+  Apply the same rewrite to `unwrapva(x)` and rewrap the result with the
+  Vararg's length (`Vararg{rewritten}` or `Vararg{rewritten, N}`).
+duplicates:
+  issues:
+    - {number: 44725, relation: related}
+  queries: ["tuple_tfunc Vararg Type", "tuple splat Type inference isa wrong", "Tuple Vararg Type DataType inference unsound", "tuple_tfunc Vararg", "splat Type tuple inference isa", "Vararg Type DataType tuple inference wrong", "prs: tuple_tfunc", "wave 2, issues and prs, unquoted words: tuple_tfunc Vararg Type DataType", "splat Vector Type tuple inferred", "Tuple Vararg Type{Int} isa wrong", "tuple_tfunc unsound", "tuple_tfunc", "tuple Type DataType inference", "tuple Type splat", "Type Vararg tuple"]
+lean:
+  property: JuliaLean.Proofs.Compiler.Tfuncs.TupleParamsHaveInstances
+  theorem: JuliaLean.Proofs.Compiler.Tfuncs.tupleParamsHaveInstances_refuted
+  notes: "Found by the soundness smoke test of difftest/compiler/tfuncs.jl. The Lean statement is about the parameters tuple_tfunc builds (no Type{T} parameter, bare or in a trailing Vararg, as the comment at Compiler/src/tfuncs.jl:2334-2337 requires); the counterexample is argtypes [Vararg{Type{Int64}}]. Soundness against the runtime is not refuted in Lean because building the result type runs the type-construction model's partial `while` loops."
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: true
+  output: |
+    return_types(h, (Vector{Type{Int}},)) = Tuple{Vararg{Type{Int64}}}
+    h(v) = (Int64, Int64) :: Tuple{DataType, DataType}; h(v) isa Tuple{Vararg{Type{Int64}}} = false
+    k(v) = true; tuple(v...) isa Tuple{Vararg{Type{Int}}} at run time = false
+    REPRODUCED compiler-tfuncs-tuple-vararg-type
