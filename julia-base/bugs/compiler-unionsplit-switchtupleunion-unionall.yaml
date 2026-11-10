@@ -1,0 +1,79 @@
+id: compiler-unionsplit-switchtupleunion-unionall
+title: switchtupleunion(ty) on a UnionAll misses values of ty
+priority: P3
+kind: wrong-result
+area: Compiler
+files:
+- Compiler/src/typeutils.jl
+functions:
+- switchtupleunion(@nospecialize(ty))
+- _switchtupleunion(𝕃::AbstractLattice, t::Vector{Any}, i::Int, tunion::Vector{Any}, @nospecialize(origt), groups::Union{Nothing,Vector{Int}}=nothing)
+summary: |
+  switchtupleunion(Tuple{Union{T, R{T}}, T} where T) returns [Tuple{R{T},T} where T,
+  Tuple{T,T} where T]. Each split tuple is rewrapped on its own, which makes T diagonal in
+  Tuple{T,T} where T, so (Int8(1), 2), an instance of the input, is in no result.
+likelihood: |
+  Triage 2026-11-10 (wave 2): verdict withdrawn, priority P3.
+
+  Withdrawn: compilation never produces the input. Reproduces on the pinned build,
+  nightly 290d5bb5f5 and 1.13.3, but only by direct call. The one call site,
+  typesubtract (typeutils.jl:132), is inside `elseif a isa DataType`, so the
+  one-argument method never sees a UnionAll. The mechanism is the same rewrap
+  problem as compiler-unionsplit-typesubtract-unionall-diagonal, so a fix for that
+  bug can cite this as a second place to guard (or assert `ty isa DataType`).
+
+  None at this commit: the only caller, typesubtract, passes a DataType (never a UnionAll).
+  A future caller passing a UnionAll would inherit the problem.
+maybe_intended: |
+  Possibly: the method may only be meant for DataTypes, but it accepts UnionAlls
+  (`unwrap_unionall(ty)::DataType`) and the comment promises Union{return...} == ty.
+reproducer: |
+  abstract type AR end; abstract type R{T} <: AR end
+  B = Tuple{Union{T, R{T}}, T} where T
+  rs = Base.Compiler.switchtupleunion(B)
+  (Int8(1), 2) isa B, (Int8(1), 2) isa Union{rs...}   # (true, false)
+output:  # release: Julia 1.13.3 67ac47b9cd8; nightly: 1.15.0-DEV.304 290d5bb5f52
+  release: |
+    switchtupleunion(B) = Any[Tuple{R{T}, T} where T, Tuple{T, T} where T]
+    x isa B = true, x isa Union{rs...} = false
+    B <: Union{rs...} = false
+    REPRODUCED compiler-unionsplit-switchtupleunion-unionall
+  nightly: |
+    switchtupleunion(B) = Any[Tuple{R{T}, T} where T, Tuple{T, T} where T]
+    x isa B = true, x isa Union{rs...} = false
+    B <: Union{rs...} = false
+    REPRODUCED compiler-unionsplit-switchtupleunion-unionall
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  Union{switchtupleunion(B)...} == B, or the method rejects UnionAll arguments.
+promised_by: |
+  Comment Compiler/src/typeutils.jl:318-320: "return an array such that those Unions are
+  removed and `Union{return...} == ty`".
+cause: |
+  Compiler/src/typeutils.jl:338-339 rewraps each split Tuple with rewrap_unionall(Tuple{t...},
+  origt). Lean: JuliaLean.Proofs.Compiler.src.typeutils.switchtupleunionCovers_refuted.
+possible_fix: |
+  Assert that ty is a DataType (the only use), or do not split when a UnionAll variable
+  occurs both inside a split Union and elsewhere.
+duplicates:
+  issues: []
+  queries:
+  - switchtupleunion
+  - switchtupleunion UnionAll
+  - diagonal rewrap_unionall union
+  - 'prs: switchtupleunion'
+  - 'wave 2, issues and prs, unquoted words: switchtupleunion UnionAll'
+  - switchtupleunion
+lean:
+  property: JuliaLean.Proofs.Compiler.src.typeutils.SwitchtupleunionCovers
+  theorem: JuliaLean.Proofs.Compiler.src.typeutils.switchtupleunionCovers_refuted
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: true
+  output: |
+    switchtupleunion(B) = Any[Tuple{R{T}, T} where T, Tuple{T, T} where T]
+    x isa B = true, x isa Union{rs...} = false
+    B <: Union{rs...} = false
+    REPRODUCED compiler-unionsplit-switchtupleunion-unionall

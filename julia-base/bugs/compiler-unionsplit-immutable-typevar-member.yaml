@@ -1,0 +1,105 @@
+id: compiler-unionsplit-immutable-typevar-member
+title: is_immutable_argtype treats a TypeVar union member as immutable, so getfield is folded
+priority: P0
+kind: wrong-result
+area: Compiler
+files:
+- Compiler/src/typeutils.jl
+- Compiler/src/tfuncs.jl
+functions:
+- is_immutable_argtype(@nospecialize argtype)
+- is_immutable_type(@nospecialize ty)
+- _is_immutable_type(@nospecialize ty)
+- getfield_effects (Compiler/src/tfuncs.jl:2935-2989)
+summary: |
+  is_immutable_type(Union{Nothing, T} where T) is true, though that type is == Any and holds
+  mutable objects. _is_immutable_type unwraps the UnionAll and then tests the bare TypeVar
+  member T: it is not Type{...}, isabstracttype(T) is false (T is not a DataType) and
+  ismutabletype(T) is false, so T counts as immutable. getfield_effects then marks a field
+  load through a value of that type :consistent and :inaccessiblememonly, the calling
+  function becomes foldable, and a call is constant-folded at compile time: after mutating
+  the object the compiled code still returns the old field value.
+likelihood: |
+  Triage 2026-11-10 (wave 2): verdict survives, priority P0.
+
+  Reproduces on the pinned build, nightly 290d5bb5f5 and 1.13.3, and
+  _is_immutable_type is unchanged on master eb844b8ebd. The user-visible effect is
+  in the repro: `w()` keeps returning a field value that a mutation already
+  changed, because the call was concrete-evaluated at compile time. It is not
+  intended: the docstring promises "known to be immutable", and `Union{Nothing, T}
+  where T` is `== Any`. The type is a plausible mistake for an optional parametric
+  field. The same wrong answer reaches getfield_effects through is_immutable_argtype
+  (tfuncs.jl:2953 and 2980), so any field load through such a value can be folded.
+
+  Low to moderate. Needs a declared type such as `x::Union{Nothing, T} where T` (for
+  example a struct field written that way by mistake for an optional parametric value) and a
+  field read through it in code whose other effects are foldable.
+maybe_intended: |
+  No. The docstring (Compiler/src/typeutils.jl:452-460) says the function returns true if
+  the object is known to be immutable.
+reproducer: |
+  const U = Union{Nothing, T} where T
+  mutable struct M; a::Int; end
+  struct S; f::U; end
+  const m = M(1)
+  @noinline q(x::S) = getfield(getfield(x, :f), :a)
+  w() = q(S(m))
+  m.a = 2; w()   # 2
+  m.a = 3; w()   # 2, must be 3
+output:  # release: Julia 1.13.3 67ac47b9cd8; nightly: 1.15.0-DEV.304 290d5bb5f52
+  release: |
+    U == Any = true, is_immutable_argtype(U) = true
+    infer_effects(q, (S,)) = (+c,+e,!n,+t,+s,!m,+u,+o,+r)
+    w() after m.a = 2: 2; after m.a = 3: 2 (must be 3)
+    REPRODUCED compiler-unionsplit-immutable-typevar-member
+  nightly: |
+    U == Any = true, is_immutable_argtype(U) = true
+    infer_effects(q, (S,)) = (+c,+e,+re,!n,+t,+s,!m,+u,+o,+r)
+    w() after m.a = 2: 2; after m.a = 3: 2 (must be 3)
+    REPRODUCED compiler-unionsplit-immutable-typevar-member
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  is_immutable_argtype(U) is false, getfield on a U value is not :consistent, and w()
+  returns 3 after m.a = 3.
+promised_by: |
+  Docstring of is_immutable_argtype, Compiler/src/typeutils.jl:452-460: "Return `true` if
+  the `argtype` object is known to be immutable."
+cause: |
+  Compiler/src/typeutils.jl:463-469: _is_immutable_type returns
+  !isabstracttype(ty) && !ismutabletype(ty) for a TypeVar ty, which is true. Lean:
+  JuliaLean.Proofs.Compiler.src.typeutils.isImmutableTypeSound_refuted.
+possible_fix: |
+  In _is_immutable_type, return false for a TypeVar (or test its upper bound), e.g.
+  `isa(ty, TypeVar) && return false`.
+duplicates:
+  issues: []
+  queries:
+  - is_immutable_argtype
+  - is_immutable_type TypeVar
+  - _is_immutable_type
+  - getfield_effects consistent UnionAll
+  - constant folded mutable field Union where T
+  - 'prs: is_immutable_argtype'
+  - 'prs: is_immutable_type TypeVar'
+  - 'prs: _is_immutable_type'
+  - 'wave 2, issues and prs, unquoted words: is_immutable_type TypeVar'
+  - is_immutable_argtype
+  - getfield consistent mutable Union where T constant fold
+  - is_immutable
+  - getfield_effects
+  - Union Nothing where T field consistent
+  - immutable TypeVar
+  - mutable constant folded
+lean:
+  property: JuliaLean.Proofs.Compiler.src.typeutils.IsImmutableTypeSound
+  theorem: JuliaLean.Proofs.Compiler.src.typeutils.isImmutableTypeSound_refuted
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: true
+  output: |
+    U == Any = true, is_immutable_argtype(U) = true
+    infer_effects(q, (S,)) = (+c,+e,+re,!n,+t,+s,!m,+u,+o,+r)
+    w() after m.a = 2: 2; after m.a = 3: 2 (must be 3)
+    REPRODUCED compiler-unionsplit-immutable-typevar-member

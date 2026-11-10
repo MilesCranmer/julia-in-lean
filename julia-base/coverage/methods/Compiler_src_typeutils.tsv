@@ -1,0 +1,40 @@
+file	line	endline	name	signature	status	entry	note
+Compiler/src/typeutils.jl	12	12	isconstType	isconstType(@nospecialize t)	modelled	compiler-unionsplit-isconsttype	
+Compiler/src/typeutils.jl	23	30	isTypeDataType	isTypeDataType(@nospecialize t)	modelled	compiler-unionsplit-istypedatatype	
+Compiler/src/typeutils.jl	32	32	has_extended_info	has_extended_info(@nospecialize x)	modelled	compiler-unionsplit-has-extended-info	
+Compiler/src/typeutils.jl	38	38	isnotbrokensubtype	isnotbrokensubtype(@nospecialize(a), @nospecialize(b))	modelled	compiler-unionsplit-isnotbrokensubtype	
+Compiler/src/typeutils.jl	40	45	argtypes_to_type	argtypes_to_type(argtypes::Vector{Any})	modelled	compiler-unionsplit-argtypes-to-type	
+Compiler/src/typeutils.jl	47	51	isknownlength	isknownlength(t::DataType)	modelled	compiler-unionsplit-isknownlength	
+Compiler/src/typeutils.jl	53	53	has_concrete_subtype	has_concrete_subtype(d::DataType)	modelled	compiler-unionsplit-has-concrete-subtype	
+Compiler/src/typeutils.jl	59	81	valid_as_lattice	valid_as_lattice(@nospecialize(x), astag::Bool=false)	modelled	compiler-unionsplit-valid-as-lattice	
+Compiler/src/typeutils.jl	83	98	valid_typeof_tparam	valid_typeof_tparam(@nospecialize(t))	modelled	compiler-unionsplit-valid-typeof-tparam	
+Compiler/src/typeutils.jl	101	101	valid_tparam	valid_tparam(@nospecialize(x))	modelled	compiler-unionsplit-valid-typeof-tparam	
+Compiler/src/typeutils.jl	103	112	compatible_vatuple	compatible_vatuple(a::DataType, b::DataType)	modelled	compiler-unionsplit-compatible-vatuple	
+Compiler/src/typeutils.jl	117	162	typesubtract	typesubtract(@nospecialize(a), @nospecialize(b), max_union_splitting::Int)	modelled	compiler-unionsplit-typesubtract-unionall-diagonal	
+Compiler/src/typeutils.jl	164	164	_typename	_typename(@nospecialize a)	modelled	compiler-unionsplit-typename	
+Compiler/src/typeutils.jl	165	165	_typename	_typename(::TypeVar)	modelled	compiler-unionsplit-typename	
+Compiler/src/typeutils.jl	166	173	_typename	_typename(a::Union)	modelled	compiler-unionsplit-typename	
+Compiler/src/typeutils.jl	174	174	_typename	_typename(union::UnionAll)	modelled	compiler-unionsplit-typename	
+Compiler/src/typeutils.jl	175	175	_typename	_typename(a::DataType)	modelled	compiler-unionsplit-typename	
+Compiler/src/typeutils.jl	176	176	_typename	_typename(a::TypeEq)	modelled	compiler-unionsplit-typename	
+Compiler/src/typeutils.jl	178	185	tuple_tail_elem	tuple_tail_elem(𝕃::AbstractLattice, @nospecialize(init), ct::Vector{Any})	todo		model: JuliaLean/Compiler/src/typelimits.lean tupleTailElem (pilot); difftest op tupleTailElem. No property: its correctness rests on tmerge being an upper bound (typelimits area), and the source marks it FIXME (it can create invalid types with free typevars, Compiler/src/typeutils.jl:181).
+Compiler/src/typeutils.jl	196	211	compute_alias_groups	compute_alias_groups( na::Int, fargs::Union{Nothing,Vector{Any}}, argtypes::Union{Nothing,Vector{Any}} )	modelled	compiler-unionsplit-compute-alias-groups,compiler-unionsplit-alias-groups-none	Which grouping is returned (the merge functions' leader invariant) is not stated; those two rows stay todo.
+Compiler/src/typeutils.jl	216	241	any_alias_candidate	any_alias_candidate( na::Int, fargs::Union{Nothing,Vector{Any}}, argtypes::Union{Nothing,Vector{Any}} )	modelled	compiler-unionsplit-any-alias-candidate,compiler-unionsplit-alias-groups-none
+Compiler/src/typeutils.jl	244	257	merge_fargs_alias_groups!	merge_fargs_alias_groups!(groups::Vector{Int}, fargs::Vector{Any})	todo		model: JuliaLean/Compiler/src/typeutils.lean mergeFargsAliasGroups; difftested through computeAliasGroups. Not stated: the leader invariant (1 <= groups[i] <= i, groups[groups[i]] == groups[i]); smoke-tested only through the difftest.
+Compiler/src/typeutils.jl	261	283	merge_mustalias_groups!	merge_mustalias_groups!(groups::Vector{Int}, argtypes::Vector{Any})	todo		model: JuliaLean/Compiler/src/typeutils.lean mergeMustaliasGroups; difftested through computeAliasGroups. Not stated: the leader invariant (1 <= groups[i] <= i, groups[groups[i]] == groups[i]); smoke-tested only through the difftest.
+Compiler/src/typeutils.jl	291	316	unionsplitcost	unionsplitcost(𝕃::AbstractLattice, argtypes::Union{SimpleVector,Vector{Any}}; fargs::Union{Nothing,Vector{Any}}=nothing)	modelled	compiler-unionsplit-cost-groups,compiler-unionsplit-cost-spec,compiler-unionsplit-cost-order-independent,compiler-unionsplit-cost-monotone,compiler-unionsplit-cost-subtype-monotone,compiler-unionsplit-split-count-exceeds-limit	
+Compiler/src/typeutils.jl	321	324	switchtupleunion	switchtupleunion(@nospecialize(ty))	modelled	compiler-unionsplit-switchtupleunion-type,compiler-unionsplit-switchtupleunion-count,compiler-unionsplit-switchtupleunion-unionall	
+Compiler/src/typeutils.jl	326	331	switchtupleunion	switchtupleunion(𝕃::AbstractLattice, argtypes::Vector{Any}; fargs::Union{Nothing,Vector{Any}}=nothing)	modelled	compiler-unionsplit-switchtupleunion-groups,compiler-unionsplit-switchtupleunion-lattice,compiler-unionsplit-split-count-exceeds-limit
+Compiler/src/typeutils.jl	333	392	_switchtupleunion	_switchtupleunion(𝕃::AbstractLattice, t::Vector{Any}, i::Int, tunion::Vector{Any}, @nospecialize(origt), groups::Union{Nothing,Vector{Int}}=nothing)	modelled	compiler-unionsplit-switchtupleunion-rec,compiler-unionsplit-switchtupleunion-lattice,compiler-unionsplit-switchtupleunion-count,compiler-unionsplit-switchtupleunion-unionall	
+Compiler/src/typeutils.jl	396	396	unioncomplexity	unioncomplexity(@nospecialize x)	modelled	compiler-unionsplit-unioncomplexity	
+Compiler/src/typeutils.jl	397	414	_unioncomplexity	_unioncomplexity(@nospecialize x)	modelled	compiler-unionsplit-unioncomplexity	
+Compiler/src/typeutils.jl	416	423	unionall_depth	unionall_depth(@nospecialize ua)	modelled	compiler-unionsplit-unionall-depth	
+Compiler/src/typeutils.jl	425	430	unwraptv_ub	unwraptv_ub(@nospecialize t)	modelled	compiler-unionsplit-unwraptv-ub	
+Compiler/src/typeutils.jl	431	436	unwraptv_lb	unwraptv_lb(@nospecialize t)	modelled	compiler-unionsplit-unwraptv-lb	
+Compiler/src/typeutils.jl	449	449	is_identity_free_argtype	is_identity_free_argtype(@nospecialize ty)	todo		not modelled: needs the DataType isidentityfree flag, which the type model does not record
+Compiler/src/typeutils.jl	450	450	is_identity_free_type	is_identity_free_type(@nospecialize ty)	todo		not modelled: needs the DataType isidentityfree flag, which the type model does not record
+Compiler/src/typeutils.jl	461	461	is_immutable_argtype	is_immutable_argtype(@nospecialize argtype)	modelled	compiler-unionsplit-immutable-argtype-widen,compiler-unionsplit-immutable-typevar-member	
+Compiler/src/typeutils.jl	462	462	is_immutable_type	is_immutable_type(@nospecialize ty)	modelled	compiler-unionsplit-immutable-typevar-member	
+Compiler/src/typeutils.jl	463	469	_is_immutable_type	_is_immutable_type(@nospecialize ty)	modelled	compiler-unionsplit-immutable-typevar-member	
+Compiler/src/typeutils.jl	481	482	is_mutation_free_argtype	is_mutation_free_argtype(@nospecialize(argtype))	todo		not modelled: needs the DataType ismutationfree flag, which the type model does not record
+Compiler/src/typeutils.jl	483	483	is_mutation_free_type	is_mutation_free_type(@nospecialize ty)	todo		not modelled: needs the DataType ismutationfree flag, which the type model does not record

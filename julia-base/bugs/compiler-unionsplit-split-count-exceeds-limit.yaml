@@ -1,0 +1,80 @@
+id: compiler-unionsplit-split-count-exceeds-limit
+title: max_union_splitting does not bound the number of union-split signatures
+priority: P3
+kind: documentation
+area: Compiler
+files:
+- Compiler/src/types.jl
+- Compiler/src/typeutils.jl
+functions:
+- unionsplitcost(𝕃::AbstractLattice, argtypes::Union{SimpleVector,Vector{Any}}; fargs::Union{Nothing,Vector{Any}}=nothing)
+- switchtupleunion(𝕃::AbstractLattice, argtypes::Vector{Any}; fargs::Union{Nothing,Vector{Any}}=nothing)
+- is_union_split_eligible (Compiler/src/abstractinterpretation.jl:395-397)
+summary: |
+  InferenceParams documents max_union_splitting as "the maximum number of union-tuples to
+  swap or expand", but is_union_split_eligible compares it with unionsplitcost, which is
+  2 * prod(lengths) / max(2, largest length). A 3-member and a 2-member union argument cost 4
+  and split into 6 signatures; a single 20-member union costs 2 and splits into 20 method
+  lookups.
+likelihood: |
+  Triage 2026-11-10 (wave 2): verdict survives as a docstring fix, priority P3.
+
+  Reproduces on the pinned build, nightly 290d5bb5f5 and 1.13.3; both the cost and
+  the docstring are unchanged on master eb844b8ebd. The code is intended. #37378
+  ("inference: remove union-split limit for linear signatures") made a single long
+  union always split, and the comment at typeutils.jl:285-290 describes the cost.
+  Only the InferenceParams docstring (types.jl:295-297) is wrong. No search found an
+  issue about it.
+
+  High that the documented bound is exceeded (any call with one long union argument); the
+  code behaves as its own comment at Compiler/src/typeutils.jl:285-290 intends.
+maybe_intended: |
+  Yes for the code: the comment says the longest element is counted as roughly invariant.
+  The InferenceParams docstring describes a different limit.
+reproducer: |
+  L = Base.Compiler.typeinf_lattice(Base.Compiler.NativeInterpreter())
+  a = Any[typeof(+), Union{Int8,Int16,Int32}, Union{Int8,Int16}]
+  Base.Compiler.is_union_split_eligible(L, a, 4), length(Base.Compiler.switchtupleunion(L, a))   # (true, 6)
+output:  # release: Julia 1.13.3 67ac47b9cd8; nightly: 1.15.0-DEV.304 290d5bb5f52
+  release: |
+    unionsplitcost = 4, eligible(4) = true, signatures = 6
+    20-member union: unionsplitcost = 2, eligible(4) = true, signatures = 20
+    REPRODUCED compiler-unionsplit-split-count-exceeds-limit
+  nightly: |
+    unionsplitcost = 4, eligible(4) = true, signatures = 6
+    20-member union: unionsplitcost = 2, eligible(4) = true, signatures = 20
+    REPRODUCED compiler-unionsplit-split-count-exceeds-limit
+reproduced:
+  release: true
+  nightly: true
+expected: |
+  Either at most max_union_splitting signatures, or a docstring that describes the cost.
+promised_by: |
+  Compiler/src/types.jl:295-297 (InferenceParams docstring).
+cause: |
+  Compiler/src/typeutils.jl:291-316 (the cost) versus Compiler/src/types.jl:295-297 (the
+  documentation). Lean: JuliaLean.Proofs.Compiler.src.typeutils.splitCountWithinLimit_refuted.
+possible_fix: |
+  Reword the docstring: the limit bounds unionsplitcost, which counts the longest union as
+  2. If the number of method lookups matters, add a separate bound on prod(lengths).
+duplicates:
+  issues: []
+  queries:
+  - max_union_splitting
+  - unionsplitcost
+  - union split number of signatures
+  - 'prs: max_union_splitting'
+  - 'prs: unionsplitcost'
+  - 'wave 2, issues and prs, unquoted words: unionsplitcost'
+  - max_union_splitting
+  - union splitting limit number of signatures
+lean:
+  property: JuliaLean.Proofs.Compiler.src.typeutils.SplitCountWithinLimit
+  theorem: JuliaLean.Proofs.Compiler.src.typeutils.splitCountWithinLimit_refuted
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: true
+  output: |
+    unionsplitcost = 4, eligible(4) = true, signatures = 6
+    20-member union: unionsplitcost = 2, eligible(4) = true, signatures = 20
+    REPRODUCED compiler-unionsplit-split-count-exceeds-limit
