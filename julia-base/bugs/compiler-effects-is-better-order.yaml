@@ -1,0 +1,79 @@
+id: compiler-effects-is-better-order
+title: "is_better_effects does not follow the order of the conditional consistent states"
+priority: P2
+kind: wrong-result
+area: Compiler
+files: [Compiler/src/effects.jl]
+functions: ["is_better_effects(new::Effects, old::Effects)"]
+summary: |
+  For consistent, is_better_effects only asks whether old lacks the first condition bit
+  that new has. So CONSISTENT_IF_NOTRETURNED and CONSISTENT_IF_INACCESSIBLEMEMONLY are each
+  "better" than the other, the union of both conditions is "better" than
+  CONSISTENT_IF_INACCESSIBLEMEMONLY although it is weaker, and CONSISTENT_IF_NOTRETURNED is
+  not "better" than the union although it is stronger. merge_effects orders these states by
+  their condition bits; every other field of is_better_effects follows that order.
+likelihood: |
+  Triage 2026-11-10 (wave 2): verdict survives, priority P2, no user-visible effect built.
+
+  Reproduces on the pinned build, nightly 290d5bb5f5 and 1.13.3 (1.13.3 also
+  calls NOTRETURNED better than the union, so only three of the four orders
+  are wrong there). is_better_effects is unchanged on master eb844b8ebd. The
+  cause citation was corrected from effects.jl:174-179 (the bit constants) to
+  228-240. The reading that it is a heuristic "something improved" test
+  rather than an order is possible: no docstring states an order. But its one
+  caller uses it to decide which of two sound effects to keep, and picking the
+  incomparable or weaker state costs precision only. No `code_typed` or
+  `infer_effects` difference was built; it needs const-prop and the regular
+  call to carry different consistent conditions, for example a constant that
+  selects a branch that allocates (NOTRETURNED) instead of one that reads
+  argument memory (INACCESSIBLEMEMONLY).
+
+  is_better_effects decides at Compiler/src/abstractinterpretation.jl:233 whether to keep a
+  const-prop result's effects when its return type is not better. The const-prop effects are
+  sound for the call either way, so this can only cost precision: the weaker conditional
+  consistent state can replace a stronger one, which may later block refinement to
+  ALWAYS_TRUE. It needs the const-prop and regular results to differ in which consistent
+  conditions they carry, which is rare.
+maybe_intended: |
+  The function may be meant as a heuristic "something improved" test rather than an order.
+reproducer: |
+  c(v) = CC.Effects(CC.EFFECTS_TOTAL; consistent = v)
+  CC.is_better_effects(c(0x02), c(0x04)), CC.is_better_effects(c(0x04), c(0x02))  # (true, true)
+  CC.is_better_effects(c(0x06), c(0x04)), CC.is_better_effects(c(0x02), c(0x06))  # (true, false)
+output:
+  release: |                          # 1.13.3 67ac47b9cd855e02134d41d5428ac9f2a73f2694 (installed release)
+    is_better_effects(?c NOTRETURNED, ?c INACCESSIBLEMEMONLY) = true; stronger = false
+    is_better_effects(?c INACCESSIBLEMEMONLY, ?c NOTRETURNED) = true; stronger = false
+    is_better_effects(?c both, ?c INACCESSIBLEMEMONLY) = true; stronger = false
+    is_better_effects(?c NOTRETURNED, ?c both) = true; stronger = true
+    REPRODUCED compiler-effects-is-better-order
+  nightly: |                          # 1.15.0-DEV.304 290d5bb5f52e815284ce14493f6964147d2f2dc7
+    is_better_effects(?c NOTRETURNED, ?c INACCESSIBLEMEMONLY) = true; stronger = false
+    is_better_effects(?c INACCESSIBLEMEMONLY, ?c NOTRETURNED) = true; stronger = false
+    is_better_effects(?c both, ?c INACCESSIBLEMEMONLY) = true; stronger = false
+    is_better_effects(?c NOTRETURNED, ?c both) = false; stronger = true
+    REPRODUCED compiler-effects-is-better-order
+reproduced: {release: true, nightly: true}
+expected: |
+  is_better_effects(new, old) is true exactly when new != old and merge_effects(new, old) == old.
+promised_by: |
+  The name, and the comment at Compiler/src/abstractinterpretation.jl:222-227 (keep the const-prop result when it is not worse).
+cause: |
+  Compiler/src/effects.jl:228-240 (in is_better_effects, 226-302) checks only the lowest condition bit of new.consistent against old, and never checks that new has no condition old lacks.
+possible_fix: |
+  For consistent: if new is ALWAYS_TRUE, improved when old is not; if old is ALWAYS_FALSE, improved unless new is too; otherwise require new & ~old == 0 and improved when new != old.
+duplicates:
+  issues: []
+  queries: ["is_better_effects", "is_better_effects consistent", "is_better_effects CONSISTENT_IF_NOTRETURNED", "constprop effects better", "prs: is_better_effects", "prs: constprop effects better", "wave 2, issues and prs, unquoted words: is_better_effects", "const prop effects consistent worse"]
+lean:
+  property: JuliaLean.Proofs.Compiler.src.effects.IsBetterEffectsOrder
+  theorem: JuliaLean.Proofs.Compiler.src.effects.isBetterEffectsOrder_refuted
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: true
+  output: |
+    is_better_effects(?c NOTRETURNED, ?c INACCESSIBLEMEMONLY) = true; stronger = false
+    is_better_effects(?c INACCESSIBLEMEMONLY, ?c NOTRETURNED) = true; stronger = false
+    is_better_effects(?c both, ?c INACCESSIBLEMEMONLY) = true; stronger = false
+    is_better_effects(?c NOTRETURNED, ?c both) = false; stronger = true
+    REPRODUCED compiler-effects-is-better-order
