@@ -1,0 +1,75 @@
+file	line	endline	name	signature	status	entry	note
+Compiler/src/abstractlattice.jl	3	3	widenlattice	widenlattice	excluded		no-behaviour: generic function declaration without methods (`function f end`)
+Compiler/src/abstractlattice.jl	4	4	is_valid_lattice_norec	is_valid_lattice_norec	excluded		no-behaviour: generic function declaration without methods (`function f end`)
+Compiler/src/abstractlattice.jl	12	12	widenlattice	widenlattice(::JLTypeLattice)	modelled	compiler-al-widenlattice-terminates	
+Compiler/src/abstractlattice.jl	13	13	is_valid_lattice_norec	is_valid_lattice_norec(::JLTypeLattice, @nospecialize(elem))	modelled	compiler-al-norec-disjoint,compiler-al-norec-owner
+Compiler/src/abstractlattice.jl	21	21	widenlattice	widenlattice(::ConstsLattice)	modelled	compiler-al-widenlattice-terminates	
+Compiler/src/abstractlattice.jl	22	22	is_valid_lattice_norec	is_valid_lattice_norec(::ConstsLattice, @nospecialize(elem))	modelled	compiler-al-norec-disjoint,compiler-al-norec-owner
+Compiler/src/abstractlattice.jl	32	32	widenlattice	widenlattice(𝕃::PartialsLattice)	modelled	compiler-al-widenlattice-terminates	
+Compiler/src/abstractlattice.jl	33	33	is_valid_lattice_norec	is_valid_lattice_norec(::PartialsLattice, @nospecialize(elem))	modelled	compiler-al-norec-disjoint,compiler-al-norec-owner
+Compiler/src/abstractlattice.jl	43	43	widenlattice	widenlattice(𝕃::ConditionalsLattice)	modelled	compiler-al-widenlattice-terminates	
+Compiler/src/abstractlattice.jl	44	44	is_valid_lattice_norec	is_valid_lattice_norec(::ConditionalsLattice, @nospecialize(elem))	modelled	compiler-al-norec-disjoint,compiler-al-norec-owner
+Compiler/src/abstractlattice.jl	54	54	widenlattice	widenlattice(𝕃::InterConditionalsLattice)	modelled	compiler-al-widenlattice-terminates	
+Compiler/src/abstractlattice.jl	55	55	is_valid_lattice_norec	is_valid_lattice_norec(::InterConditionalsLattice, @nospecialize(elem))	modelled	compiler-al-norec-disjoint,compiler-al-norec-owner
+Compiler/src/abstractlattice.jl	65	65	widenlattice	widenlattice(𝕃::MustAliasesLattice)	modelled	compiler-al-widenlattice-terminates	
+Compiler/src/abstractlattice.jl	66	66	is_valid_lattice_norec	is_valid_lattice_norec(::MustAliasesLattice, @nospecialize(elem))	modelled	compiler-al-norec-disjoint,compiler-al-norec-owner
+Compiler/src/abstractlattice.jl	76	76	widenlattice	widenlattice(𝕃::InterMustAliasesLattice)	modelled	compiler-al-widenlattice-terminates	
+Compiler/src/abstractlattice.jl	77	77	is_valid_lattice_norec	is_valid_lattice_norec(::InterMustAliasesLattice, @nospecialize(elem))	modelled	compiler-al-norec-disjoint,compiler-al-norec-owner
+Compiler/src/abstractlattice.jl	95	95	widenlattice	widenlattice(𝕃::InferenceLattice)	modelled	compiler-al-widenlattice-terminates	
+Compiler/src/abstractlattice.jl	96	96	is_valid_lattice_norec	is_valid_lattice_norec(::InferenceLattice, @nospecialize(elem))	modelled	compiler-al-norec-disjoint,compiler-al-norec-owner
+Compiler/src/abstractlattice.jl	108	108	tmeet	tmeet	excluded		no-behaviour: generic function declaration without methods (`function f end`)
+Compiler/src/abstractlattice.jl	110	114	tmeet	tmeet(::JLTypeLattice, @nospecialize(a::AnyType), @nospecialize(b::AnyType))	todo		modelled as tmeetJLType; no property settled: a lower-bound law would need typeintersect(a, b) <: a and <: b, which Julia does not promise (typeintersect may over-approximate), and the smoke test shows tmeet(JLType) results not ⊑ a free-typevar argument
+Compiler/src/abstractlattice.jl	125	125	tmerge	tmerge	excluded		no-behaviour: generic function declaration without methods (`function f end`)
+Compiler/src/abstractlattice.jl	137	137	tmerge_field	tmerge_field	excluded		no-behaviour: generic function declaration without methods (`function f end`)
+Compiler/src/abstractlattice.jl	139	141	tmerge_field	tmerge_field(𝕃::AbstractLattice, @nospecialize(a), @nospecialize(b))	modelled	compiler-al-tmerge-field-nothing	
+Compiler/src/abstractlattice.jl	142	142	tmerge_field	tmerge_field(::JLTypeLattice, @nospecialize(a), @nospecialize(b))	modelled	compiler-al-tmerge-field-nothing	
+Compiler/src/abstractlattice.jl	151	151	⊑	⊑	excluded		no-behaviour: generic function declaration without methods (`function f end`)
+Compiler/src/abstractlattice.jl	153	153	⊑	⊑(::JLTypeLattice, @nospecialize(a::AnyType), @nospecialize(b::AnyType))	modelled	compiler-al-sqsub-jltype-preorder	equivalence with jl_subtype unconditional; the preorder part assumes SubReflexive, SubTransitive
+Compiler/src/abstractlattice.jl	161	161	⊏	⊏(𝕃::AbstractLattice, @nospecialize(a), @nospecialize(b))	modelled	compiler-al-strict-irreflexive,compiler-al-strict-part
+Compiler/src/abstractlattice.jl	169	169	⋤	⋤(𝕃::AbstractLattice, @nospecialize(a), @nospecialize(b))	modelled	compiler-al-strictne-agrees	
+Compiler/src/abstractlattice.jl	178	181	is_lattice_equal	is_lattice_equal(𝕃::AbstractLattice, @nospecialize(a), @nospecialize(b))	todo		modelled (generic isLatticeEqual on JLTypeLattice and the must-alias layers); equivalence with ⊑∧⊒ needs reflexivity of ⊑, not proven
+Compiler/src/abstractlattice.jl	189	190	has_nontrivial_extended_info	has_nontrivial_extended_info(𝕃::AbstractLattice, @nospecialize t)	modelled	compiler-al-nontrivial-extended-info	
+Compiler/src/abstractlattice.jl	191	196	has_nontrivial_extended_info	has_nontrivial_extended_info(𝕃::PartialsLattice, @nospecialize t)	modelled	compiler-al-nontrivial-extended-info	
+Compiler/src/abstractlattice.jl	197	206	has_nontrivial_extended_info	has_nontrivial_extended_info(𝕃::ConstsLattice, @nospecialize t)	modelled	compiler-al-nontrivial-extended-info	
+Compiler/src/abstractlattice.jl	207	207	has_nontrivial_extended_info	has_nontrivial_extended_info(::JLTypeLattice, @nospecialize(t))	modelled	compiler-al-nontrivial-extended-info	
+Compiler/src/abstractlattice.jl	215	216	is_const_prop_profitable_arg	is_const_prop_profitable_arg(𝕃::AbstractLattice, @nospecialize t)	modelled	compiler-al-const-prop-profitable
+Compiler/src/abstractlattice.jl	217	231	is_const_prop_profitable_arg	is_const_prop_profitable_arg(𝕃::PartialsLattice, @nospecialize t)	modelled	compiler-al-const-prop-profitable
+Compiler/src/abstractlattice.jl	232	241	is_const_prop_profitable_arg	is_const_prop_profitable_arg(𝕃::ConstsLattice, @nospecialize t)	modelled	compiler-al-const-prop-profitable	Method and CodeInstance objects modelled as mutable references of their concrete types
+Compiler/src/abstractlattice.jl	242	242	is_const_prop_profitable_arg	is_const_prop_profitable_arg(::JLTypeLattice, @nospecialize t)	modelled	compiler-al-const-prop-profitable
+Compiler/src/abstractlattice.jl	244	245	is_forwardable_argtype	is_forwardable_argtype(𝕃::AbstractLattice, @nospecialize(x))	modelled	compiler-al-forwardable-argtype	
+Compiler/src/abstractlattice.jl	246	249	is_forwardable_argtype	is_forwardable_argtype(𝕃::ConditionalsLattice, @nospecialize x)	modelled	compiler-al-forwardable-argtype	
+Compiler/src/abstractlattice.jl	250	255	is_forwardable_argtype	is_forwardable_argtype(𝕃::PartialsLattice, @nospecialize x)	modelled	compiler-al-forwardable-argtype	
+Compiler/src/abstractlattice.jl	256	259	is_forwardable_argtype	is_forwardable_argtype(𝕃::ConstsLattice, @nospecialize x)	modelled	compiler-al-forwardable-argtype	
+Compiler/src/abstractlattice.jl	260	263	is_forwardable_argtype	is_forwardable_argtype(𝕃::MustAliasesLattice, @nospecialize x)	modelled	compiler-al-forwardable-argtype	
+Compiler/src/abstractlattice.jl	264	264	is_forwardable_argtype	is_forwardable_argtype(::JLTypeLattice, @nospecialize x)	modelled	compiler-al-forwardable-argtype	
+Compiler/src/abstractlattice.jl	279	279	widenreturn	widenreturn	excluded		no-behaviour: generic function declarations without methods (`function widenreturn end, function widenreturn_noslotwrapper end`)
+Compiler/src/abstractlattice.jl	279	279	widenreturn_noslotwrapper	widenreturn_noslotwrapper	excluded		no-behaviour: generic function declarations without methods (`function widenreturn end, function widenreturn_noslotwrapper end`)
+Compiler/src/abstractlattice.jl	281	282	is_valid_lattice	is_valid_lattice(𝕃::AbstractLattice, @nospecialize(elem))	modelled	compiler-al-is-valid-lattice-types,compiler-al-is-valid-lattice-only-jltype	
+Compiler/src/abstractlattice.jl	283	283	is_valid_lattice	is_valid_lattice(𝕃::JLTypeLattice, @nospecialize(elem))	modelled	compiler-al-is-valid-lattice-types,compiler-al-is-valid-lattice-only-jltype	
+Compiler/src/abstractlattice.jl	285	285	has_conditional	has_conditional(𝕃::AbstractLattice)	modelled	compiler-al-has-layer-queries	
+Compiler/src/abstractlattice.jl	286	286	has_conditional	has_conditional(::AnyConditionalsLattice)	modelled	compiler-al-has-layer-queries	
+Compiler/src/abstractlattice.jl	287	287	has_conditional	has_conditional(::JLTypeLattice)	modelled	compiler-al-has-layer-queries	
+Compiler/src/abstractlattice.jl	289	289	has_mustalias	has_mustalias(𝕃::AbstractLattice)	modelled	compiler-al-has-layer-queries	
+Compiler/src/abstractlattice.jl	290	290	has_mustalias	has_mustalias(::AnyMustAliasesLattice)	modelled	compiler-al-has-layer-queries	
+Compiler/src/abstractlattice.jl	291	291	has_mustalias	has_mustalias(::JLTypeLattice)	modelled	compiler-al-has-layer-queries	
+Compiler/src/abstractlattice.jl	293	293	has_extended_unionsplit	has_extended_unionsplit(𝕃::AbstractLattice)	modelled	compiler-al-has-layer-queries	
+Compiler/src/abstractlattice.jl	294	294	has_extended_unionsplit	has_extended_unionsplit(::AnyMustAliasesLattice)	modelled	compiler-al-has-layer-queries	
+Compiler/src/abstractlattice.jl	295	295	has_extended_unionsplit	has_extended_unionsplit(::JLTypeLattice)	modelled	compiler-al-has-layer-queries	
+Compiler/src/abstractlattice.jl	298	298	⊑	⊑(𝕃::AbstractLattice)	todo		curried closures (a, b) -> ⊑(𝕃, a, b) etc. are not modelled
+Compiler/src/abstractlattice.jl	299	299	⊏	⊏(𝕃::AbstractLattice)	todo		curried closure, not modelled
+Compiler/src/abstractlattice.jl	300	300	⋤	⋤(𝕃::AbstractLattice)	todo		curried closure, not modelled
+Compiler/src/abstractlattice.jl	301	301	tmerge	tmerge(𝕃::AbstractLattice)	todo		curried closure, not modelled
+Compiler/src/abstractlattice.jl	302	302	tmeet	tmeet(𝕃::AbstractLattice)	todo		curried closure, not modelled
+Compiler/src/abstractlattice.jl	303	303	partialorder	partialorder(𝕃::AbstractLattice)	todo		curried closure, not modelled
+Compiler/src/abstractlattice.jl	304	304	strictpartialorder	strictpartialorder(𝕃::AbstractLattice)	todo		curried closure, not modelled
+Compiler/src/abstractlattice.jl	305	305	strictneqpartialorder	strictneqpartialorder(𝕃::AbstractLattice)	todo		curried closure, not modelled
+Compiler/src/abstractlattice.jl	306	306	join	join(𝕃::AbstractLattice)	todo		curried closure, not modelled
+Compiler/src/abstractlattice.jl	307	307	meet	meet(𝕃::AbstractLattice)	todo		curried closure, not modelled
+Compiler/src/abstractlattice.jl	313	313	⊑	@nospecialize(a) ⊑ @nospecialize(b)	modelled	compiler-al-fallback-is-typeinf	
+Compiler/src/abstractlattice.jl	314	314	⊏	@nospecialize(a) ⊏ @nospecialize(b)	modelled	compiler-al-fallback-is-typeinf	
+Compiler/src/abstractlattice.jl	315	315	⋤	@nospecialize(a) ⋤ @nospecialize(b)	modelled	compiler-al-fallback-is-typeinf	
+Compiler/src/abstractlattice.jl	316	316	tmeet	tmeet(@nospecialize(a), @nospecialize(b))	todo		tmeet(a, b) without a lattice is not modelled as its own definition
+Compiler/src/abstractlattice.jl	317	317	tmerge	tmerge(@nospecialize(a), @nospecialize(b))	todo		tmerge(a, b) without a lattice calls tmerge of typelimits.jl; left to the typelimits work
+Compiler/src/abstractlattice.jl	318	318	is_lattice_equal	is_lattice_equal(@nospecialize(a), @nospecialize(b))	modelled	compiler-al-fallback-is-typeinf	
+Compiler/src/abstractlattice.jl	321	321	widenlattice	widenlattice(::JLTypeLattice, @nospecialize(t))	modelled	compiler-al-widenlattice-elt	
+Compiler/src/abstractlattice.jl	322	325	widenlattice	widenlattice(𝕃::AbstractLattice, @nospecialize(t))	modelled	compiler-al-widenlattice-elt	

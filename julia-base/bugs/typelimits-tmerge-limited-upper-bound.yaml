@@ -1,0 +1,100 @@
+id: typelimits-tmerge-limited-upper-bound
+title: "inference: `tmerge` of two lattice-equal `LimitedAccuracy` elements is not an upper bound"
+priority: P2
+kind: wrong-result
+area: Compiler
+files: [Compiler/src/typelimits.jl]
+functions: ["tmerge_limited(::InferenceLattice, typea, typeb)", "merge_causes(causesa, causesb)"]
+summary: |
+  For `a = LimitedAccuracy(T, {s1})` and `b = LimitedAccuracy(T, {s2})` (same type, different
+  causes of the same size), `tmerge(typeinf_lattice, a, b)` returns `LimitedAccuracy(T, {s1, s2})`.
+  `⊑(::InferenceLattice)` orders lattice-equal limited elements by reverse inclusion of their causes,
+  so the result is `⊑` both arguments and neither argument is `⊑` it. The same happens whenever
+  `merge_causes` keeps a set that is not a subset of both inputs' causes (it keeps the smaller one
+  when the lengths differ, which need not be a subset of the other).
+likelihood: |
+  Reached while inference is limiting a recursion cycle and merges two `LimitedAccuracy` results
+  of the same type whose cycles differ. No wrong inferred type follows (the type part is exact);
+  the effect is on which causes are tracked and on `⊑`-based convergence checks. No user-visible
+  effect found.
+
+  Triage 2026-11-09: verdict duplicate, priority P2.
+
+  Known: JuliaLang/julia#48376 "tmerge for LimitedAccuracy is not convergent" (open since
+  2023-01, from vtjnash's review of #48045) names exactly this rule: the length heuristic
+  falls back to a union, which may make inference non-terminating as it "repeatedly merged
+  and dropped causes lists". The TODO at typelimits.jl:438-440 (fe45f010db, Keno Fischer)
+  marks it as a placeholder. Our entry adds a concrete law violation and repro to that
+  issue; nothing new to file.
+  Reachability: the return path (update_bestguess!) cannot hit it, because rt's causes
+  are a copy of frame.limitations, which only grows, so bestguess.causes ⊆ rt.causes and
+  `⊑` holds before any merge. It is reachable through slot states: a call result with
+  pclimitations becomes `LimitedAccuracy(rt, frame.pclimitations)`
+  (abstractinterpretation.jl:4423) in ssavaluetypes, and an assignment carries it into a
+  VarState. Two such values of equal type from different cycles can meet in smerge.
+  No hang or wrong type was built; the type part of the merge is exact.
+  Upstream master unchanged (code read).
+maybe_intended: |
+  The TODO at Compiler/src/typelimits.jl:438-440 says that for lattice-equal elements either cause
+  set may be discarded and that the rule is a length heuristic. But the union it falls back to is
+  the meet of the two in the `⊑` order, not the join.
+reproducer: |
+    # tmerge(typeinf_lattice, a, b) of two lattice-equal LimitedAccuracy elements with different
+    # causes of the same size returns a result that is ⊑ both arguments, not ⊒ them.
+    const CC = Base.Compiler
+    println("VERSION = ", VERSION, ", commit ", Base.GIT_VERSION_INFO.commit)
+    L = CC.typeinf_lattice(CC.NativeInterpreter())
+    IS = CC.InferenceState isa UnionAll ? CC.InferenceState{CC.NativeInterpreter} : CC.InferenceState
+    s1 = ccall(:jl_new_struct_uninit, Any, (Any,), IS)
+    s2 = ccall(:jl_new_struct_uninit, Any, (Any,), IS)
+    S = fieldtype(CC.LimitedAccuracy, :causes)
+    c1 = S(); push!(c1, s1)
+    c2 = S(); push!(c2, s2)
+    a = CC.LimitedAccuracy(Int, c1)
+    b = CC.LimitedAccuracy(Int, c2)
+    r = CC.tmerge(L, a, b)
+    println("r = tmerge(a, b) = ", r, " with ", length(r.causes), " causes")
+    println("a ⊑ r: ", CC.:⊑(L, a, r), ";  b ⊑ r: ", CC.:⊑(L, b, r), ";  r ⊑ a: ", CC.:⊑(L, r, a))
+    if !CC.:⊑(L, a, r) && !CC.:⊑(L, b, r)
+        println("REPRODUCED typelimits-tmerge-limited-upper-bound")
+    end
+output:
+  release: |
+    VERSION = 1.13.3, commit 67ac47b9cd855e02134d41d5428ac9f2a73f2694
+    r = tmerge(a, b) = LimitedAccuracy(Int64, #= 2 cause(s) =#) with 2 causes
+    a ⊑ r: false;  b ⊑ r: false;  r ⊑ a: true
+    REPRODUCED typelimits-tmerge-limited-upper-bound
+  nightly: |
+    VERSION = 1.15.0-DEV.304, commit 290d5bb5f52e815284ce14493f6964147d2f2dc7
+    r = tmerge(a, b) = LimitedAccuracy(Int64, #= 2 cause(s) =#) with 2 causes
+    a ⊑ r: false;  b ⊑ r: false;  r ⊑ a: true
+    REPRODUCED typelimits-tmerge-limited-upper-bound
+reproduced: {release: true, nightly: true}
+expected: |
+  A result `r` with `a ⊑ r` and `b ⊑ r`, e.g. `LimitedAccuracy(T, causesa ∩ causesb)` (or `T`
+  itself when the intersection is empty).
+promised_by: |
+  Lattice law: `tmerge` returns an upper bound of both arguments (docstring of `tmerge`,
+  Compiler/src/abstractlattice.jl:115-122), with `⊑` on limited elements as defined at
+  Compiler/src/typelattice.jl:401-418 (`b.causes ⊆ a.causes`).
+cause: |
+  Compiler/src/typelimits.jl:465-466 returns `LimitedAccuracy(typeb, merge_causes(causesa,
+  causesb))` for lattice-equal types; merge_causes (lines 437-448) returns the union for equal
+  lengths and the smaller set otherwise.
+possible_fix: |
+  Use the intersection of the cause sets for lattice-equal types (dropping the wrapper when it is
+  empty), or change `⊑` so that it matches the merge rule.
+duplicates:
+  issues:
+    - {number: 48376, state: open, relation: duplicate}
+  queries: ["merge_causes", "LimitedAccuracy causes tmerge", "tmerge_limited", "LimitedAccuracy (PRs)", "merge_causes (PRs)", "issues: tmerge", "issues: merge_causes LimitedAccuracy", "prs: merge_causes"]
+lean:
+  property: JuliaLean.Proofs.Compiler.src.typelimits.TmergeUpperBoundLimited
+  theorem: JuliaLean.Proofs.Compiler.src.typelimits.tmergeUpperBoundLimited_refuted
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: true
+  output: |
+    r = tmerge(a, b) = LimitedAccuracy(Int64, #= 2 cause(s) =#) with 2 causes
+    a ⊑ r: false;  b ⊑ r: false;  r ⊑ a: true
+    REPRODUCED typelimits-tmerge-limited-upper-bound

@@ -1,0 +1,62 @@
+id: compiler-tl-widenconditional-extract
+title: "widenconditional and maybe_extract_const_bool disagree on Conditional(x, Union{}, Union{})"
+priority: P3
+kind: wrong-result
+area: Compiler
+files: [Compiler/src/typelattice.jl]
+functions: ["widenconditional(typ)", "maybe_extract_const_bool(c::AnyConditional)"]
+summary: |
+  For a Conditional whose then and else types are both Union{},
+  widenconditional returns Const(false) while maybe_extract_const_bool returns
+  nothing. On every other Conditional the two agree (proven in Lean).
+likelihood: |
+  Very low. A Conditional with two impossible branches describes unreachable
+  code; either answer is sound for it.
+
+  Triage 2026-11-09: verdict withdrawn, priority P3.
+
+  Withdrawn: inference does not build this element. The general Conditional former
+  (Compiler/src/abstractinterpretation.jl:590-591) returns Bottom when both branch types
+  are Bottom. The `===`, isa and isdefined formers (2370-2387, 3715) take a branch from the
+  slot's current type, which is not Bottom in reachable code. `not_int` (2392-2396) and
+  the tmerge rebuild only reuse branch types that were already there. Even if the element
+  did appear, it would describe unreachable code, and Const(false) and `nothing` are both
+  sound for it. Keep the Lean refutation as documentation; do not report.
+maybe_intended: |
+  Both results are sound for an unreachable value, so this may be considered
+  harmless.
+reproducer: |
+  const CC = Base.Compiler
+  c = CC.Conditional(1, 0, Union{}, Union{})
+  CC.widenconditional(c), CC.maybe_extract_const_bool(c)  # (Const(false), nothing)
+output:
+  release: |                          # Julia 1.13.3 67ac47b9cd8 (installed release; ARCHITECTURE.md pins 1.13.2)
+    widenconditional = Core.Const(false), maybe_extract_const_bool = nothing
+    REPRODUCED compiler-tl-widenconditional-extract
+  nightly: |                          # 1.15.0-DEV.304 290d5bb5f52e815284ce14493f6964147d2f2dc7
+    widenconditional = Core.Const(false), maybe_extract_const_bool = nothing
+    REPRODUCED compiler-tl-widenconditional-extract
+reproduced: {release: true, nightly: true}
+expected: |
+  The same answer from both, ideally Union{} from widenconditional.
+promised_by: |
+  Invariant: both functions read the same two branch types to decide whether the
+  conditional is a constant Bool (Compiler/src/typelattice.jl:242-255, 288-292).
+cause: |
+  widenconditional tests thentype === Union{} first and returns Const(false)
+  without checking elsetype; maybe_extract_const_bool requires the other branch
+  to be inhabited.
+possible_fix: |
+  
+duplicates:
+  issues: []
+  queries: ["widenconditional maybe_extract_const_bool", "Conditional thentype elsetype Union{} both", "prs: widenconditional maybe_extract_const_bool", "prs: Conditional thentype elsetype Union{} both"]
+lean:
+  property: JuliaLean.Proofs.Compiler.src.typelattice.WidenconditionalAgreesExtract
+  theorem: JuliaLean.Proofs.Compiler.src.typelattice.widenconditionalAgreesExtract_refuted
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: true
+  output: |
+    widenconditional = Core.Const(false), maybe_extract_const_bool = nothing
+    REPRODUCED compiler-tl-widenconditional-extract

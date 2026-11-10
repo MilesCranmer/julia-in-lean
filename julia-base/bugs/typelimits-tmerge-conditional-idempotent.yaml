@@ -1,0 +1,133 @@
+id: typelimits-tmerge-conditional-idempotent
+title: "inference: merging two identical `@isdefined(x)` results loses the `isdefined` refinement"
+priority: P2
+kind: wrong-result
+area: Compiler
+files: [Compiler/src/typelimits.jl]
+functions: ["tmerge(::ConditionalsLattice, typea, typeb)"]
+summary: |
+  `tmerge(typeinf_lattice, c, c)` is not `⊑ c` when `c` is the `Conditional` that `@isdefined x`
+  produces (`Conditional(slot, ssadef, T, T; isdefined=true)`): the then and else types merge to
+  the same `T`, so `tmerge` returns `Bool`. With different then and else types it rebuilds the
+  `Conditional` with `isdefined=false`. Either way a control-flow merge of two `@isdefined(x)`
+  results drops the "x is defined in the then branch" refinement, and inference keeps an
+  `UndefVarError` path for `x`: in the reproducer `f` loses `nothrow` and gets exception type
+  `UndefVarError`, while the equivalent `g` without the merge is `nothrow`.
+likelihood: |
+  Needs a slot holding `@isdefined(x)` that is assigned on two paths and later branched on, e.g.
+  `c = cond ? @isdefined(x) : @isdefined(x)` or `c = @isdefined(x); if b; c = @isdefined(x); end`.
+  Uncommon; the cost is precision (effects, an extra undef check), never a wrong result.
+
+  Triage 2026-11-09: verdict survives, priority P2.
+
+  Survives. The element is the one `@isdefined` produces (abstractinterpretation.jl:3715),
+  so inference really builds it. The rule's intent is not written anywhere: the
+  `thentype !== elsetype` test dates from a5e275f277 (2022), before `isdefined` existed, and
+  the ssadef rewrite e0b1dc2759 (2025-12-08) kept dropping `isdefined`. Effect: precision
+  only (an extra UndefVarError path, lost nothrow). It changes effects, so
+  it can block concrete eval or DCE of callers. Regressed relative to 1.13.3, where the
+  same tmerge result did not cost nothrow. Upstream master unchanged at
+  Compiler/src/typelimits.jl:529-533 (code read). Not covered by Compiler/test/lattice.jl
+  (its Conditionals have isdefined=false and thentype !== elsetype).
+
+  On the pinned build, with `Base.REFLECTION_COMPILER[] = Base.Compiler` so that reflection
+  runs the redefined method, adding a method
+  `tmerge(::ConditionalsLattice, a::Conditional, b::Conditional)` that keeps
+  `isdefined=true` (and the Conditional) when both inputs are same-slot isdefined
+  Conditionals turns `infer_exception_type(f)` from UndefVarError into Union{} and restores
+  `+n`. The same setup without the patch still gives UndefVarError. So the lost nothrow
+  comes from this tmerge.
+maybe_intended: |
+  The `isdefined` flag is "only beneficial for local inference" (comment at
+  Compiler/src/typelattice.jl:45-47), and merges may lose precision. But merging an element with
+  itself should not lose anything (`tmerge(a, a) ⊑ a`), and 1.13.3 infers `f` as nothrow.
+reproducer: |
+    # tmerge(typeinf_lattice, c, c) is not ⊑ c for the Conditional that `@isdefined x` produces, so
+    # merging two copies of the same `@isdefined` result loses the "x is defined" refinement.
+    const CC = Base.Compiler
+    println("VERSION = ", VERSION, ", commit ", Base.GIT_VERSION_INFO.commit)
+    L = CC.typeinf_lattice(CC.NativeInterpreter())
+    # Julia 1.13 has no `ssadef` field.
+    mkcond(t, e) = hasfield(CC.Conditional, :ssadef) ? CC.Conditional(1, 0, t, e; isdefined=true) :
+                                                       CC.Conditional(1, t, e; isdefined=true)
+    c = mkcond(Int, Int)     # `@isdefined x` for a slot x::Int
+    r = CC.tmerge(L, c, c)
+    println("tmerge(c, c) = ", r, ";  ⊑(r, c) = ", CC.:⊑(L, r, c))
+    c2 = mkcond(Int, Nothing)
+    r2 = CC.tmerge(L, c2, c2)
+    println("tmerge(c2, c2) = ", r2, ";  ⊑(r2, c2) = ", CC.:⊑(L, r2, c2))
+    
+    # User-visible effect: `f` merges two identical `@isdefined(x)` results at the phi of `c`.
+    function f(b1::Bool, b2::Bool)
+        if b1
+            x = 1
+        end
+        c = b2 ? @isdefined(x) : @isdefined(x)
+        c && return x
+        return 0
+    end
+    function g(b1::Bool, b2::Bool)
+        if b1
+            x = 1
+        end
+        c = @isdefined(x)
+        c && return x
+        return 0
+    end
+    ef = Base.infer_exception_type(f, (Bool, Bool))
+    eg = Base.infer_exception_type(g, (Bool, Bool))
+    println("infer_exception_type(f) = ", ef, ";  infer_exception_type(g) = ", eg)
+    println("infer_effects(f) = ", Base.infer_effects(f, (Bool, Bool)), ";  infer_effects(g) = ",
+            Base.infer_effects(g, (Bool, Bool)))
+    if !CC.:⊑(L, r, c) && !CC.:⊑(L, r2, c2) && ef === UndefVarError && eg === Union{}
+        println("REPRODUCED typelimits-tmerge-conditional-idempotent")
+    end
+output:
+  release: |
+    VERSION = 1.13.3, commit 67ac47b9cd855e02134d41d5428ac9f2a73f2694
+    tmerge(c, c) = Bool;  ⊑(r, c) = false
+    tmerge(c2, c2) = Compiler.Conditional(1, Int64, Nothing, false);  ⊑(r2, c2) = false
+    infer_exception_type(f) = Union{};  infer_exception_type(g) = Union{}
+    infer_effects(f) = (+c,+e,+n,+t,+s,+m,+u,+o,+r);  infer_effects(g) = (+c,+e,+n,+t,+s,+m,+u,+o,+r)
+  nightly: |
+    VERSION = 1.15.0-DEV.304, commit 290d5bb5f52e815284ce14493f6964147d2f2dc7
+    tmerge(c, c) = Bool;  ⊑(r, c) = false
+    tmerge(c2, c2) = Compiler.Conditional(1, 0, Int64, Nothing, false);  ⊑(r2, c2) = false
+    infer_exception_type(f) = UndefVarError;  infer_exception_type(g) = Union{}
+    infer_effects(f) = (+c,+e,+re,!n,+t,+s,+m,+u,+o,+r);  infer_effects(g) = (+c,+e,+re,+n,+t,+s,+m,+u,+o,+r)
+    REPRODUCED typelimits-tmerge-conditional-idempotent
+reproduced: {release: false, nightly: true}
+expected: |
+  `tmerge(𝕃, c, c) === c` (or at least `⊑ c`), keeping `isdefined`; `f` inferred `nothrow` with
+  exception type `Union{}`, like `g`.
+promised_by: |
+  Lattice law: `tmerge(a, a) ⊑ a` (a join is idempotent); the docstring of `tmerge` calls it a
+  lattice join, Compiler/src/abstractlattice.jl:115-122. On the pinned commit (f755f49a9e) the lattice result
+  reproduces; 1.13.3 shows the same `tmerge` result but still infers `f` as nothrow.
+cause: |
+  Compiler/src/typelimits.jl:525-538: `tmerge(::ConditionalsLattice)` merges two same-slot
+  `Conditional`s field by field, returns `Bool` when `thentype === elsetype` (always the case for
+  `@isdefined`, Compiler/src/abstractinterpretation.jl:3715), and otherwise calls
+  `Conditional(slot, ssadef, thentype, elsetype)` without passing `isdefined`. There is no
+  `typea === typeb` shortcut before the merge.
+possible_fix: |
+  Return `typea` when `typea === typeb`; pass `isdefined = typea.isdefined & typeb.isdefined` to the
+  rebuilt `Conditional`, and keep it (instead of `Bool`) when `isdefined` is set even if
+  `thentype === elsetype`.
+duplicates:
+  issues:
+    - {number: 55545, state: merged, relation: related}
+    - {number: 62212, state: merged, relation: related}
+  queries: ["tmerge Conditional isdefined", "isdefined Conditional merge", "@isdefined UndefVarError effects nothrow phi", "Conditional isdefined tmerge", "isdefined conditional lost", "isdefined Conditional (PRs)", "Conditional isdefined (PRs)", "isdefined refinement slot (PRs)", "tmerge conditional (PRs)", "issues: isdefined tmerge", "prs: isdefined tmerge", "issues: @isdefined nothrow merge", "issues: isdefined Conditional lost", "prs: Conditional isdefined merge"]
+lean:
+  property: JuliaLean.Proofs.Compiler.src.typelimits.TmergeIdempotentTypeinf
+  theorem: JuliaLean.Proofs.Compiler.src.typelimits.tmergeIdempotentTypeinf_refuted
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: true
+  output: |
+    tmerge(c, c) = Bool;  ⊑(r, c) = false
+    tmerge(c2, c2) = Compiler.Conditional(1, 0, Int64, Nothing, false);  ⊑(r2, c2) = false
+    infer_exception_type(f) = UndefVarError;  infer_exception_type(g) = Union{}
+    infer_effects(f) = (+c,+e,+re,!n,+t,+s,+m,+u,+o,+r);  infer_effects(g) = (+c,+e,+re,+n,+t,+s,+m,+u,+o,+r)
+    REPRODUCED typelimits-tmerge-conditional-idempotent

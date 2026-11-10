@@ -1,0 +1,86 @@
+id: compiler-tl-sqsub-transitive
+title: "⊑ on the inference lattice is not transitive through a Conditional whose else branch is Union{}"
+priority: P0
+kind: wrong-result
+area: Compiler
+files: [Compiler/src/typelattice.jl]
+functions: ["⊑(::AnyConditionalsLattice, a, b)", "issubconditional(𝕃, a::Conditional, b::Conditional)"]
+summary: |
+  On typeinf_lattice(NativeInterpreter()), Const(true) ⊑ Conditional(x, Any,
+  Union{}) and Conditional(x, Any, Union{}) ⊑ Conditional(x, Any, Int), but
+  Const(true) ⋢ Conditional(x, Any, Int). The Const(Bool) case only accepts a
+  Conditional whose untaken branch is exactly Union{}, while issubconditional
+  lets that branch grow. The same holds for Const(false) and the then branch.
+likelihood: |
+  A Conditional with thentype Any and a non-Bottom elsetype comes from code
+  like `!(x isa Int)` on an untyped slot. Comparing such a Conditional with a
+  Const(true) happens when a branch condition folds to a constant on one path
+  and not on another. No wrong inferred type or extra iteration was shown; the
+  cost is a lost law and a missed ⊑ that makes the state merge do extra work.
+
+  Triage 2026-11-09: verdict fixed-upstream, priority P0.
+
+  Real, and worse than P2: JuliaLang/julia#64441 ("inference: fix infinite hang by making
+  `Const(::Bool) ⊑ Conditional` agree with `tmerge`", merged 2026-10-31 as 42dcc4dea3)
+  shows `condgoto(x, q)` (two `@goto` blocks that each assign `h = false` and merge with
+  `h = x isa Int`) hanging `infer_return_type`. It replaces lines 436-440 with an
+  `issubconditional` check against `Conditional(slot, ssadef, Any, Bottom)`, which accepts
+  our counterexample. 42dcc4dea3 is not an ancestor of the juliaup nightly 290d5bb5f5,
+  which is why nightly still reproduces. Upstream master f840009913 has the fix (code read,
+  not run), and the new transitivity loop in Compiler/test/lattice.jl covers it. Withdrawn
+  as already fixed. A plain `while` loop only costs one extra revisit of the header (`h1`
+  in the triage probe converged in 5 ms); the hang needs the assigning block to also be a
+  merge point, which lowering produces only through `@goto`.
+maybe_intended: |
+  The comment at Compiler/src/typelattice.jl:438 calls the accepted case
+  "distinctly no lattice information"; the code may have been written to accept
+  only that one representation of a constant Bool rather than every Conditional
+  above it.
+reproducer: |
+  const CC = Base.Compiler
+  L = CC.typeinf_lattice(CC.NativeInterpreter())
+  b = CC.Conditional(1, 0, Any, Union{}); c = CC.Conditional(1, 0, Any, Int)
+  CC.:⊑(L, Core.Const(true), b), CC.:⊑(L, b, c), CC.:⊑(L, Core.Const(true), c)  # (true, true, false)
+output:
+  release: |                          # Julia 1.13.3 67ac47b9cd8 (installed release; ARCHITECTURE.md pins 1.13.2)
+    Const(true) ⊑ Conditional(1, 0, Any, Union{}) = true
+    Conditional(1, 0, Any, Union{}) ⊑ Conditional(1, 0, Any, Int) = true
+    Const(true) ⊑ Conditional(1, 0, Any, Int) = false
+    REPRODUCED compiler-tl-sqsub-transitive
+  nightly: |                          # 1.15.0-DEV.304 290d5bb5f52e815284ce14493f6964147d2f2dc7
+    Const(true) ⊑ Conditional(1, 0, Any, Union{}) = true
+    Conditional(1, 0, Any, Union{}) ⊑ Conditional(1, 0, Any, Int) = true
+    Const(true) ⊑ Conditional(1, 0, Any, Int) = false
+    REPRODUCED compiler-tl-sqsub-transitive
+reproduced: {release: true, nightly: true}
+expected: |
+  Const(true) ⊑ Conditional(x, Any, E) for every E: a value that is always true
+  never takes the else branch, so the else branch type is irrelevant.
+promised_by: |
+  ⊑ is "the lattice ordering (i.e. less-than-or-equal)"
+  (Compiler/src/abstractlattice.jl:144-150); an order is transitive. The
+  Conditional docstring (Compiler/src/typelattice.jl:20-38) says the else type
+  only constrains the false branch.
+cause: |
+  Compiler/src/typelattice.jl:436-437 tests `b.elsetype === Bottom` (and
+  `b.thentype === Bottom` for false) in addition to the branch the constant
+  takes.
+possible_fix: |
+  Accept `a.val === true && b.thentype === Any` (and the false case) without
+  the condition on the other branch.
+duplicates:
+  issues:
+    - {number: 64441, state: merged, relation: related}   # the fix (merged 2026-10-31, 42dcc4dea3)
+    - {number: 57080, state: merged, relation: related}   # introduced the exact-representation rule
+  queries: ["lattice transitivity Conditional", "Conditional Const Bool lattice ordering", "prs: lattice transitivity Conditional", "prs: Conditional Const Bool lattice ordering", "issues: lattice transitive", "issues: Const Bool Conditional lattice", "prs: Const Bool Conditional"]
+lean:
+  property: JuliaLean.Proofs.Compiler.src.typelattice.SqsubTransitiveTypeinf
+  theorem: JuliaLean.Proofs.Compiler.src.typelattice.sqsubTransitiveTypeinf_refuted
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: true
+  output: |
+    Const(true) ⊑ Conditional(1, 0, Any, Union{}) = true
+    Conditional(1, 0, Any, Union{}) ⊑ Conditional(1, 0, Any, Int) = true
+    Const(true) ⊑ Conditional(1, 0, Any, Int) = false
+    REPRODUCED compiler-tl-sqsub-transitive

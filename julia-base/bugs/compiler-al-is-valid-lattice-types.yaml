@@ -1,0 +1,76 @@
+id: compiler-al-is-valid-lattice-types
+title: "is_valid_lattice is false for every element of every lattice except JLTypeLattice"
+priority: P3
+kind: wrong-result
+area: Compiler
+files: [Compiler/src/abstractlattice.jl]
+functions: ["is_valid_lattice(𝕃::AbstractLattice, elem)", "is_valid_lattice(::JLTypeLattice, elem)"]
+summary: |
+  is_valid_lattice(𝕃, x) joins the test of the layer 𝕃 itself with the
+  recursive test of its parent using &&. Each element passes the
+  is_valid_lattice_norec test of exactly one layer kind, so the conjunction is
+  false for every element on every lattice other than JLTypeLattice. Even
+  is_valid_lattice(typeinf_lattice, Int) and is_valid_lattice(ConstsLattice(),
+  Const(1)) are false.
+likelihood: |
+  Low. Nothing in Compiler/src calls is_valid_lattice at this commit, so the
+  native interpreter is not affected. External AbstractInterpreter packages that
+  call it to validate lattice elements would reject every element.
+
+  Triage 2026-11-09: verdict survives, priority P3.
+
+  Real, but dead code: no caller in Compiler/src, Compiler/test, base or test of the
+  pinned tree. git blame: the `&&` dates from 4ff707227f (2022-12) and the signature from
+  1dc2ed6445 (2023-04), both Shuhei Kadowaki; no comment states intent. Unchanged on
+  upstream master f840009913. The cleanest outcome is deletion, alongside
+  5fdc91d4e3 ("Compiler: remove more unused functions", 2026-11-05), after checking that
+  no registered package (e.g. an external AbstractInterpreter) calls it. That check was
+  not done here.
+maybe_intended: |
+  The function might be meant as "valid at every layer", but no element can
+  satisfy that, so the function would be useless as written.
+reproducer: |
+  const CC = Base.Compiler
+  CC.is_valid_lattice(CC.typeinf_lattice(CC.NativeInterpreter()), Int)  # false
+  CC.is_valid_lattice(CC.ConstsLattice(), Core.Const(1))                # false
+output:
+  release: |                          # Julia 1.13.3 67ac47b9cd8 (installed release; ARCHITECTURE.md pins 1.13.2)
+    is_valid_lattice(typeinf_lattice, Int) = false
+    is_valid_lattice(ConstsLattice(), Const(1)) = false
+    is_valid_lattice(JLTypeLattice(), Int) = true
+    REPRODUCED compiler-al-is-valid-lattice-types
+  nightly: |                          # 1.15.0-DEV.304 290d5bb5f52e815284ce14493f6964147d2f2dc7
+    is_valid_lattice(typeinf_lattice, Int) = false
+    is_valid_lattice(ConstsLattice(), Const(1)) = false
+    is_valid_lattice(JLTypeLattice(), Int) = true
+    REPRODUCED compiler-al-is-valid-lattice-types
+reproduced: {release: true, nightly: true}
+expected: |
+  true for every element that some layer of 𝕃 owns: is_valid_lattice_norec(𝕃,
+  x) || is_valid_lattice(widenlattice(𝕃), x).
+promised_by: |
+  The name, and how is_valid_lattice_norec and widenlattice(𝕃, t)
+  (Compiler/src/abstractlattice.jl:321-325) treat an element owned by any layer
+  of 𝕃 as an element of 𝕃.
+cause: |
+  Compiler/src/abstractlattice.jl:281-282 uses && where || is needed. Lean:
+  JuliaLean.Proofs.Compiler.src.abstractlattice.isValidLatticeOnlyJLType_proven
+  shows the result is false for all elements on all non-JLType lattices.
+possible_fix: |
+  Replace && with || at Compiler/src/abstractlattice.jl:282, or delete the
+  unused function.
+duplicates:
+  # 62057 (a ⊑ MethodError on Vararg in 1.10) was listed as related; it is not, removed.
+  issues: []
+  queries: ["is_valid_lattice", "is_valid_lattice_norec", "prs: is_valid_lattice", "prs: is_valid_lattice_norec"]
+lean:
+  property: JuliaLean.Proofs.Compiler.src.abstractlattice.IsValidLatticeTypes
+  theorem: JuliaLean.Proofs.Compiler.src.abstractlattice.isValidLatticeTypes_refuted
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: true
+  output: |
+    is_valid_lattice(typeinf_lattice, Int) = false
+    is_valid_lattice(ConstsLattice(), Const(1)) = false
+    is_valid_lattice(JLTypeLattice(), Int) = true
+    REPRODUCED compiler-al-is-valid-lattice-types

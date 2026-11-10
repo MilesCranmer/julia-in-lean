@@ -1,0 +1,61 @@
+line	name	verdict	mirror	property	settled	reason
+3	widenlattice	FAITHFUL	-	-	-	`function widenlattice end` declares the generic function with no method body, so there is no behaviour to state.
+4	is_valid_lattice_norec	FAITHFUL	-	-	-	`function is_valid_lattice_norec end` declares the generic function with no method body, so there is no behaviour to state.
+12	widenlattice	FAITHFUL	yes	yes	yes	widenlattice .jlType throws the ErrorException, and the proposition states that throw from every state.
+13	is_valid_lattice_norec	HOLLOW	yes	no	yes	NorecDisjoint only says no element passes two layers of different kinds, so `fun _ _ => false` also satisfies it and nothing says that a type passes the JLTypeLattice test.
+21	widenlattice	FAITHFUL	yes	yes	yes	For ConstsLattice the result must have depth below 1, which only JLTypeLattice has, so the proposition pins the returned parent.
+22	is_valid_lattice_norec	HOLLOW	yes	no	yes	NorecDisjoint is also satisfied by a test that rejects every element, so nothing says that Const and PartialTypeVar pass the ConstsLattice test.
+32	widenlattice	HOLLOW	yes	no	yes	The proposition only asks for a shallower layer, so a widenlattice that returns JLTypeLattice() instead of 𝕃.parent also satisfies it.
+33	is_valid_lattice_norec	HOLLOW	yes	no	yes	NorecDisjoint is also satisfied by a test that rejects every element, so nothing says that PartialStruct, PartialOpaque and PartialTask pass.
+43	widenlattice	HOLLOW	yes	no	yes	The proposition only asks for a shallower layer, so a widenlattice that returns JLTypeLattice() instead of 𝕃.parent also satisfies it.
+44	is_valid_lattice_norec	HOLLOW	yes	no	yes	NorecDisjoint is also satisfied by a test that rejects every element, so nothing says that a Conditional passes.
+54	widenlattice	HOLLOW	yes	no	yes	The proposition only asks for a shallower layer, so a widenlattice that returns JLTypeLattice() instead of 𝕃.parent also satisfies it.
+55	is_valid_lattice_norec	HOLLOW	yes	no	yes	NorecDisjoint is also satisfied by a test that rejects every element, so nothing says that an InterConditional passes.
+65	widenlattice	HOLLOW	yes	no	yes	The proposition only asks for a shallower layer, so a widenlattice that returns JLTypeLattice() instead of 𝕃.parent also satisfies it.
+66	is_valid_lattice_norec	HOLLOW	yes	no	yes	NorecDisjoint is also satisfied by a test that rejects every element, so nothing says that a MustAlias passes.
+76	widenlattice	HOLLOW	yes	no	yes	The proposition only asks for a shallower layer, so a widenlattice that returns JLTypeLattice() instead of 𝕃.parent also satisfies it.
+77	is_valid_lattice_norec	HOLLOW	yes	no	yes	NorecDisjoint is also satisfied by a test that rejects every element, so nothing says that an InterMustAlias passes.
+95	widenlattice	HOLLOW	yes	no	yes	The proposition only asks for a shallower layer, so a widenlattice that returns JLTypeLattice() instead of 𝕃.parent also satisfies it.
+96	is_valid_lattice_norec	HOLLOW	yes	no	yes	NorecDisjoint is also satisfied by a test that rejects every element, so nothing says that a LimitedAccuracy passes.
+108	tmeet	FAITHFUL	-	-	-	`function tmeet end` declares the generic function with no method body, so there is no behaviour to state.
+125	tmerge	FAITHFUL	-	-	-	`function tmerge end` declares the generic function with no method body, so there is no behaviour to state.
+137	tmerge_field	FAITHFUL	-	-	-	`function tmerge_field end` declares the generic function with no method body, so there is no behaviour to state.
+139	tmerge_field	FAITHFUL	yes	yes	yes	tmergeField recurses to the parent, and the proposition fixes the result (nothing, state unchanged) on every layer and for all fields, which is the method's whole behaviour.
+142	tmerge_field	FAITHFUL	yes	yes	yes	The JLTypeLattice method returns nothing, and the proposition states exactly that for all arguments.
+151	⊑	FAITHFUL	-	-	-	`function ⊑ end` declares the generic function with no method body, so there is no behaviour to state.
+153	⊑	HOLLOW	yes	no	yes	The proposition only asks for reflexivity, transitivity and a MethodError for non-types, so a ⊑ that returns true for every pair of types also satisfies it, and nothing states the docstring's "equivalent to subtyping" (SubReflexive and SubTransitive are laws Julia's subtyping is meant to satisfy, although known corner cases break transitivity).
+161	⊏	HOLLOW	yes	no	yes	The proposition only covers a ⊏ a, so a ⊏ that always returns false also satisfies it, and nothing states the irreflexive-kernel law for a ≠ b.
+169	⋤	FAITHFUL	yes	yes	yes	sqsubStrictNe mirrors !⊑(𝕃, b, a), and the proposition fixes it to the result of ⊏ whenever a ⊑ b holds, which is the docstring's contract.
+189	has_nontrivial_extended_info	HOLLOW	yes	no	yes	No clause covers the slot wrappers or LimitedAccuracy that this generic method passes through on the inference lattices, so a version that returns true for them also satisfies the proposition.
+191	has_nontrivial_extended_info	FAITHFUL	yes	yes	yes	The proposition fixes true for PartialStruct, PartialOpaque and PartialTask on every lattice with a partials layer, and it fixes the delegation for types, Const and PartialTypeVar.
+197	has_nontrivial_extended_info	FAITHFUL	yes	yes	yes	The proposition fixes true for PartialTypeVar, gives !issingletontype(typeof(v)) for Const, and gives false for types, which covers every branch.
+207	has_nontrivial_extended_info	FAITHFUL	yes	yes	yes	The proposition fixes false for every type on every lattice, including JLTypeLattice.
+215	is_const_prop_profitable_arg	HOLLOW	yes	no	yes	No clause covers the slot wrappers or LimitedAccuracy that this generic method passes through on the inference lattices, so a version that returns true for them also satisfies the proposition.
+217	is_const_prop_profitable_arg	FAITHFUL	yes	yes	yes	The proposition fixes true for PartialStruct, PartialOpaque and PartialTask on every lattice with a partials layer, and it fixes the delegated results for types, PartialTypeVar and Const.
+232	is_const_prop_profitable_arg	HOLLOW	no	no	yes	The model cannot hold Method or CodeInstance values, so their isa tests never run, and no clause states that a mutable Const whose type has const fields is profitable (the "unless they have const fields" case), so a version that returns false there also satisfies the proposition.
+242	is_const_prop_profitable_arg	FAITHFUL	yes	yes	yes	The proposition fixes false for every type, which is the JLTypeLattice method's only case.
+244	is_forwardable_argtype	FAITHFUL	yes	yes	yes	The proposition is an equation that fixes the result for every lattice and element, including the delegation through layers that have no method of their own.
+246	is_forwardable_argtype	FAITHFUL	yes	yes	yes	The equation fixes true for a Conditional on a lattice with a conditionals layer, and fixes the delegation for everything else.
+250	is_forwardable_argtype	FAITHFUL	yes	yes	yes	The equation fixes true for PartialStruct, PartialOpaque and PartialTask on a lattice with a partials layer, and fixes the delegation for everything else.
+256	is_forwardable_argtype	FAITHFUL	yes	yes	yes	The equation fixes true for Const and false for PartialTypeVar and types on the ConstsLattice.
+260	is_forwardable_argtype	FAITHFUL	yes	yes	yes	The equation fixes true for a MustAlias on a lattice with a must-aliases layer, and fixes the delegation for everything else.
+264	is_forwardable_argtype	FAITHFUL	yes	yes	yes	The equation fixes false for every element on JLTypeLattice.
+279	widenreturn	FAITHFUL	-	-	-	`function widenreturn end` declares the generic function with no method body, so there is no behaviour to state.
+279	widenreturn_noslotwrapper	FAITHFUL	-	-	-	`function widenreturn_noslotwrapper end` declares the generic function with no method body, so there is no behaviour to state.
+281	is_valid_lattice	FAITHFUL	yes	yes	yes	The refuted invariant (every type is a valid element) has repro/compiler-al-is-valid-lattice-types.jl, and its counterexample Int is an element the default inference lattice produces all the time; the proven entry fixes the result (false) on every layer above JLTypeLattice.
+283	is_valid_lattice	HOLLOW	yes	no	yes	Neither entry says what the JLTypeLattice method returns: the proven one excludes JLTypeLattice and the refuted one fails on another layer, so a version that returns false for Int on JLTypeLattice also satisfies both.
+285	has_conditional	FAITHFUL	yes	yes	yes	The proposition is an equation that fixes has_conditional on every lattice, so the generic delegation is pinned.
+286	has_conditional	FAITHFUL	yes	yes	yes	The equation fixes true for both conditional layers.
+287	has_conditional	FAITHFUL	yes	yes	yes	The equation fixes false on JLTypeLattice.
+289	has_mustalias	FAITHFUL	yes	yes	yes	The proposition is an equation that fixes has_mustalias on every lattice, so the generic delegation is pinned.
+290	has_mustalias	FAITHFUL	yes	yes	yes	The equation fixes true for both must-alias layers.
+291	has_mustalias	FAITHFUL	yes	yes	yes	The equation fixes false on JLTypeLattice.
+293	has_extended_unionsplit	FAITHFUL	yes	yes	yes	The proposition makes it equal to the fully pinned has_mustalias on every lattice.
+294	has_extended_unionsplit	FAITHFUL	yes	yes	yes	The equation with has_mustalias fixes true for both must-alias layers.
+295	has_extended_unionsplit	FAITHFUL	yes	yes	yes	The equation with has_mustalias fixes false on JLTypeLattice.
+313	⊑	FAITHFUL	yes	yes	yes	sqsubFallback is ⊑ on fallback_lattice, and the proposition makes it equal to ⊑ on typeinf_lattice for all arguments (types.jl:649 builds the same lattice).
+314	⊏	FAITHFUL	yes	yes	yes	The proposition makes the lattice-free ⊏ equal to ⊏ on typeinf_lattice for all arguments.
+315	⋤	FAITHFUL	yes	yes	yes	The proposition makes the lattice-free ⋤ equal to ⋤ on typeinf_lattice for all arguments.
+318	is_lattice_equal	FAITHFUL	yes	yes	yes	The proposition makes the lattice-free is_lattice_equal equal to is_lattice_equal on typeinf_lattice for all arguments.
+321	widenlattice	FAITHFUL	yes	yes	yes	The proposition fixes the JLTypeLattice result as widenconst(t) for every t; the only hypothesis is 1 ≤ fuel, which excludes model failures only.
+322	widenlattice	FAITHFUL	yes	yes	yes	The proposition fixes the result as t when some layer owns it and widenconst(t) otherwise, on every lattice, so the recursion is pinned.
