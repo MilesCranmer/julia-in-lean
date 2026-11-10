@@ -1,0 +1,78 @@
+id: compiler-domtree-on-semi-path-miss
+title: "on_semidominator_path misses a semidominator path through x"
+priority: P2
+kind: wrong-result
+area: Compiler
+files: [Compiler/src/ssair/domtree.jl]
+functions: ["on_semidominator_path(domtree::DomTree, x::BBNumber, y::BBNumber)"]
+summary: |
+  on_semidominator_path(domtree, x, y) is documented to "Check if x is on some
+  semidominator path from the semidominator of y to y, assuming there is an
+  edge from x to y". It only follows the chain of semidominators of x, so it can
+  answer false when x is on such a path. In a 9-block CFG in the shape
+  compute_basic_blocks gives, semi(6) is block 4 and 4 -> 7 -> 8 -> 9 -> 6 is a
+  semidominator path, but on_semidominator_path(domtree, 9, 6) is false.
+likelihood: |
+  Triage 2026-11-10 (wave 2): verdict withdrawn as fixed upstream, priority P2.
+
+  Same cause as compiler-domtree-delete-stale-idom. #64518 (merge 0ae93c3a14,
+  2026-11-06, in master eb844b8ebd) removes on_semidominator_path. Still
+  reproduces on the pinned build, on nightly 290d5bb5f5 (built before the
+  merge) and on 1.13.3. Not a separate report.
+
+  Its only caller is domtree_delete_edge!, where a false answer skips the
+  update and leaves a stale (conservative) tree:
+  compiler-domtree-delete-stale-idom. A random search on compute_basic_blocks
+  shapes found 9 misses in 39914 calls. No user-visible effect is known.
+maybe_intended: |
+  No. The docstring states the check, and the deletion update is only correct
+  when the check never misses a path.
+reproducer: |
+  const CC = Base.Compiler
+  succs = [[2], [5, 3], [5, 4], [7, 5], [9, 6], [7], [5, 8], [8, 9], [6]]
+  zp = [1, 9, 5]
+  preds = [i in zp ? [0] : Int[] for i in 1:9]
+  for j in 1:9, s in succs[j]; push!(preds[s], j); end
+  blocks = [CC.BasicBlock(CC.StmtRange(i, i), preds[i], copy(succs[i])) for i in 1:9]
+  domtree = CC.construct_domtree(blocks)
+  domtree.snca_state[6].semi, CC.on_semidominator_path(domtree, 9, 6)   # (4, false)
+output:
+  release: |                          # Julia 1.13.3 67ac47b9cd855e02134d41d5428ac9f2a73f2694
+    to_pre = [1, 2, 3, 4, 5, 6, 7, 8, 9], semi by block = [0, 1, 2, 3, 2, 4, 4, 7, 5]
+    4 -> 7 -> 8 -> 9 -> 6 is a semidominator path from semi(6): true
+    on_semidominator_path(9, 6) = false
+    REPRODUCED compiler-domtree-on-semi-path-miss
+  nightly: |                          # 1.15.0-DEV.304 290d5bb5f52e815284ce14493f6964147d2f2dc7 (older than the fix in #64518)
+    to_pre = [1, 2, 3, 4, 5, 6, 7, 8, 9], semi by block = [0, 1, 2, 3, 2, 4, 4, 7, 5]
+    4 -> 7 -> 8 -> 9 -> 6 is a semidominator path from semi(6): true
+    on_semidominator_path(9, 6) = false
+    REPRODUCED compiler-domtree-on-semi-path-miss
+reproduced: {release: true, nightly: true}
+expected: |
+  true: 9 is on the semidominator path 4 -> 7 -> 8 -> 9 -> 6.
+promised_by: |
+  The docstring at Compiler/src/ssair/domtree.jl:550-553.
+cause: |
+  The loop at lines 566-571 follows current_block = semi(current_block) from
+  pre(x). The semidominators of 9 are preorder 5 and then 2, which skips 4,
+  although 4 reaches 9 through 7 and 8 (all numbered above pre(6) = 6). Lean:
+  JuliaLean.Proofs.Compiler.src.ssair.domtree.onSemiPathComplete_refuted and
+  onSemiPath_miss.
+possible_fix: |
+  Already fixed on master by #64518 (merged 2026-11-06), which removes
+  on_semidominator_path and uses `!dominates(domtree, to, from)` in
+  domtree_delete_edge!.
+duplicates:
+  issues: [{number: 64518, state: merged, relation: related}]
+  queries: ["on_semidominator_path", "semidominator path", "domtree_delete_edge", "prs: on_semidominator_path", "prs: semidominator path", "prs: domtree_delete_edge", "wave 2, issues and prs, unquoted words: domtree_delete_edge", "on_semidominator_path"]
+lean:
+  property: JuliaLean.Proofs.Compiler.src.ssair.domtree.OnSemiPathComplete
+  theorem: JuliaLean.Proofs.Compiler.src.ssair.domtree.onSemiPathComplete_refuted
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: true
+  output: |
+    to_pre = [1, 2, 3, 4, 5, 6, 7, 8, 9], semi by block = [0, 1, 2, 3, 2, 4, 4, 7, 5]
+    4 -> 7 -> 8 -> 9 -> 6 is a semidominator path from semi(6): true
+    on_semidominator_path(9, 6) = false
+    REPRODUCED compiler-domtree-on-semi-path-miss

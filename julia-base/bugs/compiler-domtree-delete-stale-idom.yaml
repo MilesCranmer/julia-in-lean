@@ -1,0 +1,99 @@
+id: compiler-domtree-delete-stale-idom
+title: "domtree_delete_edge! can leave a stale immediate dominator after deleting an edge"
+priority: P2
+kind: wrong-result
+area: Compiler
+files: [Compiler/src/ssair/domtree.jl]
+functions: ["domtree_delete_edge!(domtree::DomTree, blocks::Vector{BasicBlock}, from::BBNumber, to::BBNumber; cache::DomTreeCache=DomTreeCache())", "on_semidominator_path(domtree::DomTree, x::BBNumber, y::BBNumber)"]
+summary: |
+  After an edge from -> to is deleted, domtree_delete_edge! decides whether the
+  tree changes with on_semidominator_path, which follows only the chain of
+  semidominators of `from`. It can miss a semidominator path through `from`,
+  skip the update, and keep an old immediate dominator. In a 9-block CFG in the
+  shape compute_basic_blocks gives (fall-through, `[dest, next]` branches, catch
+  blocks 5 and 9), deleting 9 -> 6 leaves 5 as the only predecessor of 6, but
+  the updated tree keeps idom(6) = 2, so dominates(domtree, 5, 6) is false.
+likelihood: |
+  Triage 2026-11-10 (wave 2): verdict withdrawn as fixed upstream, priority P2.
+
+  Fixed on master by #64518 (merge 0ae93c3a14, 2026-11-06, which is an ancestor
+  of master eb844b8ebd). Master's domtree_delete_edge! tests `!dominates(domtree,
+  to, from)` (domtree.jl:528) and no longer has on_semidominator_path. It still
+  reproduces on the pinned build, on nightly 290d5bb5f5 (built 2026-10-31, before
+  the merge) and on 1.13.3. Even before the fix, nothing could see it: the stale
+  tree claims less dominance, never more, and its only caller reads only
+  bb_unreachable. A backport would only matter if a release branch gains a
+  reader of the dominance relation of this tree.
+
+  Low impact. The stale idom is always higher in the tree than the correct one,
+  so the tree claims less dominance, never more: the bounded Lean check
+  (compiler-domtree-delete-sound-small, which includes this CFG), 451511 random
+  deletions on compute_basic_blocks-shaped CFGs and about 7 million insert and
+  delete steps on arbitrary CFGs found no false dominance. The only caller,
+  kill_edge_terminator! (Compiler/src/ssair/ir.jl:1491), reads the tree only
+  through bb_unreachable, which stays exact because deleting a DFS-tree edge
+  forces a rebuild. No user-visible effect is known, and no Julia function was
+  found whose IR reaches this CFG. Random search finds a case in about 1 of
+  40000 deletions; the smallest has 9 blocks (one without catch blocks has 15).
+maybe_intended: |
+  The comment calls the code an implementation of Section 3.1 of [GI16], which
+  keeps the tree exact. A conservative tree would be safe for the current
+  caller, but the docstring promises an updated dominator tree.
+reproducer: |
+  const CC = Base.Compiler
+  succs = [[2], [5, 3], [5, 4], [7, 5], [9, 6], [7], [5, 8], [8, 9], [6]]
+  zp = [1, 9, 5]
+  preds = [i in zp ? [0] : Int[] for i in 1:9]
+  for j in 1:9, s in succs[j]; push!(preds[s], j); end
+  blocks = [CC.BasicBlock(CC.StmtRange(i, i), preds[i], copy(succs[i])) for i in 1:9]
+  domtree = CC.construct_domtree(blocks)
+  CC.cfg_delete_edge!(CC.CFG(blocks, Int[]), 9, 6)
+  CC.domtree_delete_edge!(domtree, blocks, 9, 6)
+  domtree.idoms_bb[6], CC.construct_domtree(blocks).idoms_bb[6]   # (2, 5)
+output:
+  release: |                          # Julia 1.13.3 67ac47b9cd855e02134d41d5428ac9f2a73f2694
+    is_parent(9, 6) = false, on_semidominator_path(9, 6) = false
+    preds of block 6 after deleting 9 -> 6: [5]
+    updated idom(6) = 2, rebuilt idom(6) = 5
+    updated dominates(5, 6) = false, rebuilt dominates(5, 6) = true
+    REPRODUCED compiler-domtree-delete-stale-idom
+  nightly: |                          # 1.15.0-DEV.304 290d5bb5f52e815284ce14493f6964147d2f2dc7 (older than the fix in #64518)
+    is_parent(9, 6) = false, on_semidominator_path(9, 6) = false
+    preds of block 6 after deleting 9 -> 6: [5]
+    updated idom(6) = 2, rebuilt idom(6) = 5
+    updated dominates(5, 6) = false, rebuilt dominates(5, 6) = true
+    REPRODUCED compiler-domtree-delete-stale-idom
+reproduced: {release: true, nightly: true}
+expected: |
+  idoms_bb[6] == 5, the same tree as construct_domtree of the new CFG.
+promised_by: |
+  "Given updated blocks, update the given dominator tree with a deleted edge."
+  (Compiler/src/ssair/domtree.jl:515), and the comment at line 538 that the
+  tree is not affected when neither test fires.
+cause: |
+  Compiler/src/ssair/domtree.jl:539 calls on_semidominator_path (lines
+  554-573), which walks x's semidominators upward and stops below semi(y). A
+  semidominator path from semi(y) to y through x can reach x by other edges, so
+  the walk misses it. Here semi(6) is block 4 and the path is 4 -> 7 -> 8 -> 9
+  -> 6, while the semidominators of 9 are 5 and then 2
+  (compiler-domtree-on-semi-path-miss). Lean:
+  JuliaLean.Proofs.Compiler.src.ssair.domtree.deleteEdgeMatchesRebuild_refuted.
+possible_fix: |
+  Already fixed on master by #64518 (merged 2026-11-06, merge commit
+  0ae93c3a14fadd36ac0cff3c2259d8170c5fe7e0), which replaces the test with
+  `!dominates(domtree, to, from)` and removes on_semidominator_path.
+duplicates:
+  issues: [{number: 64518, state: merged, relation: related}]
+  queries: ["domtree_delete_edge", "domtree delete edge", "dominator tree delete edge", "on_semidominator_path", "dynamic dominator tree", "DSNCA", "prs: domtree_delete_edge", "prs: domtree delete edge", "prs: on_semidominator_path", "prs: dynamic dominator tree", "prs: DSNCA", "wave 2, issues and prs, unquoted words: domtree_delete_edge", "on_semidominator_path"]
+lean:
+  property: JuliaLean.Proofs.Compiler.src.ssair.domtree.DeleteEdgeMatchesRebuild
+  theorem: JuliaLean.Proofs.Compiler.src.ssair.domtree.deleteEdgeMatchesRebuild_refuted
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: true
+  output: |
+    is_parent(9, 6) = false, on_semidominator_path(9, 6) = false
+    preds of block 6 after deleting 9 -> 6: [5]
+    updated idom(6) = 2, rebuilt idom(6) = 5
+    updated dominates(5, 6) = false, rebuilt dominates(5, 6) = true
+    REPRODUCED compiler-domtree-delete-stale-idom

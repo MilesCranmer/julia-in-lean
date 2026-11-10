@@ -1,0 +1,14 @@
+file	line	endline	name	signature	status	entry	note
+Compiler/src/ssair/disjoint_set.jl	25	26	_intdisjointset_bounds_err_msg	_intdisjointset_bounds_err_msg(@nospecialize T)	todo		not modelled: error-message helper for an IntDisjointSet capacity of typemax(Int)
+Compiler/src/ssair/disjoint_set.jl	42	42	IntDisjointSet	IntDisjointSet(n::T) where {T<:Integer}	todo		modelled as IntDisjointSet.new; no property yet
+Compiler/src/ssair/disjoint_set.jl	43	43	IntDisjointSet{T}	IntDisjointSet{T}(n::Integer) where {T<:Integer}	todo		modelled as IntDisjointSet.new (T = Int only); no property yet
+Compiler/src/ssair/disjoint_set.jl	44	44	length	length(s::IntDisjointSet)	todo		modelled as IntDisjointSet.length; no property yet
+Compiler/src/ssair/disjoint_set.jl	51	51	num_groups	num_groups(s::IntDisjointSet)	todo		modelled as IntDisjointSet.numGroups; no property yet
+Compiler/src/ssair/disjoint_set.jl	52	52	eltype	eltype(::Type{IntDisjointSet{T}}) where {T<:Integer}	todo		not modelled: type-level eltype, no runtime behaviour
+Compiler/src/ssair/disjoint_set.jl	56	62	find_root_impl!	find_root_impl!(parents::Vector{T}, x::Integer) where {T<:Integer}	todo		modelled as findRootImpl; no property yet
+Compiler/src/ssair/disjoint_set.jl	65	71	_find_root_impl!	_find_root_impl!(parents::Vector{T}, x::Integer) where {T<:Integer}	todo		modelled as findRootImpl (same body); no property yet
+Compiler/src/ssair/disjoint_set.jl	79	79	find_root!	find_root!(s::IntDisjointSet{T}, x::T) where {T<:Integer}	todo		modelled as IntDisjointSet.findRoot; no property yet
+Compiler/src/ssair/disjoint_set.jl	86	86	in_same_set	in_same_set(s::IntDisjointSet{T}, x::T, y::T) where {T<:Integer}	todo		modelled as IntDisjointSet.inSameSet; no property yet
+Compiler/src/ssair/disjoint_set.jl	94	99	union!	union!(s::IntDisjointSet{T}, x::T, y::T) where {T<:Integer}	todo		modelled as IntDisjointSet.union; no property yet
+Compiler/src/ssair/disjoint_set.jl	108	122	root_union!	root_union!(s::IntDisjointSet{T}, x::T, y::T) where {T<:Integer}	todo		modelled as IntDisjointSet.rootUnion; no property yet
+Compiler/src/ssair/disjoint_set.jl	131	139	push!	push!(s::IntDisjointSet{T}) where {T<:Integer}	todo		modelled as IntDisjointSet.push; no property yet

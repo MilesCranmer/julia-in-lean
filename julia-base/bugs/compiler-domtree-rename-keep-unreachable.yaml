@@ -1,0 +1,67 @@
+id: compiler-domtree-rename-keep-unreachable
+title: "rename_nodes! throws a BoundsError when the renaming keeps an unreachable block"
+priority: P3
+kind: wrong-exception
+area: Compiler
+files: [Compiler/src/ssair/domtree.jl]
+functions: ["rename_nodes!(domtree::DomTree, rename_bb::Vector{BBNumber})", "rename_nodes!(D::DFSTree, rename_bb::Vector{BBNumber})"]
+summary: |
+  rename_nodes!(::DFSTree) writes from_pre[to_pre[b]] and from_post[to_post[b]]
+  for every kept block b. For an unreachable block to_pre[b] is 0, so the write
+  is a BoundsError. rename_nodes!(::DomTree) would also index rename_bb with the
+  block's idom 0. The identity renaming of any CFG with an unreachable block
+  fails.
+likelihood: |
+  Triage 2026-11-10 (wave 2): verdict withdrawn as fixed upstream, priority P3.
+
+  Fixed on master by #64518 (c13e8ba8d6 "Compiler: Allow renaming an unreachable
+  block in a dominator tree", in master eb844b8ebd). Still reproduces on the
+  pinned build, on nightly 290d5bb5f5 (built before the merge) and on 1.13.3.
+  The function has no callers in Compiler/src, so no compilation reached it
+  before the fix either.
+
+  Low. rename_nodes!(::DomTree) has no callers in Compiler/src at this commit.
+maybe_intended: |
+  Callers might be expected to drop every unreachable block (rename it to -1);
+  the docstring does not say so.
+reproducer: |
+  const CC = Base.Compiler
+  blocks = [CC.BasicBlock(CC.StmtRange(1, 1), [0], Int[]),
+            CC.BasicBlock(CC.StmtRange(2, 2), Int[], Int[])]
+  CC.rename_nodes!(CC.construct_domtree(blocks), [1, 2])   # BoundsError
+output:
+  release: |                          # Julia 1.13.3 67ac47b9cd855e02134d41d5428ac9f2a73f2694
+    idoms_bb = [0, 0], to_pre = [1, 0]
+    rename_nodes!(domtree, [1, 2]): BoundsError
+    REPRODUCED compiler-domtree-rename-keep-unreachable
+  nightly: |                          # 1.15.0-DEV.304 290d5bb5f52e815284ce14493f6964147d2f2dc7 (older than the fix in #64518)
+    idoms_bb = [0, 0], to_pre = [1, 0]
+    rename_nodes!(domtree, [1, 2]): BoundsError
+    REPRODUCED compiler-domtree-rename-keep-unreachable
+reproduced: {release: true, nightly: true}
+expected: |
+  The tree unchanged: idoms_bb == [0, 0].
+promised_by: |
+  Docstring Compiler/src/ssair/domtree.jl:575-578: rename basic block numbers,
+  removing a block only if it is renamed to -1.
+cause: |
+  Compiler/src/ssair/domtree.jl:621-623 index from_pre and from_post with the
+  preorder and postorder numbers 0 of an unreachable block, and lines 590-591
+  index rename_bb with its idom 0. Lean:
+  JuliaLean.Proofs.Compiler.src.ssair.domtree.renameNodesIdentity_refuted.
+possible_fix: |
+  Already fixed on master by #64518 (merged 2026-11-06), which skips these
+  writes for blocks with preorder number 0 and keeps idom 0 as 0.
+duplicates:
+  issues: [{number: 64518, state: merged, relation: related}]
+  queries: ["rename_nodes!", "rename_nodes unreachable", "prs: rename_nodes!", "prs: rename_nodes unreachable", "wave 2, issues and prs, unquoted words: rename_nodes! domtree"]
+lean:
+  property: JuliaLean.Proofs.Compiler.src.ssair.domtree.RenameNodesIdentity
+  theorem: JuliaLean.Proofs.Compiler.src.ssair.domtree.renameNodesIdentity_refuted
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: true
+  output: |
+    idoms_bb = [0, 0], to_pre = [1, 0]
+    rename_nodes!(domtree, [1, 2]): BoundsError
+    REPRODUCED compiler-domtree-rename-keep-unreachable

@@ -1,0 +1,71 @@
+id: compiler-domtree-naive-only-virtual-pred
+title: "naive_idoms throws a TypeError for a block whose only predecessor is the virtual 0"
+priority: P3
+kind: wrong-exception
+area: Compiler
+files: [Compiler/src/ssair/domtree.jl]
+functions: ["naive_idoms(blocks::Vector{BasicBlock}, is_post_dominator::Bool=false)"]
+summary: |
+  naive_idoms peels the first non-zero predecessor of every block other than
+  the entry and asserts that there is one. A block whose predecessors are all
+  the virtual 0, such as a catch block whose :enter edge has been removed, makes
+  the ::NTuple{2,Any} assertion fail with a TypeError. construct_domtree accepts
+  the same CFG and treats the block as unreachable.
+likelihood: |
+  Triage 2026-11-10 (wave 2): verdict withdrawn, priority P3.
+
+  Withdrawn: compilation never calls naive_idoms. It is a reference
+  implementation for tests. It reproduces on the pinned build, nightly
+  290d5bb5f5 and 1.13.3, and the peel line is unchanged on master eb844b8ebd
+  (domtree.jl:715 there). The existing tests do not build the zero-only CFG. A
+  test that wants such CFGs, for example a fuzzer over compute_basic_blocks
+  shapes with catch blocks, would need the one-line `isempty` fix first. Mention
+  it in such a PR rather than filing it.
+
+  Low. naive_idoms is only used as the reference in Compiler/test/ssair.jl, so
+  only a test that builds such a CFG would hit it.
+maybe_intended: |
+  The function may only be meant for CFGs where every block has a real
+  predecessor or none; nothing says so.
+reproducer: |
+  const CC = Base.Compiler
+  blocks = [CC.BasicBlock(CC.StmtRange(1, 1), [0], Int[]),
+            CC.BasicBlock(CC.StmtRange(2, 2), [0], Int[])]
+  CC.naive_idoms(blocks)   # TypeError
+output:
+  release: |                          # Julia 1.13.3 67ac47b9cd855e02134d41d5428ac9f2a73f2694
+    construct_domtree idoms_bb = [0, 0]
+    naive_idoms: TypeError
+    REPRODUCED compiler-domtree-naive-only-virtual-pred
+  nightly: |                          # 1.15.0-DEV.304 290d5bb5f52e815284ce14493f6964147d2f2dc7
+    construct_domtree idoms_bb = [0, 0]
+    naive_idoms: TypeError
+    REPRODUCED compiler-domtree-naive-only-virtual-pred
+reproduced: {release: true, nightly: true}
+expected: |
+  [0, 0]: block 2 is unreachable, as construct_domtree says.
+promised_by: |
+  Invariant: Compiler/test/ssair.jl compares idoms_bb with naive_idoms, so it
+  should be defined wherever construct_domtree is.
+cause: |
+  Compiler/src/ssair/domtree.jl:737 (`Iterators.peel(Iterators.filter(p->p != 0,
+  edges))::NTuple{2,Any}`) after the `isempty(edges)` test at line 734, which
+  does not see that every edge is 0. The same line is unchanged on master
+  f8400099139a. Lean:
+  JuliaLean.Proofs.Compiler.src.ssair.domtree.naiveIdomsReturns_refuted.
+possible_fix: |
+  Skip the block when the filtered predecessors are empty, as for an empty
+  predecessor list.
+duplicates:
+  issues: []
+  queries: ["naive_idoms", "prs: naive_idoms", "wave 2, issues and prs: naive_idoms (only #31121, unrelated)"]
+lean:
+  property: JuliaLean.Proofs.Compiler.src.ssair.domtree.NaiveIdomsReturns
+  theorem: JuliaLean.Proofs.Compiler.src.ssair.domtree.naiveIdomsReturns_refuted
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: true
+  output: |
+    construct_domtree idoms_bb = [0, 0]
+    naive_idoms: TypeError
+    REPRODUCED compiler-domtree-naive-only-virtual-pred
