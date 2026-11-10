@@ -22,12 +22,10 @@ JuliaLean/base/loading.lean	if !compiled && (← ops.warningsEnabled) then ops.w
 JuliaLean/base/loading.lean	if !invalid && !(← state.generatingOutput) then state.rememberChecksum key
 JuliaLean/base/loading.lean	if !isprecompilable && (← ops.generatingOutput false) then
 JuliaLean/base/loading.lean	if !pathMayBeDir && !(← liftL o (o.fs.isfile path)) then
-JuliaLean/base/loading.lean	if !stat.isDirectory && ops.isReadOnly stat && (← ops.inPackageStore path) then
 JuliaLean/base/loading.lean	if (← anyHaskey o extensions wh.name) && wh.uuid == some (uuid5 o (← UUIDof o uuid) wh.name) then
 JuliaLean/base/loading.lean	if (← tget o entry (lit "path")).isNone && (← tget o entry (lit "git-tree-sha1")).isNone then
 JuliaLean/base/loading.lean	if (← thaskey o ex pkg.name) && some (uuid5 o (← UUIDof o u) pkg.name) == pkg.uuid then
 JuliaLean/base/loading.lean	if finished && loaded.isNone && (← ops.incremental).val != 0 then
-JuliaLean/base/loading.lean	if fixed != path && (← ops.io.isFile fixed) && ops.isStdlibPath fixed then
 JuliaLean/base/loading.lean	if hookAvailable && (← maybe_fetch_cache o ops.cacheFetch pkg path) then
 JuliaLean/base/loading.lean	if pathMayBeDir && !(← ops.isReadable path) then
 JuliaLean/base/loading.lean	if pkg_env.isNone && (← is_stdlib o wh) then
