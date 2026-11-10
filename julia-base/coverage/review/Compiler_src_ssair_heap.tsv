@@ -1,0 +1,9 @@
+line	name	verdict	mirror	property	settled	reason
+7	heapleft	FAITHFUL	yes	yes	yes	Inlined as 2i in percolateDown, and the bounded heap proof (vectors of up to 5 elements, stated) fails for any other child index that changes which elements are compared.
+8	heapright	FAITHFUL	yes	yes	yes	Inlined as 2i + 1 in percolateDown and pinned by the same bounded heap proof, whose 3- to 5-element heaps exercise both the r > len and the two-children cases.
+9	heapparent	FAITHFUL	yes	yes	yes	Inlined as i / 2 (equal to div on the positive indices used) in percolateUp and heapify, and pinned by the bounded proof that heapify! and heappush! give the heap property on every parent/child pair.
+12	percolate_down!	FAITHFUL	yes	yes	yes	Mirrors the loop with o fixed to the slot2ssa ordering; the body uses o only through lt, and levels 1 to 3 on up to 5 elements give every comparison outcome along a depth-3 path, so the bounded heapify!/heappop! proof (stated) pins it.
+24	percolate_up!	FAITHFUL	yes	yes	yes	Mirrors the loop and is pinned by the bounded proof that heappush! of any level onto every heap of up to 5 elements gives a heap that is a permutation of the elements plus the new one.
+39	heappop!	FAITHFUL	yes	yes	yes	Mirrors the body and is proven on every heap of up to 5 elements (stated as bounded) to return an element of the highest level (lowest ordered) and leave a heap of exactly the other elements.
+54	heappush!	FAITHFUL	yes	yes	yes	Mirrors push! then percolate_up! from lastindex, proven (bounded, stated) to give a heap of all the elements for every input heap of up to 5 elements and every level.
+66	heapify!	FAITHFUL	yes	yes	yes	Mirrors the heapparent(n):-1:1 loop and is proven on every vector of up to 5 elements with levels 1 to 3 (stated) to return a permutation of it with the heap property.
