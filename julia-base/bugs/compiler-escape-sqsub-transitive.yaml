@@ -1,0 +1,80 @@
+id: compiler-escape-sqsub-transitive
+title: "EscapeAnalysis ⊑ₑ checks only the last field when comparing IndexableFields with Unindexable"
+priority: P3
+kind: wrong-result
+area: Compiler
+files: [Compiler/src/ssair/EscapeAnalysis.jl]
+functions: ["x::EscapeInfo ⊑ₑ y::EscapeInfo", "x::EscapeInfo ⊔ₑ y::EscapeInfo"]
+summary: |
+  When x has IndexableFields alias information and y has Unindexable, x ⊑ₑ y loops
+  `for i = length(xinfos)`, which visits only the last field. So ⊑ₑ is not transitive
+  (x ⊑ₑ y and y ⊑ₑ z but not x ⊑ₑ z), it disagrees with ⊔ₑ (x ⊑ₑ y but x ⊔ₑ y != y), and
+  for an object with no fields it reads xinfos[0] and throws a BoundsError, so
+  x ⊑ₑ x ⊔ₑ y fails.
+likelihood: |
+  None in the optimizer at this commit. ⊑ₑ is reached during analysis only through
+  has_all_escape(x) = ⊤ ⊑ₑ x, which returns at the fast path before this loop; the optimizer
+  (finalizer inlining, the effect_free refinement) uses has_no_escape and getaliases, not ⊑ₑ.
+  External tools that call ⊑ₑ (the EAUtils test harness, Cthulhu-style viewers) could see it.
+  Triage 2026-11-10. Rerun 2026-11-10: REPRODUCED on pinned f755f49a9e, nightly 290d5bb5f5, 1.13.3 and upstream master 4c0e39dde6 (a 2026-11-09 build, output.master).
+  Master Compiler/src/ssair/EscapeAnalysis.jl:276 still reads `for i = length(xinfos)`. Not a
+  model artifact: the reproducer builds EscapeInfo values with the public constructors and calls
+  the real ⊑ₑ. No caller in Compiler/src reaches the slow path (has_all_escape returns at the fast
+  path), so there is no effect on optimized code; only tools that call ⊑ₑ directly can see it.
+  A one-character fix. P3.
+maybe_intended: |
+  The loop is probably meant to be `for i = 1:length(xinfos)`, like the IndexableFields case
+  above it; nothing suggests a deliberate last-field check.
+reproducer: |
+  const EA = Base.Compiler.EscapeAnalysis
+  use(i) = (s = EA.AInfo(); push!(s, EA.LocalUse(i)); s)
+  info(a) = EA.EscapeInfo(EA.NoEscape(), a)
+  x = info(EA.IndexableFields([use(2)])); y = info(EA.IndexableFields([use(2), EA.AInfo()]))
+  z = info(EA.Unindexable(EA.AInfo()))
+  EA.:⊑ₑ(x, y), EA.:⊑ₑ(y, z), EA.:⊑ₑ(x, z)   # (true, true, false)
+  e = info(EA.IndexableFields(EA.AInfo[])); EA.:⊑ₑ(e, EA.:⊔ₑ(e, z))   # BoundsError
+output:
+  release: |                          # 1.13.3 67ac47b9cd855e02134d41d5428ac9f2a73f2694
+    transitivity: x ⊑ₑ y = true, y ⊑ₑ z = true, x ⊑ₑ z = false
+    join agreement: w ⊑ₑ z = true, (w ⊔ₑ z) == z = false, (w ⊔ₑ z) ⊑ₑ z = false
+    upper bound: e ⊑ₑ (e ⊔ₑ z) = BoundsError: attempt to access 0-element Vector{IdSet{Any}} at index [0]
+    REPRODUCED compiler-escape-sqsub-transitive
+  nightly: |                          # 1.15.0-DEV.304 290d5bb5f52e815284ce14493f6964147d2f2dc7
+    transitivity: x ⊑ₑ y = true, y ⊑ₑ z = true, x ⊑ₑ z = false
+    join agreement: w ⊑ₑ z = true, (w ⊔ₑ z) == z = false, (w ⊔ₑ z) ⊑ₑ z = false
+    upper bound: e ⊑ₑ (e ⊔ₑ z) = BoundsError: attempt to access 0-element Vector{IdSet{Any}} at index [0]
+    REPRODUCED compiler-escape-sqsub-transitive
+  master: |                          # 1.15.0-DEV.627 4c0e39dde69c0922daffc45fa63fe4ffd7438124 (upstream master 2026-11-09, desktop build; 6 commits behind eb844b8ebd, none in these files)
+    transitivity: x ⊑ₑ y = true, y ⊑ₑ z = true, x ⊑ₑ z = false
+    join agreement: w ⊑ₑ z = true, (w ⊔ₑ z) == z = false, (w ⊔ₑ z) ⊑ₑ z = false
+    upper bound: e ⊑ₑ (e ⊔ₑ z) = BoundsError: attempt to access 0-element Vector{IdSet{Any}} at index [0]
+    REPRODUCED compiler-escape-sqsub-transitive
+reproduced: {release: true, nightly: true, master: true}
+expected: |
+  y = IndexableFields([{LocalUse(2)}, {}]) is not ⊑ₑ Unindexable({}), because its first field
+  is not contained in that set; then ⊑ₑ is transitive and agrees with ⊔ₑ, and e ⊑ₑ e ⊔ₑ z is
+  true for the object with no fields.
+promised_by: |
+  The ⊑ₑ docstring calls it the partial order of the lattice (Compiler/src/ssair/EscapeAnalysis.jl:241-245),
+  and ⊔ₑ "computes the join" (lines 318-322).
+cause: |
+  Compiler/src/ssair/EscapeAnalysis.jl:278 `for i = length(xinfos)` iterates over the single
+  number length(xinfos). Unchanged on current master (eb844b8ebd99, line 276; master only
+  removed AllReturnEscape and ignore_thrownescapes from this file).
+possible_fix: |
+  Write `for i = 1:length(xinfos)` at line 278.
+duplicates:
+  issues: []
+  queries: ["issues: EscapeAnalysis ⊑ₑ", "issues: EscapeAnalysis IndexableFields Unindexable", "issues: escape analysis lattice transitive", "issues: EscapeInfo BoundsError", "issues: EscapeAnalysis length(xinfos)", "prs: EscapeAnalysis ⊑ₑ (only #60153, docstring wording)", "prs: EscapeAnalysis IndexableFields Unindexable", "prs: escape analysis lattice transitive", "prs: EscapeInfo BoundsError", "prs: EscapeAnalysis length(xinfos)", "issues: EscapeAnalysis lattice", "prs: EscapeAnalysis xinfos", "issues: escape analysis BoundsError", "issues: EscapeInfo Unindexable"]
+lean:
+  property: JuliaLean.Proofs.Compiler.src.ssair.EscapeAnalysis.SqsubTransitive
+  theorem: JuliaLean.Proofs.Compiler.src.ssair.EscapeAnalysis.sqsubTransitive_refuted
+covers: [compiler-escape-sqsub-join-agree, compiler-escape-join-upper-bound]
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: true
+  output: |
+    transitivity: x ⊑ₑ y = true, y ⊑ₑ z = true, x ⊑ₑ z = false
+    join agreement: w ⊑ₑ z = true, (w ⊔ₑ z) == z = false, (w ⊔ₑ z) ⊑ₑ z = false
+    upper bound: e ⊑ₑ (e ⊔ₑ z) = BoundsError: attempt to access 0-element Vector{IdSet{Any}} at index [0]
+    REPRODUCED compiler-escape-sqsub-transitive
