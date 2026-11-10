@@ -18,6 +18,9 @@ import coverage_evidence as evidence
 ROOT = Path(__file__).resolve().parent.parent
 SOURCE_COMMIT = "f755f49a9e41380d7da126b3c1db9fe7f83dd027"
 FIELDS = ["file", "line", "endline", "name", "signature", "status", "entry", "note"]
+# Compiler/src/<dir>/<file>.jl rows live in coverage/methods/Compiler_src_<dir>_<file>.tsv.
+COMPILER_FILE = re.compile(r"Compiler/src/(?:[^/]+/)*[^/]+\.jl")
+COMPILER_MANIFEST = re.compile(r"Compiler_src_(.+)")
 EXCLUSION_REASONS = ("no-behaviour:", "deprecated:", "internal-bootstrap:", "platform:")
 
 
@@ -39,7 +42,7 @@ def row_problems(row, registry):
             raise ValueError()
     except ValueError:
         problems.append("invalid line span")
-    if not row["file"].startswith("base/") or not row["file"].endswith(".jl"):
+    if not (row["file"].startswith("base/") or COMPILER_FILE.fullmatch(row["file"])) or not row["file"].endswith(".jl"):
         problems.append("invalid Base source path")
     if not row["name"].strip() or not row["signature"].strip():
         problems.append("empty name or signature")
@@ -143,6 +146,8 @@ def prefill(rows, metadata, registry):
 
 
 def manifest_name(file):
+    if COMPILER_FILE.fullmatch(file):
+        return file[:-3].replace("/", "_") + ".tsv"
     if (not file.startswith("base/") or not file.endswith(".jl") or
             any(part in {"", ".", ".."} for part in file.split("/")) or "\\" in file):
         raise ValueError(f"invalid Base source path {file!r}")
@@ -263,7 +268,9 @@ def main():
         seen = set()
         per_file = defaultdict(Counter)
         for path in paths:
-            per_file["base/" + path.stem.replace("__", "/") + ".jl"]
+            compiler = COMPILER_MANIFEST.fullmatch(path.stem)
+            per_file[f"Compiler/src/{compiler[1]}.jl" if compiler
+                     else "base/" + path.stem.replace("__", "/") + ".jl"]
         weighted = Counter()
         review_counts = Counter()
         reviews = functools.cache(load_review)
