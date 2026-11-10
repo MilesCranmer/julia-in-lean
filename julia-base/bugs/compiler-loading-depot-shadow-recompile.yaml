@@ -1,0 +1,98 @@
+id: compiler-loading-depot-shadow-recompile
+title: "A package in a later depot is recompiled on every load when an earlier depot has a copy at the same relative path"
+priority: P2
+kind: wrong-result
+area: Loading
+files: [base/loading.jl]
+functions: ["parse_cache_header(f::IO, cachefile::AbstractString)", "stale_cachefile(modkey::PkgId, build_id::UInt128, modspec::PkgLoadSpec, cachefile::String)"]
+summary: |
+  The cache of a package whose sources lie in a depot records them as
+  `@depot/<relative path>`. parse_cache_header restores the tag to the first
+  depot on DEPOT_PATH that contains all those files. When an earlier depot holds
+  a copy at the same relative path but the environment locates the package in
+  the later depot, stale_cachefile compares the restored path with the located
+  one, finds them different, and rejects the cache with :source_path_changed.
+  The recompiled cache records the same tag, so every new session recompiles.
+likelihood: |
+  Needs stacked depots where the same depot-relative source path exists in an
+  earlier depot while the manifest points into a later one (a dev'd package in
+  the second depot and a copy of it, or of the same dev directory, in the first).
+  Uncommon, but the cost is a full recompile on each load and nothing reports why.
+  Found by the loading difftest (stale cases with DEPOT_PATH = [copy, original]).
+  Triage 2026-11-10. Rerun 2026-11-10: REPRODUCED on pinned f755f49a9e, nightly 290d5bb5f5, 1.13.3 and upstream master 4c0e39dde6 (a 2026-11-09 build, output.master).
+  Master source unchanged (the srcdepot choice and the samefile check in stale_cachefile). Skeptical
+  points: a registered package is located depot by depot in DEPOT_PATH order
+  (packages/<name>/<slug>), and the restore picks the first depot with all sources, so both
+  agree; only a manifest `path =` entry (a dev'd package) that points into a later depot while an
+  earlier depot has the same relative path triggers it. The first-depot rule is deliberate
+  (comment at base/loading.jl:4280-4296) but was written for a moved depot, not for a source
+  located in another depot. Niche, but each session recompiles and no message says why: P2.
+maybe_intended: |
+  The comment at base/loading.jl:4280-4296 chooses the first depot with all
+  sources on purpose; it does not consider a located source in another depot.
+reproducer: |
+  # d1/dev/TwoDepot and an identical d2/dev/TwoDepot; the environment's manifest
+  # has path = d1/dev/TwoDepot; JULIA_DEPOT_PATH=d2:d1:
+  # each new session: isprecompiled(pkg) == false, stale_cachefile reason
+  # :source_path_changed, and `using TwoDepot` precompiles again.
+  # full script: repro/compiler-loading-depot-shadow-recompile.jl
+output:
+  release: |                          # Julia 1.13.3 67ac47b9cd8 (installed release; ARCHITECTURE.md pins 1.13.2)
+    --- session 2
+    isprecompiled before: false
+    loaded .../d1/dev/TwoDepot/src/TwoDepot.jl
+    --- session 3
+    isprecompiled before: false
+    loaded .../d1/dev/TwoDepot/src/TwoDepot.jl
+    REPRODUCED compiler-loading-depot-shadow-recompile
+  nightly: |                          # 1.15.0-DEV.304 290d5bb5f52e815284ce14493f6964147d2f2dc7
+    --- session 2
+    isprecompiled before: false
+    reasons: Dict(:source_path_changed => 1)
+    loaded .../d1/dev/TwoDepot/src/TwoDepot.jl
+    --- session 3
+    isprecompiled before: false
+    reasons: Dict(:source_path_changed => 1)
+    loaded .../d1/dev/TwoDepot/src/TwoDepot.jl
+    REPRODUCED compiler-loading-depot-shadow-recompile
+  master: |                          # 1.15.0-DEV.627 4c0e39dde69c0922daffc45fa63fe4ffd7438124 (upstream master 2026-11-09, desktop build; 6 commits behind eb844b8ebd, none in these files)
+    loaded /tmp/jl_zfwHvs/d1/dev/TwoDepot/src/TwoDepot.jl
+    --- session 3
+    isprecompiled before: false
+    reasons: Dict(:source_path_changed => 1)
+    loaded /tmp/jl_zfwHvs/d1/dev/TwoDepot/src/TwoDepot.jl
+    REPRODUCED compiler-loading-depot-shadow-recompile
+reproduced: {release: true, nightly: true, master: true}
+expected: |
+  The cache written in session 1 is fresh in sessions 2 and 3: its sources are
+  unchanged and are the files the environment locates.
+promised_by: |
+  Relocatable caches (#49866): a cache stays valid when its depot-relative files
+  are identical; and stale_cachefile's own check is about the source path
+  having changed, which it has not.
+cause: |
+  base/loading.jl:4307-4314 picks srcdepot as the first DEPOT_PATH entry with all
+  relocatable sources, without regard to modspec.path; base/loading.jl:5099-5109
+  then rejects the cache because includes[1] restored to that depot is not
+  samefile with modspec.path.
+possible_fix: |
+  Prefer the depot that contains modspec.path when it holds all sources (pass a
+  hint from stale_cachefile), or compare depot-relative paths in stale_cachefile.
+duplicates:
+  issues:
+    - {number: 52161, state: closed, relation: related}
+  queries: ["source_path_changed", "depot relocation recompile", "@depot resolve wrong depot", "relocatable depot order recompile", "prs: source_path_changed", "prs: depot relocation recompile", "issues: DEPOT_PATH stacked depots recompile", "issues: relocatable package recompiled depot", "prs: srcdepot", "issues: source_path_changed", "issues: dev package two depots recompile"]
+lean:
+  property: JuliaLean.base.loading.parse_cache_header
+  theorem: JuliaLean.Proofs.base.loading.relocatedCacheStaysFresh_refuted
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: true
+  output: |
+    --- session 2
+    isprecompiled before: false
+    reasons: Dict(:source_path_changed => 1)
+    --- session 3
+    isprecompiled before: false
+    reasons: Dict(:source_path_changed => 1)
+    REPRODUCED compiler-loading-depot-shadow-recompile

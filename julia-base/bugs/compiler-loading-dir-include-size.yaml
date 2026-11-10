@@ -1,0 +1,104 @@
+id: compiler-loading-dir-include-size
+title: "Cache with a directory `include_dependency` goes stale when the directory's st_size changes but its listing does not"
+priority: P2
+kind: wrong-result
+area: Loading
+files: [base/loading.jl]
+functions: ["any_includes_stale(includes::Vector{CacheHeaderIncludes}, cachefile::String, reasons)", "_include_dependency!(dep_list, track_dependencies, mod, _path, track_content, path_may_be_dir)"]
+summary: |
+  For a content-tracked include dependency on a directory, the writer records
+  `filesize(path)` (the directory's st_size) next to the hash of
+  `join(readdir(path))`, and any_includes_stale rejects the cache with
+  :fsize_changed when the size differs, before it looks at the hash. A
+  directory's st_size is a property of the file system, not of its listing:
+  ext4 never shrinks a directory, so adding files and removing them again leaves
+  the same listing with a larger size, and copying a relocatable depot to another
+  file system (ext4 to tmpfs or APFS) changes every directory size. In both
+  cases the package is recompiled although its declared content is unchanged.
+likelihood: |
+  Needs a package that calls `include_dependency(dir)` (track_content defaults to
+  true) and a directory whose st_size changes: a data directory that temporarily
+  holds more files on ext4/XFS, or a relocated depot (Docker layers, copied CI
+  depots, app bundles) on a different file system. isrelocatable reports such a
+  package as relocatable. The cost is a needless recompile on every load until
+  the cache is rebuilt in place.
+  Triage 2026-11-10. Rerun 2026-11-10: REPRODUCED on pinned f755f49a9e, nightly 290d5bb5f5, 1.13.3 and upstream master 4c0e39dde6 (a 2026-11-09 build, output.master).
+  Master base/loading.jl:2703-2705 and 4841-4846 are unchanged. Blame: the size pre-check is
+  from cd7250da83 (2024-10-31) and the directory hash from f2df1b41b8 (2023-10-20); neither
+  commit says the directory size is meant to be part of the content, and the docstring says
+  the content is `join(readdir(path))`. On APFS a directory's size follows its entry count, so
+  there it only fires when depots move between file systems; on ext4 and XFS it also fires after
+  files are added and removed. How many packages call include_dependency on a directory was not
+  counted (plan: a julia-code-search query for include_dependency with a directory argument).
+  Stays P2: a needless full recompile per load, no wrong code.
+maybe_intended: |
+  The size check is a cheap pre-check before hashing, and is right for files.
+  For directories the docstring defines the tracked content as
+  `join(readdir(path))` only, so the size is not part of it.
+reproducer: |
+  # package DirDep with include_dependency(joinpath(@__DIR__, "..", "data")),
+  # data/ holds one file "a"; precompile in a temporary depot on ext4;
+  # add 300 files to data/ and remove them again; readdir and its hash are
+  # unchanged, filesize(data) went from 4096 to 20480;
+  # stale_cachefile now rejects the cache with :fsize_changed.
+  # full script: repro/compiler-loading-dir-include-size.jl
+output:
+  release: |                          # Julia 1.13.3 67ac47b9cd8 (installed release; ARCHITECTURE.md pins 1.13.2)
+    1.13.3 67ac47b9cd855e02134d41d5428ac9f2a73f2694
+    listing, hash, size before: (["a"], 0xc1d04330, 4096)
+    listing, hash, size after:  (["a"], 0xc1d04330, 20480)
+    reasons: Dict("file size changed" => 1)
+    STALE
+    REPRODUCED compiler-loading-dir-include-size
+  nightly: |                          # 1.15.0-DEV.304 290d5bb5f52e815284ce14493f6964147d2f2dc7
+    1.15.0-DEV.304 290d5bb5f52e815284ce14493f6964147d2f2dc7
+    Precompiling DirDep...
+      1 dependency successfully precompiled in 0 seconds
+    listing, hash, size before: (["a"], 0xc1d04330, 4096)
+    listing, hash, size after:  (["a"], 0xc1d04330, 20480)
+    reasons: Dict(:fsize_changed => 1)
+    STALE
+    REPRODUCED compiler-loading-dir-include-size
+  master: |                          # 1.15.0-DEV.627 4c0e39dde69c0922daffc45fa63fe4ffd7438124 (upstream master 2026-11-09, desktop build; 6 commits behind eb844b8ebd, none in these files)
+    1.15.0-DEV.627 4c0e39dde69c0922daffc45fa63fe4ffd7438124
+    Precompiling DirDep...
+      1 dependency successfully precompiled in 0 seconds
+    listing, hash, size before: (["a"], 0xc1d04330, 4096)
+    listing, hash, size after:  (["a"], 0xc1d04330, 20480)
+    reasons: Dict(:fsize_changed => 1)
+    STALE
+    REPRODUCED compiler-loading-dir-include-size
+reproduced: {release: true, nightly: true, master: true}
+expected: |
+  The cache is fresh: the directory's listing, which is its declared content,
+  is unchanged.
+promised_by: |
+  base/loading.jl:2766-2772 (include_dependency docstring): "if `track_content=true`
+  the module will need to be recompiled if the content of `path` changes (if
+  `path` is a directory the content equals `join(readdir(path))`)".
+cause: |
+  base/loading.jl:2700-2702 records UInt64(filesize(path)) for a directory too, and
+  base/loading.jl:4838-4843 compares fsize before the content hash and returns
+  stale on any difference. Current master (eb844b8ebd99, 2026-11-10) has the same
+  lines (2703-2705 and 4842-4847): not changed.
+possible_fix: |
+  Skip the size comparison for directories (compare only the listing hash), or
+  record size 0 for directories in _include_dependency! and ignore it on read.
+duplicates:
+  issues: []
+  queries: ["include_dependency directory size", "include_dependency directory recompile", "fsize_changed", "prs: include_dependency directory", "issues: include_dependency directory", "issues: readdir include_dependency stale", "prs: include_dependency directory filesize", "issues: include_dependency readdir"]
+lean:
+  property: JuliaLean.Proofs.base.loading.Cachefile.DirectoryIncludeContentOnly
+  theorem: JuliaLean.Proofs.base.loading.Cachefile.directoryIncludeContentOnly_refuted
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: true
+  output: |
+    1.15.0-DEV.184 f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    Precompiling DirDep...
+      1 dependency successfully precompiled in 0 seconds
+    listing, hash, size before: (["a"], 0xc1d04330, 4096)
+    listing, hash, size after:  (["a"], 0xc1d04330, 20480)
+    reasons: Dict(:fsize_changed => 1)
+    STALE
+    REPRODUCED compiler-loading-dir-include-size

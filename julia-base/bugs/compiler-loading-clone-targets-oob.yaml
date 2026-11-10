@@ -1,0 +1,114 @@
+id: compiler-loading-clone-targets-oob
+title: "A damaged pkgimage cache file crashes `using` in jl_check_pkgimage_clones instead of being rejected"
+priority: P2
+kind: crash
+area: Loading
+files: [base/loading.jl, src/processor.cpp]
+functions: ["stale_cachefile(modkey::PkgId, build_id::UInt128, modspec::PkgLoadSpec, cachefile::String)", "check_clone_targets(clone_targets)", "jl_check_pkgimage_clones"]
+summary: |
+  stale_cachefile reads the clone-target bytes from a cache file's header and
+  passes them to check_clone_targets, which hands only a pointer to the C
+  function jl_check_pkgimage_clones. The C side deserializes the target list
+  with the counts and string lengths stored in those bytes and no bound, so a
+  damaged length reads past the buffer. `using` of a package whose .ji file has
+  a damaged clone-target field segfaults instead of rejecting the cache and
+  recompiling. The file checksum that would reject such a file is checked only
+  after this point, and require's first pass skips it (verify_checksums=false).
+likelihood: |
+  Needs a damaged cache file: a bit flip on disk, a partially written or
+  overwritten file in a shared depot, or a file copied incompletely. Cache files
+  are written atomically, so ordinary use does not produce one. When it happens,
+  every `using` of that package crashes until the file is deleted by hand, and
+  so does Pkg.precompile, which checks the same file.
+  Found by the loading difftest: 4 of 5 runs of seed 2 crashed the pinned Julia
+  in check_clone_targets on a mutated copy of a cache file.
+  Triage 2026-11-10 (was P1). Rerun 2026-11-10: REPRODUCED on pinned f755f49a9e, nightly 290d5bb5f5, 1.13.3 and upstream master 4c0e39dde6 (a 2026-11-09 build, output.master).
+  Master source (eb844b8ebd) unchanged: check_clone_targets (base/loading.jl:4646-4647) still
+  passes only a pointer, and jl_check_pkgimage_clones(char *data) (src/processor.cpp:700) has no
+  length. Skeptical points: compilecache writes a temporary file and renames it, so a killed or
+  crashed writer cannot leave a partial file under the cache name. The input needs damage inside
+  the clone-target bytes of the header (a few dozen bytes), from a bad disk, a manual edit or a
+  broken copy of a depot. Not tested: whether a truncated file can reach this path. It is not
+  intended: every other damaged-header case is rejected. Deleting the file recovers. A segfault,
+  but on a narrow input, so P2 rather than P1. #60108 (closed) reads the same C function but is
+  about its match_idx logic, not related.
+maybe_intended: |
+  The loading code treats a cache file as trusted input in several places; the
+  CRC check exists to reject damaged files, but runs after the header has been
+  used.
+reproducer: |
+  # precompile a one-function package into a temporary depot, then grow the
+  # length field of the CPU name inside the clone targets of its .ji file
+  bytes = read(cachefile)
+  name = String(Base.parse_image_targets(clone_targets)[1].name)
+  i = findfirst(vcat(reinterpret(UInt8, [Int32(ncodeunits(name))]), codeunits(name)), bytes)
+  bytes[first(i):first(i)+3] .= reinterpret(UInt8, [Int32(0x40000000)])
+  write(cachefile, bytes)
+  # julia -e 'using CloneOOB'  (with that depot first) dies with signal 11
+  # full script: repro/compiler-loading-clone-targets-oob.jl
+output:
+  release: |                          # Julia 1.13.3 67ac47b9cd8 (installed release; ARCHITECTURE.md pins 1.13.2)
+    1.13.3 67ac47b9cd855e02134d41d5428ac9f2a73f2694
+    image target: znver3
+    [signal 11 in deserialize_target_data<12> at src/processor.cpp:469]
+    child exit code 0, signal 11
+    REPRODUCED compiler-loading-clone-targets-oob
+  nightly: |                          # 1.15.0-DEV.304 290d5bb5f52e815284ce14493f6964147d2f2dc7
+    1.15.0-DEV.304 290d5bb5f52e815284ce14493f6964147d2f2dc7
+    image target: znver3
+    Fault at memory address: 0x70e71f600000
+    _ZN2tp19deserialize_targetsEPKh at .../libjulia-internal.so.1.15 (unknown line)
+    match_image_targets at src/processor.cpp:514:69
+    match_pkgimg_target at src/processor.cpp:629:38 [inlined]
+    check_clone_targets at loading.jl:4632:0 (pc: 9) [inlined]
+    #stale_cachefile#1125 at loading.jl:4975:0 (pc: 693)
+    #_require_search_from_serialized#1088 at loading.jl:2426:0 (pc: 114)
+    child exit code 0, signal 11
+    REPRODUCED compiler-loading-clone-targets-oob
+  master: |                          # 1.15.0-DEV.627 4c0e39dde69c0922daffc45fa63fe4ffd7438124 (upstream master 2026-11-09, desktop build; 6 commits behind eb844b8ebd, none in these files)
+    1.15.0-DEV.627 4c0e39dde69c0922daffc45fa63fe4ffd7438124
+    image target: znver3
+    Fault at memory address: 0x789aa8600000
+    _ZN2tp19deserialize_targetsEPKh at .../libjulia-internal.so.1.15 (unknown line)
+    match_image_targets at src/processor.cpp:514:69
+    check_clone_targets at loading.jl:4647:0 (pc: 9) [inlined]
+    #stale_cachefile#1133 at loading.jl:4990:0 (pc: 693)
+    child exit code 0, signal 11
+    REPRODUCED compiler-loading-clone-targets-oob
+reproduced: {release: true, nightly: true, master: true}
+expected: |
+  stale_cachefile returns true (the cache is rejected, for example with reason
+  :cpu_target or :checksum_invalid), and the package is recompiled.
+promised_by: |
+  base/loading.jl:4923 comment: "this function does nearly all of the file
+  validation". The cache-file CRC (checksums_invalid, base/loading.jl:4070-4083)
+  exists to reject damaged files instead of loading them.
+cause: |
+  base/loading.jl:4986 (pinned f755f49a9e41) calls check_clone_targets(clone_targets)
+  before any checksum check; base/loading.jl:4642-4647 passes the Vector's
+  pointer to jl_check_pkgimage_clones(char *data) (src/processor.cpp:700-708),
+  which has no length argument and calls tp::deserialize_targets on it
+  (src/processor.cpp:514). The deserializer trusts the embedded string length.
+possible_fix: |
+  Pass the length of the clone-target bytes to jl_check_pkgimage_clones and
+  bound the deserializer by it, rejecting the cache when the data does not fit;
+  or check the cache file's CRC before using header fields that reach C.
+duplicates:
+  issues: []
+  queries: ["jl_check_pkgimage_clones segfault", "corrupt cache file segfault", "corrupted .ji crash", "clone_targets corrupt", "deserialize_targets", "pkgimage clone targets crash", "corrupted precompile cache segmentation fault", "check_clone_targets", "clone targets", "segfault corrupted cache", "corrupt pkgimage", "cache file corrupt", "processor.cpp segfault", "corrupted ji", "pkgimage crash corrupt", "prs: check_clone_targets", "issues: corrupted cache segfault using", "issues: pkgimage segfault loading cache", "issues: image targets corrupt", "prs: jl_check_pkgimage_clones", "issues: truncated ji file crash", "issues: jl_check_pkgimage_clones"]
+lean:
+  property: JuliaLean.base.loading.check_clone_targets
+  theorem: JuliaLean.Proofs.base.loading.staleCachefileRejectsDamagedCloneTargets_refuted
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: true
+  output: |
+    1.15.0-DEV.184 f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    image target: znver3
+    Fault at memory address: 0x7f8a81c00000
+    _ZN2tp19deserialize_targetsEPKh at .../libjulia-internal.so.1.15 (unknown line)
+    match_image_targets at src/processor.cpp:514:69
+    check_clone_targets at loading.jl:4643:0 (pc: 9) [inlined]
+    #stale_cachefile#1121 at loading.jl:4986:0 (pc: 693)
+    child exit code 0, signal 11
+    REPRODUCED compiler-loading-clone-targets-oob

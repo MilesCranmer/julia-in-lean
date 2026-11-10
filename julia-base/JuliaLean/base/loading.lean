@@ -5086,9 +5086,6 @@ def defaultCacheFlags (o : LOps X Y E D CI CF V) (ops : CoverageOps o) : CacheFl
     coverage := i64 0
     coverage_path := none }
 
-def cacheFlagOr (o : LOps X Y E D CI CF V) (ops : CoverageOps o)
-    (f : JInt .u8) (bits : JInt64) : LM o (JInt .u8) :=
-  ops.convertUInt8 (JuliaLean.base.int.or_int (JInt.wrap .i64 f.val) bits)
 
 /--
 Julia source: base/loading.jl:2012-2020 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -5106,13 +5103,16 @@ end
 -/
 def _cacheflag_to_uint8 (o : LOps X Y E D CI CF V) (ops : CoverageOps o)
     (cf : CacheFlags) : LM o (JInt .u8) := do
-  let mut f : JInt .u8 := JInt.wrap .u8 0
-  f ← cacheFlagOr o ops f (JuliaLean.base.int.shl_int (i64 (if cf.use_pkgimages then 1 else 0)) (i64 0))
-  f ← cacheFlagOr o ops f (JuliaLean.base.int.shl_int cf.debug_level (i64 1))
-  f ← cacheFlagOr o ops f (JuliaLean.base.int.shl_int cf.check_bounds (i64 3))
-  f ← cacheFlagOr o ops f (JuliaLean.base.int.shl_int (i64 (if cf.inline then 1 else 0)) (i64 5))
-  f ← cacheFlagOr o ops f (JuliaLean.base.int.shl_int cf.opt_level (i64 6))
-  return f
+  -- `f = UInt8(0)`; the first `f |= <Int>` promotes `f` to `Int`, so every `|=` is an `Int` OR
+  -- and the only `UInt8` conversion is the one the `::UInt8` return annotation performs.
+  let f0 : JInt .u8 := JInt.wrap .u8 0
+  let mut f : JInt64 := JuliaLean.base.int.or_int (JInt.wrap .i64 f0.val)
+    (JuliaLean.base.int.shl_int (i64 (if cf.use_pkgimages then 1 else 0)) (i64 0))
+  f := JuliaLean.base.int.or_int f (JuliaLean.base.int.shl_int cf.debug_level (i64 1))
+  f := JuliaLean.base.int.or_int f (JuliaLean.base.int.shl_int cf.check_bounds (i64 3))
+  f := JuliaLean.base.int.or_int f (JuliaLean.base.int.shl_int (i64 (if cf.inline then 1 else 0)) (i64 5))
+  f := JuliaLean.base.int.or_int f (JuliaLean.base.int.shl_int cf.opt_level (i64 6))
+  ops.convertUInt8 f
 
 /--
 Julia source: base/loading.jl:2034-2041 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -6074,7 +6074,6 @@ structure CacheIOOps (o : LOps X Y E D CI CF V) (Stream : Type) where
   isDirPath : Bytes → Bool
   pathsep : Bytes
   binunpack : Bytes → LM o PkgId
-  cacheFlagsFromBytes : CacheU8 → CacheU8 → LM o CacheFlags
   showStringVector : List Bytes → Bytes
   /-- `String(bytes)` using the installed UTF-8 string constructor. -/
   bytesToString : Bytes → String
@@ -6199,7 +6198,7 @@ def checksums_invalid_io {Stream : Type} (o : LOps X Y E D CI CF V)
     (ops : CacheIOOps o Stream) (stream : Stream) (cachefile : Bytes)
     (ocachefile : Option Bytes) (reasons : Option (AMap Bytes JInt64))
     (splitChecksums : Bool := true) : LM o (Bool × Option (AMap Bytes JInt64)) := do
-  if !splitChecksums || ocachefile.isNone then return (false, reasons)
+  if !splitChecksums && ocachefile.isSome then return (false, reasons)
   if !(← isvalid_file_crc o ops stream) then
     ops.logDebug (lit "Rejecting cache file " ++ cachefile ++ lit " because it has an invalid checksum")
     return (true, recordReasonMaybe reasons (lit "checksum_invalid"))
@@ -6562,7 +6561,7 @@ def _parse_cache_header {Stream : Type} (o : LOps X Y E D CI CF V)
     LM o ParsedCacheHeader := do
   let flagsLow ← ops.readU8 stream
   let flagsHigh ← ops.readU8 stream
-  let flags ← ops.cacheFlagsFromBytes flagsLow flagsHigh
+  let flags := CacheFlags_fromUInt8 flagsLow (i64 flagsHigh.val)
   let syntaxVersion ← ops.readU8 stream
   let modules ← read_module_list o ops stream false
   let totalBytes ← ops.u64ToI64 (← ops.readU64 stream)
@@ -8576,7 +8575,6 @@ structure IncludeDependencyOps (o : LOps X Y E D CI CF V) (Mod DepList : Type) w
   readDirectory : Bytes → LM o (List Bytes)
   joinNames : List Bytes → Bytes
   toUInt64 : JInt64 → LM o CacheU64
-  minusOneMtime : JuliaLean.base.float.FV .f64
   recordDependency : DepList → Mod → Bytes → CacheU64 → CacheU32 →
     JuliaLean.base.float.FV .f64 → LM o Unit
   /-- Constructs the filesystem `SystemError` for an unreadable include dependency. -/
@@ -8637,7 +8635,8 @@ def _include_dependency_record {Mod DepList : Type} (o : LOps X Y E D CI CF V)
           pure (ops.hashBytes (ops.joinNames (← ops.readDirectory path)))
         else
           ops.hashFile path
-        ops.recordDependency depList mod path (← ops.toUInt64 stat.size) hash ops.minusOneMtime
+        ops.recordDependency depList mod path (← ops.toUInt64 stat.size) hash
+          (JuliaLean.Promotion.Fl.ofBits 0xBFF0000000000000)
       else
         ops.recordDependency depList mod path (JInt.lit .u64 0) (JInt.lit .u32 0) stat.mtime
   return (path, previous)
@@ -9817,17 +9816,53 @@ def maybe_cachefile_lock {Result PidInfo : Type} (o : LOps X Y E D CI CF V)
     ops.waitForLock pidfile staleAge
     return none
 
+/-- `fixup_stdlib_path`, `_crc32c(join(readdir(f)))` of a directory and `open(_crc32c, f, "r")`
+of a file. -/
 structure IncludeStalenessOps (o : LOps X Y E D CI CF V) (Stream : Type) where
   io : CacheIOOps o Stream
   fixupStdlibPath : Bytes → LM o Bytes
-  isStdlibPath : Bytes → Bool
-  inPackageStore : Bytes → LM o Bool
   directoryHash : Bytes → LM o CacheU32
   fileHash : Bytes → LM o CacheU32
-  nonnegativeMtime : JuliaLean.base.float.FV .f64 → Bool
-  mtimeCompatible : JuliaLean.base.float.FV .f64 → JuliaLean.base.float.FV .f64 → Bool
-  size : CacheFileStat → CacheU64
-  isReadOnly : CacheFileStat → Bool
+
+section MtimeCheck
+open JuliaLean.base.float
+
+private def f64 (bits : Nat) : FV .f64 := JuliaLean.Promotion.Fl.ofBits bits
+
+/--
+`trunc(x, digits=6)` for `x::Float64`: `round(x, RoundToZero; digits=6)` reaches
+`_round_digits(x, RoundToZero, 6, 10)` (base/floatfuncs.jl:357-372), where `10.0^6` is the finite
+`1e6`, so it returns `_round_invstep(x, 1e6, RoundToZero)` (base/floatfuncs.jl:82-88):
+```julia
+function _round_invstep(x, invstep, r::RoundingMode)
+    y = round(x * invstep, r) / invstep
+    if !isfinite(y)
+        return x
+    end
+    return y
+end
+```
+-/
+def trunc_digits6 (x : FV .f64) : FV .f64 :=
+  let y := div_float (trunc_llvm (mul_float x (f64 0x412E848000000000))) (f64 0x412E848000000000)
+  if !isfinite_callee y then x else y
+
+/-- The `is_stale` expression of `any_includes_stale` (base/loading.jl:4827-4832) for the current
+mtime `ftime` and the recorded `ftime_req`. `0 < d` compares an `Int` with a `Float64` exactly,
+which equals `0.0 < d`. -/
+def include_mtime_is_stale (ftime ftimeReq : FV .f64) : Bool :=
+  let difference := sub_float ftimeReq ftime
+  !eq_float ftime ftimeReq &&
+  !eq_float ftime (floor_llvm ftimeReq) &&
+  !eq_float ftime (ceil_llvm ftimeReq) &&
+  !eq_float ftime (trunc_digits6 ftimeReq) &&
+  !eq_float ftime (f64 0x3FF0000000000000) &&
+  !(lt_float (f64 0) difference && lt_float difference (f64 0x3EB0C6F7A0B5ED8D))
+
+/-- `ftime_req >= 0.0`. -/
+def include_mtime_recorded (ftimeReq : FV .f64) : Bool := le_float (f64 0) ftimeReq
+
+end MtimeCheck
 
 
 /--
@@ -9907,26 +9942,32 @@ def any_includes_stale {Stream : Type} (o : LOps X Y E D CI CF V)
     let stat ← ops.io.statPath path
     if !stat.isPath then
       let fixed ← ops.fixupStdlibPath path
-      if fixed != path && (← ops.io.isFile fixed) && ops.isStdlibPath fixed then
+      let stdlibFile ← if fixed != path then
+          (do if ← ops.io.isFile fixed then startswith o fixed o.STDLIB else pure false)
+        else pure false
+      if stdlibFile then
         continue
       ops.io.logDebug (lit "Rejecting stale cache file " ++ cachefile ++
         lit " because file " ++ path ++ lit " does not exist")
       reasons := recordReasonMaybe reasons (lit "source_missing")
       return (true, reasons)
-    if ops.nonnegativeMtime «include».mtime then
-      if !ops.mtimeCompatible stat.mtime «include».mtime then
+    if include_mtime_recorded «include».mtime then
+      if include_mtime_is_stale stat.mtime «include».mtime then
         ops.io.logDebug (lit "Rejecting stale cache file " ++ cachefile ++
           lit " because mtime of include_dependency " ++ path ++ lit " has changed")
         reasons := recordReasonMaybe reasons (lit "mtime_changed")
         return (true, reasons)
     else
-      let fileSize := ops.size stat
-      if fileSize != «include».fsize then
+      -- `fsize != fsize_req` compares an `Int64` with a `UInt64` by value.
+      if stat.size.val != «include».fsize.val then
         ops.io.logDebug (lit "Rejecting stale cache file " ++ cachefile ++
           lit " because file size of " ++ path ++ lit " has changed")
         reasons := recordReasonMaybe reasons (lit "fsize_changed")
         return (true, reasons)
-      if !stat.isDirectory && ops.isReadOnly stat && (← ops.inPackageStore path) then
+      let readOnly := JuliaLean.base.int.and_int (ops.io.fileMode stat) (JInt.wrap .u64 0o222) ==
+        JInt.wrap .u64 0
+      let trusted ← if !stat.isDirectory && readOnly then in_package_store o path else pure false
+      if trusted then
         continue
       let hash ← if stat.isDirectory then ops.directoryHash path else ops.fileHash path
       if hash != «include».hash then
@@ -10248,12 +10289,11 @@ structure CacheStaleDecision (Mod : Type) where
   objectCache : Option Bytes
   buildId : CacheU128
   reasons : Option (AMap Bytes JInt64)
-  unverified : Option (List Bytes)
 
-def rejectedCacheDecision {Mod : Type} (reasons : Option (AMap Bytes JInt64))
-    (unverified : Option (List Bytes)) : CacheStaleDecision Mod :=
+def rejectedCacheDecision {Mod : Type} (reasons : Option (AMap Bytes JInt64)) :
+    CacheStaleDecision Mod :=
   { stale := true, dependencies := [], objectCache := none, buildId := JInt.wrap .u128 0
-    reasons := reasons, unverified := unverified }
+    reasons := reasons }
 
 /-- Runtime state and C boundaries used by cache-header freshness checks. -/
 structure CacheStalenessOps (o : LOps X Y E D CI CF V)
@@ -10269,25 +10309,26 @@ structure CacheStalenessOps (o : LOps X Y E D CI CF V)
   jlMatchCacheFlags : CacheU8 → CacheU8 → LM o CacheU8
   usePkgimages : LM o Bool
   coreModule : Mod
-  emptyPkgId : PkgId
   inSysimage : PkgId → LM o Bool
   locatePackageLoadSpec : PkgId → LM o (Option PkgLoadSpec)
   concreteDependencies : LM o (List (PkgId × CacheU128))
   identifyPackage : PkgId → Bytes → LM o (Option PkgId)
   fixupStdlibPath : Bytes → LM o Bytes
+  /-- `jl_cache_flags()`, read by the `CacheFlags()` keyword defaults. -/
+  runtimeFlags : CacheFlagsRuntimeOps o
 
-
+/-- Julia source: base/loading.jl:4919-5139 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027 (quoted
+above). A stale verdict is `stale := true`; a fresh one carries `depmods`, `ocachefile` and
+`id_build`. -/
 def stale_cachefile {Stream Mod Reason PrefValue : Type}
     (o : LOps X Y E D CI CF V)
     (ops : CacheStalenessOps o Stream Mod Reason PrefValue)
     (modkey : PkgId) (wantedBuildId : CacheU128) (modspec : PkgLoadSpec)
     (cachefile : Bytes) (ignoreLoaded : Bool) (requestedFlags : CacheFlags)
-    (reasons : Option (AMap Bytes JInt64)) (staleCheck verifyChecksums splitChecksums : Bool)
-    (unverified : Option (List Bytes)) : LM o (CacheStaleDecision Mod) := do
-  let mut unverified := unverified
-  let reject := fun (reasons : Option (AMap Bytes JInt64))
-      (unverified : Option (List Bytes)) =>
-    rejectedCacheDecision reasons unverified
+    (reasons : Option (AMap Bytes JInt64)) (staleCheck verifyChecksums splitChecksums : Bool) :
+    LM o (CacheStaleDecision Mod) := do
+  let reject := fun (reasons : Option (AMap Bytes JInt64)) =>
+    rejectedCacheDecision (Mod := Mod) reasons
   let opened ← tryCatchL o
     (do return some (← ops.io.openRead cachefile))
     (fun error =>
@@ -10297,45 +10338,46 @@ def stale_cachefile {Stream Mod Reason PrefValue : Type}
     | some stream => pure stream
     | none =>
       ops.io.logDebug (lit "Rejecting unreadable cache file " ++ cachefile)
-      return reject reasons unverified
+      return reject reasons
   tryFinallyL o (do
-    let mut unverified := unverified
     let checksum ← isvalid_cache_header o ops.io stream
     let reasons := reasons
     if checksum.isNone then
       ops.io.logDebug (lit "Rejecting cache file with incompatible header " ++ cachefile)
-      return reject (recordReasonMaybe reasons (lit "incompatible_header")) unverified
+      return reject (recordReasonMaybe reasons (lit "incompatible_header"))
     let headerStart ← ops.io.position stream
     let firstFlags ← ops.io.readU8 stream
     let coverageFlags ← ops.io.readU8 stream
-    let actualFlags ← ops.io.cacheFlagsFromBytes firstFlags coverageFlags
-    let coverageMismatch ← match_cache_coverage o ops.coverage requestedFlags actualFlags
-    let currentRequest ← is_current_coverage_request o ops.coverage requestedFlags
+    let actualFlags := CacheFlags_fromUInt8 firstFlags (i64 coverageFlags.val)
+    let coverageMismatch := !(← match_cache_coverage o ops.coverage requestedFlags actualFlags)
+    let currentRequest ← if coverageMismatch then
+      is_current_coverage_request o ops.coverage requestedFlags else pure false
     let requestedFlagBytes ← _cacheflag_to_uint8 o ops.coverage requestedFlags
     let actualFlagBytes ← _cacheflag_to_uint8 o ops.coverage actualFlags
     let flagMatch ← ops.jlMatchCacheFlags requestedFlagBytes actualFlagBytes
-    let plainCoverageAllowed ← can_use_plain_coverage_cache o ops.coverage requestedFlags actualFlags
+    let plainCoverageAllowed ← if flagMatch.val != 0 && coverageMismatch then
+      can_use_plain_coverage_cache o ops.coverage requestedFlags actualFlags else pure true
     if flagMatch.val == 0 || (coverageMismatch && !plainCoverageAllowed) then
       ops.io.logDebug (lit "Rejecting cache file with mismatched flags " ++ cachefile)
-      return reject (recordReasonMaybe reasons (lit "flags_mismatch")) unverified
+      return reject (recordReasonMaybe reasons (lit "flags_mismatch"))
     ops.io.seek stream headerStart
     let header ← parse_cache_header o ops.io stream cachefile
     if header.modules.isEmpty then
-      return reject reasons unverified
+      return reject reasons
     if coverageMismatch then
       for «include» in header.includes do
         if (lit "@depot").isPrefixOf «include».filename then
           ops.io.logDebug (lit "Rejecting cache file with unresolved depot include " ++ cachefile)
-          return reject (recordReasonMaybe reasons (lit "flags_mismatch")) unverified
+          return reject (recordReasonMaybe reasons (lit "flags_mismatch"))
         let tracked ← match requestedFlags.coverage_path with
           | none => throwL o .typeError
           | some path => path_is_tracked o ops.coverage «include».filename path
         if tracked then
           ops.io.logDebug (lit "Rejecting cache file without coverage counters " ++ cachefile)
-          return reject (recordReasonMaybe reasons (lit "flags_mismatch")) unverified
+          return reject (recordReasonMaybe reasons (lit "flags_mismatch"))
     if staleCheck && header.syntaxVersion != cache_edition modspec.julia_edition then
       ops.io.logDebug (lit "Rejecting cache file parsed for another Julia syntax version " ++ cachefile)
-      return reject (recordReasonMaybe reasons (lit "syntax_version")) unverified
+      return reject (recordReasonMaybe reasons (lit "syntax_version"))
     let hasPkgimage := !header.cloneTargets.isEmpty
     let objectCache ← if hasPkgimage then
       some <$> ops.validation.objectCachePath cachefile
@@ -10343,30 +10385,33 @@ def stale_cachefile {Stream Mod Reason PrefValue : Type}
     if hasPkgimage then
       if !(← ops.usePkgimages) then
         ops.io.logDebug (lit "Rejecting cache file that requires a pkgimage " ++ cachefile)
-        return reject (recordReasonMaybe reasons (lit "pkgimages_disabled")) unverified
+        return reject (recordReasonMaybe reasons (lit "pkgimages_disabled"))
       if (← check_clone_targets o ops.cloneTargets header.cloneTargets).isSome then
         ops.io.logDebug (lit "Rejecting cache file with incompatible CPU targets " ++ cachefile)
-        return reject (recordReasonMaybe reasons (lit "cpu_target")) unverified
+        return reject (recordReasonMaybe reasons (lit "cpu_target"))
       if !(← ops.io.isFile objectCache.get!) then
         ops.io.logDebug (lit "Rejecting cache file with missing object image " ++ cachefile)
-        return reject (recordReasonMaybe reasons (lit "ocachefile_missing")) unverified
+        return reject (recordReasonMaybe reasons (lit "ocachefile_missing"))
     let (cachePackage, lowBuildId) ← match header.modules with
       | first :: _ => pure first
-      | [] => return reject reasons unverified
-    if cachePackage != modkey && modkey != ops.emptyPkgId then
+      | [] => return reject reasons
+    if cachePackage != modkey && modkey != ({ uuid := none, name := lit "" } : PkgId) then
       ops.io.logDebug (lit "Rejecting cache file for another package " ++ cachefile)
-      return reject (recordReasonMaybe reasons (lit "pkgid_mismatch")) unverified
+      return reject (recordReasonMaybe reasons (lit "pkgid_mismatch"))
     let checksumValue := (checksum.getD (JInt.wrap .u32 0)).val
     let buildId := JInt.wrap .u128
       (checksumValue * (2 ^ 64) + lowBuildId.val % (2 ^ 64))
     if wantedBuildId.val != 0 && buildId != wantedBuildId then
       ops.io.logDebug (lit "Rejecting cache file with mismatched build id " ++ cachefile)
-      return reject (recordReasonMaybe reasons (lit "buildid_mismatch")) unverified
+      return reject (recordReasonMaybe reasons (lit "buildid_mismatch"))
     let mut dependencies : List (CacheFreshDependency Mod) := []
     for (requiredPkg, requiredBuildId) in header.requiredModules do
       let preloaded ← if staleCheck then pure none
         else maybe_loaded_precompile o ops.registry requiredPkg requiredBuildId
       if let some module := preloaded then
+        if !(root_module_key ops.registry module == requiredPkg &&
+            (← module_build_id o ops.registry module) == requiredBuildId) then
+          throwL o (.assertionError "PkgId(M) == req_key && module_build_id(M) === req_build_id")
         dependencies := dependencies ++
           [{ package := requiredPkg, buildId := requiredBuildId
              loadedModule := some module, loadSpec := none }]
@@ -10385,17 +10430,17 @@ def stale_cachefile {Stream Mod Reason PrefValue : Type}
           acceptedLoaded := true
         else if ops.registry.sameModule module ops.coreModule then
           ops.io.logDebug (lit "Rejecting cache file for another Julia version " ++ cachefile)
-          return reject (recordReasonMaybe reasons (lit "julia_version")) unverified
+          return reject (recordReasonMaybe reasons (lit "julia_version"))
         else if !ignoreLoaded && staleCheck then
           ops.io.logDebug (lit "Rejecting cache file with incompatible loaded dependency " ++ cachefile)
           return reject (recordReasonMaybe reasons
-            (lit "dep_loaded_incompatible_" ++ requiredPkg.name)) unverified
+            (lit "dep_loaded_incompatible:" ++ requiredPkg.name))
       if acceptedLoaded then continue
       let spec ← ops.locatePackageLoadSpec requiredPkg
       match spec with
       | none =>
         ops.io.logDebug (lit "Rejecting cache file with missing dependency " ++ cachefile)
-        return reject (recordReasonMaybe reasons (lit "dep_missing")) unverified
+        return reject (recordReasonMaybe reasons (lit "dep_missing"))
       | some spec =>
         dependencies := dependencies ++
           [{ package := requiredPkg, buildId := requiredBuildId
@@ -10408,11 +10453,12 @@ def stale_cachefile {Stream Mod Reason PrefValue : Type}
           if !(← ops.inSysimage requiredPkg) &&
               !(currentRequest && (← plain_coverage_cache_accepted o ops.coverage requiredBuildId)) then
             ops.io.logDebug (lit "Rejecting cache file with uncovered loaded dependency " ++ cachefile)
-            return reject (recordReasonMaybe reasons (lit "flags_mismatch")) unverified
+            return reject (recordReasonMaybe reasons (lit "flags_mismatch"))
     let concreteDependencies ← ops.concreteDependencies
     let mut skipSourceChecks := false
     for (requiredPkg, requiredBuildId) in concreteDependencies do
-      let low := (header.modules.find? (fun item => item.1 == requiredPkg)).map (·.2)
+      -- `Dict{PkgId, UInt64}(modules)` keeps the last entry for a repeated key.
+      let low := (header.modules.reverse.find? (fun item => item.1 == requiredPkg)).map (·.2)
       if let some lowBuildId := low then
         if lowBuildId.val != 0 then
           let actualBuildId := JInt.wrap .u128
@@ -10421,7 +10467,7 @@ def stale_cachefile {Stream Mod Reason PrefValue : Type}
             skipSourceChecks := true
             break
           ops.io.logDebug (lit "Rejecting cache file with conflicting concrete dependency " ++ cachefile)
-          return reject (recordReasonMaybe reasons (lit "dep_buildid_mismatch")) unverified
+          return reject (recordReasonMaybe reasons (lit "dep_buildid_mismatch"))
     let mut reasons := reasons
     if staleCheck && !skipSourceChecks then
       let «include» ← match header.includes.head? with
@@ -10431,39 +10477,30 @@ def stale_cachefile {Stream Mod Reason PrefValue : Type}
         let fixed ← ops.fixupStdlibPath «include».filename
         if !(← ops.io.isReadable fixed) || !(← ops.io.sameFile fixed modspec.path) then
           ops.io.logDebug (lit "Rejecting cache file from a different source path " ++ cachefile)
-          return reject (recordReasonMaybe reasons (lit "source_path_changed")) unverified
+          return reject (recordReasonMaybe reasons (lit "source_path_changed"))
       for (moduleKey, requiredPkg) in header.requiredPackages do
         if (← ops.identifyPackage moduleKey requiredPkg.name) != some requiredPkg then
           ops.io.logDebug (lit "Rejecting cache file with changed package identity " ++ cachefile)
-          return reject (recordReasonMaybe reasons (lit "dep_identity_changed")) unverified
+          return reject (recordReasonMaybe reasons (lit "dep_identity_changed"))
       let (includesStale, updatedReasons) ←
         any_includes_stale o ops.includes header.includes cachefile reasons
       reasons := updatedReasons
-      if includesStale then return reject reasons unverified
+      if includesStale then return reject reasons
     if verifyChecksums then
-      let (invalid, updatedReasons, updatedUnverified) ← checksums_invalid_file o ops.io
-        ops.validation cachefile objectCache buildId reasons unverified splitChecksums
+      let (invalid, updatedReasons) ← checksums_invalid_io o ops.io stream cachefile
+        objectCache reasons splitChecksums
       reasons := updatedReasons
-      unverified := updatedUnverified
-      if invalid then return reject reasons unverified
+      if invalid then return reject reasons
     if (← stale_prefs o ops.preferences header.preferencesBlob) then
       ops.io.logDebug (lit "Rejecting cache file with changed preferences " ++ cachefile)
-      return reject (recordReasonMaybe reasons (lit "preferences_changed")) unverified
+      return reject (recordReasonMaybe reasons (lit "preferences_changed"))
     if coverageMismatch && currentRequest then accept_plain_coverage_cache o ops.coverage buildId
     return { stale := false, dependencies := dependencies, objectCache := objectCache
-             buildId := buildId, reasons := reasons, unverified := unverified }
+             buildId := buildId, reasons := reasons }
     ) (ops.io.close stream)
-def stale_cachefile_modpath {Stream Mod Reason PrefValue : Type}
-    (o : LOps X Y E D CI CF V)
-    (ops : CacheStalenessOps o Stream Mod Reason PrefValue)
-    (modpath cachefile : Bytes) (requestedFlags : Option CacheFlags := none)
-    (reasons : Option (AMap Bytes JInt64) := none)
-    (verifyChecksums : Bool := true) :
-    LM o (CacheStaleDecision Mod) := do
-  let flags := requestedFlags.getD (defaultCacheFlags o ops.coverage)
-  let modspec : PkgLoadSpec := { path := modpath, julia_edition := o.VERSION_EDITION }
-  stale_cachefile o ops ops.emptyPkgId (JInt.wrap .u128 0) modspec cachefile
-    false flags reasons true verifyChecksums true none
+
+/-- Julia source: base/loading.jl:4916-4918 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027 (quoted
+above). `requestedFlags := none` is the `CacheFlags()` default. -/
 def stale_cachefile_modspec {Stream Mod Reason PrefValue : Type}
     (o : LOps X Y E D CI CF V)
     (ops : CacheStalenessOps o Stream Mod Reason PrefValue)
@@ -10472,9 +10509,25 @@ def stale_cachefile_modspec {Stream Mod Reason PrefValue : Type}
     (reasons : Option (AMap Bytes JInt64) := none)
     (verifyChecksums : Bool := true) :
     LM o (CacheStaleDecision Mod) := do
-  let flags := requestedFlags.getD (defaultCacheFlags o ops.coverage)
-  stale_cachefile o ops ops.emptyPkgId (JInt.wrap .u128 0) modspec cachefile ignoreLoaded
-    flags reasons true verifyChecksums true none
+  let flags ← match requestedFlags with
+    | some flags => pure flags
+    | none => CacheFlags_withOptions o ops.runtimeFlags ops.coverage
+  stale_cachefile o ops ({ uuid := none, name := lit "" } : PkgId) (JInt.wrap .u128 0) modspec cachefile ignoreLoaded
+    flags reasons true verifyChecksums true
+
+/-- Julia source: base/loading.jl:4913-4915 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027 (quoted
+above). The keyword arguments are forwarded unchanged. -/
+def stale_cachefile_modpath {Stream Mod Reason PrefValue : Type}
+    (o : LOps X Y E D CI CF V)
+    (ops : CacheStalenessOps o Stream Mod Reason PrefValue)
+    (modpath cachefile : Bytes) (ignoreLoaded : Bool := false)
+    (requestedFlags : Option CacheFlags := none)
+    (reasons : Option (AMap Bytes JInt64) := none)
+    (verifyChecksums : Bool := true) :
+    LM o (CacheStaleDecision Mod) := do
+  let modspec : PkgLoadSpec := { path := modpath, julia_edition := o.VERSION_EDITION }
+  stale_cachefile_modspec o ops modspec cachefile ignoreLoaded requestedFlags reasons
+    verifyChecksums
 
 
 /-- Runtime paths and the `jl_set_debuginfo_source_paths` codegen API. -/
@@ -10584,7 +10637,6 @@ structure CacheFreshestOps (o : LOps X Y E D CI CF V)
   candidates : CacheCandidateOps o
   staleness : CacheStalenessOps o Stream Mod Reason PrefValue
   cachePathsGet : PkgId → LM o (Option (List Bytes))
-  cachePathsSet : PkgId → List Bytes → LM o Unit
   staleCacheGet : CacheFreshKey → LM o (Option Bool)
   staleCacheSet : CacheFreshKey → Bool → LM o Unit
   beginLoadingCache : LM o Bool
@@ -10674,24 +10726,24 @@ def compilecache_freshest_path {Stream Mod Reason PrefValue : Type}
     (cachePaths : Option (List Bytes) := none) (sourceSpec : Option PkgLoadSpec := none)
     (flags : Option CacheFlags := none) (verifyChecksums : Bool := true)
     (unverified : Option (List Bytes) := none)
-    (reasons : Option (AMap Bytes JInt64) := none) : LM o (Option Bytes) := withLock o do
-  let sourceSpec ← match sourceSpec with
-    | some spec => pure (some spec)
-    | none => ops.staleness.locatePackageLoadSpec pkg
-  let sourceSpec ← match sourceSpec with
-    | some spec => pure spec
-    | none => throwL o (.errorExceptionBytes
-        (lit "Cannot locate source for " ++ ops.formatPkgId pkg))
-  let flags := flags.getD (defaultCacheFlags o ops.staleness.coverage)
+    (reasons : Option (AMap Bytes JInt64) := none) : LM o (Option Bytes) := do
   let cachePaths ← match cachePaths with
     | some paths => pure paths
     | none => do
       match ← ops.cachePathsGet pkg with
       | some paths => pure paths
-      | none =>
-        let paths ← find_all_in_cache_path o ops.candidates pkg
-        ops.cachePathsSet pkg paths
-        pure paths
+      | none => find_all_in_cache_path o ops.candidates pkg
+  let sourceSpec ← match sourceSpec with
+    | some spec => pure (some spec)
+    | none => ops.staleness.locatePackageLoadSpec pkg
+  let flags ← match flags with
+    | some flags => pure flags
+    | none => CacheFlags_withOptions o ops.staleness.runtimeFlags ops.staleness.coverage
+  let sourceSpec ← match sourceSpec with
+    | some spec => pure spec
+    | none => throwL o (.errorExceptionBytes
+        (lit "Cannot locate source for " ++ ops.formatPkgId pkg))
+  withLock o do
   let setCache ← ops.beginLoadingCache
   tryFinallyL o (do
     let mut reasonsState := reasons
@@ -10707,11 +10759,9 @@ def compilecache_freshest_path {Stream Mod Reason PrefValue : Type}
         if found.isNone then
           tried := tried + 1
           let candidate ← stale_cachefile o ops.staleness pkg buildId sourceSpec path
-            ignoreLoaded flags reasonsState true false true unverifiedState
+            ignoreLoaded flags reasonsState true false true
           reasonsState := candidate.reasons
-          unverifiedState := candidate.unverified
           ops.updateReasons reasons reasonsState
-          ops.updateUnverified unverified unverifiedState
           if !candidate.stale then
             let mut dependenciesValid := true
             for dependency in candidate.dependencies do
@@ -10721,10 +10771,7 @@ def compilecache_freshest_path {Stream Mod Reason PrefValue : Type}
                   | none => throwL o .boundsError
                 let dependencyPaths ← match ← ops.cachePathsGet dependency.package with
                   | some paths => pure paths
-                  | none =>
-                    let paths ← find_all_in_cache_path o ops.candidates dependency.package
-                    ops.cachePathsSet dependency.package paths
-                    pure paths
+                  | none => find_all_in_cache_path o ops.candidates dependency.package
                 let mut dependencyFound := false
                 for dependencyPath in dependencyPaths do
                   if !dependencyFound then
@@ -10738,10 +10785,8 @@ def compilecache_freshest_path {Stream Mod Reason PrefValue : Type}
                     | none =>
                       let dependencyResult ← stale_cachefile o ops.staleness dependency.package
                         dependency.buildId spec dependencyPath ignoreLoaded flags none true
-                        verifyChecksums true unverifiedState
+                        verifyChecksums true
                       ops.staleCacheSet key dependencyResult.stale
-                      unverifiedState := dependencyResult.unverified
-                      ops.updateUnverified unverified unverifiedState
                       if !dependencyResult.stale then dependencyFound := true
                 if !dependencyFound then dependenciesValid := false
             if dependenciesValid then
@@ -10784,8 +10829,15 @@ def isprecompiled {Stream Mod Reason PrefValue : Type}
 structure CacheRelocatabilityOps (o : LOps X Y E D CI CF V)
     (Stream Mod Reason PrefValue : Type) where
   freshest : CacheFreshestOps o Stream Mod Reason PrefValue
-  containsInclude : List CacheHeaderIncludes → CacheHeaderIncludes → Bool
-  isContentTrackedMtime : JuliaLean.base.float.FV .f64 → Bool
+
+/-- `inc ∈ srcfiles` for `inc::CacheHeaderIncludes` and the `srcfiles::Set{String}` that
+`_parse_cache_header` returns. `in` on a `Set` compares with `isequal`, which is false between a
+`CacheHeaderIncludes` and a `String`, so the result is always false. -/
+def cacheIncludeInSrcfiles (_srcfiles : List Bytes) (_inc : CacheHeaderIncludes) : Bool := false
+
+/-- `-1.0`, the mtime recorded for a file whose content is tracked. -/
+def contentTrackedMtime : JuliaLean.base.float.FV .f64 :=
+  JuliaLean.Promotion.Fl.ofBits 0xBFF0000000000000
 
 /--
 Julia source: base/loading.jl:2303-2322 @ f755f49a9e41380d7da126b3c1db9fe7f83dd027
@@ -10816,9 +10868,8 @@ def isrelocatable {Stream Mod Reason PrefValue : Type}
     (o : LOps X Y E D CI CF V)
     (ops : CacheRelocatabilityOps o Stream Mod Reason PrefValue)
     (pkg : PkgId) : LM o Bool := do
-  let flags := defaultCacheFlags o ops.freshest.staleness.coverage
   let path ← compilecache_freshest_path o ops.freshest pkg false none none
-    (some flags) false none none
+    none false none none
   let some path := path | return false
   let io ← ops.freshest.staleness.io.openRead path
   tryFinallyL o (do
@@ -10827,11 +10878,12 @@ def isrelocatable {Stream Mod Reason PrefValue : Type}
       throwL o (.argumentError
         (ops.freshest.staleness.io.bytesToString
           (lit "Incompatible header in cache file " ++ path ++ lit ".")))
-    let header ← parse_cache_header o ops.freshest.staleness.io io path
+    let header ← _parse_cache_header o ops.freshest.staleness.io io path
     for inc in header.includes do
       if !(lit "@depot").isPrefixOf inc.filename then return false
-      if !ops.containsInclude header.includesSrcFiles inc &&
-          !ops.isContentTrackedMtime inc.mtime then return false
+      if !cacheIncludeInSrcfiles header.srcfiles inc then
+        let trackContent := JuliaLean.base.float.eq_float inc.mtime contentTrackedMtime
+        if !trackContent then return false
     return true
     ) (ops.freshest.staleness.io.close io)
 
@@ -10955,7 +11007,7 @@ def requireSearchTryCandidate {Stream Mod Reason PrefValue Task Condition Callba
     (depotPath : List Bytes) (flags : CacheFlags) (staleCheck trusted : Bool)
     (reasons : Option (AMap Bytes JInt64)) (tried : Nat) : LM o (Option Mod) := do
   let candidate ← stale_cachefile o ops.freshest.staleness pkg buildId spec path false flags
-    reasons (staleCheck && !trusted) false true none
+    reasons (staleCheck && !trusted) false true
   ops.freshest.updateReasons reasons candidate.reasons
   if candidate.stale then return none
   let mut dependencies : List (RequireSearchDependency Mod) := []
@@ -11020,7 +11072,7 @@ def requireSearchTryCandidate {Stream Mod Reason PrefValue Task Condition Callba
                     let depCandidate ← stale_cachefile o ops.freshest.staleness depKey
                       depBuildId depSpec depPath false flags none
                       (staleCheck && !depTrusted)
-                      (!depTrusted && privateDependency.isNone) false none
+                      (!depTrusted && privateDependency.isNone) false
                     if !depCandidate.stale then
                       match privateDependency with
                       | some module =>
