@@ -1,0 +1,67 @@
+id: compiler-inlining-llvmcall-cost
+title: "statement_cost charges every llvmcall UNKNOWN_CALL_COST because maxarg + 1 wraps"
+priority: P3
+kind: wrong-result
+area: Compiler
+files: [Compiler/src/optimize.jl, Compiler/src/tfuncs.jl]
+functions: ["statement_cost(ex::Expr, line::Int, src::Union{CodeInfo, IRCode}, sptypes::Vector{VarState}, params::OptimizationParams)"]
+summary: |
+  statement_cost checks an intrinsic call's argument count with
+  `minarg + 1 <= nargs <= maxarg + 1`. llvmcall's arity is 3:INT_INF with INT_INF = typemax(Int),
+  so maxarg + 1 wraps to typemin(Int), the check always fails, and every llvmcall is charged
+  UNKNOWN_CALL_COST (20) instead of its table cost 10. The `f === Intrinsics.llvmcall` branch written
+  for it is dead.
+likelihood: |
+  Every llvmcall. The effect is a cost of 20 instead of 10 per llvmcall in the inlining
+  heuristic, which changes decisions only near the threshold.
+  Triage 2026-11-10. Rerun 2026-11-10: REPRODUCED on pinned f755f49a9e, nightly 290d5bb5f5, 1.13.3 and upstream master 4c0e39dde6 (a 2026-11-09 build, output.master).
+  Master optimize.jl:1836 still has `nargs <= maxarg + 1`. Each llvmcall is charged 20 instead of
+  10; that changes an inlining decision only within 10 of the threshold. P3.
+maybe_intended: ""
+reproducer: |
+  fl(x::Int32) = Base.llvmcall("%r = add i32 %0, 1\nret i32 %r", Int32, Tuple{Int32}, x)
+  ir, = only(Base.code_ircode(fl, (Int32,)))
+  CC.statement_cost(ir.stmts.stmt[1], 1, ir, ir.sptypes, CC.OptimizationParams())   # 20
+output:
+  release: |                          # 1.13.3 67ac47b9cd855e02134d41d5428ac9f2a73f2694
+    1.13.3 67ac47b9cd855e02134d41d5428ac9f2a73f2694
+    T_IFUNC arity: 3:9223372036854775807, maxarg + 1 = -9223372036854775808, T_IFUNC_COST = 10
+    statement 1 (5 args): statement_cost = 20
+    REPRODUCED compiler-inlining-llvmcall-cost
+  nightly: |                          # 1.15.0-DEV.304 290d5bb5f52e815284ce14493f6964147d2f2dc7
+    1.15.0-DEV.304 290d5bb5f52e815284ce14493f6964147d2f2dc7
+    T_IFUNC arity: 3:9223372036854775807, maxarg + 1 = -9223372036854775808, T_IFUNC_COST = 10
+    statement 1 (5 args): statement_cost = 20
+    REPRODUCED compiler-inlining-llvmcall-cost
+  master: |                          # 1.15.0-DEV.627 4c0e39dde69c0922daffc45fa63fe4ffd7438124 (upstream master 2026-11-09, desktop build; 6 commits behind eb844b8ebd, none in these files)
+    1.15.0-DEV.627 4c0e39dde69c0922daffc45fa63fe4ffd7438124
+    T_IFUNC arity: 3:9223372036854775807, maxarg + 1 = -9223372036854775808, T_IFUNC_COST = 10
+    statement 1 (5 args): statement_cost = 20
+    REPRODUCED compiler-inlining-llvmcall-cost
+reproduced: {release: true, nightly: true, master: true}
+expected: |
+  10, the T_IFUNC_COST entry that add_tfunc(Core.Intrinsics.llvmcall, 3, INT_INF,
+  llvmcall_tfunc, 10) gives it.
+promised_by: |
+  The llvmcall branch and its comment at Compiler/src/optimize.jl:1821-1823 ("llvmcall holds
+  malformed IR, so argextype will crash on it", return cost) and the cost 10 at tfuncs.jl:329.
+cause: |
+  Compiler/src/optimize.jl:1816 `if minarg + 1 <= nargs <= maxarg + 1` with maxarg = INT_INF
+  (tfuncs.jl:52, 329). No other intrinsic has INT_INF arity. Unchanged on master eb844b8ebd
+  (2026-11-10).
+possible_fix: |
+  Compare `nargs - 1 <= maxarg` (or test minarg/maxarg without adding 1).
+duplicates:
+  issues: []
+  queries: ["llvmcall inlining cost", "llvmcall statement_cost", "llvmcall inline", "INT_INF maxarg", "T_IFUNC maxarg overflow", "prs: llvmcall statement_cost", "issues: llvmcall inlining cost"]
+lean:
+  property: JuliaLean.Proofs.Compiler.src.optimize.LlvmcallTableCost
+  theorem: JuliaLean.Proofs.Compiler.src.optimize.llvmcallTableCost_refuted
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: true
+  output: |
+    1.15.0-DEV.184 f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    T_IFUNC arity: 3:9223372036854775807, maxarg + 1 = -9223372036854775808, T_IFUNC_COST = 10
+    statement 1 (5 args): statement_cost = 20
+    REPRODUCED compiler-inlining-llvmcall-cost

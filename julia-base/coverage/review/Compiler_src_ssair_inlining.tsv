@@ -1,0 +1,13 @@
+line	name	verdict	mirror	property	settled	reason
+7	Signature	FAITHFUL	-	-	-	The inner constructor only calls new(f, ft, argtypes); the no-behaviour reason applies.
+31	ConstantCase	FAITHFUL	-	-	-	The inner constructor only calls new(val); the no-behaviour reason applies.
+36	SomeCase	FAITHFUL	-	-	-	The inner constructor only calls new(val); the no-behaviour reason applies.
+60	UnionSplit	FAITHFUL	-	-	-	The inner constructor stores its four typed arguments and a fresh empty bbs, with no check or conversion to state; the no-behaviour reason applies.
+66	InliningEdgeTracker	FAITHFUL	-	-	-	The inner constructor only calls new(state.edges); the no-behaviour reason applies.
+827	InferredCode	FAITHFUL	-	-	-	The inner constructor only calls new(src, effects); the no-behaviour reason applies.
+860	resolve_todo	HOLLOW	yes	no	yes	The clauses only pin the @inline and @noinline call-site cases, a MAX_INLINE_COST source and "a constant result is not inlined", so a function that inlines only at @inline call sites, or returns compileable instead of ConstantCase, passes; the ordinary decision (no annotation, finite cost -> inline) and the constant and no-result branches are never stated, and the edge bookkeeping and returned IR are not modelled.
+1517	semiconcrete_result_item	HOLLOW	yes	no	yes	The clauses only pin the call-site @noinline, call-site @inline and declared-@noinline cases, so a function that inlines only at @inline call sites passes; the ordinary case (inlining on, no annotations -> inline when the policy accepts the IRCode) is never stated.
+1578	handle_cases!	HOLLOW	yes	no	yes	Only the single-case branch is an iff; the union-split and flags branches are stated as necessary conditions on their result, so a function that returns nothing for every multi-case or zero-case call passes; the push of the UnionSplit and the add_flag! are never required.
+1699	inline_const_if_inlineable!	HOLLOW	yes	no	yes	The replaced/kept result is pinned, but in the kept case the new flag is only required to contain the old flag and IR_FLAGS_REMOVABLE, so a function that also sets IR_FLAG_INBOUNDS or IR_FLAG_NOINLINE passes; flag | IR_FLAGS_REMOVABLE exactly is never stated.
+1758	linear_inline_eligible	FAITHFUL	yes	yes	yes	Mirror of the three early returns; proven for every block count and terminator that it is true exactly for one block ending in a ReturnNode with a value.
+1766	early_inline_special_case	HOLLOW	yes	no	yes	The constant replacement is an iff, but the compilerbarrier, ifelse and task_result_type rewrites are only stated as necessary conditions (result = arg3 -> ...), so a function that never performs them passes, although the registry statement says "exactly".

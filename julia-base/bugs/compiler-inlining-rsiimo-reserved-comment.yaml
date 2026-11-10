@@ -1,0 +1,63 @@
+id: compiler-inlining-rsiimo-reserved-comment
+title: "Stale comment: IR_FLAG_RSIIMO is bit 20, not the reserved bit 15"
+priority: P3
+kind: documentation
+area: Compiler
+files: [Compiler/src/optimize.jl]
+functions: ["IR_FLAG_RSIIMO"]
+summary: |
+  The comment at Compiler/src/optimize.jl:44 says "Reserved: one(UInt32) << 15 used for
+  RSIIMO below", but IR_FLAG_RSIIMO is one(UInt32) << 20 (optimize.jl:57) and no IR flag uses
+  bit 15. Anyone syncing the flags with julia.h or method.c from the comment gets the wrong bit.
+likelihood: |
+  Documentation only; the code is consistent.
+  Triage 2026-11-10. Rerun 2026-11-10: REPRODUCED on pinned, nightly and master 4c0e39dde6; 1.13.3 has
+  no IR_FLAG_RSIIMO. On master the comment is at optimize.jl:38 and the flag at line 51. Both
+  lines come from the same commit, 5566b23a42 (#62604, 2026-08-04), so the comment was wrong
+  from the start, and no C file names the flag. Documentation only. P3.
+maybe_intended: ""
+reproducer: |
+  trailing_zeros(Base.Compiler.IR_FLAG_RSIIMO)   # 20
+output:
+  release: |                          # 1.13.3 67ac47b9cd855e02134d41d5428ac9f2a73f2694
+    1.13.3 67ac47b9cd855e02134d41d5428ac9f2a73f2694
+    comment line: not found
+    IR_FLAG_RSIIMO is not defined
+    NOT REPRODUCED compiler-inlining-rsiimo-reserved-comment
+  nightly: |                          # 1.15.0-DEV.304 290d5bb5f52e815284ce14493f6964147d2f2dc7
+    1.15.0-DEV.304 290d5bb5f52e815284ce14493f6964147d2f2dc7
+    comment line: optimize.jl:44
+    IR_FLAG_RSIIMO = 1 << 20
+    flags at bit 15: 0
+    REPRODUCED compiler-inlining-rsiimo-reserved-comment
+  master: |                          # 1.15.0-DEV.627 4c0e39dde69c0922daffc45fa63fe4ffd7438124 (upstream master 2026-11-09, desktop build; 6 commits behind eb844b8ebd, none in these files)
+    1.15.0-DEV.627 4c0e39dde69c0922daffc45fa63fe4ffd7438124
+    comment line: optimize.jl:38
+    IR_FLAG_RSIIMO = 1 << 20
+    flags at bit 15: 0
+    REPRODUCED compiler-inlining-rsiimo-reserved-comment
+reproduced: {release: false, nightly: true, master: true}
+expected: |
+  The comment names the bit RSIIMO uses, or the flag uses bit 15.
+promised_by: |
+  Compiler/src/optimize.jl:44 (Reserved: one(UInt32) << 15 used for RSIIMO below).
+cause: |
+  Compiler/src/optimize.jl:44 versus 57. Unchanged on master eb844b8ebd (2026-11-10). On 1.13.3
+  IR_FLAG_RSIIMO does not exist.
+possible_fix: |
+  Drop the comment, or move IR_FLAG_RSIIMO to bit 15.
+duplicates:
+  issues: []
+  queries: ["IR_FLAG_RSIIMO", "RSIIMO reserved", "RSIIMO bit 15", "IR_FLAG_RESET_SAFE", "prs: IR_FLAG_RSIIMO", "issues: RSIIMO"]
+lean:
+  property: JuliaLean.Proofs.Compiler.src.optimize.RsiimoAtReservedBit
+  theorem: JuliaLean.Proofs.Compiler.src.optimize.rsiimoAtReservedBit_refuted
+current:
+  commit: f755f49a9e41380d7da126b3c1db9fe7f83dd027
+  reproduced: true
+  output: |
+    1.15.0-DEV.184 f755f49a9e41380d7da126b3c1db9fe7f83dd027
+    comment line: optimize.jl:44
+    IR_FLAG_RSIIMO = 1 << 20
+    flags at bit 15: 0
+    REPRODUCED compiler-inlining-rsiimo-reserved-comment
